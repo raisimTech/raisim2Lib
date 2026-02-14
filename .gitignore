@@ -26,3 +26,10 @@ data/*
 docs/.venv/*
 uv.lock
 .python-version
+
+# Downloaded raisim2Lib release payloads
+raisim/
+rayrai/
+windows-x86-*/
+linux-x86-*/
+linux-arm64-*/

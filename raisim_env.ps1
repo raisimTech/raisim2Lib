@@ -32,8 +32,25 @@ function Add-PathEntry {
   Write-Host "Added to PATH: $Entry"
 }
 
-$raisimBase = Join-Path $env:RAISIM_ROOT ("raisim\" + $env:RAISIM_OS)
-$rayraiBase = Join-Path $env:RAISIM_ROOT ("rayrai\" + $env:RAISIM_OS)
+$raisimLegacyBase = Join-Path $env:RAISIM_ROOT ("raisim\" + $env:RAISIM_OS)
+$raisimFlatBase = Join-Path $env:RAISIM_ROOT "raisim"
+if (Test-Path -LiteralPath (Join-Path $raisimLegacyBase "bin")) {
+  $raisimBase = $raisimLegacyBase
+} elseif (Test-Path -LiteralPath (Join-Path $raisimFlatBase "bin")) {
+  $raisimBase = $raisimFlatBase
+} else {
+  $raisimBase = $raisimLegacyBase
+}
+
+$rayraiLegacyBase = Join-Path $env:RAISIM_ROOT ("rayrai\" + $env:RAISIM_OS)
+$rayraiFlatBase = Join-Path $env:RAISIM_ROOT "rayrai"
+if (Test-Path -LiteralPath (Join-Path $rayraiLegacyBase "bin")) {
+  $rayraiBase = $rayraiLegacyBase
+} elseif (Test-Path -LiteralPath (Join-Path $rayraiFlatBase "bin")) {
+  $rayraiBase = $rayraiFlatBase
+} else {
+  $rayraiBase = $rayraiLegacyBase
+}
 
 Add-PathEntry (Join-Path $raisimBase "bin")
 Add-PathEntry (Join-Path $rayraiBase "bin")

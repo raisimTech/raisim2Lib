@@ -4,10 +4,16 @@ if "%RAISIM_ROOT:~-1%"=="\" set "RAISIM_ROOT=%RAISIM_ROOT:~0,-1%"
 
 if not defined RAISIM_OS set "RAISIM_OS=win32"
 
-call :AddPath "%RAISIM_ROOT%\raisim\%RAISIM_OS%\bin"
-call :AddPath "%RAISIM_ROOT%\rayrai\%RAISIM_OS%\bin"
-call :AddPath "%RAISIM_ROOT%\raisim\%RAISIM_OS%\lib"
-call :AddPath "%RAISIM_ROOT%\rayrai\%RAISIM_OS%\lib"
+set "RAISIM_BASE=%RAISIM_ROOT%\raisim\%RAISIM_OS%"
+if not exist "%RAISIM_BASE%\bin\" set "RAISIM_BASE=%RAISIM_ROOT%\raisim"
+
+set "RAYRAI_BASE=%RAISIM_ROOT%\rayrai\%RAISIM_OS%"
+if not exist "%RAYRAI_BASE%\bin\" set "RAYRAI_BASE=%RAISIM_ROOT%\rayrai"
+
+call :AddPath "%RAISIM_BASE%\bin"
+call :AddPath "%RAYRAI_BASE%\bin"
+call :AddPath "%RAISIM_BASE%\lib"
+call :AddPath "%RAYRAI_BASE%\lib"
 
 REM If you're using vcpkg to supply runtime DLLs (e.g. SDL2), add its bin folders too.
 if not defined VCPKG_ROOT (
