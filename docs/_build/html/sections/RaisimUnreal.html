@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RaisimUnreal &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="RaisimMatlab Introduction" href="RaiSimMatlab.html" />
+    <link rel="prev" title="RaiSimUnity" href="RaisimUnity.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RaisimUnreal</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-choose-raisimunreal">Why choose RaisimUnreal?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grant-permission-to-run-the-app">Grant permission to run the app</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#on-linux">On Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#on-windows">On Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#windows">Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linux">Linux</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#user-interface">User Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interaction">Interaction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#object-deletion">Object deletion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#object-spawning">Object spawning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#apply-force">Apply force</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#measure-position-or-distance">Measure position or distance</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#time-series-graphs-and-bar-charts">Time-series graphs and bar charts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#maps">Maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#weather">Weather</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#video-recording">Video recording</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#materials">Materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting-and-bug-reporting">Troubleshooting and bug reporting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">RaisimUnreal</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="raisimunreal">
+<h1>RaisimUnreal<a class="headerlink" href="#raisimunreal" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>RaisimUnreal is a visualization client, similar to RaisimUnity.
+The simulation process should launch (<code class="docutils literal notranslate"><span class="pre">raisim::RaisimServer::launchServer</span></code>) a RaisimServer to
+communicate with RaisimUnreal.
+Once the server is running, RaisimUnreal can connect to it and obtain visualization information.</p>
+<p>You can download RaisimUnreal from the <a class="reference external" href="https://github.com/raisimTech/raisimLib/releases">GitHub releases page</a>.
+Here are a few example screenshots from RaisimUnreal.</p>
+<a class="reference internal image-reference" href="../_images/raisimUnreal1.png"><img alt="raisimUnreal1" src="../_images/raisimUnreal1.png" style="width: 800px;" />
+</a>
+<a class="reference internal image-reference" href="../_images/raisimUnreal2.png"><img alt="raisimUnreal2" src="../_images/raisimUnreal2.png" style="width: 800px;" />
+</a>
+<a class="reference internal image-reference" href="../_images/raisimUnreal3.png"><img alt="raisimUnreal3" src="../_images/raisimUnreal3.png" style="width: 800px;" />
+</a>
+<a class="reference internal image-reference" href="../_images/raisimUnreal4.png"><img alt="raisimUnreal4" src="../_images/raisimUnreal4.png" style="width: 800px;" />
+</a>
+<a class="reference internal image-reference" href="../_images/raisimUnreal5.png"><img alt="raisimUnreal5" src="../_images/raisimUnreal5.png" style="width: 800px;" />
+</a>
+<p>Compared to other visualizers, RaisimUnreal offers the highest visual fidelity.
+It is graphics-intensive and requires a capable GPU for high FPS.
+On Windows, Unreal Engine is highly optimized and can reach high frame rates.
+On Linux, performance is generally lower.</p>
+<p>Avoid using it during training, as it can slow training significantly.
+It can utilize most of your GPU to maximize frame rate.
+It is best suited for visualizing final policies after training.</p>
+<p>To use RaisimUnreal, you do not need to modify server-side code.
+From the server side, integration is the same as RaisimUnity.
+Create the server instance (<code class="docutils literal notranslate"><span class="pre">raisim::RaisimServer</span></code>) and launch it (see the examples in
+<code class="docutils literal notranslate"><span class="pre">examples/server</span></code>).</p>
+</section>
+<section id="why-choose-raisimunreal">
+<h2>Why choose RaisimUnreal?<a class="headerlink" href="#why-choose-raisimunreal" title="Link to this heading"></a></h2>
+<p>The following features are only available in RaisimUnreal.</p>
+<ol class="arabic simple">
+<li><p>Add/remove objects dynamically in the visualizer (object spawner menu and <code class="docutils literal notranslate"><span class="pre">del</span></code>)</p></li>
+<li><p>Measure distance (<code class="docutils literal notranslate"><span class="pre">alt</span></code>)</p></li>
+<li><p>Apply external force in the visualizer (<code class="docutils literal notranslate"><span class="pre">shift</span></code>)</p></li>
+<li><p>Visualize maps (<code class="docutils literal notranslate"><span class="pre">raisim::RaisimServer::setMap</span></code>)</p></li>
+</ol>
+<p>Detailed descriptions of these features appear below.
+RaisimUnreal also provides the highest visual fidelity among the available options.</p>
+</section>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Make sure you have a Vulkan-capable GPU</p></li>
+<li><p>On Linux, install Vulkan libraries: <a class="reference external" href="https://linuxconfig.org/install-and-test-vulkan-on-linux">https://linuxconfig.org/install-and-test-vulkan-on-linux</a></p></li>
+<li><p>On Windows, a dialog guides dependency installation the first time you run the app.</p></li>
+<li><p><strong>Update your GPU driver. Use the version recommended by PyTorch or the latest available</strong></p></li>
+</ul>
+</section>
+<section id="grant-permission-to-run-the-app">
+<h2>Grant permission to run the app<a class="headerlink" href="#grant-permission-to-run-the-app" title="Link to this heading"></a></h2>
+<p>Your OS may flag this app because it is not notarized.
+You can allow the OS to run the app as follows.</p>
+<section id="on-linux">
+<h3>On Linux<a class="headerlink" href="#on-linux" title="Link to this heading"></a></h3>
+<p>Open a terminal, go to the <code class="docutils literal notranslate"><span class="pre">RaisimUnreal/linux</span></code> directory, and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chmod<span class="w"> </span>+x<span class="w"> </span>./raisimUnreal.x86_64
+</pre></div>
+</div>
+</section>
+<section id="on-windows">
+<h3>On Windows<a class="headerlink" href="#on-windows" title="Link to this heading"></a></h3>
+<p>Double-click the app and select “Run anyway.”</p>
+</section>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<section id="windows">
+<h3>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h3>
+<p>If you run the RaisimUnreal app, it will guide you through dependency installation.</p>
+</section>
+<section id="linux">
+<h3>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Ubuntu 20.04 or later (18.04 can work but requires careful dependency management)</p></li>
+<li><p>Vulkan: Follow the instructions at <a class="reference external" href="https://linuxconfig.org/install-and-test-vulkan-on-linux">https://linuxconfig.org/install-and-test-vulkan-on-linux</a></p></li>
+<li><p>Latest graphics driver. If you use PyTorch, use the driver version installed with CUDA
+(following the PyTorch installation instructions). Otherwise, use the latest version.</p></li>
+</ul>
+</section>
+</section>
+<section id="user-interface">
+<h2>User Interface<a class="headerlink" href="#user-interface" title="Link to this heading"></a></h2>
+<p>There are three top-level menu panels: the main menu, object list menu, and object spawner menu.
+You can press <code class="docutils literal notranslate"><span class="pre">m</span></code> to cycle the panels or hide them.</p>
+<p>The <strong>main menu</strong> contains connection, visualization, and interaction widgets.
+Most items have a corresponding keyboard binding.</p>
+<p>The <strong>object list menu</strong> lists all objects in the world.
+You can click the object button to focus on the object.
+You can also type in the search bar to find an object with a specific name (set via <code class="docutils literal notranslate"><span class="pre">raisim::Object::setName</span></code>).</p>
+<p>The <strong>object spawner menu</strong> allows you to spawn new objects into the map.
+You can set the initial state of the object as well.</p>
+<p>There are also a few sub-menus that can be created as needed.</p>
+<p>The <strong>object menu</strong> is created when an object is focused.
+You can focus on an object by clicking it in the scene or by selecting it in the object list menu.
+You can also focus on an object from the server side using <code class="docutils literal notranslate"><span class="pre">raisim::RaisimServer::focusOn</span></code>.
+Once the object is focused, you can read about states of the object, frames associated with the object, and joints of the object.</p>
+<p>The <strong>event menu</strong> is created when you press <code class="docutils literal notranslate"><span class="pre">tab</span></code>.
+It lists events that occurred during execution.
+It can be useful for debugging.</p>
+<p>The <strong>graph menu</strong> is created when you press <code class="docutils literal notranslate"><span class="pre">g</span></code>.
+It lists all graphs specified by the server (see the <code class="docutils literal notranslate"><span class="pre">atlas.cpp</span></code> example for details).</p>
+</section>
+<section id="interaction">
+<h2>Interaction<a class="headerlink" href="#interaction" title="Link to this heading"></a></h2>
+<section id="object-deletion">
+<h3>Object deletion<a class="headerlink" href="#object-deletion" title="Link to this heading"></a></h3>
+<p>Press <code class="docutils literal notranslate"><span class="pre">del</span></code> to delete the focused object.
+You can focus on an object by left-clicking it or selecting it in the object list menu.</p>
+</section>
+<section id="object-spawning">
+<h3>Object spawning<a class="headerlink" href="#object-spawning" title="Link to this heading"></a></h3>
+<p>You can find the object spawner menu by pressing <code class="docutils literal notranslate"><span class="pre">m</span></code> a few times.
+There are eight object types available.
+Click on the object you want to spawn and fill in the other parameters that are activated in the object spawner menu.
+Press <code class="docutils literal notranslate"><span class="pre">enter</span></code> or click the button to spawn the object.</p>
+</section>
+<section id="apply-force">
+<h3>Apply force<a class="headerlink" href="#apply-force" title="Link to this heading"></a></h3>
+<p>You can apply external forces by pressing <code class="docutils literal notranslate"><span class="pre">shift</span></code> and dragging the object.
+The force model is spring-based, so the applied force scales with the drag distance.
+Release the left mouse button to stop applying the force.</p>
+</section>
+<section id="measure-position-or-distance">
+<h3>Measure position or distance<a class="headerlink" href="#measure-position-or-distance" title="Link to this heading"></a></h3>
+<p>You can press <code class="docutils literal notranslate"><span class="pre">alt</span></code> and <code class="docutils literal notranslate"><span class="pre">left-click</span></code> on an object to specify a <em>point of interest</em>.
+If there is one <em>point of interest</em>, the ruler will measure a position.
+If there are two, the ruler will measure the displacement.</p>
+</section>
+</section>
+<section id="time-series-graphs-and-bar-charts">
+<h2>Time-series graphs and bar charts<a class="headerlink" href="#time-series-graphs-and-bar-charts" title="Link to this heading"></a></h2>
+<p>You can add time-series graphs and bar charts.</p>
+<a class="reference internal image-reference" href="../_images/timeSeriesGraphAndBarChart.png"><img alt="graphs" src="../_images/timeSeriesGraphAndBarChart.png" style="width: 1080px;" />
+</a>
+<p>You can find an example <a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/examples/src/maps/atlas.cpp">here</a>.</p>
+</section>
+<section id="maps">
+<h2>Maps<a class="headerlink" href="#maps" title="Link to this heading"></a></h2>
+<p>You can use pre-configured maps in RaisimUnreal with <code class="docutils literal notranslate"><span class="pre">RaisimServer::setMap</span></code>.
+These maps are visually rich, but each map requires about 1 GB of storage.
+This contributes to the large download size.</p>
+<p>You should read the examples in <code class="docutils literal notranslate"><span class="pre">examples/src/maps</span></code> to understand how to use them.
+Note that some objects have appearance “hidden”.
+This ensures they only appear in the simulation world, not in the visualization world.</p>
+<p>Currently, the following maps are available.</p>
+<a class="reference internal image-reference" href="../_images/rsu_maps.png"><img alt="rsu_maps" src="../_images/rsu_maps.png" style="width: 1080px;" />
+</a>
+<p>You can purchase a custom map.
+Send a site description and reference images to receive a quote.
+Note that the map can be as good as the data you provide.</p>
+</section>
+<section id="weather">
+<h2>Weather<a class="headerlink" href="#weather" title="Link to this heading"></a></h2>
+<p>If you see a dropdown menu for weather on the main menu panel, that means that map supports dynamic weather.
+If it does not support dynamic weather, it will support dynamic lighting so that you can move the light source around.
+Weather-related computation and visualization are costly. Use a simpler map such as “simple” to reduce compute load.</p>
+<p>Here is an example of weather changes</p>
+<a class="reference internal image-reference" href="../_images/rsu_weather.gif"><img alt="rsu_weather" src="../_images/rsu_weather.gif" style="width: 854px;" />
+</a>
+<p>If the map supports dynamic weather, it also supports the “timeOfDay” option. You can drag the scroll bar to set the current time.</p>
+<a class="reference internal image-reference" href="../_images/rsu_timeOfDay.gif"><img alt="rsu_tod" src="../_images/rsu_timeOfDay.gif" style="width: 854px;" />
+</a>
+</section>
+<section id="video-recording">
+<h2>Video recording<a class="headerlink" href="#video-recording" title="Link to this heading"></a></h2>
+<p>RaisimUnreal uses <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> to record your screen in Linux and Windows.
+Install ffmpeg before using the screen recording feature.
+On Windows, make sure that the directory containing the ffmpeg executable is added to your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable.
+This is the standard mechanism Windows uses to locate executables.</p>
+<p>The options in the menu panel are passed to ffmpeg.
+If you are unfamiliar with ffmpeg, review its options before modifying this feature.</p>
+</section>
+<section id="materials">
+<h2>Materials<a class="headerlink" href="#materials" title="Link to this heading"></a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">SingleBodyObject</span></code> has an appearance attribute which can be set using <code class="docutils literal notranslate"><span class="pre">setAppearance()</span></code>.
+You can use the basic colors described <a class="reference external" href="https://raisim.com">here</a>.
+<strong>If you want to hide the object, you can set the appearance to “hidden”.</strong></p>
+<p>RaisimUnreal also provides the additional appearances shown below</p>
+<p><strong>marble1</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_marble1.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_marble1.png" style="width: 300px;" />
+</a>
+<p><strong>marble2</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_marble2.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_marble2.png" style="width: 300px;" />
+</a>
+<p><strong>marble3</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_marble3.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_marble3.png" style="width: 300px;" />
+</a>
+<p><strong>marble4</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_marble4.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_marble4.png" style="width: 300px;" />
+</a>
+<p><strong>soil1</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_soil1.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_soil1.png" style="width: 300px;" />
+</a>
+<p><strong>soil2</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_soil2.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_soil2.png" style="width: 300px;" />
+</a>
+<p><strong>wood1</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_wood1.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_wood1.png" style="width: 300px;" />
+</a>
+<p><strong>wood2</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_wood2.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_wood2.png" style="width: 300px;" />
+</a>
+<p><strong>steel</strong></p>
+<a class="reference internal image-reference" href="../_images/RUnrealHm_steel.png"><img alt="raisimUnreal" src="../_images/RUnrealHm_steel.png" style="width: 300px;" />
+</a>
+</section>
+<section id="troubleshooting-and-bug-reporting">
+<h2>Troubleshooting and bug reporting<a class="headerlink" href="#troubleshooting-and-bug-reporting" title="Link to this heading"></a></h2>
+<p>RaisimUnreal creates a log file <code class="docutils literal notranslate"><span class="pre">Error_Log.txt</span></code> inside the raisimUnreal2 folder.
+If RaisimUnreal is not working properly, please read the log first.
+If you cannot figure it out yourself, you can post an issue with the log file.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="RaisimUnity.html" class="btn btn-neutral float-left" title="RaiSimUnity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="RaiSimMatlab.html" class="btn btn-neutral float-right" title="RaisimMatlab Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

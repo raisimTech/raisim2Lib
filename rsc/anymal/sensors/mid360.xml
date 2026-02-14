@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<sensor_set name="mid360">
+    <origin xyz="0 0 0"/>
+    <link>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="mid360.STL" />
+            </geometry>
+            <material name="light_gray"/>
+        </visual>
+
+        <inertial>
+            <mass value="0.03" />
+            <origin xyz="0 0 0.0785" rpy="0 0 0" />
+            <inertia ixx="0.000241148" ixy="0" ixz="0"
+                iyy="0.000241148" iyz="0" izz="0.000264" />
+        </inertial>
+
+        <sensor name="lidar" type="spinning_lidar" update_rate="10">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <model name="Livox mid360"/>
+            <yaw samples="512"/>
+            <pitch samples="64" min_angle="-0.122173" max_angle="0.907571"/>
+            <!-- clockwise or counter-clockwise (everything other than clockwise is counter-clockwise)-->
+            <spin direction="clockwise" rate = "10"/>
+            <range min="0.3" max="20"/>
+        </sensor>
+
+        <sensor name="imu" type="imu" update_rate="200">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <limit acc_limit="40" ang_vel_limit="40"/>
+        </sensor>
+    </link>
+</sensor_set>

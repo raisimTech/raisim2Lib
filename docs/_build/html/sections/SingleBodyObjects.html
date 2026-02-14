@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Single-Body Objects &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contact and Collision" href="Contact.html" />
+    <link rel="prev" title="Articulated Systems" href="ArticulatedSystem.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Object.html">Objects</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Object.html#body-types">Body types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Object.html#name">Name</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Object.html#types">Types</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ArticulatedSystem.html">Articulated Systems</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Single-Body Objects</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#primitives">Primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#compound">Compound</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mesh">Mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#singlebodyobject-api-parent-class">SingleBodyObject API (Parent class)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#compound-api">Compound API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sphere-api">Sphere API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#box-api">Box API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#capsule-api">Capsule API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cylinder-api">Cylinder API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ground-api">Ground API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mesh-api">Mesh API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Object.html#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Object.html">Objects</a></li>
+      <li class="breadcrumb-item active">Single-Body Objects</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="single-body-objects">
+<h1>Single-Body Objects<a class="headerlink" href="#single-body-objects" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">raisim::SingleBodyObject</span></code> is an object with only one rigid body.
+<code class="docutils literal notranslate"><span class="pre">raisim::Compound</span></code> is also a SingleBodyObject because its components move together as one rigid body.
+All SingleBodyObjects have <strong>6 degrees of freedom</strong>: 3 for position and 3 for orientation.</p>
+<section id="primitives">
+<h2>Primitives<a class="headerlink" href="#primitives" title="Link to this heading"></a></h2>
+<p>The following five primitive shapes are supported in RaiSim.</p>
+<img alt="../_images/SingleBodyObjects.png" src="../_images/SingleBodyObjects.png" />
+</section>
+<section id="compound">
+<h2>Compound<a class="headerlink" href="#compound" title="Link to this heading"></a></h2>
+<p>An example can be found <a class="reference external" href="https://raisim.com/sections/RaisimUnity.html">here</a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">raisim::Compound</span></code> has multiple primitive shapes that are rigidly attached to each other to form a single rigid body.
+The shapes do not have to overlap to stay attached.</p>
+<p>A compound object can be added to the world using the method <code class="docutils literal notranslate"><span class="pre">raisim::World::addCompound</span></code>.
+This method takes a vector of children, which have their own shape, material, position, and orientation.
+The shape can be specified by a geometric type (i.e., <code class="docutils literal notranslate"><span class="pre">raisim::ObjectType</span></code>) and its size parameters (<code class="docutils literal notranslate"><span class="pre">objectParam</span></code>).
+The <code class="docutils literal notranslate"><span class="pre">objectParam</span></code> follows a standard way to represent the size of a primitive in RaiSim:</p>
+<ul class="simple">
+<li><p>Sphere: radius, 0, 0, 0</p></li>
+<li><p>Box: x, y, z, 0</p></li>
+<li><p>Capsule and cylinder: radius, height, 0, 0</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">objectParam</span></code> is an instance of <code class="docutils literal notranslate"><span class="pre">raisim::Vec&lt;4&gt;</span></code>.
+All shapes require fewer than four parameters and the unused elements (i.e., the zeroes above) are ignored.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">trans</span></code> member defines the position and orientation of the child in the body frame.
+It is a <code class="docutils literal notranslate"><span class="pre">struct</span></code> with public <code class="docutils literal notranslate"><span class="pre">rot</span></code> and <code class="docutils literal notranslate"><span class="pre">pos</span></code> members.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">mass</span></code>, <code class="docutils literal notranslate"><span class="pre">COM</span></code>, and <code class="docutils literal notranslate"><span class="pre">inertia</span></code> arguments specify the dynamical properties of the combined body.</p>
+</section>
+<section id="mesh">
+<h2>Mesh<a class="headerlink" href="#mesh" title="Link to this heading"></a></h2>
+<a class="reference internal image-reference" href="../_images/mesh.png"><img alt="mesh" src="../_images/mesh.png" style="width: 300px;" />
+</a>
+<p><code class="docutils literal notranslate"><span class="pre">raisim::Mesh</span></code> represents a single-body object defined by a triangle mesh
+(typically from an OBJ file). It is commonly used for static or kinematic
+geometry such as props, terrains, or scanned environments. Meshes are added
+via <code class="docutils literal notranslate"><span class="pre">raisim::World::addMesh</span></code> with several overloads:</p>
+<ul class="simple">
+<li><p>Explicit inertia/COM: <code class="docutils literal notranslate"><span class="pre">addMesh(meshFile,</span> <span class="pre">mass,</span> <span class="pre">inertia,</span> <span class="pre">com,</span> <span class="pre">scale,</span> <span class="pre">material,</span> <span class="pre">collisionMode,</span> <span class="pre">collisionGroup,</span> <span class="pre">collisionMask)</span></code>.</p></li>
+<li><p>Auto inertia/COM: <code class="docutils literal notranslate"><span class="pre">addMesh(meshFile,</span> <span class="pre">mass,</span> <span class="pre">scale,</span> <span class="pre">material,</span> <span class="pre">collisionMode,</span> <span class="pre">collisionGroup,</span> <span class="pre">collisionMask)</span></code>,
+which estimates inertia and COM from the scaled axis-aligned bounding box.</p></li>
+<li><p>Clone: <code class="docutils literal notranslate"><span class="pre">addMesh(existingMesh,</span> <span class="pre">material,</span> <span class="pre">collisionGroup,</span> <span class="pre">collisionMask)</span></code> to reuse a loaded mesh.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">collisionMode</span></code> selects the mesh collision representation:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MeshCollisionMode::ORIGINAL_MESH</span></code>: uses the original triangle mesh.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MeshCollisionMode::CONVEX_HULL</span></code>: uses a single convex hull.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">addMesh</span></code> overloads default to <code class="docutils literal notranslate"><span class="pre">MeshCollisionMode::ORIGINAL_MESH</span></code> unless specified.
+Convex decomposition (formerly <code class="docutils literal notranslate"><span class="pre">CONVEX_SPLIT</span></code>) is no longer available in the API.
+If you need a decomposed collision shape, pre-decompose the mesh and load the
+parts as multiple meshes (or as a Compound) instead.</p>
+<p>Mesh collision is supported for OBJ files; keep collision meshes reasonably sized for performance.</p>
+</section>
+<section id="singlebodyobject-api-parent-class">
+<h2>SingleBodyObject API (Parent class)<a class="headerlink" href="#singlebodyobject-api-parent-class" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="compound-api">
+<h2>Compound API<a class="headerlink" href="#compound-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="sphere-api">
+<h2>Sphere API<a class="headerlink" href="#sphere-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="box-api">
+<h2>Box API<a class="headerlink" href="#box-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="capsule-api">
+<h2>Capsule API<a class="headerlink" href="#capsule-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="cylinder-api">
+<h2>Cylinder API<a class="headerlink" href="#cylinder-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="ground-api">
+<h2>Ground API<a class="headerlink" href="#ground-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="mesh-api">
+<h2>Mesh API<a class="headerlink" href="#mesh-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ArticulatedSystem.html" class="btn btn-neutral float-left" title="Articulated Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Contact.html" class="btn btn-neutral float-right" title="Contact and Collision" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

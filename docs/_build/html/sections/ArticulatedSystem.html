@@ -1,0 +1,740 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Articulated Systems &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Single-Body Objects" href="SingleBodyObjects.html" />
+    <link rel="prev" title="Objects" href="Object.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Object.html">Objects</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Object.html#body-types">Body types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Object.html#name">Name</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Object.html#types">Types</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Articulated Systems</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tl-dr">TL;DR</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#creating-an-instance">Creating an instance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#urdf-modules-optional-attachments">URDF modules (optional attachments)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#urdf-loader-details">URDF loader details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#state-representation">State Representation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#joints">Joints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#urdf-convention">URDF convention</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kinematics">Kinematics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dynamics">Dynamics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#inverse-dynamics">Inverse Dynamics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pd-controller">PD Controller</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#integration-steps">Integration Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get-and-modify-robot-description-in-code">Get and Modify Robot Description in Code</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#apply-external-forces-torques">Apply External Forces/Torques</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#collision">Collision</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#types-of-indices">Types of Indices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#closed-loop-system">Closed-loop system</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SingleBodyObjects.html">Single-Body Objects</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Object.html#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Object.html">Objects</a></li>
+      <li class="breadcrumb-item active">Articulated Systems</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="articulated-systems">
+<h1>Articulated Systems<a class="headerlink" href="#articulated-systems" title="Link to this heading"></a></h1>
+<a class="reference internal image-reference" href="../_images/anymals.png"><img alt="../_images/anymals.png" src="../_images/anymals.png" style="width: 543px; height: 423px;" />
+</a>
+<p>ANYmal robots (B and C versions) simulated in RaiSim.</p>
+<section id="tl-dr">
+<h2>TL;DR<a class="headerlink" href="#tl-dr" title="Link to this heading"></a></h2>
+<p>Click the image for vector graphics</p>
+<a class="reference external image-reference" href="../_images/articulatedSystem.pdf"><img alt="../_images/articulatedSystem.png" src="../_images/articulatedSystem.png" />
+</a>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>An articulated system comprises multiple bodies interconnected via joints.
+There exist two primary configurations of an articulated system: Kinematic trees and closed-loop systems.
+Kinematic trees are characterized by their absence of loops, ensuring that each body has only one parent joint.
+Consequently, the number of joints in a kinematic tree equals the number of bodies, with the provision of a floating joint on the root body for floating systems.</p>
+<p>A closed-loop system has one or more loops.
+A loop means that there are multiple routes from the link to the ROOT.
+RaiSim’s algorithmic backbone, the Articulated Body Algorithm, cannot solve the dynamics of a closed system.
+However, we can simulate a closed-loop system using RaiSim’s contact solver.
+This section focuses on kinematic trees.
+An example of a closed-loop system is mentioned in <strong>Closed-loop system</strong> at the bottom of this page.</p>
+<p>In kinematic trees, <strong>since each body has only one joint, the index of a body always matches that of its parent joint</strong>.
+Here, a “body” denotes a rigid body composed of one or more “links”, each of which is rigidly connected to others within the same body via fixed joints.</p>
+</section>
+<section id="creating-an-instance">
+<h2>Creating an instance<a class="headerlink" href="#creating-an-instance" title="Link to this heading"></a></h2>
+<p>Like any other object, an articulated system is created by the world instance using the <code class="code docutils literal notranslate"><span class="pre">addArticulatedSystem</span></code> method.
+There are four ways to specify an articulated system.</p>
+<ol class="arabic simple">
+<li><p>by providing the path to the URDF file (recommended)</p></li>
+<li><p>by providing the path to the URDF template file (<a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/trackedRobotAndTemplatedURDF.cpp">example</a>)</p></li>
+<li><p>by providing a <code class="code docutils literal notranslate"><span class="pre">std::string</span></code> containing the URDF text (useful when working with Xacro)</p></li>
+<li><p>by providing a <code class="code docutils literal notranslate"><span class="pre">raisim::Child</span></code> instance (advanced; not recommended for beginners)</p></li>
+</ol>
+<p><strong>Note that option 1 and 3 use the same method.</strong>
+<strong>You can provide either the path string or the contents string and the class will identify which one is provided.</strong></p>
+<p>To use option 4, you have to provide all details of the robot in C++ code.
+Child is a tree node that contains <code class="docutils literal notranslate"><span class="pre">fixedBodies</span></code> and <code class="docutils literal notranslate"><span class="pre">child</span></code>.
+It also contains <code class="docutils literal notranslate"><span class="pre">joint</span></code>, <code class="docutils literal notranslate"><span class="pre">body</span></code>, and <code class="docutils literal notranslate"><span class="pre">name</span></code>.
+All properties should be filled.
+Make sure that all inertial properties are defined so that the resulting system is physically feasible.</p>
+</section>
+<section id="urdf-modules-optional-attachments">
+<h2>URDF modules (optional attachments)<a class="headerlink" href="#urdf-modules-optional-attachments" title="Link to this heading"></a></h2>
+<p>Articulated systems can be created from a base URDF plus one or more <em>modules</em>.
+A module is a URDF fragment (e.g., additional links/joints/sensors) that is
+inserted into the base URDF before the closing <code class="docutils literal notranslate"><span class="pre">&lt;/robot&gt;</span></code> tag. This is useful
+for optional payloads or sensor packs without duplicating the entire URDF.</p>
+<p>Use the constructor that takes a list of module filenames:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">modules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;d455.xml&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;livox.xml&quot;</span><span class="p">};</span>
+<span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addArticulatedSystem</span><span class="p">(</span><span class="n">urdfPath</span><span class="p">,</span><span class="w"> </span><span class="n">modules</span><span class="p">,</span><span class="w"> </span><span class="n">resDir</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Module path resolution follows this order (first match wins):</p>
+<ul class="simple">
+<li><p>absolute path to the module file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[baseDir]/&lt;module&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[baseDir]/modules/&lt;module&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[baseDir]/../modules/&lt;module&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[baseDir]/module/&lt;module&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[baseDir]/../module/&lt;module&gt;</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">baseDir</span></code> is the URDF directory unless you pass <code class="docutils literal notranslate"><span class="pre">resDir</span></code> explicitly.
+RaiSim writes a generated URDF named
+<code class="docutils literal notranslate"><span class="pre">generated_&lt;urdf_stem&gt;_&lt;module_stem&gt;[_&lt;module_stem&gt;...].urdf</span></code> into <code class="docutils literal notranslate"><span class="pre">baseDir</span></code>
+and loads that file.</p>
+</section>
+<section id="urdf-loader-details">
+<h2>URDF loader details<a class="headerlink" href="#urdf-loader-details" title="Link to this heading"></a></h2>
+<p>The URDF loader used by <code class="code docutils literal notranslate"><span class="pre">ArticulatedSystem</span></code> has a few behaviors worth noting:</p>
+<ul class="simple">
+<li><p><strong>Base type:</strong> If the root link is named <code class="docutils literal notranslate"><span class="pre">world</span></code>, RaiSim treats the system as
+fixed-base; otherwise it is floating-base.</p></li>
+<li><p><strong>Sensors:</strong> <code class="docutils literal notranslate"><span class="pre">&lt;link</span> <span class="pre">sensor=&quot;...&quot;&gt;</span></code> loads a sensor set XML and instantiates
+sensors of type <code class="docutils literal notranslate"><span class="pre">rgb</span></code>, <code class="docutils literal notranslate"><span class="pre">depth</span></code>, <code class="docutils literal notranslate"><span class="pre">imu</span></code>, or <code class="docutils literal notranslate"><span class="pre">spinning_lidar</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">update_rate</span></code> attribute in the sensor XML is applied to each sensor. IMU
+sensors enable inverse dynamics internally.</p></li>
+<li><p><strong>Constraints:</strong> A <code class="docutils literal notranslate"><span class="pre">&lt;constraints&gt;</span></code> block with <code class="docutils literal notranslate"><span class="pre">&lt;pin&gt;</span></code> entries and a
+<code class="docutils literal notranslate"><span class="pre">nominal_config</span></code> attribute is parsed and passed to the constraint system.</p></li>
+</ul>
+</section>
+<section id="state-representation">
+<h2>State Representation<a class="headerlink" href="#state-representation" title="Link to this heading"></a></h2>
+<p>The state of an articulated system can be represented by a <strong>generalized state</strong> <span class="math notranslate nohighlight">\(\boldsymbol{S}\)</span>, which is composed of a <strong>generalized coordinate</strong> <span class="math notranslate nohighlight">\(\boldsymbol{q}\)</span> and a <strong>generalized velocity</strong> <span class="math notranslate nohighlight">\(\boldsymbol{u}\)</span>.
+Since we are not constraining their parameterization, in general,</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  \boldsymbol{u}\neq\dot{\boldsymbol{q}}.
+\end{equation}\]</div>
+<p>A generalized coordinate fully represents the configuration of the articulated system and a generalized velocity fully represents the velocity state of the articulated system.
+They are independently defined in general.</p>
+<p>Every joint has a corresponding generalized coordinate and generalized velocity.
+The concatenation of all joint generalized coordinates and velocities forms the generalized coordinates and velocities of the articulated system, respectively.
+The order of this concatenation is called <strong>joint order</strong>.
+The joint order can be accessed through <code class="code docutils literal notranslate"><span class="pre">getMovableJointNames()</span></code>.
+Note the keyword “movable”.
+The fixed joints contribute to neither the generalized coordinate nor the generalized velocity.
+Only movable joints do.</p>
+<p>The joint order starts with the <strong>root body</strong> which is the first body of the articulated system.
+For floating-base systems, the root body is the floating base.
+For fixed-base systems, the root body is the one rigidly attached to the world.
+Even though the fixed base cannot move physically, users can move it using <code class="code docutils literal notranslate"><span class="pre">setBaseOrientation</span></code> and <code class="code docutils literal notranslate"><span class="pre">setBasePosition</span></code>.
+So <code class="code docutils literal notranslate"><span class="pre">getMovableJointNames()</span></code> method will return the fixed base name and the fixed base joint is a part of the joint order.</p>
+<p>To set the state of the system, the following methods can be used</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">setGeneralizedCoordinate</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">setGeneralizedVelocity</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">setState</span></code></p></li>
+</ul>
+<p>To obtain the state of the system, the following methods can be used</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getGeneralizedCoordinate</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getGeneralizedVelocity</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getState</span></code></p></li>
+</ul>
+<p>The dimensions of each vector can be obtained respectively by</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getGeneralizedCoordinateDim</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getDOF</span></code> or <code class="code docutils literal notranslate"><span class="pre">getGeneralizedVelocityDim</span></code>.</p></li>
+</ul>
+<p>These two methods are identical</p>
+</section>
+<section id="joints">
+<span id="id1"></span><h2>Joints<a class="headerlink" href="#joints" title="Link to this heading"></a></h2>
+<p>Here are the available joints in RaiSim.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Joint Properties (<span class="math notranslate nohighlight">\(|\cdot|\)</span> is a symbol for dimension size (i.e., cardinality))</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 16.5%" />
+<col style="width: 16.5%" />
+<col style="width: 17.6%" />
+<col style="width: 16.5%" />
+<col style="width: 16.5%" />
+<col style="width: 16.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Fixed</p></th>
+<th class="head"><p>Floating</p></th>
+<th class="head"><p>Revolute</p></th>
+<th class="head"><p>Prismatic</p></th>
+<th class="head"><p>Spherical</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(|\boldsymbol{u}|\)</span></p></td>
+<td><p>0</p></td>
+<td><p>6</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(|\boldsymbol{q}|\)</span></p></td>
+<td><p>0</p></td>
+<td><p>7</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+</tr>
+<tr class="row-even"><td><p>Velocity</p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(m/s\)</span>, <span class="math notranslate nohighlight">\(rad/s\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(rad/s\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(m/s\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(rad/s\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Position</p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span>, <span class="math notranslate nohighlight">\(rad\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(rad\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(rad\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>Force</p></td>
+<td></td>
+<td><p><span class="math notranslate nohighlight">\(N\)</span>, <span class="math notranslate nohighlight">\(Nm\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Nm\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(N\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Nm\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<p>The generalized coordinates/velocities of a joint are expressed in the <strong>joint frame</strong> and with respect to the <strong>parent body</strong>.
+Joint frame is the frame attached to every joint and fixed to the parent body.
+Parent body is the one closer to the root body among the two bodies connected via the joint.
+Note that the angular velocity of a floating base is also expressed in the parent frame (which is the <strong>world frame</strong>).
+Other libraries (e.g., RBDL) might have a different convention, so special care is required during conversion.</p>
+</section>
+<section id="urdf-convention">
+<h2>URDF convention<a class="headerlink" href="#urdf-convention" title="Link to this heading"></a></h2>
+<p>RaiSim uses a modified URDF protocol to define an articulated system.
+URDF files following the original convention can be read by RaiSim.
+However, since RaiSim offers more features, a RaiSim URDF might not be read by other libraries following the original URDF convention.</p>
+<p>The modifications are as follows:</p>
+<ul class="simple">
+<li><p>Capsule geometry is available for both collision objects and visual objects (with the keyword “capsule”). The geometry is defined by the “height” and “radius” keywords. The height represents the distance between the centers of the two spheres.</p></li>
+<li><p>A &lt;joint&gt;/&lt;dynamics&gt; tag can have three more attributes: <em>rotor_inertia</em>, <em>spring_mount</em> and <em>stiffness</em>.</p></li>
+</ul>
+<p>Here is an example joint with the RaiSim tags:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;joint</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;link1Tolink2&quot;</span><span class="w"> </span><span class="na">type=</span><span class="s">&quot;spherical&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;parent</span><span class="w"> </span><span class="na">link=</span><span class="s">&quot;link1&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;child</span><span class="w"> </span><span class="na">link=</span><span class="s">&quot;link2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;origin</span><span class="w"> </span><span class="na">xyz=</span><span class="s">&quot;0 0 -0.24&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;axis</span><span class="w"> </span><span class="na">xyz=</span><span class="s">&quot;0 1 0&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;dynamics</span><span class="w"> </span><span class="na">rotor_inertia=</span><span class="s">&quot;0.0001&quot;</span><span class="w"> </span><span class="na">spring_mount=</span><span class="s">&quot;0.70710678118 0 0.70710678118 0&quot;</span><span class="w"> </span><span class="na">stiffness=</span><span class="s">&quot;500.0&quot;</span><span class="w"> </span><span class="na">damping=</span><span class="s">&quot;3.&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/joint&gt;</span>
+</pre></div>
+</div>
+<p><strong>Rotor_inertia</strong> in RaiSim approximately simulates the rotor inertia of the motor (but omits the resulting gyroscopic effect, which is often negligible).</p>
+<p>It is added to the diagonal elements of the mass matrix.
+It is a common way to include the inertial effect of the rotor.
+You can also override it in C++ using <code class="code docutils literal notranslate"><span class="pre">setRotorInertia()</span></code>.
+Since RaiSim does not know the gear ratio, you have to multiply the rotor inertia by the square of the gear ratio yourself.
+In other words, the value is the reflected rotor inertia observed at the joint.</p>
+<p>Two preprocessor features (also available in the RaiSim world configuration file) are available for the URDF template.</p>
+<ul class="simple">
+<li><p>You can specify a variable in a form of “&#64;&#64;Robot_Height”. The value of this variable can be specified at runtime using <code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> and the corresponding factory method in <code class="docutils literal notranslate"><span class="pre">raisim::World</span></code>.</p></li>
+<li><p>You can specify an equation instead of a variable. For example, {&#64;&#64;Robot_Height*&#64;&#64;Robot_Width*2}.</p></li>
+</ul>
+<p>The preprocessor example can be found in <code class="docutils literal notranslate"><span class="pre">examples/src/server/trackedRobotAndTemplatedURDF.cpp</span></code> and the corresponding URDF template in <code class="docutils literal notranslate"><span class="pre">rsc/templatedTrackedRobot/trackedTemplate.urdf</span></code>.</p>
+<p>In RaiSim, each body of an articulated system has a set of collision bodies and visual objects.
+Collision bodies contain a collision object of one of the following shapes: <em>mesh</em>, <em>sphere</em>, <em>box</em>, <em>cylinder</em>, <em>capsule</em>.
+Visual objects store specifications for visualization; the actual visualization happens in a visualizer (e.g., <a class="reference external" href="https://github.com/leggedrobotics/raisimOgre">raisimOgre</a>).
+For details, check the <a class="reference external" href="http://wiki.ros.org/urdf/XML">URDF protocol</a>.</p>
+<section id="mesh-collision-mode-for-urdf">
+<h3>Mesh collision mode for URDF<a class="headerlink" href="#mesh-collision-mode-for-urdf" title="Link to this heading"></a></h3>
+<p>URDF does not provide a tag to choose the mesh collision mode. In RaiSim, the mode is selected at load time via
+<code class="docutils literal notranslate"><span class="pre">ArticulatedSystemOption::convexifyCollisionMeshes</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">raisim</span><span class="o">::</span><span class="n">ArticulatedSystemOption</span><span class="w"> </span><span class="n">options</span><span class="p">;</span>
+<span class="n">options</span><span class="p">.</span><span class="n">convexifyCollisionMeshes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w">  </span><span class="c1">// convex hull per collision mesh</span>
+<span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">robot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addArticulatedSystem</span><span class="p">(</span><span class="n">urdfPath</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{},</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Set it to <code class="docutils literal notranslate"><span class="pre">false</span></code> to use the original triangle mesh for collision.
+Convex split is not available for URDF collision meshes. If you need a
+decomposed collision shape, pre-decompose the geometry into multiple convex
+meshes and reference them as separate <code class="docutils literal notranslate"><span class="pre">&lt;collision&gt;</span></code> elements in the URDF.</p>
+</section>
+<section id="templated-urdf">
+<h3>Templated URDF<a class="headerlink" href="#templated-urdf" title="Link to this heading"></a></h3>
+<p>You can template a URDF and create different robots by providing different parameters in C++.
+An example can be found <a class="reference external" href="https://github.com/raisimTech/raisimLib/tree/master/rsc/templatedTrackedRobot">here</a>.</p>
+<p>In the URDF template, variables should be marked with <code class="docutils literal notranslate"><span class="pre">&#64;&#64;</span></code>.
+Just like in a world configuration template, you can write math expressions inside <code class="docutils literal notranslate"><span class="pre">{}</span></code>.
+Only basic functions (i.e., sin, cos, log, exp) are available.</p>
+<p>Template parameters should be provided at runtime in <code class="docutils literal notranslate"><span class="pre">raisim::World::addArticulatedSystem</span></code>.
+One of the overloaded methods takes <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">std::unordered_map&lt;std::string,</span> <span class="pre">std::string&gt;&amp;</span> <span class="pre">params</span></code> as input.
+The first one in the pair is the name and the second one is the parameter as a string.</p>
+</section>
+</section>
+<section id="kinematics">
+<h2>Kinematics<a class="headerlink" href="#kinematics" title="Link to this heading"></a></h2>
+<section id="frames">
+<h3>Frames<a class="headerlink" href="#frames" title="Link to this heading"></a></h3>
+<p>The position and velocity of a specific point on a body of an articulated system can be obtained by attaching a <strong>frame</strong>.
+<strong>Frames</strong> are rigidly attached to a body of the system and have a constant position and orientation (w.r.t. parent frame).
+This is the recommended way to get kinematics information for a point of an articulated system in RaiSim.</p>
+<p>All joints have a frame attached and their names are the same as the joint name.
+To create a custom frame, define a fixed frame at the point of interest.
+A dummy link with zero inertia and zero mass must be added on one side of the fixed joint to complete the kinematic tree.</p>
+<p>A frame can be stored locally as an index in user code. For example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;raisim/World.hpp&quot;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="w"> </span><span class="n">world</span><span class="p">;</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">anymal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addArticulatedSystem</span><span class="p">(</span><span class="n">PATH_TO_URDF</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">footFrameIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getFrameIdxByName</span><span class="p">(</span><span class="s">&quot;foot_joint&quot;</span><span class="p">);</span><span class="w"> </span><span class="c1">// the URDF has a joint named &quot;foot_joint&quot;</span>
+<span class="w">  </span><span class="n">raisim</span><span class="o">::</span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">footPosition</span><span class="p">,</span><span class="w"> </span><span class="n">footVelocity</span><span class="p">,</span><span class="w"> </span><span class="n">footAngularVelocity</span><span class="p">;</span>
+<span class="w">  </span><span class="n">raisim</span><span class="o">::</span><span class="n">Mat</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">footOrientation</span><span class="p">;</span>
+<span class="w">  </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getFramePosition</span><span class="p">(</span><span class="n">footFrameIndex</span><span class="p">,</span><span class="w"> </span><span class="n">footPosition</span><span class="p">);</span>
+<span class="w">  </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getFrameOrientation</span><span class="p">(</span><span class="n">footFrameIndex</span><span class="p">,</span><span class="w"> </span><span class="n">footOrientation</span><span class="p">);</span>
+<span class="w">  </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getFrameVelocity</span><span class="p">(</span><span class="n">footFrameIndex</span><span class="p">,</span><span class="w"> </span><span class="n">footVelocity</span><span class="p">);</span>
+<span class="w">  </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getFrameAngularVelocity</span><span class="p">(</span><span class="n">footFrameIndex</span><span class="p">,</span><span class="w"> </span><span class="n">footAngularVelocity</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>You can also store a Frame reference.
+For example, you can replace <code class="code docutils literal notranslate"><span class="pre">getFrameIdxByName</span></code> with <code class="code docutils literal notranslate"><span class="pre">getFrameByName</span></code> in the example above.
+In this way, you can access internal variables and modify them.
+Modifying frames does not affect the joints.
+Frames are instantiated during initialization of the articulated system instance and affect neither kinematics nor dynamics, even if you change them.</p>
+</section>
+<section id="joint-limits">
+<h3>Joint limits<a class="headerlink" href="#joint-limits" title="Link to this heading"></a></h3>
+<p>Joint limits can be defined in a URDF file <strong>per joint</strong> as follows:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;limit</span><span class="w"> </span><span class="na">effort=</span><span class="s">&quot;80&quot;</span><span class="w"> </span><span class="na">lower=</span><span class="s">&quot;-6.28&quot;</span><span class="w"> </span><span class="na">upper=</span><span class="s">&quot;6.28&quot;</span><span class="w"> </span><span class="na">velocity=</span><span class="s">&quot;15&quot;</span><span class="nt">/&gt;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">lower</span></code> and <code class="docutils literal notranslate"><span class="pre">upper</span></code> are joint position limits and the <code class="docutils literal notranslate"><span class="pre">velocity</span></code> is the joint velocity limit.
+The joint limits are implemented as if there is a hard stop at the limits.
+This means that there is a hard collision (with a restitution coefficient of 0) when the joint hits a limit.</p>
+<p>You can modify the joint position limits in C++ using <code class="docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem::setJointLimits()</span></code>.
+Currently, you cannot modify the velocity joint limits in code.</p>
+<p>During simulation, you can get information on joint limit violations using <code class="docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem::getJointLimitViolations</span></code>.
+Even though joint limits are collisions (and thus handled by a contact solver), they are not listed in <code class="docutils literal notranslate"><span class="pre">raisim::Object::getContacts()</span></code>.</p>
+</section>
+<section id="jacobians">
+<h3>Jacobians<a class="headerlink" href="#jacobians" title="Link to this heading"></a></h3>
+<p>Jacobians of a point in RaiSim satisfy the following equation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  \boldsymbol{J}\boldsymbol{u} = \boldsymbol{v}
+\end{equation}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{v}\)</span> represents the linear velocity of the associated point.
+If a rotational Jacobian is used, the right-hand side changes to a rotational velocity expressed in the world frame.</p>
+<p>To get the Jacobians associated with the linear velocity, the following methods are used</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getSparseJacobian</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getDenseJacobian</span></code> – this method only fills non-zero values. The matrix should be initialized to a zero matrix of an appropriate size.</p></li>
+</ul>
+<p>To get the rotational Jacobians, the following methods are used</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getSparseRotationalJacobian</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getDenseRotationalJacobian</span></code> – this method only fills non-zero values. The matrix should be initialized to a zero matrix of an appropriate size.</p></li>
+</ul>
+<p>The main Jacobian class in RaiSim is <code class="code docutils literal notranslate"><span class="pre">raisim::SparseJacobian</span></code>.
+RaiSim uses only sparse Jacobians because it is more memory-efficient.
+Note that only the joints between the child body and the root body affect the motion of the point.</p>
+<p>The class <code class="code docutils literal notranslate"><span class="pre">raisim::SparseJacobian</span></code> has a member <code class="code docutils literal notranslate"><span class="pre">idx</span></code> which stores the indices of columns whose values are non-zero.
+The member <code class="code docutils literal notranslate"><span class="pre">v</span></code> stores the Jacobian except the zero columns.
+In other words, ith column of <code class="code docutils literal notranslate"><span class="pre">v</span></code> corresponds to <code class="code docutils literal notranslate"><span class="pre">idx[i]</span></code> generalized velocity dimension.</p>
+</section>
+</section>
+<section id="dynamics">
+<h2>Dynamics<a class="headerlink" href="#dynamics" title="Link to this heading"></a></h2>
+<p>All force and torque acting on the system can be represented as a single vector in the generalized velocity space.
+This representation is called <strong>generalized force</strong> <span class="math notranslate nohighlight">\(\boldsymbol{\tau}\)</span>.
+Just like in a Cartesian coordinate (i.e., x, y, z axes), the power exerted by an articulated system is computed as a dot product of generalized force and generalized velocity (i.e., <span class="math notranslate nohighlight">\(\boldsymbol{u}\cdot\boldsymbol{\tau}\)</span>).</p>
+<p>We can also combine the mass and inertia of the whole articulated system and represent them in a single matrix.
+This matrix is called <strong>mass matrix</strong> or <strong>inertia matrix</strong> and denoted by <span class="math notranslate nohighlight">\(\boldsymbol{M}\)</span>.
+A mass matrix represents how much the articulated system resists change in generalized velocities.
+Naively speaking, a large mass matrix means that the articulated system experiences a low velocity change for a given generalized force.</p>
+<p>The total kinetic energy of the system is computed as <span class="math notranslate nohighlight">\(\frac{1}{2}\boldsymbol{u}^T\boldsymbol{M}\boldsymbol{u}\)</span>.
+This quantity can be obtained by <code class="code docutils literal notranslate"><span class="pre">getKineticEnergy()</span></code>.</p>
+<p>The total potential energy due to the gravity is a sum of <span class="math notranslate nohighlight">\(mgh\)</span> for all bodies.
+This quantity can be obtained by <code class="code docutils literal notranslate"><span class="pre">getPotentialEnergy()</span></code>.
+Note that gravity must be specified since only the world stores the gravity vector.</p>
+<p>The equation of motion of an articulated system is shown below:</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+   \boldsymbol{\tau} = \boldsymbol{M}(\boldsymbol{q})\dot{\boldsymbol{u}} + \boldsymbol{h}(\boldsymbol{q}, \boldsymbol{u}).
+\end{equation}\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\boldsymbol{h}\)</span> is called a <strong>non-linear term</strong>.
+There are three sources of force that contribute to the non-linear term: gravity, Coriolis, and centrifugal force.
+It is rarely useful to compute the gravity contribution to the nonlinear term alone.
+However, if it is needed, the most direct way is to make the same robot in another world with zero velocity.
+If the generalized velocity is zero, the coriolis and centrifugal contributions are zero.</p>
+<p>The following methods are used to obtain dynamic quantities</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getMassMatrix()</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getNonlinearities()</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getInverseMassMatrix()</span></code></p></li>
+</ul>
+</section>
+<section id="inverse-dynamics">
+<h2>Inverse Dynamics<a class="headerlink" href="#inverse-dynamics" title="Link to this heading"></a></h2>
+<p>RaiSim can compute inverse dynamics using the recursive Newton-Euler algorithm.
+It is the only option for computing the force and torque acting at joints.
+Joint force/torque are the sum of the constraint joint force/torque and actuation force/torque.
+For example, a revolute joint constrains motions in 5 degrees of freedom, which means that there are 5-dimensional constraint forces/torque and 1-dimensional joint actuation torque acting at a revolute joint.</p>
+<p>In minimal coordinate simulation (such as RaiSim), these constraint forces/torques are not computed in the simulation loop.
+These forces/torques can be computed after a simulation loop using the inverse dynamics pipeline.</p>
+<p>To enable inverse dynamics, call <code class="docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem::setComputeInverseDynamics(true)</span></code>.
+<strong>This flag is set automatically if the robot has an IMU sensor</strong>.
+Note that the inverse dynamics pipeline will slow down the simulation by about 10%.</p>
+<p>After a simulation loop, you can call <code class="docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem::getForceAtJointInWorldFrame()</span></code> and <code class="docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem::getTorqueAtJointInWorldFrame()</span></code> to get forces and torques acting at the specified joint.</p>
+<p>Assuming that there are no joint position/velocity limit forces acting at the joint, you can compute the joint actuation as a dot product of the joint axis and the joint torque.
+An example can be found in <code class="docutils literal notranslate"><span class="pre">examples/server/inverseDynamics.cpp</span></code>.</p>
+</section>
+<section id="pd-controller">
+<h2>PD Controller<a class="headerlink" href="#pd-controller" title="Link to this heading"></a></h2>
+<p>When naively implemented, a PD controller can often make a robot unstable.
+However, this is often less problematic for robotics since this instability is also present in real systems (discrete-time control systems).</p>
+<p>For other applications like animation and graphics, it is often desirable to have a stable PD controller when a user wants to keep the time step small.
+Therefore, this PD controller exploits a more stable integration scheme and can use a much smaller time step than a naive implementation.</p>
+<p><strong>This PD controller does not respect the actuation limits of the robot</strong>.
+It uses an implicit integration scheme and we do not even compute the actual torque that is applied to the joints.</p>
+<p>To use this PD controller, set the desired control gains first:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Eigen</span><span class="o">::</span><span class="n">VectorXd</span><span class="w"> </span><span class="nf">pGain</span><span class="p">(</span><span class="n">robot</span><span class="o">-&gt;</span><span class="n">getDOF</span><span class="p">()),</span><span class="w"> </span><span class="n">dGain</span><span class="p">(</span><span class="n">robot</span><span class="o">-&gt;</span><span class="n">getDOF</span><span class="p">());</span>
+<span class="n">pGain</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">...;</span><span class="w"> </span><span class="c1">// set your proportional gain values here</span>
+<span class="n">dGain</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">...;</span><span class="w"> </span><span class="c1">// set your differential gain values here</span>
+<span class="n">robot</span><span class="o">-&gt;</span><span class="n">setPdGains</span><span class="p">(</span><span class="n">pGain</span><span class="p">,</span><span class="w"> </span><span class="n">dGain</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that <strong>the dimension of the pGain vector is the same as that of the generalized velocity NOT that of the coordinate</strong>.</p>
+<p>Finally, the target position and the velocity can be set as follows:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Eigen</span><span class="o">::</span><span class="n">VectorXd</span><span class="w"> </span><span class="nf">pTarget</span><span class="p">(</span><span class="n">robot</span><span class="o">-&gt;</span><span class="n">getGeneralizedCoordinateDim</span><span class="p">()),</span><span class="w"> </span><span class="n">vTarget</span><span class="p">(</span><span class="n">robot</span><span class="o">-&gt;</span><span class="n">getDOF</span><span class="p">());</span>
+<span class="n">pTarget</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">...;</span><span class="w"> </span><span class="c1">// set your position target</span>
+<span class="n">vTarget</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">...;</span><span class="w"> </span><span class="c1">// set your velocity target</span>
+<span class="n">robot</span><span class="o">-&gt;</span><span class="n">setPdTarget</span><span class="p">(</span><span class="n">pTarget</span><span class="p">,</span><span class="w"> </span><span class="n">vTarget</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Here, <strong>the dimension of the pTarget vector is the same as that of the generalized coordinate NOT that of the velocity</strong>.
+This can be confusing and may seem inconsistent.
+However, this is a valid convention.
+The only reason the two dimensions differ is the quaternion representation.
+The quaternion target is represented by a quaternion whereas the virtual spring stiffness between the two orientations can be represented by a 3D vector, which is composed of motions in each angular velocity components.</p>
+<p>A feedforward force term can be added by <code class="code docutils literal notranslate"><span class="pre">setGeneralizedForce()</span></code> if desired.
+This term is set to zero by default.
+Note that this value is stored in the class instance and does not change unless the user specifies it so.
+If this feedforward force should be applied for a single time step, set it to zero in the subsequent control loop (after the <code class="code docutils literal notranslate"><span class="pre">integrate()</span></code> call of the world).</p>
+<p>The theory of the implemented PD controller can be found in chapter 1.2 of this <a class="reference external" href="https://www.overleaf.com/read/dbqbgcnhzykq">article</a>.
+This document is intended for advanced users and is not required to use RaiSim.</p>
+</section>
+<section id="integration-steps">
+<h2>Integration Steps<a class="headerlink" href="#integration-steps" title="Link to this heading"></a></h2>
+<p>Integration of an articulated system is performed in two stages: <code class="code docutils literal notranslate"><span class="pre">integrate1</span></code> and <code class="code docutils literal notranslate"><span class="pre">integrate2</span></code>.</p>
+<p>The following steps are performed in <code class="code docutils literal notranslate"><span class="pre">integrate1</span></code></p>
+<ol class="arabic simple">
+<li><p>If the time step is changed, update the damping of the mass matrix (which reflects effective inertial increase due to springs, dampers and PD gains)</p></li>
+<li><p>Update positions of the collision bodies</p></li>
+<li><p>Detect collisions (called by the world instance)</p></li>
+<li><p>The world assigns contacts on each object and computes the contact normal</p></li>
+<li><p>Compute the mass matrix, nonlinear term, and inverse inertia matrix</p></li>
+<li><p>Compute (Sparse) Jacobians of contacts</p></li>
+</ol>
+<p>After this step, all kinematic/dynamic properties are computed.
+Users can access them if they are necessary for the controller.
+Next, <code class="code docutils literal notranslate"><span class="pre">integrate2</span></code> computes the rest of the simulation.</p>
+<ol class="arabic simple" start="7">
+<li><p>Compute contact properties</p></li>
+<li><p>Compute PD controller (if used), add it to the feedforward force and bound it by the limits</p></li>
+<li><p>Compute generalized forces due to springs and external forces/torques</p></li>
+<li><p>Contact solver (called by the world instance)</p></li>
+<li><p>Integrate the velocity</p></li>
+<li><p>Integrate the position (in a semi-implicit way)</p></li>
+</ol>
+</section>
+<section id="get-and-modify-robot-description-in-code">
+<h2>Get and Modify Robot Description in Code<a class="headerlink" href="#get-and-modify-robot-description-in-code" title="Link to this heading"></a></h2>
+<p>RaiSim allows users to modify most of the robot parameters freely in code.
+This allows users to create randomized robot models, which might be useful for AI applications (i.e., <strong>dynamic randomization</strong>).
+Note that a random model might be kinematically and dynamically unrealistic.
+For example, joints can be locked by collision bodies.
+In such cases, simulation cannot be performed reliably and it is advised to carefully check randomly generated robot models.</p>
+<p>Here is a list of modifiable kinematic/dynamic parameters.</p>
+<ul class="simple">
+<li><p><strong>Joint Position (relative to the parent joint) Expressed in the Parent Frame</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getJointPos_P</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of position vectors from the parent joint to the child joint expressed in the respective parent joint frames.
+This should be changed with care since it can result in unrealistic collision geometry.
+<strong>This method does not change the position of the end-effector with respect to its parent</strong> as the position of the last link is defined by the collision body position, not by the joint position.
+The elements are ordered by the joint indices.</p>
+<ul class="simple">
+<li><p><strong>Joint Axis in the Parent Frame</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getJointAxis_P</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of joint axes expressed in the respective parent joint frame.
+This method should also be changed with care.
+The elements are ordered by the joint indices.</p>
+<ul class="simple">
+<li><p><strong>Mass of the Links</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getMass</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of link masses.
+<strong>IMPORTANT! You must call :code:`updateMassInfo`</strong> after changing mass values.
+The elements are ordered by the body indices (which is the same as the joint indices in RaiSim).</p>
+<ul class="simple">
+<li><p><strong>Center of Mass Position</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getBodyCOM_B</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of the COM of the bodies.
+The elements are ordered by the body indices.</p>
+<ul class="simple">
+<li><p><strong>Link Inertia</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getInertia</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of link inertia.
+The elements are ordered by the body indices.</p>
+<ul class="simple">
+<li><p><strong>Collision Bodies</strong></p></li>
+</ul>
+<p><code class="code docutils literal notranslate"><span class="pre">getCollisionBodies</span></code> method returns (a non-const reference to) a <code class="code docutils literal notranslate"><span class="pre">std::vector</span></code> of the collision bodies.
+This vector contains all collision bodies associated with the articulated system.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">getCollisionBody</span></code> method returns a specific collision body instead.
+All collision bodies are named “LINK_NAME” + “/INDEX”.
+For example, the 2nd collision body of a link named “FOOT” is named “FOOT/1” (1 because the index starts from 0).</p>
+<p>The collision body is a class that contains the position/orientation offset from the parent joint frame, name, parent body index, and the ODE collision pointer (<code class="code docutils literal notranslate"><span class="pre">dGeomID</span></code>, retrieved using <code class="code docutils literal notranslate"><span class="pre">getCollisionObject</span></code>).
+The collision geom can be modified using ODE methods (<a class="reference external" href="http://ode.org/wiki/index.php?title=Manual">ODE manual</a>).
+Users can also modify the material of the collision body.
+This material affects the contact dynamics.</p>
+</section>
+<section id="apply-external-forces-torques">
+<h2>Apply External Forces/Torques<a class="headerlink" href="#apply-external-forces-torques" title="Link to this heading"></a></h2>
+<p>The following two methods are used to apply external force and torque respectively</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">setExternalForce</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">setExternalTorque</span></code></p></li>
+</ul>
+<p>You will find above methods in the API section on this page.</p>
+</section>
+<section id="collision">
+<h2>Collision<a class="headerlink" href="#collision" title="Link to this heading"></a></h2>
+<p>Apart from the collision mask and collision group set in the world, users can also disable a collision between a certain pair of links with <code class="code docutils literal notranslate"><span class="pre">ignoreCollisionBetween</span></code>.</p>
+</section>
+<section id="types-of-indices">
+<h2>Types of Indices<a class="headerlink" href="#types-of-indices" title="Link to this heading"></a></h2>
+<p>The ArticulatedSystem class contains multiple types of indices. To query a specific quantity, you have to provide an index of the right type. The types of indices in Articulated Systems are:</p>
+<ul class="simple">
+<li><p><strong>Body/Joint Index</strong>: All fixed bodies are combined to a single movable body. Each movable body has a unique body index. Because there is a movable joint associated with a movable body, there is a 1-to-1 mapping between the joints and the bodies and they share the same index. For a fixed-base system, the first body rigidly fixed to the world is body-0. For a floating-base system, the floating base is body-0.</p></li>
+<li><p><strong>Generalized Velocity (DOF) Index</strong>: All joints are mapped to a specific set of generalized velocity indices.</p></li>
+<li><p><strong>Generalized Coordinate Index</strong>:</p></li>
+<li><p><strong>Frame Index</strong>:</p></li>
+</ul>
+<section id="conversions-between-indices">
+<h3>Conversions Between Indices<a class="headerlink" href="#conversions-between-indices" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>A body index to a generalized velocity index: <code class="code docutils literal notranslate"><span class="pre">ArticulatedSystem::getMappingFromBodyIndexToGeneralizedVelocityIndex()</span></code></p></li>
+<li><p>A body index to a generalized coordinate index: <code class="code docutils literal notranslate"><span class="pre">ArticulatedSystem::getMappingFromBodyIndexToGeneralizedCoordinateIndex()</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="closed-loop-system">
+<h2>Closed-loop system<a class="headerlink" href="#closed-loop-system" title="Link to this heading"></a></h2>
+<p>Before modeling a closed-loop system, it is necessary to model a corresponding spanning tree.
+A spanning tree is a kinematic tree that can be constructed by removing a minimum number of joints from a closed-loop system.
+Imagine a chain necklace. By disconnecting one of the joints, a kinematic tree will form.
+Only one joint should be removed because, otherwise, two separate kinematic trees will form.
+Note that there are multiple ways to form a kinematic tree because any of the joints can be removed.</p>
+<p>To model a closed-loop system in RaiSim, a corresponding spanning tree should be modeled in a URDF format first.
+To convert the spanning tree into a closed-loop system, add pin constraints in the URDF.
+A pin constraint is an equality constraint that enforces two points on different bodies to occupy the same world position.
+Each pin is defined by:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">body1</span></code> and <code class="docutils literal notranslate"><span class="pre">body2</span></code>: link names to be constrained.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">anchor</span></code>: the point in the <em>link frame of ``body1``</em>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nominal_config</span></code>: a full generalized coordinate vector used once at
+initialization to compute the matching anchor on <code class="docutils literal notranslate"><span class="pre">body2</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">nominal_config</span></code> must match the generalized coordinate order used by
+<code class="code docutils literal notranslate"><span class="pre">getGeneralizedCoordinate()</span></code> (equivalently, the joint order returned by
+<code class="code docutils literal notranslate"><span class="pre">getMovableJointNames()</span></code>). For floating-base systems, include the base
+position and base quaternion first, followed by joint coordinates.</p>
+<p>Example (minitaur) constraints block:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;constraints</span><span class="w"> </span><span class="na">nominal_config=</span><span class="s">&quot;0 0 0.35 0 0 1 0 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2&quot;</span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pin</span><span class="w"> </span><span class="na">body1=</span><span class="s">&quot;lower_leg_front_rightR_link&quot;</span><span class="w"> </span><span class="na">body2=</span><span class="s">&quot;lower_leg_front_rightL_link&quot;</span><span class="w"> </span><span class="na">anchor=</span><span class="s">&quot;0.0 0.0 0.2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pin</span><span class="w"> </span><span class="na">body1=</span><span class="s">&quot;lower_leg_front_leftR_link&quot;</span><span class="w"> </span><span class="na">body2=</span><span class="s">&quot;lower_leg_front_leftL_link&quot;</span><span class="w"> </span><span class="na">anchor=</span><span class="s">&quot;0.0 0.0 0.2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pin</span><span class="w"> </span><span class="na">body1=</span><span class="s">&quot;lower_leg_back_rightR_link&quot;</span><span class="w"> </span><span class="na">body2=</span><span class="s">&quot;lower_leg_back_rightL_link&quot;</span><span class="w"> </span><span class="na">anchor=</span><span class="s">&quot;0.0 0.0 0.2&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;pin</span><span class="w"> </span><span class="na">body1=</span><span class="s">&quot;lower_leg_back_leftR_link&quot;</span><span class="w"> </span><span class="na">body2=</span><span class="s">&quot;lower_leg_back_leftL_link&quot;</span><span class="w"> </span><span class="na">anchor=</span><span class="s">&quot;0.0 0.0 0.2&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/constraints&gt;</span>
+</pre></div>
+</div>
+<p>At initialization, RaiSim sets the system to <code class="docutils literal notranslate"><span class="pre">nominal_config</span></code>, computes the
+world position of <code class="docutils literal notranslate"><span class="pre">anchor</span></code> on <code class="docutils literal notranslate"><span class="pre">body1</span></code>, and derives the corresponding anchor
+on <code class="docutils literal notranslate"><span class="pre">body2</span></code>. After that, the constraint is enforced every step by the contact
+solver.</p>
+<section id="contact-solver-handling">
+<h3>Contact solver handling<a class="headerlink" href="#contact-solver-handling" title="Link to this heading"></a></h3>
+<p>Closed-loop pin constraints are injected into the same contact solver that
+handles collisions. Internally, pin constraints are treated as special
+contact problems (rank-1/2/3 pin constraints) and are solved with impulse
+updates each iteration. A small ERP term corrects residual position error
+at every step. The contact solver itself uses a bisection-based method for
+frictional contacts; pin constraints bypass friction handling and are solved
+as equality constraints inside the same loop. This makes closed-loop systems
+numerically robust in RaiSim, because the loop constraints are enforced
+through the same stabilized contact solver that resolves impacts and friction.</p>
+<p>An example of a closed-loop system can be found <a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/minitaur.cpp">here</a>.
+An example of a closed-loop system URDF can be found <a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/rsc/minitaur/minitaur.urdf">here</a>.</p>
+</section>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Object.html" class="btn btn-neutral float-left" title="Objects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SingleBodyObjects.html" class="btn btn-neutral float-right" title="Single-Body Objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

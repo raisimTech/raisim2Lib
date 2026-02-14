@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<sensor_set name="imu">
+    <origin rpy="0.0 0.0 0.0" xyz="0 0 0"/>
+    <link>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1.e-8"/>
+            <inertia ixx="1.e-08" ixy="0" ixz="0" iyy="1.e-08" iyz="0" izz="1.e-08"/>
+        </inertial>
+        <sensor name="imu" type="imu" update_rate="200">
+            <origin rpy="0.0 0.0 0.0" xyz="0 0 0"/>
+            <limit acc_limit="50" ang_vel_limit="40"/>
+        </sensor>
+    </link>
+</sensor_set>

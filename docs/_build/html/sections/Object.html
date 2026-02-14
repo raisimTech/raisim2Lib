@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Objects &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Articulated Systems" href="ArticulatedSystem.html" />
+    <link rel="prev" title="Raisim Server" href="RaisimServer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#body-types">Body types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#name">Name</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#types">Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ArticulatedSystem.html">Articulated Systems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SingleBodyObjects.html">Single-Body Objects</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Objects</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="objects">
+<h1>Objects<a class="headerlink" href="#objects" title="Link to this heading"></a></h1>
+<section id="body-types">
+<h2>Body types<a class="headerlink" href="#body-types" title="Link to this heading"></a></h2>
+<p>There are three available body types:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DYNAMIC</span></code>: can have a velocity, has finite mass</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KINEMATIC</span></code>: can have a velocity, has infinite mass (e.g., conveyor belt)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">STATIC</span></code>: cannot have a velocity, has infinite mass (e.g., wall)</p></li>
+</ol>
+<p>SingleBodyObjects can be of any type.
+ArticulatedSystems can only be DYNAMIC, except for fixed bases, which can be STATIC.</p>
+<p>You can get or set the body type using:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">setBodyType(BodyType</span> <span class="pre">type)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">getBodyType()</span></code> or <code class="docutils literal notranslate"><span class="pre">getBodyType(body_index)</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">getBodyType()</span></code> for ArticulatedSystems always returns DYNAMIC.</p>
+</section>
+<section id="name">
+<h2>Name<a class="headerlink" href="#name" title="Link to this heading"></a></h2>
+<p>All objects can be named.
+These names are used by visualizers.
+<cite>raisim::World</cite> provides functionality to retrieve an object by name.
+Here is an example.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">sphere</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addSphere</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">sphere</span><span class="o">-&gt;</span><span class="n">setName</span><span class="p">(</span><span class="s">&quot;sphere&quot;</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sphere</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">();</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">same_sphere</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">getObject</span><span class="p">(</span><span class="s">&quot;sphere&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="types">
+<h2>Types<a class="headerlink" href="#types" title="Link to this heading"></a></h2>
+<p>All objects can be specified as either a SingleBodyObject or an ArticulatedSystem.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ArticulatedSystem.html">Articulated Systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#tl-dr">TL;DR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#creating-an-instance">Creating an instance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#urdf-modules-optional-attachments">URDF modules (optional attachments)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#urdf-loader-details">URDF loader details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#state-representation">State Representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#joints">Joints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#urdf-convention">URDF convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#kinematics">Kinematics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#dynamics">Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#inverse-dynamics">Inverse Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#pd-controller">PD Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#integration-steps">Integration Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#get-and-modify-robot-description-in-code">Get and Modify Robot Description in Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#apply-external-forces-torques">Apply External Forces/Torques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#collision">Collision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#types-of-indices">Types of Indices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#closed-loop-system">Closed-loop system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ArticulatedSystem.html#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SingleBodyObjects.html">Single-Body Objects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#primitives">Primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#compound">Compound</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#mesh">Mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#singlebodyobject-api-parent-class">SingleBodyObject API (Parent class)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#compound-api">Compound API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#sphere-api">Sphere API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#box-api">Box API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#capsule-api">Capsule API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#cylinder-api">Cylinder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#ground-api">Ground API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SingleBodyObjects.html#mesh-api">Mesh API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="RaisimServer.html" class="btn btn-neutral float-left" title="Raisim Server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ArticulatedSystem.html" class="btn btn-neutral float-right" title="Articulated Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

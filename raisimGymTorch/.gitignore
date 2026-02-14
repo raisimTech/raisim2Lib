@@ -1,0 +1,17 @@
+build/
+dist/
+_build/
+_generate/
+*.so
+*.py[cod]
+*.egg-info
+.idea/*
+*.prof
+cmake-*/*
+*.log
+*imgui.ini
+raisimGymTorch/env/data/*
+.vscode/*
+id_rsa
+*/data/*
+raisimGymTorch/env/bin/*

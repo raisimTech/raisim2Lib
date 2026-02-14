@@ -1,0 +1,35 @@
+##########################
+Rayrai Example: TCP Viewer
+##########################
+
+Overview
+========
+Standalone TCP viewer for RaisimServer scenes. It connects to a running server, downloads the remote scene, and renders it with rayrai and ImGui controls. Use this as the reference for the TCP viewer workflow, resource discovery, and sensor update handling.
+
+Binary
+======
+CMake target and executable name: ``rayrai_tcp_viewer``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target rayrai_tcp_viewer
+   ./rayrai_tcp_viewer
+
+On Windows, run ``rayrai_tcp_viewer.exe`` instead.
+This example uses the in-process rayrai renderer (no external client required).
+
+
+Details
+=======
+- Connects to a running RaisimServer over TCP and downloads the remote scene.
+- Renders the streamed scene with rayrai and exposes an ImGui control panel.
+- Handles VISUALIZER sensor updates (RGB/depth) from the server.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/rayrai/RaisimTcpViewer.cpp
+   :language: cpp

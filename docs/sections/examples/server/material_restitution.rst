@@ -1,0 +1,39 @@
+####################################
+Server Example: Material Restitution
+####################################
+
+Overview
+========
+Drops spheres with different material labels (steel, rubber, copper) and configures material pair properties. It highlights restitution and friction differences.
+
+Screenshot
+==========
+.. image:: ../../../image/materials.gif
+
+Binary
+======
+CMake target and executable name: ``material_restitution``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target material_restitution
+   ./material_restitution
+
+On Windows, run ``material_restitution.exe`` instead.
+This example uses RaisimServer. Start a visualizer client (RaisimUnity, RaisimUnreal, or the rayrai TCP viewer) and connect to port 8080.
+
+
+Details
+=======
+- Drops three spheres with different materials onto a steel ground.
+- Sets per-material restitution to compare bounce behavior.
+- Reference for ``World::setMaterialPairProp`` restitution settings.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/server/material_restitution.cpp
+   :language: cpp

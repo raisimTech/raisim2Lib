@@ -1,0 +1,37 @@
+seed: 1
+record_video: yes
+
+environment:
+  render: True
+  num_envs: 64
+  eval_every_n: 200
+  num_threads: 24
+  simulation_dt: 0.0025
+  control_dt: 0.01
+  max_time: 2.0
+  action_std: 0.3
+  proprio_dim: 34
+  depth:
+    width: 64
+    height: 48
+    min: 0.1
+    max: 10.0
+  reward:
+    forwardVel:
+      coeff: 0.3
+    torque:
+      coeff: -4e-5
+
+architecture:
+  policy_net: [256, 128]
+  value_net: [256, 128]
+  gru_hidden: 64
+  depth_encoder:
+    channels: [4, 8, 16]
+    kernels: [5, 3, 3]
+    strides: [2, 2, 2]
+    latent_dim: 64
+
+algorithm:
+  num_mini_batches: 32
+  num_learning_epochs: 4

@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raisim Server &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Objects" href="Object.html" />
+    <link rel="prev" title="World Configuration File" href="WorldConfigurationFile.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Raisim Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#typical-usage">Typical usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#thread-safety-and-lifecycle">Thread safety and lifecycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sensor-updates-from-the-visualizer">Sensor updates from the visualizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#synchronous-updates-optional">Synchronous updates (optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raisimserver-api">RaisimServer API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visuals-api">Visuals API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polyline-api">Polyline API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#articulatedsystemvisual-api">ArticulatedSystemVisual API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Raisim Server</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="raisim-server">
+<h1>Raisim Server<a class="headerlink" href="#raisim-server" title="Link to this heading"></a></h1>
+<p>RaisimServer serializes <code class="docutils literal notranslate"><span class="pre">raisim::World</span></code> and streams the data to clients via TCP/IP.
+We provide the RaisimUnity (<a class="reference external" href="https://raisim.com/sections/RaisimUnity.html">doc</a>) client, which visualizes a <code class="docutils literal notranslate"><span class="pre">raisim::World</span></code>.
+Basic usage is described in the <a class="reference external" href="https://raisim.com/sections/RaisimUnity.html#how-to-use-raisimunity">documentation</a>.</p>
+<p>In addition to visualizing a <code class="docutils literal notranslate"><span class="pre">raisim::World</span></code>, <code class="docutils literal notranslate"><span class="pre">raisim::RaisimServer</span></code> can visualize additional objects.
+An example can be found <a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/visualObjects.cpp">here</a>.
+The example is displayed as follows:</p>
+<img alt="../_images/visuals.gif" src="../_images/visuals.gif" />
+<section id="typical-usage">
+<h2>Typical usage<a class="headerlink" href="#typical-usage" title="Link to this heading"></a></h2>
+<p>Create the server, launch it, and advance the world through the thread-safe
+integration helper:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="w"> </span><span class="n">world</span><span class="p">;</span>
+<span class="n">raisim</span><span class="o">::</span><span class="n">RaisimServer</span><span class="w"> </span><span class="nf">server</span><span class="p">(</span><span class="o">&amp;</span><span class="n">world</span><span class="p">);</span>
+<span class="n">server</span><span class="p">.</span><span class="n">launchServer</span><span class="p">(</span><span class="mi">8080</span><span class="p">);</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(;;)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">server</span><span class="p">.</span><span class="n">integrateWorldThreadSafe</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">integrateWorldThreadSafe()</span></code> locks the world mutex, applies any user
+interaction force coming from the visualizer, integrates the world, and
+unlocks the mutex.</p>
+</section>
+<section id="thread-safety-and-lifecycle">
+<h2>Thread safety and lifecycle<a class="headerlink" href="#thread-safety-and-lifecycle" title="Link to this heading"></a></h2>
+<p>The server reads the world state from a background thread. If you modify the
+world manually while the server is running, guard it with the visualization
+mutex (<code class="docutils literal notranslate"><span class="pre">lockVisualizationServerMutex()</span></code> / <code class="docutils literal notranslate"><span class="pre">unlockVisualizationServerMutex()</span></code>)
+to avoid races.</p>
+<p>The server can be paused with <code class="docutils literal notranslate"><span class="pre">hibernate()</span></code> and resumed with <code class="docutils literal notranslate"><span class="pre">wakeup()</span></code>.
+Call <code class="docutils literal notranslate"><span class="pre">killServer()</span></code> to stop the server thread and disconnect the client.</p>
+</section>
+<section id="sensor-updates-from-the-visualizer">
+<h2>Sensor updates from the visualizer<a class="headerlink" href="#sensor-updates-from-the-visualizer" title="Link to this heading"></a></h2>
+<p>If a sensor’s measurement source is set to
+<code class="docutils literal notranslate"><span class="pre">Sensor::MeasurementSource::VISUALIZER</span></code>, the server requests updates only
+when the sensor’s update period elapses. The visualizer sends the rendered
+RGB/depth buffers back to the server, which then writes them into the sensor’s
+internal buffers and updates the timestamp. Sensors with non-visualizer
+measurement sources are serialized directly from RaiSim.</p>
+</section>
+<section id="synchronous-updates-optional">
+<h2>Synchronous updates (optional)<a class="headerlink" href="#synchronous-updates-optional" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">processRequests()</span></code> implements a synchronous request/response loop used by
+clients that explicitly pull updates. It returns <code class="docutils literal notranslate"><span class="pre">false</span></code> if the client does not
+respond, rejects the protocol version, or fails to deliver sensor data in time.</p>
+</section>
+<section id="raisimserver-api">
+<h2>RaisimServer API<a class="headerlink" href="#raisimserver-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="visuals-api">
+<h2>Visuals API<a class="headerlink" href="#visuals-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="polyline-api">
+<h2>Polyline API<a class="headerlink" href="#polyline-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="articulatedsystemvisual-api">
+<h2>ArticulatedSystemVisual API<a class="headerlink" href="#articulatedsystemvisual-api" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="WorldConfigurationFile.html" class="btn btn-neutral float-left" title="World Configuration File" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Object.html" class="btn btn-neutral float-right" title="Objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

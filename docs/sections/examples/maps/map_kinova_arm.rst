@@ -1,0 +1,35 @@
+#######################
+Map Example: Kinova Arm
+#######################
+
+Overview
+========
+Loads the Kinova arm, applies joint PD gains and targets, and runs it on the simple map. This example focuses on manipulator setup and joint-level control.
+
+Binary
+======
+CMake target and executable name: ``map_kinova_arm``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target map_kinova_arm
+   ./map_kinova_arm
+
+On Windows, run ``map_kinova_arm.exe`` instead.
+This example uses RaisimServer. Start a visualizer client (RaisimUnity, RaisimUnreal, or the rayrai TCP viewer) and connect to port 8080.
+
+
+Details
+=======
+- Loads the Kinova arm URDF on flat ground and applies joint PD gains/targets.
+- Uses the ``simple`` Unreal map for fast rendering.
+- Focuses the camera on the arm for a fixed-base articulation demo.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/maps/map_kinova_arm.cpp
+   :language: cpp

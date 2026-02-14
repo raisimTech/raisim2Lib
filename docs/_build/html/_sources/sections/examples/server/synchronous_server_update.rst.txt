@@ -1,0 +1,35 @@
+#########################################
+Server Example: Synchronous Server Update
+#########################################
+
+Overview
+========
+Runs the RaisimServer in a manual socket loop and updates sensors only when the client requests them. This shows how to drive synchronous visualization and sensor updates.
+
+Binary
+======
+CMake target and executable name: ``synchronous_server_update``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target synchronous_server_update
+   ./synchronous_server_update
+
+On Windows, run ``synchronous_server_update.exe`` instead.
+This example uses RaisimServer. Start a visualizer client (RaisimUnity, RaisimUnreal, or the rayrai TCP viewer) and connect to port 8080.
+
+
+Details
+=======
+- Runs RaisimServer in synchronous request/response mode.
+- Manually accepts a TCP connection and processes sensor update requests.
+- Uses VISUALIZER RGB/depth sensors with ``needsSensorUpdate()``.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/server/synchronousServerUpdate.cpp
+   :language: cpp

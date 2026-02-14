@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <authoring_tool>rayrai-aruco-marker-generator</authoring_tool>
+    </contributor>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+
+  <library_images>
+    <image id="aruco_marker_image" name="aruco_marker_image">
+      <init_from>aruco_marker.png</init_from>
+    </image>
+  </library_images>
+
+  <library_effects>
+    <effect id="aruco_marker_effect">
+      <profile_COMMON>
+        <newparam sid="aruco_marker_surface">
+          <surface type="2D">
+            <init_from>aruco_marker_image</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="aruco_marker_sampler">
+          <sampler2D>
+            <source>aruco_marker_surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <phong>
+            <diffuse>
+              <texture texture="aruco_marker_sampler" texcoord="UVSET0"/>
+            </diffuse>
+            <ambient>
+              <color>1 1 1 1</color>
+            </ambient>
+          </phong>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+
+  <library_materials>
+    <material id="aruco_marker_material" name="aruco_marker_material">
+      <instance_effect url="#aruco_marker_effect"/>
+    </material>
+  </library_materials>
+
+  <library_geometries>
+    <geometry id="aruco_marker_plane" name="aruco_marker_plane">
+      <mesh>
+        <source id="aruco_marker_positions">
+          <float_array id="aruco_marker_positions_array" count="12">
+            -0.5 -0.5 0  0.5 -0.5 0  0.5 0.5 0  -0.5 0.5 0
+          </float_array>
+          <technique_common>
+            <accessor source="#aruco_marker_positions_array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="aruco_marker_normals">
+          <float_array id="aruco_marker_normals_array" count="12">
+            0 0 1  0 0 1  0 0 1  0 0 1
+          </float_array>
+          <technique_common>
+            <accessor source="#aruco_marker_normals_array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="aruco_marker_texcoords">
+          <float_array id="aruco_marker_texcoords_array" count="8">
+            0 0  1 0  1 1  0 1
+          </float_array>
+          <technique_common>
+            <accessor source="#aruco_marker_texcoords_array" count="4" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="aruco_marker_vertices">
+          <input semantic="POSITION" source="#aruco_marker_positions"/>
+        </vertices>
+        <triangles count="2" material="aruco_marker_material">
+          <input semantic="VERTEX" source="#aruco_marker_vertices" offset="0"/>
+          <input semantic="NORMAL" source="#aruco_marker_normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#aruco_marker_texcoords" offset="2" set="0"/>
+          <p>0 0 0  1 1 1  2 2 2  0 0 0  2 2 2  3 3 3</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="aruco_marker_node" name="aruco_marker_node" type="NODE">
+        <instance_geometry url="#aruco_marker_plane">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="aruco_marker_material" target="#aruco_marker_material">
+                <bind_vertex_input semantic="UVSET0" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+
+  <scene>
+    <instance_visual_scene url="#Scene"/>
+  </scene>
+</COLLADA>

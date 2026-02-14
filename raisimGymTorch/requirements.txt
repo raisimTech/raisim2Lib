@@ -1,0 +1,8 @@
+numpy
+ruamel.yaml
+tensorboard
+torch
+torchvision
+netron
+onnx
+onnxscript

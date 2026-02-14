@@ -1,0 +1,240 @@
+#############################
+rayrai Visualizer
+#############################
+
+Overview
+========
+rayrai is an in-process C++ renderer for RaiSim. It renders into an offscreen OpenGL
+texture and is designed to embed in custom UIs (ImGui, Qt, etc.) or headless pipelines.
+Unlike RaisimUnity or RaisimUnreal, rayrai runs inside the simulation process and exposes
+direct access to render targets, picking, and custom visuals.
+
+Key characteristics:
+
+* In-process rendering (no server required)
+* Offscreen textures for UI embedding or sensor simulation
+* Lightweight scene management for RaiSim objects and custom visuals
+* Support for point clouds, coordinate frames, and picking
+
+The public API lives in the `raisin` namespace (note the spelling). The primary entry
+point is ``raisin::RayraiWindow``.
+
+Dependencies
+============
+rayrai depends on SDL2, OpenGL, glbinding, glm, assimp, stb, and imgui. The installed
+package in ``rayrai/<OS>`` ships the headers and CMake config for these dependencies.
+
+Included binary (recommended)
+=============================
+For most users, the easiest way to use rayrai is the included TCP viewer binary.
+It lives at ``rayrai/<OS>/bin/rayrai_raisim_tcp_viewer`` (Linux packages ship it;
+other platforms may need to build it) and works with RaisimServer-based
+simulations. Run the binary while your simulation is running, and it will connect
+to the server to display the scene.
+
+You can start it directly from the repo:
+
+.. code-block:: bash
+
+    ./rayrai/<OS>/bin/rayrai_raisim_tcp_viewer
+
+Run it with ``--help`` to see available options. On Windows, use the ``.exe``
+binary.
+If you are running a RaisimServer-based example, start the example first so the
+server is listening (by default on port 8080), then launch the viewer to connect.
+
+Build and link
+==============
+rayrai installs a CMake package under ``rayrai/<OS>``. Add it to
+``CMAKE_PREFIX_PATH`` and link the ``rayrai`` target.
+
+.. code-block:: cmake
+
+    find_package(rayrai CONFIG REQUIRED)
+
+    add_executable(my_app main.cpp)
+    target_link_libraries(my_app PRIVATE rayrai)
+
+In practice, you will also set the Raisim prefix (for example, ``-DCMAKE_PREFIX_PATH``)
+to include both ``raisim/<OS>`` and ``rayrai/<OS>``.
+
+Minimal usage
+=============
+The typical workflow is:
+
+1. Create a RaiSim world.
+2. Construct a ``raisin::RayraiWindow`` for that world.
+3. Update the renderer each frame and consume the output texture.
+
+.. code-block:: cpp
+
+    #include <raisim/World.hpp>
+    #include <rayrai/RayraiWindow.hpp>
+
+    int main() {
+      auto world = std::make_shared<raisim::World>();
+      raisin::RayraiWindow viewer(world, 1280, 720);
+
+      auto sphere = viewer.addVisualSphere("goal", 0.2, 0.9f, 0.2f, 0.2f, 1.0f);
+      sphere->setPosition(0.0, 0.0, 1.0);
+
+      while (true) {
+        viewer.update(1280, 720, false, 0, 0, false);
+        unsigned int tex = viewer.getImageTexture();
+        (void)tex; // use the texture in your UI or pipeline
+      }
+    }
+
+If you are integrating with an existing OpenGL context, you can use
+``RayraiWindow::createOffscreenGlContext`` and
+``RayraiWindow::makeOffscreenContextCurrent`` to control the context setup.
+
+Example code
+============
+This example adds a custom box, renders an RGB texture each frame, and reads the
+image texture handle for UI integration:
+
+.. code-block:: cpp
+
+    #include <memory>
+
+    #include <raisim/World.hpp>
+    #include <rayrai/RayraiWindow.hpp>
+
+    int main() {
+      auto world = std::make_shared<raisim::World>();
+      world->addGround();
+
+      raisin::RayraiWindow viewer(world, 1280, 720);
+      viewer.setBackgroundColor({40, 45, 55, 255});
+
+      auto box = viewer.addVisualBox("marker", 0.4, 0.2, 0.1, 0.9f, 0.6f, 0.1f, 1.0f);
+      box->setPosition(1.0, 0.0, 0.3);
+
+      while (true) {
+        world->integrate();
+        viewer.update(1280, 720, false, 0, 0, false);
+        unsigned int colorTex = viewer.getImageTexture();
+        (void)colorTex; // feed into your UI or pipeline
+      }
+    }
+
+Examples
+========
+Rayrai examples are documented in :doc:`Examples <Examples>`. Each example page
+includes a short explanation and the full source code, along with build and
+run notes.
+
+Scene content
+=============
+rayrai renders two categories of content:
+
+* **RaiSim objects**: The renderer mirrors the objects already in the world.
+* **Custom visuals**: Extra visuals you add explicitly (spheres, boxes, meshes, etc.).
+
+Custom visuals are created through ``RayraiWindow`` and returned as ``Visuals``:
+
+.. code-block:: cpp
+
+    auto box = viewer.addVisualBox("marker", 0.1, 0.1, 0.1, 0.2f, 0.6f, 1.0f, 1.0f);
+    box->setPosition(1.0, 0.0, 0.5);
+
+For repeated geometry, use ``InstancedVisuals`` to reduce draw overhead.
+
+Point clouds and coordinate frames
+==================================
+Point clouds and coordinate frames are lightweight debug aids:
+
+.. code-block:: cpp
+
+    auto cloud = viewer.addPointCloud("scan");
+    auto frame = viewer.addCoordinateFrame("robot_frame");
+
+These objects are rendered alongside the world and can be updated every frame.
+
+Camera control and picking
+==========================
+``RayraiWindow`` manages an internal camera for offscreen rendering.
+You can access or override it through ``getCamera()`` or by using
+``renderWithExternalCamera`` when you want explicit control.
+
+Picking is available through ``pickWithExternalCamera``. It renders a
+selection pass and returns the encoded object id for a pixel.
+
+Sensor alignment
+================
+rayrai can align rendering to RaiSim camera sensors. Use
+``syncRaisimCameraPose`` and ``renderWithExternalCamera`` to ensure the
+render camera matches the sensor pose and intrinsics.
+
+Depth and LiDAR
+===============
+The renderer supports a linear depth plane and a GPU-assisted LiDAR pass:
+
+* ``renderDepthPlaneDistance`` renders a linear depth texture.
+* ``measureSpinningLidarSingleDrawGPU`` renders a LiDAR slice using a
+  spherical chunk shader.
+
+You can retrieve the depth texture via ``getDepthPlaneTexture()``.
+
+API
+====
+
+Core types
+**********
+
+.. doxygenclass:: raisin::RayraiWindow
+   :members:
+
+.. doxygenclass:: raisin::Camera
+   :members:
+
+.. doxygenclass:: raisin::RayraiGlobalAsset
+   :members:
+
+Visuals and geometry
+********************
+
+.. doxygenclass:: raisin::Visuals
+   :members:
+
+.. doxygenclass:: raisin::InstancedVisuals
+   :members:
+
+.. doxygenclass:: OpenGLMesh
+   :members:
+
+.. doxygennamespace:: raisin::assimp
+   :members:
+
+Scene helpers
+*************
+
+.. doxygenclass:: raisin::PointCloud
+   :members:
+
+.. doxygenclass:: raisin::CoordinateFrame
+   :members:
+
+.. doxygenclass:: raisin::CameraFrustum
+   :members:
+
+.. doxygenenum:: raisin::VisualCategory
+
+Rendering and materials
+************************
+
+.. doxygenclass:: raisin::Light
+   :members:
+
+.. doxygenclass:: raisin::Material
+   :members:
+
+RaiSim integration
+******************
+
+.. doxygenclass:: raisin::RaisimObject
+   :members:
+
+.. doxygenstruct:: raisin::tcp_viewer::BufferReader
+   :members:

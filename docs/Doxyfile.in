@@ -1,0 +1,28 @@
+#...
+INPUT = @DOXYGEN_INPUT_DIR@
+#...
+OUTPUT_DIRECTORY = "@DOXYGEN_OUTPUT_DIR@"
+#...
+RECURSIVE = YES
+#...
+EXTRACT_ALL = YES
+#...
+HAVE_DOT = NO
+#...
+GENERATE_XML = YES
+#...
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = NO
+PREDEFINED             = EIGEN_MAKE_ALIGNED_OPERATOR_NEW= \
+                         RAIMATH_MATEXPR_OPERATORS= \
+                         EIGEN_DEVICE_FUNC= \
+                         "RaiSim_define_binary_operator(x,y)=" \
+                         "RaiSim_define_binary_function(x)=" \
+                         "RaiSim_define_scalar_operator(x,y)=" \
+                         "RaiSim_define_scalar_function(x)="
+
+INPUT_FILTER           = "sed -e '/^\s*#/!s/RAISIM_STATIC_API//g'"
+EXCLUDE_SYMBOLS        = RAISIM_STATIC_API
+MAX_INITIALIZER_LINES  = 0
+GENERATE_LATEX         = NO

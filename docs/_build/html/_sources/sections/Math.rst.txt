@@ -1,0 +1,55 @@
+#############################
+Math Classes
+#############################
+
+RaiSim math types are thin wrappers around Eigen with a few RaiSim-specific
+conveniences. You will encounter both fixed-size and dynamic types in the API:
+
+* ``raisim::Mat<n, m>`` / ``raisim::Vec<n>``: fixed-size matrices/vectors based on
+  ``Eigen::Matrix<double, n, m>`` (column-major, ``Eigen::DontAlign``).
+* ``raisim::MatDyn`` / ``raisim::VecDyn``: dynamic-size matrices/vectors with
+  RaiSim-managed storage (column-major, 32-byte aligned).
+
+All of these types provide an ``.e()`` accessor for interoperability with Eigen:
+fixed-size types return a reference to the Eigen base, while dynamic types return
+an ``Eigen::Map``.
+
+.. code-block:: cpp
+
+  raisim::Vec<3> v;
+  v << 1.0, 2.0, 3.0;
+
+  // Interop with Eigen (non-owning)
+  Eigen::Vector3d ev = v.e();
+
+  raisim::VecDyn q(12);
+  q.setZero();
+  auto qEigen = q.e();  // Eigen::Map
+
+Alignment and ownership
+=============================
+* ``raisim::Mat``/``raisim::Vec`` use ``Eigen::DontAlign``, so they are safe to
+  store in standard containers without Eigen's aligned allocator.
+* ``raisim::MatDyn``/``raisim::VecDyn`` allocate 32-byte aligned storage
+  internally. Do not free their memory manually.
+* ``.e()`` on dynamic types returns a non-owning map. Its lifetime must not
+  exceed the underlying RaiSim object.
+* Any call to ``resize()`` invalidates raw pointers and Eigen maps.
+
+Const-ref guidance
+=============================
+To avoid copies, pass math objects by ``const&``:
+
+* Prefer ``const raisim::Vec<3>&`` / ``const raisim::Mat<3,3>&`` for fixed-size.
+* Prefer ``const raisim::VecDyn&`` / ``const raisim::MatDyn&`` for dynamic-size.
+* When accepting either RaiSim or Eigen vectors, use ``const Eigen::Ref<const Eigen::VectorXd>&``
+  and pass ``vec.e()`` from RaiSim.
+
+Common pitfalls
+=============================
+* **Column-major layout:** RaiSim matrices are column-major. When filling from
+  row-major arrays, transpose or fill by columns.
+* **Dangling maps/pointers:** ``VecDyn::e()`` / ``MatDyn::e()`` and ``ptr()``
+  become invalid after ``resize()`` or when the object goes out of scope.
+* **Size mismatches:** ``VecDyn::operator=(Eigen::VectorXd)`` checks dimensions
+  at runtime. Resize first or use ``setZero(size)`` before assignment.

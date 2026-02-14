@@ -1,0 +1,39 @@
+###########################
+Rayrai Example: Basic Scene
+###########################
+
+Overview
+========
+Minimal scene with Go1 on a textured ground plane. It is a quick sanity check for loading a robot and rendering a basic environment.
+
+Screenshot
+==========
+.. image:: ../../../image/rayrai_basic_scene.png
+
+Binary
+======
+CMake target and executable name: ``rayrai_basic_scene``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target rayrai_basic_scene
+   ./rayrai_basic_scene
+
+On Windows, run ``rayrai_basic_scene.exe`` instead.
+This example uses the in-process rayrai renderer (no external client required).
+
+
+Details
+=======
+- Loads the Go1 URDF, sets a nominal standing pose, and adds a ground plane.
+- Sets a background color and a checkerboard ground texture.
+- Minimal render loop for a basic rayrai scene.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/rayrai/rayrai_basic_scene.cpp
+   :language: cpp

@@ -1,0 +1,39 @@
+###########################
+Server Example: Minitaur PD
+###########################
+
+Overview
+========
+Runs Minitaur with PD control, including per-joint gains that zero out unactuated joints. It is a compact reference for legged robot PD setup.
+
+Screenshot
+==========
+.. image:: ../../../image/minitaur_cpp.png
+
+Binary
+======
+CMake target and executable name: ``minitaur_pd``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target minitaur_pd
+   ./minitaur_pd
+
+On Windows, run ``minitaur_pd.exe`` instead.
+This example uses RaisimServer. Start a visualizer client (RaisimUnity, RaisimUnreal, or the rayrai TCP viewer) and connect to port 8080.
+
+
+Details
+=======
+- Loads the Minitaur URDF (closed-loop) and applies PD to actuated joints.
+- Sets gains to zero for unactuated joints in the closed-loop model.
+- Focuses the camera on the robot to show posture stability.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/server/minitaur_pd.cpp
+   :language: cpp

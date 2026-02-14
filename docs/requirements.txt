@@ -1,0 +1,7 @@
+# Keep these loosely pinned so upgrading (e.g. to pick up Sphinx-8 deprecation fixes)
+# doesn't require editing this file every time.
+breathe>=4.35.0
+docutils>=0.20.1
+sphinx>=7.3.7,<8
+sphinx-rtd-theme>=2.0.0
+sphinx-tabs>=3.4.5

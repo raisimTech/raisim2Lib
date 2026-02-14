@@ -1,0 +1,6 @@
+  <link name="livox_lidar_0" model="mid360" sensor="mid360.xml"/>
+  <joint name="base_to_lidar" type="fixed">
+    <origin rpy="0. 0. 0. " xyz="-0.0579 0.0 0.20932"/>
+    <parent link="base"/>
+    <child link="livox_lidar_0"/>
+  </joint>

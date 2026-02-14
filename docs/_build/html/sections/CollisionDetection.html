@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collision Detection and Colliders &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Material System" href="MaterialSystem.html" />
+    <link rel="prev" title="Contact and Collision" href="Contact.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Collision Detection and Colliders</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#global-contact-limits-and-merging">Global contact limits and merging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shape-categories">Shape categories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-list-narrowphase-algorithms-and-contact-counts">Pair list (narrowphase algorithms and contact counts)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#primitive-vs-primitive">Primitive vs Primitive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#primitive-vs-plane">Primitive vs Plane</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convexmesh-vs-primitive-convexmesh">ConvexMesh vs Primitive/ConvexMesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convex-primitive-convex-mesh-vs-mesh-triangle-mesh">Convex (primitive/convex mesh) vs Mesh (triangle mesh)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mesh-vs-mesh">Mesh vs Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#heightmap-interactions">Heightmap interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plane-vs-mesh-convexmesh">Plane vs Mesh / ConvexMesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ray-tests-query-only">Ray tests (query-only)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#unsupported-or-no-op-pairs">Unsupported or no-op pairs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Collision Detection and Colliders</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="collision-detection-and-colliders">
+<h1>Collision Detection and Colliders<a class="headerlink" href="#collision-detection-and-colliders" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>RaiSim performs collision detection in two stages: an AABB-based broadphase
+filters candidate pairs, followed by a pair-specific narrowphase that generates
+contact points. The narrowphase algorithm depends on the shape pair (analytic
+tests, SAT, MPR, or GJK/EPA).</p>
+</section>
+<section id="global-contact-limits-and-merging">
+<h2>Global contact limits and merging<a class="headerlink" href="#global-contact-limits-and-merging" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Per-pair limit</strong>: <code class="code docutils literal notranslate"><span class="pre">ContactSettings::maxContactsPerPair</span></code> is clamped to
+<strong>[1, 8]</strong> inside the contact detector. Any pair listed below is capped by
+this limit, even if the narrowphase could generate more points.</p></li>
+<li><p><strong>Merging for mesh/heightmap pairs</strong>: contacts produced by triangle-based
+tests are merged to reduce redundancy. The merge uses a distance threshold
+proportional to the smaller shape size (about 0.105 * characteristic length),
+a normal alignment threshold of about 4 degrees, and a small positional
+epsilon (~1e-4) to coalesce nearly identical points.</p></li>
+<li><p><strong>Special caps</strong>: some generators have additional caps (e.g., box-cylinder
+can produce up to 16 contacts internally, but is still clamped to the global
+limit; cylinder-heightmap is reduced to at most 3 contacts after merging).</p></li>
+</ul>
+</section>
+<section id="shape-categories">
+<h2>Shape categories<a class="headerlink" href="#shape-categories" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Primitive</strong>: sphere, box, capsule, cylinder, plane.</p></li>
+<li><p><strong>ConvexMesh</strong>: convexified mesh (convex hull or convex decomposition).</p></li>
+<li><p><strong>Mesh</strong>: triangle mesh (non-convex).</p></li>
+<li><p><strong>Heightmap</strong>: grid terrain represented by triangles (rotation is not
+supported in collision).</p></li>
+<li><p><strong>Ray</strong>: query-only shape used by ray tests.</p></li>
+</ul>
+</section>
+<section id="pair-list-narrowphase-algorithms-and-contact-counts">
+<h2>Pair list (narrowphase algorithms and contact counts)<a class="headerlink" href="#pair-list-narrowphase-algorithms-and-contact-counts" title="Link to this heading"></a></h2>
+<p>Pairs are symmetric; a single entry covers both A vs B and B vs A.</p>
+<section id="primitive-vs-primitive">
+<h3>Primitive vs Primitive<a class="headerlink" href="#primitive-vs-primitive" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 37.5%" />
+<col style="width: 16.7%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sphere vs Sphere</p></td>
+<td><p>Analytic distance check; contact on line between centers.</p></td>
+<td><p>1</p></td>
+<td><p>Normal along center line.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sphere vs Box</p></td>
+<td><p>Closest point on oriented box (analytic).</p></td>
+<td><p>1</p></td>
+<td><p>Uses box clamp in local frame.</p></td>
+</tr>
+<tr class="row-even"><td><p>Sphere vs Capsule</p></td>
+<td><p>Closest point on capsule axis segment, then sphere-sphere contact.</p></td>
+<td><p>1</p></td>
+<td><p>Segment endpoints are capsule caps.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sphere vs Cylinder</p></td>
+<td><p>Analytic finite-cylinder test (side and caps).</p></td>
+<td><p>1</p></td>
+<td><p>Handles endcaps and side wall.</p></td>
+</tr>
+<tr class="row-even"><td><p>Box vs Box</p></td>
+<td><p>SAT on 15 axes (3 + 3 + 9 cross), face/edge clipping.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Edge-edge yields 1; face-face yields a clipped manifold.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Box vs Capsule</p></td>
+<td><p>Segment-box closest approach; fallback to cap sphere-box tests.</p></td>
+<td><p>Up to 2</p></td>
+<td><p>1 if segment interior hits; otherwise up to 2 cap contacts.</p></td>
+</tr>
+<tr class="row-even"><td><p>Box vs Cylinder</p></td>
+<td><p>SAT + clipping (cylinder vs box face/circle).</p></td>
+<td><p>Up to 16 (clamped to global limit)</p></td>
+<td><p>Produces 1-2 for edge hits, more for face overlap.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Capsule vs Capsule</p></td>
+<td><p>Segment-segment closest points; parallel overlap uses two caps.</p></td>
+<td><p>Up to 2</p></td>
+<td><p>Parallel, overlapping axes can emit two contacts.</p></td>
+</tr>
+<tr class="row-even"><td><p>Capsule vs Cylinder</p></td>
+<td><p>MPR (Minkowski Portal Refinement) support mapping.</p></td>
+<td><p>1</p></td>
+<td><p>Generic convex-convex contact.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cylinder vs Cylinder</p></td>
+<td><p>Parallel case: analytic rim sampling; otherwise MPR fallback.</p></td>
+<td><p>Up to 8 (parallel), otherwise 1</p></td>
+<td><p>Non-parallel or end-cap cases use MPR.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="primitive-vs-plane">
+<h3>Primitive vs Plane<a class="headerlink" href="#primitive-vs-plane" title="Link to this heading"></a></h3>
+<p>Plane contacts use a fixed plane normal of +Z (world up).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16.7%" />
+<col style="width: 37.5%" />
+<col style="width: 16.7%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sphere vs Plane</p></td>
+<td><p>Analytic projection to plane.</p></td>
+<td><p>1</p></td>
+<td><p>Contact at sphere bottom along +Z.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Box vs Plane</p></td>
+<td><p>Projected box corners and face selection.</p></td>
+<td><p>Up to 4</p></td>
+<td><p>Chooses deepest corner then up to 3 additional points.</p></td>
+</tr>
+<tr class="row-even"><td><p>Capsule vs Plane</p></td>
+<td><p>Analytic endcap projection.</p></td>
+<td><p>1</p></td>
+<td><p>Uses lower capsule cap.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cylinder vs Plane</p></td>
+<td><p>Analytic: cap contacts if parallel, otherwise two edge points.</p></td>
+<td><p>Up to 4 (parallel), otherwise up to 2</p></td>
+<td><p>Parallel means cylinder axis aligned with +Z.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="convexmesh-vs-primitive-convexmesh">
+<h3>ConvexMesh vs Primitive/ConvexMesh<a class="headerlink" href="#convexmesh-vs-primitive-convexmesh" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ConvexMesh vs Sphere/Box/Capsule/Cylinder</p></td>
+<td><p>MPR (support mapping).</p></td>
+<td><p>1</p></td>
+<td><p>Uses convex support points; no manifold.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ConvexMesh vs ConvexMesh</p></td>
+<td><p>GJK for intersection + EPA for penetration.</p></td>
+<td><p>1</p></td>
+<td><p>Contact point from support point along penetration normal.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="convex-primitive-convex-mesh-vs-mesh-triangle-mesh">
+<h3>Convex (primitive/convex mesh) vs Mesh (triangle mesh)<a class="headerlink" href="#convex-primitive-convex-mesh-vs-mesh-triangle-mesh" title="Link to this heading"></a></h3>
+<p>Mesh pairs use a BVH to find candidate triangles, then test each triangle
+against the convex shape. Contacts are merged by distance/normal and capped
+by the global limit.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sphere vs Mesh</p></td>
+<td><p>Closest point on triangle (distance check).</p></td>
+<td><p>Up to 8</p></td>
+<td><p>One contact per penetrating triangle, then merged.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Capsule vs Mesh</p></td>
+<td><p>Segment-triangle closest points.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Uses capsule axis segment and radius.</p></td>
+</tr>
+<tr class="row-even"><td><p>Cylinder vs Mesh</p></td>
+<td><p>Segment-triangle closest points.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Uses cylinder axis segment and radius.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Box vs Mesh</p></td>
+<td><p>Closest-feature tests + triangle plane test; GJK/EPA fallback.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Box-triangle contact uses multiple feature checks.</p></td>
+</tr>
+<tr class="row-even"><td><p>ConvexMesh vs Mesh</p></td>
+<td><p>GJK/EPA between convex mesh and triangle.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>One contact per triangle candidate, then merged.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mesh-vs-mesh">
+<h3>Mesh vs Mesh<a class="headerlink" href="#mesh-vs-mesh" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Mesh vs Mesh</p></td>
+<td><p>BVH traversal + GJK/EPA on triangle pairs.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Contacts merged; deepest contact is retained.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="heightmap-interactions">
+<h3>Heightmap interactions<a class="headerlink" href="#heightmap-interactions" title="Link to this heading"></a></h3>
+<p>Heightmap contacts operate on grid triangles; heightmap rotation is not
+supported (rotation must be identity).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sphere vs Heightmap</p></td>
+<td><p>Local triangle plane at sampled (x, y).</p></td>
+<td><p>1</p></td>
+<td><p>Uses normal of the triangle under the sphere center.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Box vs Heightmap</p></td>
+<td><p>Per-cell plane-box contacts.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Contacts merged by distance/normal.</p></td>
+</tr>
+<tr class="row-even"><td><p>Capsule vs Heightmap</p></td>
+<td><p>Per-cell plane-capsule contacts.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Contacts merged by distance/normal.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cylinder vs Heightmap</p></td>
+<td><p>Per-cell plane-cylinder contacts.</p></td>
+<td><p>Up to 3</p></td>
+<td><p>Merged then reduced to at most 3 points.</p></td>
+</tr>
+<tr class="row-even"><td><p>ConvexMesh vs Heightmap</p></td>
+<td><p>Vertex vs triangle plane tests.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Uses convex mesh vertices to generate contacts.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mesh vs Heightmap</p></td>
+<td><p>BVH traversal + GJK/EPA on mesh triangle vs heightmap triangle.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Contacts merged by distance/normal.</p></td>
+</tr>
+<tr class="row-even"><td><p>Plane vs Heightmap</p></td>
+<td><p>Plane-mesh style vertex/edge binning.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Same logic as plane vs mesh.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plane-vs-mesh-convexmesh">
+<h3>Plane vs Mesh / ConvexMesh<a class="headerlink" href="#plane-vs-mesh-convexmesh" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Narrowphase algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Plane vs Mesh</p></td>
+<td><p>Penetrating vertices/edges binned by angle around centroid.</p></td>
+<td><p>Up to 8</p></td>
+<td><p>Produces a coarse contact ring.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Plane vs ConvexMesh</p></td>
+<td><p>Vertex binning around centroid.</p></td>
+<td><p>Up to 3</p></td>
+<td><p>Uses deepest vertices below plane.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="ray-tests-query-only">
+<h3>Ray tests (query-only)<a class="headerlink" href="#ray-tests-query-only" title="Link to this heading"></a></h3>
+<p>Ray pairs are used by ray tests and return a single hit (if any) with zero
+penetration.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18.3%" />
+<col style="width: 37.5%" />
+<col style="width: 15.0%" />
+<col style="width: 29.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Pair</p></th>
+<th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Contact points</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ray vs Sphere</p></td>
+<td><p>Analytic ray-sphere intersection.</p></td>
+<td><p>1</p></td>
+<td><p>Returns closest hit along ray.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ray vs Box</p></td>
+<td><p>Slab intersection in box local frame.</p></td>
+<td><p>1</p></td>
+<td><p>Normal from hit face.</p></td>
+</tr>
+<tr class="row-even"><td><p>Ray vs Capsule</p></td>
+<td><p>Analytic ray vs capsule (cylinder + caps).</p></td>
+<td><p>1</p></td>
+<td><p>Handles inside-origin cases.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ray vs Cylinder</p></td>
+<td><p>Analytic ray vs finite cylinder.</p></td>
+<td><p>1</p></td>
+<td><p>Includes caps.</p></td>
+</tr>
+<tr class="row-even"><td><p>Ray vs Plane</p></td>
+<td><p>Line-plane intersection.</p></td>
+<td><p>1</p></td>
+<td><p>Uses plane normal +Z.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ray vs Mesh/ConvexMesh</p></td>
+<td><p>BVH query + ray-triangle test.</p></td>
+<td><p>1</p></td>
+<td><p>Closest triangle hit.</p></td>
+</tr>
+<tr class="row-even"><td><p>Ray vs Heightmap</p></td>
+<td><p>Grid traversal / height test.</p></td>
+<td><p>1</p></td>
+<td><p>Returns first hit if any.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ray vs Ray</p></td>
+<td><p>Closest segment-segment distance.</p></td>
+<td><p>1</p></td>
+<td><p>Contact if distance &lt; 1e-6.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="unsupported-or-no-op-pairs">
+<h2>Unsupported or no-op pairs<a class="headerlink" href="#unsupported-or-no-op-pairs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Plane vs Plane</strong>: no contact generation.</p></li>
+<li><p><strong>Ray vs Plane/Primitive/Mesh/Heightmap</strong>: query-only (not solved as rigid contacts).</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Contact.html" class="btn btn-neutral float-left" title="Contact and Collision" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="MaterialSystem.html" class="btn btn-neutral float-right" title="Material System" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

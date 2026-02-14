@@ -1,0 +1,35 @@
+########################################
+Server Example: Dynamic Heightmap Unreal
+########################################
+
+Overview
+========
+Updates a heightmap height field and color map every frame to animate terrain. It is intended for RaisimUnreal visualization of dynamic heightmaps.
+
+Binary
+======
+CMake target and executable name: ``dynamic_heightmap_unreal``.
+
+Run
+====
+Build and run from your build directory:
+
+.. code-block:: bash
+
+   cmake --build . --target dynamic_heightmap_unreal
+   ./dynamic_heightmap_unreal
+
+On Windows, run ``dynamic_heightmap_unreal.exe`` instead.
+This example uses RaisimServer. Start a visualizer client (RaisimUnity, RaisimUnreal, or the rayrai TCP viewer) and connect to port 8080.
+
+
+Details
+=======
+- Creates a heightmap grid and updates heights and colors every frame.
+- Uses visualization mutex locking while updating the heightmap.
+- Intended for RaisimUnreal dynamic heightmap rendering.
+
+Source
+======
+.. literalinclude:: ../../../../examples/src/server/dynamicHeightMapUnrealOnly.cpp
+   :language: cpp

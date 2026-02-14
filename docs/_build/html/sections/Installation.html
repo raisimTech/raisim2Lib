@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+      <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/tabs.js?v=3030b3cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visualizers" href="Visualizers.html" />
+    <link rel="prev" title="Introduction" href="Introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raisim-installation">RaiSim Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rayrai-visualizer-in-process">Rayrai Visualizer (In-Process)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rayrai-dependencies">Rayrai Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-steps">Build Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#building-raisim-examples-and-installing-raisimpy">Building RaiSim Examples and Installing RaisimPy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activation-key">Activation Key</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>Local installation is recommended to prevent conflicts with other libraries.
+The following variables are used throughout this guide:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RAISIM_DIR</span></code>: The directory where the raisimLib repository has been cloned.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOCAL_INSTALL</span></code>: The installation directory for exported CMake packages (e.g., ~/raisim_build).</p></li>
+</ul>
+<p>These may be exported as environment variables or replaced with absolute paths in the subsequent commands.</p>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>Ensure the following packages are installed prior to using RaiSim:</p>
+<ul class="simple">
+<li><p>Eigen</p></li>
+<li><p>CMake 3.15 or newer</p></li>
+<li><p>For Windows users: Visual Studio 2019 (support is officially for 2019, though newer versions may be compatible). <strong>Ensure the C++ workload is installed during setup.</strong></p></li>
+</ul>
+<p>RaiSim incorporates several open-source libraries. Please refer to the COPYING file for a complete list.
+The source code for Eigen and nanobind is provided in the <code class="docutils literal notranslate"><span class="pre">thirdParty</span></code> directory.</p>
+</section>
+<section id="raisim-installation">
+<h2>RaiSim Installation<a class="headerlink" href="#raisim-installation" title="Link to this heading"></a></h2>
+<p>Clone the raisimLib repository from <a class="reference external" href="https://github.com/raisimTech/raisimlib">https://github.com/raisimTech/raisimlib</a>.</p>
+<p>The cloned repository includes prebuilt RaiSim packages.
+The installed CMake packages can be found under <code class="docutils literal notranslate"><span class="pre">raisimLib/raisim/&lt;OS-TYPE&gt;</span></code>.</p>
+<p>To integrate RaiSim into your project, add the CMake package path and the shared library path to the corresponding environment variables as follows:</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-TGludXg=" aria-selected="true" class="sphinx-tabs-tab group-tab" id="tab-0-TGludXg=" name="TGludXg=" role="tab" tabindex="0">Linux</button><button aria-controls="panel-0-TWFj" aria-selected="false" class="sphinx-tabs-tab group-tab" id="tab-0-TWFj" name="TWFj" role="tab" tabindex="-1">Mac</button><button aria-controls="panel-0-V2luZG93cw==" aria-selected="false" class="sphinx-tabs-tab group-tab" id="tab-0-V2luZG93cw==" name="V2luZG93cw==" role="tab" tabindex="-1">Windows</button></div><div aria-labelledby="tab-0-TGludXg=" class="sphinx-tabs-panel group-tab" id="panel-0-TGludXg=" name="TGludXg=" role="tabpanel" tabindex="0"><p>Add the following lines to your <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$LD_LIBRARY_PATH</span>:<span class="nv">$WORKSPACE</span>/raisim/linux/lib
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:<span class="nv">$WORKSPACE</span>/raisim/linux/lib
+</pre></div>
+</div>
+<p>This configuration enables the Linux linker to locate the RaiSim shared libraries.
+To allow your project’s CMake configuration to locate RaiSim, pass <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=$WORKSPACE/raisim/linux</span></code>.</p>
+</div><div aria-labelledby="tab-0-TWFj" class="sphinx-tabs-panel group-tab" hidden="true" id="panel-0-TWFj" name="TWFj" role="tabpanel" tabindex="0"><p>Add the following lines to your <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DYLD_LIBRARY_PATH</span><span class="o">=</span>DYLD_LIBRARY_PATH:<span class="nv">$WORKSPACE</span>/raisim/mac/lib
+<span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:<span class="nv">$WORKSPACE</span>/raisim/mac/lib
+</pre></div>
+</div>
+<p>For Apple silicon Macs, utilize the <code class="docutils literal notranslate"><span class="pre">m1</span></code> directory instead of <code class="docutils literal notranslate"><span class="pre">mac</span></code>.
+Avoid using <code class="docutils literal notranslate"><span class="pre">~</span></code> to reference the home directory; explicitly state the full path.
+This configuration enables the macOS linker to locate the RaiSim shared libraries.
+To allow your project’s CMake configuration to locate RaiSim, pass <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=$WORKSPACE/raisim/mac</span></code>.
+As noted, utilize <code class="docutils literal notranslate"><span class="pre">m1</span></code> for Apple silicon architectures.</p>
+</div><div aria-labelledby="tab-0-V2luZG93cw==" class="sphinx-tabs-panel group-tab" hidden="true" id="panel-0-V2luZG93cw==" name="V2luZG93cw==" role="tabpanel" tabindex="0"><p>Add the win32 CMake package directory to your <cite>Path</cite> environment variable.
+To achieve this, follow these steps:</p>
+<ol class="arabic simple">
+<li><p>Open “Edit the system environment variables”.</p></li>
+<li><p>In the “Advanced” tab, select “Environment Variables”.</p></li>
+<li><p>Select the “Path” variable in the “System variables” list and click “Edit”.</p></li>
+<li><p>Append <code class="docutils literal notranslate"><span class="pre">$WORKSPACE/raisim/win32/</span></code>.</p></li>
+<li><p>To inform your project of RaiSim’s location, pass <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=$WORKSPACE/raisim/win32</span></code>. (Note: Release and debug builds share a single directory.)</p></li>
+</ol>
+</div></div>
+</section>
+<section id="rayrai-visualizer-in-process">
+<h2>Rayrai Visualizer (In-Process)<a class="headerlink" href="#rayrai-visualizer-in-process" title="Link to this heading"></a></h2>
+<p>The Rayrai visualizer is located in the <code class="docutils literal notranslate"><span class="pre">visualizer/</span></code> directory and is built as a standalone CMake project.
+It depends on the installed RaiSim package (and its Assimp dependency); therefore, install RaiSim first,
+then set <code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> to point to the RaiSim installation directory.</p>
+<section id="rayrai-dependencies">
+<h3>Rayrai Dependencies<a class="headerlink" href="#rayrai-dependencies" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>OpenGL development headers and libraries</p></li>
+</ul>
+<p>On Ubuntu, this typically requires the OpenGL packages (e.g.,
+<code class="docutils literal notranslate"><span class="pre">libgl1-mesa-dev</span></code> and <code class="docutils literal notranslate"><span class="pre">libglu1-mesa-dev</span></code>).</p>
+</section>
+<section id="build-steps">
+<h3>Build Steps<a class="headerlink" href="#build-steps" title="Link to this heading"></a></h3>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-TGludXggb3IgTWFj" aria-selected="true" class="sphinx-tabs-tab group-tab" id="tab-1-TGludXggb3IgTWFj" name="TGludXggb3IgTWFj" role="tab" tabindex="0">Linux or Mac</button><button aria-controls="panel-1-V2luZG93cw==" aria-selected="false" class="sphinx-tabs-tab group-tab" id="tab-1-V2luZG93cw==" name="V2luZG93cw==" role="tab" tabindex="-1">Windows</button></div><div aria-labelledby="tab-1-TGludXggb3IgTWFj" class="sphinx-tabs-panel group-tab" id="panel-1-TGludXggb3IgTWFj" name="TGludXggb3IgTWFj" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="nv">$RAISIM_DIR</span>
+cmake<span class="w"> </span>-S<span class="w"> </span>visualizer<span class="w"> </span>-B<span class="w"> </span>build-visualizer<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="nv">$RAISIM_DIR</span>/raisim/linux
+cmake<span class="w"> </span>--build<span class="w"> </span>build-visualizer
+cmake<span class="w"> </span>--install<span class="w"> </span>build-visualizer<span class="w"> </span>--prefix<span class="w"> </span><span class="nv">$RAISIM_DIR</span>/rayrai/linux
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-V2luZG93cw==" class="sphinx-tabs-panel group-tab" hidden="true" id="panel-1-V2luZG93cw==" name="V2luZG93cw==" role="tabpanel" tabindex="0"><p>SDL is bundled with rayrai on Windows, so no separate SDL2 installation is
+required. Configure the visualizer:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">cmake</span> <span class="n">-S</span> <span class="n">visualizer</span> <span class="n">-B</span> <span class="n">build-visualizer</span> <span class="p">^</span>
+  <span class="n">-DCMAKE_PREFIX_PATH</span><span class="p">=</span><span class="n">C</span><span class="p">:\</span><span class="n">path</span><span class="p">\</span><span class="n">to</span><span class="p">\</span><span class="n">raisimLib</span><span class="p">\</span><span class="n">raisim</span><span class="p">\</span><span class="n">win32</span>
+<span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build-visualizer</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
+<span class="n">cmake</span> <span class="p">-</span><span class="n">-install</span> <span class="n">build-visualizer</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span> <span class="p">-</span><span class="n">-prefix</span> <span class="n">C</span><span class="p">:\</span><span class="n">path</span><span class="p">\</span><span class="n">to</span><span class="p">\</span><span class="n">raisimLib</span><span class="p">\</span><span class="n">rayrai</span><span class="p">\</span><span class="n">win32</span>
+</pre></div>
+</div>
+</div></div>
+</section>
+</section>
+<section id="building-raisim-examples-and-installing-raisimpy">
+<h2>Building RaiSim Examples and Installing RaisimPy<a class="headerlink" href="#building-raisim-examples-and-installing-raisimpy" title="Link to this heading"></a></h2>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file in the <code class="docutils literal notranslate"><span class="pre">raisimLib</span></code> directory to build RaiSim examples and other modules.
+The following options are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RAISIM_EXAMPLE</span></code> : Compile C++ RaiSim examples.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RAISIM_MATLAB</span></code> : Compile RaisimMatlab (a compiled binary is also provided). This option requires MATLAB.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RAISIM_PY</span></code> : Compile RaisimPy. Upon installation, RaisimPy files are copied to the Python site-packages directory.</p></li>
+</ul>
+<p>Build files can be generated using CMake as follows.</p>
+<p>To build RaisimPy for the specific Python version, activate the corresponding conda environment before invoking CMake.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-TGludXggb3IgTWFj" aria-selected="true" class="sphinx-tabs-tab group-tab" id="tab-2-TGludXggb3IgTWFj" name="TGludXggb3IgTWFj" role="tab" tabindex="0">Linux or Mac</button><button aria-controls="panel-2-V2luZG93cw==" aria-selected="false" class="sphinx-tabs-tab group-tab" id="tab-2-V2luZG93cw==" name="V2luZG93cw==" role="tab" tabindex="-1">Windows</button></div><div aria-labelledby="tab-2-TGludXggb3IgTWFj" class="sphinx-tabs-panel group-tab" id="panel-2-TGludXggb3IgTWFj" name="TGludXggb3IgTWFj" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="nv">$WORKSPACE</span>
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span><span class="nv">$LOCAL_INSTALL</span><span class="w"> </span>-DRAISIM_EXAMPLE<span class="o">=</span>ON<span class="w"> </span>-DRAISIM_PY<span class="o">=</span>ON<span class="w"> </span>-DPYTHON_EXECUTABLE<span class="o">=</span><span class="k">$(</span>which<span class="w"> </span>python<span class="k">)</span>
+make<span class="w"> </span>install<span class="w"> </span>-j4
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-2-V2luZG93cw==" class="sphinx-tabs-panel group-tab" hidden="true" id="panel-2-V2luZG93cw==" name="V2luZG93cw==" role="tabpanel" tabindex="0"><p>Using the CMake GUI is recommended.
+After generating the build files with the CMake GUI, RaiSim can be built and installed using Visual Studio.
+Alternatively, use the following commands in Windows PowerShell:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $WORKSPACE
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$LOCAL_INSTALL -DRAISIM_EXAMPLE=ON -DRAISIM_PY=ON -DPYTHON_EXECUTABLE=$(which python)
+cmake --build . --target install --config Release
+</pre></div>
+</div>
+</div></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>For Linux Users</strong>
+To utilize the Vulkan version of RaiSimUnity on Linux, install <code class="docutils literal notranslate"><span class="pre">minizip</span></code>, <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">vulkan</span></code>. If RaisimGym usage is planned, install the GPU driver version recommended by
+PyTorch. Otherwise, install the latest available driver.</p>
+<p>To install <code class="docutils literal notranslate"><span class="pre">minizip</span></code> and <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>minizip<span class="w"> </span>ffmpeg
+</pre></div>
+</div>
+<p>Vulkan installation varies by OS distribution; refer to the specific distribution’s documentation.</p>
+<p>Ubuntu 22.04 users must execute the following command prior to running RaiSimUnity:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>/usr/lib/x86_64-linux-gnu/libdl.so.2<span class="w"> </span>/usr/lib/x86_64-linux-gnu/libdl.so
+</pre></div>
+</div>
+<p>For other Ubuntu versions, this symlink is automatically provided.</p>
+<p>If RaiSimUnity remains non-functional, the driver likely lacks Vulkan support.
+In such cases, use RaiSimUnityOpenGL, which provides minimal graphics capabilities.</p>
+</div>
+</section>
+<section id="activation-key">
+<h2>Activation Key<a class="headerlink" href="#activation-key" title="Link to this heading"></a></h2>
+<p>Rename the activation key received via email to <code class="docutils literal notranslate"><span class="pre">activation.raisim</span></code>.
+Save this file in <code class="docutils literal notranslate"><span class="pre">&lt;YOUR-HOME-DIR&gt;/.raisim</span></code>.
+* Linux and macOS: <code class="docutils literal notranslate"><span class="pre">/home/&lt;YOUR-USERNAME&gt;/.raisim</span></code>
+* Windows: <code class="docutils literal notranslate"><span class="pre">C:\Users\&lt;YOUR-USERNAME&gt;\.raisim</span></code> (Ensure <code class="docutils literal notranslate"><span class="pre">C</span></code> matches your home drive).</p>
+<p>RaiSim also checks the path specified by <code class="docutils literal notranslate"><span class="pre">raisim::World::setActivationKey()</span></code>.
+If the file is not found there, it will search the user directory where the <code class="docutils literal notranslate"><span class="pre">activation.raisim</span></code> file was saved.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>Built examples are stored in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory.
+On Windows, execute examples via PowerShell rather than by double-clicking the icons.
+In the event of an installation failure, an error message will be displayed.</p>
+<p>Run the RaiSimUnity executable located in <code class="docutils literal notranslate"><span class="pre">raisimUnity/&lt;OS&gt;/RaiSimUnity</span></code> prior to running the examples.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Visualizers.html" class="btn btn-neutral float-right" title="Visualizers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,224 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact and Collision &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Collision Detection and Colliders" href="CollisionDetection.html" />
+    <link rel="prev" title="Single-Body Objects" href="SingleBodyObjects.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contact and Collision</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#collision-group-and-mask">Collision Group and Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contacts">Contacts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#collision-detection-details">Collision detection details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contact and Collision</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contact-and-collision">
+<h1>Contact and Collision<a class="headerlink" href="#contact-and-collision" title="Link to this heading"></a></h1>
+<section id="collision-group-and-mask">
+<h2>Collision Group and Mask<a class="headerlink" href="#collision-group-and-mask" title="Link to this heading"></a></h2>
+<p>Collision groups and masks in RaiSim use bit operations, as in most other physics engines. The example below is self-explanatory.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="w"> </span><span class="n">world</span><span class="p">;</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">sphere0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addSphere</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;default&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">sphere1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addSphere</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;default&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">sphere2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addSphere</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;default&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">sphere3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">addSphere</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;default&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">COLLISION</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="mi">-1</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>In the above example, <code class="docutils literal notranslate"><span class="pre">sphere0</span></code> is in collision group 0 and can collide with collision group 0 and 1.
+<code class="docutils literal notranslate"><span class="pre">sphere1</span></code> is in collision group 1 and can collide with collision group 0 and 1.
+<code class="docutils literal notranslate"><span class="pre">sphere2</span></code> is in collision group 2 and can collide with collision group 1.
+<code class="docutils literal notranslate"><span class="pre">sphere3</span></code> is in collision group 3 and can collide with any object (-1 means all groups).</p>
+<p><strong>The collision group and mask use AND logic</strong>.
+For A and B to collide, A must be able to collide with B and vice versa.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sphere0</span></code> can collide with <code class="docutils literal notranslate"><span class="pre">sphere1</span></code>.
+<code class="docutils literal notranslate"><span class="pre">sphere1</span></code> cannot collide with <code class="docutils literal notranslate"><span class="pre">sphere2</span></code> (both conditions must be satisfied).
+<code class="docutils literal notranslate"><span class="pre">sphere3</span></code> cannot collide with any objects (because <code class="docutils literal notranslate"><span class="pre">sphere0</span></code>, <code class="docutils literal notranslate"><span class="pre">sphere1</span></code> and <code class="docutils literal notranslate"><span class="pre">sphere2</span></code> cannot collide with the collision group 3).</p>
+<p>By default, movable objects are in collision group 1 and can collide with anything (collision mask = -1).
+All static objects (e.g., ground and heightmap) are in collision group 63 and can collide with anything.</p>
+</section>
+<section id="contacts">
+<h2>Contacts<a class="headerlink" href="#contacts" title="Link to this heading"></a></h2>
+<p><code class="code docutils literal notranslate"><span class="pre">raisim::Object</span></code> (and thus <code class="code docutils literal notranslate"><span class="pre">raisim::ArticulatedSystem</span></code> and <code class="code docutils literal notranslate"><span class="pre">raisim::SingleBodyObject</span></code>) have a method <code class="code docutils literal notranslate"><span class="pre">getContacts</span></code> which returns the list of contacts.
+For example,</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">contactsOnAnymal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getContacts</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>The Contact class is header-only and can be found at <code class="code docutils literal notranslate"><span class="pre">include/raisim/contact/Contact.hpp</span></code>.</p>
+<p>Note that all vector quantities are expressed in the respective <strong>Contact Frame</strong>.
+A contact frame is defined such that its z-axis is colinear with the contact normal and its origin is at the contact point.
+Its x- and y-axes are chosen arbitrarily.
+Here is a more detailed example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">/// Check all contact impulses acting on &quot;LF_SHANK&quot;</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">footIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getBodyIdx</span><span class="p">(</span><span class="s">&quot;LF_SHANK&quot;</span><span class="p">);</span>
+
+<span class="c1">/// For all contacts on the robot, check ...</span>
+<span class="k">for</span><span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">contact</span><span class="o">:</span><span class="w"> </span><span class="n">anymal</span><span class="o">-&gt;</span><span class="n">getContacts</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">contact</span><span class="p">.</span><span class="n">skip</span><span class="p">())</span><span class="w"> </span><span class="k">continue</span><span class="p">;</span><span class="w"> </span><span class="c1">/// if the contact is internal, one contact point is set to &#39;skip&#39;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">footIndex</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">contact</span><span class="p">.</span><span class="n">getlocalBodyIndex</span><span class="p">()</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Contact impulse in the contact frame: &quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">getImpulse</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// the impulse acts from objectB to objectA. You can check if this object is objectA or B by:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;is ObjectA: &quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">isObjectA</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Contact frame: </span><span class="se">\n</span><span class="s">&quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">getContactFrame</span><span class="p">().</span><span class="n">e</span><span class="p">().</span><span class="n">transpose</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">/// the contact frame is transposed.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Contact impulse in the world frame: &quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">getContactFrame</span><span class="p">().</span><span class="n">e</span><span class="p">().</span><span class="n">transpose</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">contact</span><span class="p">.</span><span class="n">getImpulse</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">e</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Contact Normal in the world frame: &quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">getNormal</span><span class="p">().</span><span class="n">e</span><span class="p">().</span><span class="n">transpose</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Contact position in the world frame: &quot;</span><span class="o">&lt;&lt;</span><span class="n">contact</span><span class="p">.</span><span class="n">getPosition</span><span class="p">().</span><span class="n">e</span><span class="p">().</span><span class="n">transpose</span><span class="p">()</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;It collides with: &quot;</span><span class="o">&lt;&lt;</span><span class="n">world</span><span class="p">.</span><span class="n">getObject</span><span class="p">(</span><span class="n">contact</span><span class="p">.</span><span class="n">getPairObjectIndex</span><span class="p">())</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">contact</span><span class="p">.</span><span class="n">getPairContactIndexInPairObject</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">BodyType</span><span class="o">::</span><span class="n">STATIC</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">/// Static objects do not store contacts, so check whether the pair object is static.</span>
+<span class="w">      </span><span class="c1">/// This saves computation in RaiSim.</span>
+<span class="w">      </span><span class="n">world</span><span class="p">.</span><span class="n">getObject</span><span class="p">(</span><span class="n">contact</span><span class="p">.</span><span class="n">getPairObjectIndex</span><span class="p">())</span><span class="o">-&gt;</span><span class="n">getContacts</span><span class="p">();</span><span class="w"> </span><span class="c1">/// You can use the same methods on the pair object</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;See Contact.hpp for the full list of methods&quot;</span><span class="o">&lt;&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="collision-detection-details">
+<h2>Collision detection details<a class="headerlink" href="#collision-detection-details" title="Link to this heading"></a></h2>
+<p>For a detailed breakdown of collision pairs, narrowphase algorithms, and
+per-pair contact counts, see the <a class="reference internal" href="CollisionDetection.html"><span class="doc">Collision Detection and Colliders</span></a> section.</p>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<p>You can get a vector of collisions on an object using <code class="docutils literal notranslate"><span class="pre">raisim::Object::getContacts</span></code>.
+Each element in the vector has the following API:</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SingleBodyObjects.html" class="btn btn-neutral float-left" title="Single-Body Objects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CollisionDetection.html" class="btn btn-neutral float-right" title="Collision Detection and Colliders" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

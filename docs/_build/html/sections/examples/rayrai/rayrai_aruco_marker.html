@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rayrai Example: Aruco Marker &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Rayrai Example: Basic Scene" href="rayrai_basic_scene.html" />
+    <link rel="prev" title="Rayrai Example: Instancing Grid" href="rayrai_instancing_grid.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../Examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#build-and-run">Build and run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#xml">XML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#maps">Maps</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../Examples.html#rayrai">Rayrai</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rayrai_complete_showcase.html">Rayrai Example: Complete Showcase</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_lidar_pointcloud.html">Rayrai Example: LiDAR Pointcloud</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_rgb_camera.html">Rayrai Example: RGB Camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_depth_camera.html">Rayrai Example: Depth Camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_custom_visuals.html">Rayrai Example: Custom Visuals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_pointcloud_animation.html">Rayrai Example: Pointcloud Animation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_instancing_grid.html">Rayrai Example: Instancing Grid</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Rayrai Example: Aruco Marker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#binary">Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run">Run</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#details">Details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#source">Source</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_basic_scene.html">Rayrai Example: Basic Scene</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_tcp_viewer.html">Rayrai Example: TCP Viewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#raisimserver">RaisimServer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../Examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Rayrai Example: Aruco Marker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rayrai-example-aruco-marker">
+<h1>Rayrai Example: Aruco Marker<a class="headerlink" href="#rayrai-example-aruco-marker" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Uses an orthographic camera and flat lighting to render a textured mesh marker for detection-style pipelines. It is tuned for consistent marker appearance.</p>
+</section>
+<section id="binary">
+<h2>Binary<a class="headerlink" href="#binary" title="Link to this heading"></a></h2>
+<p>CMake target and executable name: <code class="docutils literal notranslate"><span class="pre">rayrai_aruco_marker</span></code>.</p>
+</section>
+<section id="run">
+<h2>Run<a class="headerlink" href="#run" title="Link to this heading"></a></h2>
+<p>Build and run from your build directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--target<span class="w"> </span>rayrai_aruco_marker
+./rayrai_aruco_marker
+</pre></div>
+</div>
+<p>On Windows, run <code class="docutils literal notranslate"><span class="pre">rayrai_aruco_marker.exe</span></code> instead.
+This example uses the in-process rayrai renderer (no external client required).</p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Adds a mesh visual as a stand-in marker and rotates it to face the camera.</p></li>
+<li><p>Configures a directional light and disables shadows for flat lighting.</p></li>
+<li><p>Uses an orthographic camera to render a marker-like view.</p></li>
+</ul>
+</section>
+<section id="source">
+<h2>Source<a class="headerlink" href="#source" title="Link to this heading"></a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Copyright (c) 2025 Raion Robotics Inc.</span>
+<span class="c1">// All rights reserved.</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memory&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;rayrai/example_common.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;rayrai_example_resources.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;raisim/World.hpp&quot;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ExampleApp</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">app</span><span class="p">.</span><span class="n">init</span><span class="p">(</span><span class="s">&quot;rayrai_example_aruco_marker&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">))</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addGround</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">viewer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisin</span><span class="o">::</span><span class="n">RayraiWindow</span><span class="o">&gt;</span><span class="p">(</span><span class="n">world</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">);</span>
+<span class="w">  </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">setBackgroundColor</span><span class="p">({</span><span class="mi">77</span><span class="p">,</span><span class="w"> </span><span class="mi">77</span><span class="p">,</span><span class="w"> </span><span class="mi">77</span><span class="p">,</span><span class="w"> </span><span class="mi">255</span><span class="p">});</span>
+<span class="w">  </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">setFogDensity</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">markerFile</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">rayraiRscPath</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="s">&quot;ycb/002_master_chef_can/google_16k/textured.dae&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">marker</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">addVisualMesh</span><span class="p">(</span><span class="s">&quot;aruco_marker&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">markerFile</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">marker</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">marker</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Rotate +90 deg around X so the mesh faces -Y (towards the camera).</span>
+<span class="w">    </span><span class="n">marker</span><span class="o">-&gt;</span><span class="n">setOrientation</span><span class="p">(</span><span class="mf">0.70710678</span><span class="p">,</span><span class="w"> </span><span class="mf">0.70710678</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">light</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">getLight</span><span class="p">();</span>
+<span class="w">  </span><span class="n">light</span><span class="p">.</span><span class="n">setAsDirectional</span><span class="p">(</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">));</span>
+<span class="w">  </span><span class="n">light</span><span class="p">.</span><span class="n">ambient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">light</span><span class="p">.</span><span class="n">diffuse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">light</span><span class="p">.</span><span class="n">specular</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">light</span><span class="p">.</span><span class="n">setShadowsEnabled</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">cam</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">getCamera</span><span class="p">();</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">-2.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">yaw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">90.0f</span><span class="p">;</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">pitch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">setProjectionMode</span><span class="p">(</span><span class="n">raisin</span><span class="o">::</span><span class="n">Camera</span><span class="o">::</span><span class="n">ProjectionMode</span><span class="o">::</span><span class="n">ORTHOGRAPHIC</span><span class="p">);</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">orthoScale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.2f</span><span class="p">;</span>
+<span class="w">  </span><span class="n">cam</span><span class="p">.</span><span class="n">update</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">app</span><span class="p">.</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">processEvents</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">app</span><span class="p">.</span><span class="n">quit</span><span class="p">)</span>
+<span class="w">      </span><span class="k">break</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">integrate</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">beginFrame</span><span class="p">();</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">renderViewer</span><span class="p">(</span><span class="o">*</span><span class="n">viewer</span><span class="p">);</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">endFrame</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">viewer</span><span class="p">.</span><span class="n">reset</span><span class="p">();</span>
+<span class="w">  </span><span class="n">app</span><span class="p">.</span><span class="n">shutdown</span><span class="p">();</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rayrai_instancing_grid.html" class="btn btn-neutral float-left" title="Rayrai Example: Instancing Grid" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rayrai_basic_scene.html" class="btn btn-neutral float-right" title="Rayrai Example: Basic Scene" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

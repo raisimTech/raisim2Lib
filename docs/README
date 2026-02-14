@@ -1,0 +1,20 @@
+To build raisim doc, you need the following python packages:
+
+* sphinx
+* sphinx-rtd-theme
+* breathe
+* sphinx-tabs
+* docutils
+
+Recommended (avoid system Python issues on Ubuntu/Debian):
+
+  python3 -m venv .venv
+  . .venv/bin/activate
+  python -m pip install -r requirements.txt
+  sphinx-build -b html . _build/html
+
+The CMake docs build will prefer a local venv at `docs/.venv` if it exists.
+If not found, it falls back to a system `sphinx-build`. If neither is
+available, it stops with the same venv instructions above.
+
+You can get the latest doc from raisim.com

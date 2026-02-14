@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logging System &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="World" href="WorldSystem.html" />
+    <link rel="prev" title="Math Classes" href="Math.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Logging System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#raisimmsg">RaiSimMsg</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Logging System</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="logging-system">
+<h1>Logging System<a class="headerlink" href="#logging-system" title="Link to this heading"></a></h1>
+<p>The RaiSim logging system, inspired by the <code class="docutils literal notranslate"><span class="pre">glog</span></code> library, offers a compact method for representing multi-line log entries.
+Messages are streamed exclusively to standard output (<code class="docutils literal notranslate"><span class="pre">std::cout</span></code>) and are not persisted to a file.
+For instance, rather than:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="p">(</span><span class="n">fail</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="n">date</span><span class="o">&lt;&lt;</span><span class="n">FILENAME</span><span class="o">&lt;&lt;</span><span class="n">LINENUMBER</span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;failed here </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>one may utilize:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">RSFATAL_IF</span><span class="p">(</span><span class="n">fail</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;failed here&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The available logging macros are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RSINFO(msg)</span></code>: Prints the message in white.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSWARN(msg)</span></code>: Prints the message in yellow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSFATAL(msg)</span></code>: Prints the message in red and executes the fatal function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSINFO_IF(con,</span> <span class="pre">msg)</span></code>: Prints the message in white if the condition evaluates to true.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSWARN_IF(con,</span> <span class="pre">msg)</span></code>: Prints the message in yellow if the condition evaluates to true.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSFATAL_IF(con,</span> <span class="pre">msg)</span></code>: Prints the message in red and invokes the fatal function if the condition evaluates to true.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSASSERT(con,</span> <span class="pre">msg)</span></code>: Prints the message in red and invokes the fatal function if the condition evaluates to false.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSRETURN_IF(con,</span> <span class="pre">msg)</span></code>: Prints the message in white and executes a <code class="docutils literal notranslate"><span class="pre">return</span></code> statement if the condition evaluates to true.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSISNAN(val)</span></code>: Prints “${val} is NaN” and invokes the fatal function if the value is NaN (Not a Number).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RSISNAN_MSG(val,</span> <span class="pre">msg)</span></code>: Prints the specified message and invokes the fatal function if the value is NaN.</p></li>
+</ul>
+<p>The default fatal function is <code class="docutils literal notranslate"><span class="pre">std::exit(1);</span></code>.
+This behavior can be overridden as follows:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">raisim</span><span class="o">::</span><span class="n">RaiSimMsg</span><span class="o">::</span><span class="n">setFatalCallback</span><span class="p">([](){</span><span class="k">throw</span><span class="p">;});</span>
+</pre></div>
+</div>
+<p>These macros impact performance; for example, all <code class="docutils literal notranslate"><span class="pre">_IF</span></code> macros involve boolean checks and potential branching.</p>
+<p>To avoid performance overhead from branching in release builds, the following debug-only versions of the macros are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSINFO(msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSWARN(msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSFATAL(msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSINFO_IF(con,</span> <span class="pre">msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSWARN_IF(con,</span> <span class="pre">msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSFATAL_IF(con,</span> <span class="pre">msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSASSERT(con,</span> <span class="pre">msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSRETURN_IF(con,</span> <span class="pre">msg)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSISNAN(val)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRSISNAN_MSG(val,</span> <span class="pre">msg)</span></code></p></li>
+</ul>
+<p>These macros are compiled out unless the build type is set to Debug.</p>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<section id="raisimmsg">
+<h3>RaiSimMsg<a class="headerlink" href="#raisimmsg" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Math.html" class="btn btn-neutral float-left" title="Math Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="WorldSystem.html" class="btn btn-neutral float-right" title="World" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

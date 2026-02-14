@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rayrai Example: LiDAR Pointcloud &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Rayrai Example: RGB Camera" href="rayrai_rgb_camera.html" />
+    <link rel="prev" title="Rayrai Example: Complete Showcase" href="rayrai_complete_showcase.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html">
+            
+              <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../Examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#build-and-run">Build and run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#xml">XML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#maps">Maps</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../Examples.html#rayrai">Rayrai</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rayrai_complete_showcase.html">Rayrai Example: Complete Showcase</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Rayrai Example: LiDAR Pointcloud</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#binary">Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run">Run</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#details">Details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#source">Source</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_rgb_camera.html">Rayrai Example: RGB Camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_depth_camera.html">Rayrai Example: Depth Camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_custom_visuals.html">Rayrai Example: Custom Visuals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_pointcloud_animation.html">Rayrai Example: Pointcloud Animation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_instancing_grid.html">Rayrai Example: Instancing Grid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_aruco_marker.html">Rayrai Example: Aruco Marker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_basic_scene.html">Rayrai Example: Basic Scene</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rayrai_tcp_viewer.html">Rayrai Example: TCP Viewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../Examples.html#raisimserver">RaisimServer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../Examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Rayrai Example: LiDAR Pointcloud</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rayrai-example-lidar-pointcloud">
+<h1>Rayrai Example: LiDAR Pointcloud<a class="headerlink" href="#rayrai-example-lidar-pointcloud" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Attaches a Livox LiDAR module to Go1 and visualizes the scan as a point cloud every frame, with nearby primitives and a static mesh to generate richer returns.</p>
+</section>
+<section id="binary">
+<h2>Binary<a class="headerlink" href="#binary" title="Link to this heading"></a></h2>
+<p>CMake target and executable name: <code class="docutils literal notranslate"><span class="pre">rayrai_lidar_pointcloud</span></code>.</p>
+</section>
+<section id="run">
+<h2>Run<a class="headerlink" href="#run" title="Link to this heading"></a></h2>
+<p>Build and run from your build directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--target<span class="w"> </span>rayrai_lidar_pointcloud
+./rayrai_lidar_pointcloud
+</pre></div>
+</div>
+<p>On Windows, run <code class="docutils literal notranslate"><span class="pre">rayrai_lidar_pointcloud.exe</span></code> instead.
+This example uses the in-process rayrai renderer (no external client required).</p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Loads Go1 with a Livox LiDAR module and updates scans each frame.</p></li>
+<li><p>Transforms LiDAR points from sensor to world frame.</p></li>
+<li><p>Visualizes the scan as a point cloud with adjustable point size.</p></li>
+</ul>
+</section>
+<section id="source">
+<h2>Source<a class="headerlink" href="#source" title="Link to this heading"></a></h2>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cmath&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memory&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;glm/glm.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;rayrai/example_common.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;rayrai_example_resources.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;raisim/World.hpp&quot;</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="w"> </span><span class="nf">toGlm</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dmat3</span><span class="w"> </span><span class="nf">toGlm</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">Mat</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">R</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dmat3</span><span class="p">(</span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)),</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">R</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)));</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ExampleApp</span><span class="w"> </span><span class="n">app</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">app</span><span class="p">.</span><span class="n">init</span><span class="p">(</span><span class="s">&quot;rayrai_example_lidar&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">))</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addGround</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">Path</span><span class="o">::</span><span class="n">separator</span><span class="p">();</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">go1Dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rayraiRscPath</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="s">&quot;go1&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">modules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;livox_lidar&quot;</span><span class="p">};</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">go1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addArticulatedSystem</span><span class="p">(</span><span class="n">go1Dir</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sep</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;go1.urdf&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">modules</span><span class="p">,</span><span class="w"> </span><span class="n">go1Dir</span><span class="p">);</span>
+<span class="w">  </span><span class="n">go1</span><span class="o">-&gt;</span><span class="n">setGeneralizedCoordinate</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.32</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.67</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.67</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="mf">0.67</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.3</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.67</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.3</span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">lidar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">go1</span><span class="o">-&gt;</span><span class="n">getSensorSet</span><span class="p">(</span><span class="s">&quot;livox_lidar_0&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getSensor</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">SpinningLidar</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;lidar&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">sphere</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addSphere</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">sphere</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6</span><span class="p">);</span>
+<span class="w">  </span><span class="n">sphere</span><span class="o">-&gt;</span><span class="n">setAppearance</span><span class="p">(</span><span class="s">&quot;0.9,0.3,0.2,1.0&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addBox</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">box</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">-2.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">);</span>
+<span class="w">  </span><span class="n">box</span><span class="o">-&gt;</span><span class="n">setAppearance</span><span class="p">(</span><span class="s">&quot;0.2,0.7,0.9,1.0&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">cylinder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addCylinder</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">cylinder</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">1.8</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.8</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span>
+<span class="w">  </span><span class="n">cylinder</span><span class="o">-&gt;</span><span class="n">setAppearance</span><span class="p">(</span><span class="s">&quot;0.3,0.8,0.4,1.0&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">capsule</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addCapsule</span><span class="p">(</span><span class="mf">0.15</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">capsule</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">-1.6</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.3</span><span class="p">,</span><span class="w"> </span><span class="mf">0.45</span><span class="p">);</span>
+<span class="w">  </span><span class="n">capsule</span><span class="o">-&gt;</span><span class="n">setAppearance</span><span class="p">(</span><span class="s">&quot;0.9,0.8,0.2,1.0&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">monkeyFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rayraiRscPath</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="s">&quot;monkey/monkey.obj&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">raisim</span><span class="o">::</span><span class="n">Mat</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">inertia</span><span class="p">;</span>
+<span class="w">  </span><span class="n">inertia</span><span class="p">.</span><span class="n">setIdentity</span><span class="p">();</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">com</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">};</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">monkey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addMesh</span><span class="p">(</span><span class="n">monkeyFile</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="n">inertia</span><span class="p">,</span><span class="w"> </span><span class="n">com</span><span class="p">);</span>
+<span class="w">  </span><span class="n">monkey</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="mf">2.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.35</span><span class="p">);</span>
+<span class="w">  </span><span class="n">monkey</span><span class="o">-&gt;</span><span class="n">setAppearance</span><span class="p">(</span><span class="s">&quot;0.8,0.8,0.9,1.0&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">monkey</span><span class="o">-&gt;</span><span class="n">setBodyType</span><span class="p">(</span><span class="n">raisim</span><span class="o">::</span><span class="n">BodyType</span><span class="o">::</span><span class="n">STATIC</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">viewer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisin</span><span class="o">::</span><span class="n">RayraiWindow</span><span class="o">&gt;</span><span class="p">(</span><span class="n">world</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">);</span>
+<span class="w">  </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">setBackgroundColor</span><span class="p">({</span><span class="mi">25</span><span class="p">,</span><span class="w"> </span><span class="mi">25</span><span class="p">,</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span><span class="w"> </span><span class="mi">255</span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">lidarCloud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="o">-&gt;</span><span class="n">addPointCloud</span><span class="p">(</span><span class="s">&quot;lidar_scan&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lidarCloud</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">pointSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">setDetectable</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">app</span><span class="p">.</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">processEvents</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">app</span><span class="p">.</span><span class="n">quit</span><span class="p">)</span>
+<span class="w">      </span><span class="k">break</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">integrate</span><span class="p">();</span>
+
+<span class="w">    </span><span class="n">lidar</span><span class="o">-&gt;</span><span class="n">updatePose</span><span class="p">();</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="w"> </span><span class="n">sensorPosW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">toGlm</span><span class="p">(</span><span class="n">lidar</span><span class="o">-&gt;</span><span class="n">getPosition</span><span class="p">());</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dmat3</span><span class="w"> </span><span class="n">sensorRotW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">toGlm</span><span class="p">(</span><span class="n">lidar</span><span class="o">-&gt;</span><span class="n">getOrientation</span><span class="p">());</span>
+<span class="w">    </span><span class="n">lidar</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">(</span><span class="o">*</span><span class="n">world</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lidarCloud</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">scanS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lidar</span><span class="o">-&gt;</span><span class="n">getScan</span><span class="p">();</span>
+<span class="w">      </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">positions</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">      </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">colors</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">      </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">positions</span><span class="p">.</span><span class="n">reserve</span><span class="p">(</span><span class="n">scanS</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="w">      </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">colors</span><span class="p">.</span><span class="n">reserve</span><span class="p">(</span><span class="n">scanS</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+
+<span class="w">      </span><span class="k">const</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">vec4</span><span class="w"> </span><span class="n">kColor</span><span class="p">(</span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.f</span><span class="p">);</span>
+<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">scanS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="w"> </span><span class="n">pS</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">ps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">ps</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="n">glm</span><span class="o">::</span><span class="n">dvec3</span><span class="w"> </span><span class="n">pW</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorRotW</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">pS</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sensorPosW</span><span class="p">;</span>
+<span class="w">        </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">positions</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="p">(</span><span class="n">pW</span><span class="p">));</span>
+<span class="w">        </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">colors</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">kColor</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="n">lidarCloud</span><span class="o">-&gt;</span><span class="n">updatePointBuffer</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">beginFrame</span><span class="p">();</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">renderViewer</span><span class="p">(</span><span class="o">*</span><span class="n">viewer</span><span class="p">);</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">endFrame</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">viewer</span><span class="p">.</span><span class="n">reset</span><span class="p">();</span>
+<span class="w">  </span><span class="n">app</span><span class="p">.</span><span class="n">shutdown</span><span class="p">();</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rayrai_complete_showcase.html" class="btn btn-neutral float-left" title="Rayrai Example: Complete Showcase" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rayrai_rgb_camera.html" class="btn btn-neutral float-right" title="Rayrai Example: RGB Camera" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

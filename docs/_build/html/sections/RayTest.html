@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ray Test &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sensors" href="Sensors.html" />
+    <link rel="prev" title="CustomLengthConstraint" href="CustomLengthConstraint.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ray Test</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-ray-test-raytest">Single-ray test (<code class="code docutils literal notranslate"><span class="pre">rayTest</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#getting-the-hit-object-example">Getting the hit object (example)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-ray-tests-lidar">Batch ray tests (lidar)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#arguments-batched-lidar-scan">Arguments (batched lidar scan)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#details">Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#raycollisionitem-summary">RayCollisionItem summary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raycollisionlist-summary">RayCollisionList summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#raycollisionitem">RayCollisionItem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raycollisionlist">RayCollisionList</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Rayrai.html">rayrai Visualizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Ray Test</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ray-test">
+<h1>Ray Test<a class="headerlink" href="#ray-test" title="Link to this heading"></a></h1>
+<img alt="../_images/raytest.gif" src="../_images/raytest.gif" />
+<p>A ray test is a collision check between the world and a ray.
+Users specify the starting point, direction, and length. It returns the closest hit
+along the ray (if any).</p>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading"></a></h2>
+<section id="single-ray-test-raytest">
+<h3>Single-ray test (<code class="code docutils literal notranslate"><span class="pre">rayTest</span></code>)<a class="headerlink" href="#single-ray-test-raytest" title="Link to this heading"></a></h3>
+<p>Signature (C++):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">RayCollisionList</span><span class="o">&amp;</span><span class="w"> </span><span class="nf">rayTest</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">start</span><span class="p">,</span>
+<span class="w">                                </span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">direction</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">double</span><span class="w"> </span><span class="n">length</span><span class="p">,</span>
+<span class="w">                                </span><span class="kt">size_t</span><span class="w"> </span><span class="n">objectId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">size_t</span><span class="p">(</span><span class="mi">-10</span><span class="p">),</span>
+<span class="w">                                </span><span class="kt">size_t</span><span class="w"> </span><span class="n">localId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">size_t</span><span class="p">(</span><span class="mi">-10</span><span class="p">),</span>
+<span class="w">                                </span><span class="n">CollisionGroup</span><span class="w"> </span><span class="n">collisionMask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CollisionGroup</span><span class="p">(</span><span class="mi">-1</span><span class="p">));</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">start</span></code>: ray origin in world frame.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">direction</span></code>: ray direction in world frame. It does not need to be normalized.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">length</span></code>: ray length in meters. Only hits within [0, length] are returned.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">objectId</span></code> / <code class="code docutils literal notranslate"><span class="pre">localId</span></code>: optional self-filter. Collisions with the given
+object and local body id pair are ignored (useful for sensors attached to robots).
+The defaults disable this filter.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">collisionMask</span></code>: collision mask to filter which groups the ray can hit.
+The default (-1) allows all groups.</p></li>
+</ul>
+<p>The returned <code class="code docutils literal notranslate"><span class="pre">RayCollisionList</span></code> stores only the closest hit (0 or 1 item).</p>
+</section>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>An example is provided <a class="reference external" href="https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/rayDemo.cpp">here</a>.
+Only the following line</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">rayTest</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">},</span><span class="w"> </span><span class="n">direction</span><span class="p">,</span><span class="w"> </span><span class="mf">50.</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>performs the ray test. The rest of the code is for demonstration only. The ray test stores only the closest hit.</p>
+<section id="getting-the-hit-object-example">
+<h3>Getting the hit object (example)<a class="headerlink" href="#getting-the-hit-object-example" title="Link to this heading"></a></h3>
+<p>To identify what was hit, check the returned <code class="code docutils literal notranslate"><span class="pre">RayCollisionList</span></code>.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">hits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">world</span><span class="p">.</span><span class="n">rayTest</span><span class="p">({</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">},</span><span class="w"> </span><span class="n">direction</span><span class="p">,</span><span class="w"> </span><span class="mf">50.0</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">hits</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;No hit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">hit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">*</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hit</span><span class="p">.</span><span class="n">getObject</span><span class="p">();</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hit object: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">()</span>
+<span class="w">              </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; (id=&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">getIndexInWorld</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Hit position: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">hit</span><span class="p">.</span><span class="n">getPosition</span><span class="p">().</span><span class="n">transpose</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hit</span><span class="p">.</span><span class="n">getCollisionBody</span><span class="p">();</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Collision body: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">body</span><span class="o">-&gt;</span><span class="n">name</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="batch-ray-tests-lidar">
+<h2>Batch ray tests (lidar)<a class="headerlink" href="#batch-ray-tests-lidar" title="Link to this heading"></a></h2>
+<p>For spinning lidar-style scans, use <code class="code docutils literal notranslate"><span class="pre">World::rayTestLidar(...)</span></code> instead of
+calling <code class="code docutils literal notranslate"><span class="pre">rayTest(...)</span></code> for each ray. It is significantly faster because it:</p>
+<ul class="simple">
+<li><p>Performs a <strong>single frustum-based broadphase</strong> to collect candidate bodies for
+the whole scan (yaw/pitch/range window), instead of repeating a full world
+scan per ray.</p></li>
+<li><p>Reuses the internal ray body and avoids per-ray allocations.</p></li>
+<li><p>Performs per-ray AABB checks only on the prefiltered candidate list.</p></li>
+</ul>
+<p>Minimal example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">raisim</span><span class="o">::</span><span class="n">AlignedAllocator</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">Vec</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">scan</span><span class="p">;</span>
+<span class="n">world</span><span class="p">.</span><span class="n">rayTestLidar</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span><span class="w"> </span><span class="n">pos</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">yawStartCount</span><span class="p">,</span><span class="w"> </span><span class="n">yawEndCount</span><span class="p">,</span><span class="w"> </span><span class="n">yawIncrement</span><span class="p">,</span><span class="w"> </span><span class="n">spinDirection</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">pitchSamples</span><span class="p">,</span><span class="w"> </span><span class="n">pitchMinAngle</span><span class="p">,</span><span class="w"> </span><span class="n">pitchIncrement</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">rangeMin</span><span class="p">,</span><span class="w"> </span><span class="n">rangeMax</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">objectId</span><span class="p">,</span><span class="w"> </span><span class="n">localId</span><span class="p">,</span><span class="w"> </span><span class="n">collisionMask</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">scan</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The output <code class="code docutils literal notranslate"><span class="pre">scan</span></code> contains hit points in the sensor frame (one per ray that hits).</p>
+<section id="arguments-batched-lidar-scan">
+<h3>Arguments (batched lidar scan)<a class="headerlink" href="#arguments-batched-lidar-scan" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">rot</span></code>: sensor orientation (sensor frame to world frame).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pos</span></code>: sensor position in world frame.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">yawStartCount</span></code>, <code class="code docutils literal notranslate"><span class="pre">yawEndCount</span></code>, <code class="code docutils literal notranslate"><span class="pre">yawIncrement</span></code>: yaw sweep range
+and step (in radians). The scan iterates from start to end using <code class="code docutils literal notranslate"><span class="pre">spinDirection</span></code>.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">spinDirection</span></code>: +1 or -1, controlling yaw sweep direction.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pitchSamples</span></code>, <code class="code docutils literal notranslate"><span class="pre">pitchMinAngle</span></code>, <code class="code docutils literal notranslate"><span class="pre">pitchIncrement</span></code>: pitch sampling
+configuration (in radians).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">rangeMin</span></code>, <code class="code docutils literal notranslate"><span class="pre">rangeMax</span></code>: min/max range in meters.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">objectId</span></code> / <code class="code docutils literal notranslate"><span class="pre">localId</span></code>: optional self-filter (same as <code class="code docutils literal notranslate"><span class="pre">rayTest</span></code>).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">collisionMask</span></code>: collision mask to filter which groups the rays can hit.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">scan</span></code>: output hit positions in the sensor frame.</p></li>
+</ul>
+</section>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading"></a></h2>
+<section id="raycollisionitem-summary">
+<h3>RayCollisionItem summary<a class="headerlink" href="#raycollisionitem-summary" title="Link to this heading"></a></h3>
+<p>Each hit entry stores:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">getObject()</span></code>: pointer to the hit <code class="code docutils literal notranslate"><span class="pre">raisim::Object</span></code> (or nullptr if none).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getPosition()</span></code>: world-frame hit position (contact point).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">getCollisionBody()</span></code>: collision body handle for the hit (may be null for some objects).</p></li>
+</ul>
+</section>
+<section id="raycollisionlist-summary">
+<h3>RayCollisionList summary<a class="headerlink" href="#raycollisionlist-summary" title="Link to this heading"></a></h3>
+<p>Container semantics:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">size()</span></code>: number of valid hits in the list.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">operator[](i)</span></code>: random access to the i-th hit.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">begin()</span></code>, <code class="code docutils literal notranslate"><span class="pre">end()</span></code>: iterators over valid hits.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">back()</span></code>: iterator to the last valid hit.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">setSize(n)</span></code>: updates the number of valid hits (used internally).</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">resize(n)</span></code>, <code class="code docutils literal notranslate"><span class="pre">reserve(n)</span></code>: storage management.</p></li>
+</ul>
+</section>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">RayCollisionList</span></code> is a lightweight container reused across calls. It is
+cleared and populated by <code class="code docutils literal notranslate"><span class="pre">rayTest(...)</span></code>.</p></li>
+<li><p>It contains <strong>at most one item</strong> because RaiSim keeps only the closest hit
+along the ray. Use <code class="code docutils literal notranslate"><span class="pre">list.size()</span></code> to check whether a hit occurred (0 or 1).</p></li>
+</ul>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<section id="raycollisionitem">
+<h3>RayCollisionItem<a class="headerlink" href="#raycollisionitem" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="raycollisionlist">
+<h3>RayCollisionList<a class="headerlink" href="#raycollisionlist" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="CustomLengthConstraint.html" class="btn btn-neutral float-left" title="CustomLengthConstraint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Sensors.html" class="btn btn-neutral float-right" title="Sensors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

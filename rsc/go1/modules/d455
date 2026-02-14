@@ -1,0 +1,6 @@
+  <link name="d455_front" model="d455" sensor="realsense455.xml" />
+  <joint name="d455_front_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0.270 0.0 0.16957"/>
+    <parent link="base"/>
+    <child link="d455_front"/>
+  </joint>

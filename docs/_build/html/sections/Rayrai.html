@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rayrai Visualizer &mdash; raisim 1.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css?v=2a6c4383" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css?v=45cf7dbc" />
+      <link rel="stylesheet" type="text/css" href="../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css?v=d290406d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=370aedac"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="RaiSimUnity" href="RaisimUnity.html" />
+    <link rel="prev" title="RaisimPy" href="RaiSimPy.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Acknowledgement.html">Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Performance.html">Performance</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">RaiSim C++</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Visualizers.html">Visualizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConventionsAndNotations.html">Conventions and Notations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Determinism.html">Determinism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Math.html">Math Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoggingSystem.html">Logging System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldSystem.html">World</a></li>
+<li class="toctree-l1"><a class="reference internal" href="WorldConfigurationFile.html">World Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimServer.html">Raisim Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Object.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contact.html">Contact and Collision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CollisionDetection.html">Collision Detection and Colliders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MaterialSystem.html">Material System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeightMap.html">Height Map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RayTest.html">Ray Test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Sensors.html">Sensors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Related Software</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="RaisimGymTorch.html">RaisimGymTorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimPy.html">RaisimPy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rayrai Visualizer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#included-binary-recommended">Included binary (recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-and-link">Build and link</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#minimal-usage">Minimal usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-code">Example code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scene-content">Scene content</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#point-clouds-and-coordinate-frames">Point clouds and coordinate frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#camera-control-and-picking">Camera control and picking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sensor-alignment">Sensor alignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#depth-and-lidar">Depth and LiDAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-types">Core types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#visuals-and-geometry">Visuals and geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scene-helpers">Scene helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rendering-and-materials">Rendering and materials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raisim-integration">RaiSim integration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnity.html">RaiSimUnity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaisimUnreal.html">RaisimUnreal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RaiSimMatlab.html">RaisimMatlab Introduction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">raisim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">rayrai Visualizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rayrai-visualizer">
+<h1>rayrai Visualizer<a class="headerlink" href="#rayrai-visualizer" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>rayrai is an in-process C++ renderer for RaiSim. It renders into an offscreen OpenGL
+texture and is designed to embed in custom UIs (ImGui, Qt, etc.) or headless pipelines.
+Unlike RaisimUnity or RaisimUnreal, rayrai runs inside the simulation process and exposes
+direct access to render targets, picking, and custom visuals.</p>
+<p>Key characteristics:</p>
+<ul class="simple">
+<li><p>In-process rendering (no server required)</p></li>
+<li><p>Offscreen textures for UI embedding or sensor simulation</p></li>
+<li><p>Lightweight scene management for RaiSim objects and custom visuals</p></li>
+<li><p>Support for point clouds, coordinate frames, and picking</p></li>
+</ul>
+<p>The public API lives in the <cite>raisin</cite> namespace (note the spelling). The primary entry
+point is <code class="docutils literal notranslate"><span class="pre">raisin::RayraiWindow</span></code>.</p>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>rayrai depends on SDL2, OpenGL, glbinding, glm, assimp, stb, and imgui. The installed
+package in <code class="docutils literal notranslate"><span class="pre">rayrai/&lt;OS&gt;</span></code> ships the headers and CMake config for these dependencies.</p>
+</section>
+<section id="included-binary-recommended">
+<h2>Included binary (recommended)<a class="headerlink" href="#included-binary-recommended" title="Link to this heading"></a></h2>
+<p>For most users, the easiest way to use rayrai is the included TCP viewer binary.
+It lives at <code class="docutils literal notranslate"><span class="pre">rayrai/&lt;OS&gt;/bin/rayrai_raisim_tcp_viewer</span></code> (Linux packages ship it;
+other platforms may need to build it) and works with RaisimServer-based
+simulations. Run the binary while your simulation is running, and it will connect
+to the server to display the scene.</p>
+<p>You can start it directly from the repo:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./rayrai/&lt;OS&gt;/bin/rayrai_raisim_tcp_viewer
+</pre></div>
+</div>
+<p>Run it with <code class="docutils literal notranslate"><span class="pre">--help</span></code> to see available options. On Windows, use the <code class="docutils literal notranslate"><span class="pre">.exe</span></code>
+binary.
+If you are running a RaisimServer-based example, start the example first so the
+server is listening (by default on port 8080), then launch the viewer to connect.</p>
+</section>
+<section id="build-and-link">
+<h2>Build and link<a class="headerlink" href="#build-and-link" title="Link to this heading"></a></h2>
+<p>rayrai installs a CMake package under <code class="docutils literal notranslate"><span class="pre">rayrai/&lt;OS&gt;</span></code>. Add it to
+<code class="docutils literal notranslate"><span class="pre">CMAKE_PREFIX_PATH</span></code> and link the <code class="docutils literal notranslate"><span class="pre">rayrai</span></code> target.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">rayrai</span><span class="w"> </span><span class="s">CONFIG</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">rayrai</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In practice, you will also set the Raisim prefix (for example, <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH</span></code>)
+to include both <code class="docutils literal notranslate"><span class="pre">raisim/&lt;OS&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">rayrai/&lt;OS&gt;</span></code>.</p>
+</section>
+<section id="minimal-usage">
+<h2>Minimal usage<a class="headerlink" href="#minimal-usage" title="Link to this heading"></a></h2>
+<p>The typical workflow is:</p>
+<ol class="arabic simple">
+<li><p>Create a RaiSim world.</p></li>
+<li><p>Construct a <code class="docutils literal notranslate"><span class="pre">raisin::RayraiWindow</span></code> for that world.</p></li>
+<li><p>Update the renderer each frame and consume the output texture.</p></li>
+</ol>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;raisim/World.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rayrai/RayraiWindow.hpp&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">raisin</span><span class="o">::</span><span class="n">RayraiWindow</span><span class="w"> </span><span class="n">viewer</span><span class="p">(</span><span class="n">world</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">sphere</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">addVisualSphere</span><span class="p">(</span><span class="s">&quot;goal&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.9f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">sphere</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">viewer</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">getImageTexture</span><span class="p">();</span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">tex</span><span class="p">;</span><span class="w"> </span><span class="c1">// use the texture in your UI or pipeline</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you are integrating with an existing OpenGL context, you can use
+<code class="docutils literal notranslate"><span class="pre">RayraiWindow::createOffscreenGlContext</span></code> and
+<code class="docutils literal notranslate"><span class="pre">RayraiWindow::makeOffscreenContextCurrent</span></code> to control the context setup.</p>
+</section>
+<section id="example-code">
+<h2>Example code<a class="headerlink" href="#example-code" title="Link to this heading"></a></h2>
+<p>This example adds a custom box, renders an RGB texture each frame, and reads the
+image texture handle for UI integration:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memory&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;raisim/World.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rayrai/RayraiWindow.hpp&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">raisim</span><span class="o">::</span><span class="n">World</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="w">  </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">addGround</span><span class="p">();</span>
+
+<span class="w">  </span><span class="n">raisin</span><span class="o">::</span><span class="n">RayraiWindow</span><span class="w"> </span><span class="n">viewer</span><span class="p">(</span><span class="n">world</span><span class="p">,</span><span class="w"> </span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">);</span>
+<span class="w">  </span><span class="n">viewer</span><span class="p">.</span><span class="n">setBackgroundColor</span><span class="p">({</span><span class="mi">40</span><span class="p">,</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span><span class="w"> </span><span class="mi">55</span><span class="p">,</span><span class="w"> </span><span class="mi">255</span><span class="p">});</span>
+
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">addVisualBox</span><span class="p">(</span><span class="s">&quot;marker&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.9f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="w">  </span><span class="n">box</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.3</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">world</span><span class="o">-&gt;</span><span class="n">integrate</span><span class="p">();</span>
+<span class="w">    </span><span class="n">viewer</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1280</span><span class="p">,</span><span class="w"> </span><span class="mi">720</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">colorTex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">getImageTexture</span><span class="p">();</span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">colorTex</span><span class="p">;</span><span class="w"> </span><span class="c1">// feed into your UI or pipeline</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>Rayrai examples are documented in <a class="reference internal" href="Examples.html"><span class="doc">Examples</span></a>. Each example page
+includes a short explanation and the full source code, along with build and
+run notes.</p>
+</section>
+<section id="scene-content">
+<h2>Scene content<a class="headerlink" href="#scene-content" title="Link to this heading"></a></h2>
+<p>rayrai renders two categories of content:</p>
+<ul class="simple">
+<li><p><strong>RaiSim objects</strong>: The renderer mirrors the objects already in the world.</p></li>
+<li><p><strong>Custom visuals</strong>: Extra visuals you add explicitly (spheres, boxes, meshes, etc.).</p></li>
+</ul>
+<p>Custom visuals are created through <code class="docutils literal notranslate"><span class="pre">RayraiWindow</span></code> and returned as <code class="docutils literal notranslate"><span class="pre">Visuals</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">addVisualBox</span><span class="p">(</span><span class="s">&quot;marker&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span><span class="w"> </span><span class="mf">0.2f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.6f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<span class="n">box</span><span class="o">-&gt;</span><span class="n">setPosition</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>For repeated geometry, use <code class="docutils literal notranslate"><span class="pre">InstancedVisuals</span></code> to reduce draw overhead.</p>
+</section>
+<section id="point-clouds-and-coordinate-frames">
+<h2>Point clouds and coordinate frames<a class="headerlink" href="#point-clouds-and-coordinate-frames" title="Link to this heading"></a></h2>
+<p>Point clouds and coordinate frames are lightweight debug aids:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">cloud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">addPointCloud</span><span class="p">(</span><span class="s">&quot;scan&quot;</span><span class="p">);</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">viewer</span><span class="p">.</span><span class="n">addCoordinateFrame</span><span class="p">(</span><span class="s">&quot;robot_frame&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>These objects are rendered alongside the world and can be updated every frame.</p>
+</section>
+<section id="camera-control-and-picking">
+<h2>Camera control and picking<a class="headerlink" href="#camera-control-and-picking" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RayraiWindow</span></code> manages an internal camera for offscreen rendering.
+You can access or override it through <code class="docutils literal notranslate"><span class="pre">getCamera()</span></code> or by using
+<code class="docutils literal notranslate"><span class="pre">renderWithExternalCamera</span></code> when you want explicit control.</p>
+<p>Picking is available through <code class="docutils literal notranslate"><span class="pre">pickWithExternalCamera</span></code>. It renders a
+selection pass and returns the encoded object id for a pixel.</p>
+</section>
+<section id="sensor-alignment">
+<h2>Sensor alignment<a class="headerlink" href="#sensor-alignment" title="Link to this heading"></a></h2>
+<p>rayrai can align rendering to RaiSim camera sensors. Use
+<code class="docutils literal notranslate"><span class="pre">syncRaisimCameraPose</span></code> and <code class="docutils literal notranslate"><span class="pre">renderWithExternalCamera</span></code> to ensure the
+render camera matches the sensor pose and intrinsics.</p>
+</section>
+<section id="depth-and-lidar">
+<h2>Depth and LiDAR<a class="headerlink" href="#depth-and-lidar" title="Link to this heading"></a></h2>
+<p>The renderer supports a linear depth plane and a GPU-assisted LiDAR pass:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">renderDepthPlaneDistance</span></code> renders a linear depth texture.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">measureSpinningLidarSingleDrawGPU</span></code> renders a LiDAR slice using a
+spherical chunk shader.</p></li>
+</ul>
+<p>You can retrieve the depth texture via <code class="docutils literal notranslate"><span class="pre">getDepthPlaneTexture()</span></code>.</p>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<section id="core-types">
+<h3>Core types<a class="headerlink" href="#core-types" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="visuals-and-geometry">
+<h3>Visuals and geometry<a class="headerlink" href="#visuals-and-geometry" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygennamespace: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="scene-helpers">
+<h3>Scene helpers<a class="headerlink" href="#scene-helpers" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenenum: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="rendering-and-materials">
+<h3>Rendering and materials<a class="headerlink" href="#rendering-and-materials" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+<section id="raisim-integration">
+<h3>RaiSim integration<a class="headerlink" href="#raisim-integration" title="Link to this heading"></a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: breathe_default_project value ‘raisim’ does not seem to be a valid key for the breathe_projects dictionary</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="RaiSimPy.html" class="btn btn-neutral float-left" title="RaisimPy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="RaisimUnity.html" class="btn btn-neutral float-right" title="RaiSimUnity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, RaiSim Tech Inc..</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
