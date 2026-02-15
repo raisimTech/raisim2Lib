@@ -28,7 +28,7 @@ The XML file is constructed as follows:
 .. code-block:: xml
 
     <?xml version="1.0" ?>
-    <raisim version="1.0">
+    <raisim version="2.0.0">
         <timeStep value="0.001"/>
         <objects>
             <sphere name="sphere" mass="1">

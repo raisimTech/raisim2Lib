@@ -52,7 +52,7 @@ From the ``raisimGymTorch`` directory:
 
 To visualize the policy, run RaisimUnity as well.
 It records the policy performance every 200 iterations.
-All recorded videos can be found in ``raisimLib/raisimUnity/<OS>/screenshots``.
+All recorded videos can be found in ``raisim2Lib/raisimUnity/<OS>/screenshots``.
 
 How to debug
 =============================

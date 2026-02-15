@@ -7,7 +7,7 @@ RaiSim is a physics engine for robotics and artificial intelligence research tha
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/CN0ah5-OWik/0.jpg)](https://www.youtube.com/watch?v=CN0ah5-OWik)
 
 ## News
-Closed-loop system simulation is now available! Check out the [minitaur example](https://github.com/raisimTech/raisimLib/tree/master/examples/src/server/minitaur_pd.cpp)
+Closed-loop system simulation is now available! Check out the [minitaur example](https://github.com/raisimTech/raisim2Lib/tree/master/examples/src/server/minitaur_pd.cpp)
 
 ## Install (Generate + Build)
 
@@ -86,7 +86,7 @@ Further documentation available on the [RaiSim Tech website](http://raisim.com).
 
 ## Examples
 Before running examples, load the environment setup script for your shell:
-- Linux/macOS: `source /path/to/raisimLib/raisim_env.sh`
+- Linux/macOS: `source /path/to/raisim2Lib/raisim_env.sh`
 - Windows (PowerShell): `.\raisim_env.ps1`
 - Windows (cmd.exe): `raisim_env.bat`
 

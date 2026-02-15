@@ -1,5 +1,5 @@
 #############################
-RaiSim v1.1.7
+RaiSim v2.0.0
 #############################
 
 RaiSim is a cross-platform multi-body physics engine for robotics and AI.
@@ -13,31 +13,31 @@ Examples
   :alt: RaiSim demo (minitaur_pd.cpp)
   :width: 600
 
-**RaiSim example** (closed-loop) `minitaur_pd.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/minitaur_pd.cpp>`_
+**RaiSim example** (closed-loop) `minitaur_pd.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/minitaur_pd.cpp>`_
 
 .. image:: image/sensors_cpp.png
   :alt: RaiSim demo (sensor_suite.cpp)
   :width: 600
 
-**RaiSim example** `sensor_suite.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/sensor_suite.cpp>`_
+**RaiSim example** `sensor_suite.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/sensor_suite.cpp>`_
 
 .. image:: image/atlas_cpp.png
   :alt: RaiSim demo (map_atlas_charts.cpp)
   :width: 600
 
-**RaiSim example** `map_atlas_charts.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/maps/map_atlas_charts.cpp>`_
+**RaiSim example** `map_atlas_charts.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/maps/map_atlas_charts.cpp>`_
 
 .. image:: image/office1_cpp.png
   :alt: RaiSim demo (map_office1_scene.cpp)
   :width: 600
 
-**RaiSim example** `map_office1_scene.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/maps/map_office1_scene.cpp>`_
+**RaiSim example** `map_office1_scene.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/maps/map_office1_scene.cpp>`_
 
 .. image:: image/demo_robots.gif
   :alt: RaiSimPy demo (robots.py)
   :width: 600
 
-**RaisimPy example** `robot.py <https://github.com/raisimTech/raisimLib/blob/master/raisimPy/examples/robots.py>`_
+**RaisimPy example** `robot.py <https://github.com/raisimTech/raisim2Lib/blob/master/raisimPy/examples/robots.py>`_
 
 .. image:: image/skeleton.bmp
   :alt: Skeleton img from S. K at KAIST
@@ -53,19 +53,19 @@ The KAIST team provided this image, but the model is not included in this reposi
   :alt: husky
   :width: 600
 
-**RaiSim example** `ray_scan_lidar.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/ray_scan_lidar.cpp>`_
+**RaiSim example** `ray_scan_lidar.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/ray_scan_lidar.cpp>`_
 
 .. image:: image/anymals.png
   :alt: anymals
   :width: 600
 
-**RaiSim example** `map_anymal_graphs.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/maps/map_anymal_graphs.cpp>`_
+**RaiSim example** `map_anymal_graphs.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/maps/map_anymal_graphs.cpp>`_
 
 .. image:: image/trackedRobot.gif
   :alt: trackedRobot
   :width: 600
 
-**RaiSim example** `templated_tracked_robot.cpp <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/templated_tracked_robot.cpp>`_
+**RaiSim example** `templated_tracked_robot.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/templated_tracked_robot.cpp>`_
 
 .. toctree::
    :maxdepth: 1

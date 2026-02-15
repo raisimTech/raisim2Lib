@@ -37,7 +37,7 @@ The returned :code:`RayCollisionList` stores only the closest hit (0 or 1 item).
 Example
 ========================================
 
-An example is provided `here <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/ray_casting.cpp>`__.
+An example is provided `here <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/ray_casting.cpp>`__.
 Only the following line
 
 .. code-block:: cpp

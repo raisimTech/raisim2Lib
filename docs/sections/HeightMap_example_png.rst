@@ -18,7 +18,7 @@ The XML file is constructed as follows:
 .. code-block:: xml
 
     <?xml version="1.0" ?>
-    <raisim version="1.0">
+    <raisim version="2.0.0">
         <timeStep value="0.001"/>
         <objects>
             <articulatedSystem name="anymal" resDir="[THIS_DIR]/../../anymal" urdfPath="[THIS_DIR]/../../anymal/urdf/anymal.urdf" collisionGroup="1" collisionMask="-1">

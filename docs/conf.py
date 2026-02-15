@@ -17,8 +17,8 @@ exclude_patterns = [
 project = 'raisim'
 copyright = '2022, RaiSim Tech Inc.'
 author = 'Yeonjoo Chung and Jemin Hwangbo'
-version = '1.1.7'
-release = '1.1.7'
+version = '2.0.0'
+release = '2.0.0'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'raisim_doc'

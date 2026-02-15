@@ -9,7 +9,7 @@ The simulation process should launch (``raisim::RaisimServer::launchServer``) a 
 communicate with RaisimUnreal.
 Once the server is running, RaisimUnreal can connect to it and obtain visualization information.
 
-You can download RaisimUnreal from the `GitHub releases page <https://github.com/raisimTech/raisimLib/releases>`_.
+You can download RaisimUnreal from the `GitHub releases page <https://github.com/raisimTech/raisim2Lib/releases>`_.
 Here are a few example screenshots from RaisimUnreal.
 
 .. image:: ../image/raisimUnreal1.png
@@ -162,7 +162,7 @@ You can add time-series graphs and bar charts.
   :alt: graphs
   :width: 1080
 
-You can find an example `here <https://github.com/raisimTech/raisimLib/blob/master/examples/src/maps/map_atlas_charts.cpp>`__.
+You can find an example `here <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/maps/map_atlas_charts.cpp>`__.
 
 Maps
 ================================

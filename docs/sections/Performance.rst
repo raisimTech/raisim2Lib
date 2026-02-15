@@ -5,7 +5,7 @@ Performance
 RaiSim Custom Algorithm for Articulated Systems
 ===============================================
 
-RaiSim v1.1 introduces a novel simulation scheme.
+RaiSim v2.0.0 introduces a novel simulation scheme.
 Previous versions of RaiSim (as well as other simulators such as MuJoCo, according to their documentation) utilize the following computation scheme for the forward dynamics of articulated systems:
 
 + Composite Rigid Body Algorithm (CRBA)
@@ -26,7 +26,7 @@ Nevertheless, the mass matrix and its inverse are critical for computing numerou
 This necessitates the use of the CRC combination in older versions of RaiSim and other simulators.
 Since standard ABA does not yield these properties, it was historically less applicable to rigid-body simulation with contacts.
 
-RaiSim v1.1 is equipped with a family of novel algorithms that compute contact-related properties with O(n) complexity.
+RaiSim v2.0.0 is equipped with a family of novel algorithms that compute contact-related properties with O(n) complexity.
 These algorithms do not explicitly compute the mass matrix or its inverse (which contain n^2 elements and cannot be computed in O(n)).
 Instead, they calculate only the specific properties required by the RaiSim contact solver.
 Consequently, **RaiSim (>v1.1) computes the entire forward dynamics of an articulated system, including contact-related properties, with O(n) complexity.**

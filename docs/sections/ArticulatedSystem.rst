@@ -40,7 +40,7 @@ Like any other object, an articulated system is created by the world instance us
 There are four ways to specify an articulated system.
 
 1. by providing the path to the URDF file (recommended)
-2. by providing the path to the URDF template file (`example <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/templated_tracked_robot.cpp>`_)
+2. by providing the path to the URDF template file (`example <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/templated_tracked_robot.cpp>`_)
 3. by providing a :code:`std::string` containing the URDF text (useful when working with Xacro)
 4. by providing a :code:`raisim::Child` instance (advanced; not recommended for beginners)
 
@@ -261,7 +261,7 @@ meshes and reference them as separate ``<collision>`` elements in the URDF.
 Templated URDF
 *******************************
 You can template a URDF and create different robots by providing different parameters in C++.
-An example can be found `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/templatedTrackedRobot>`__.
+An example can be found `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/templatedTrackedRobot>`__.
 
 In the URDF template, variables should be marked with ``@@``.
 Just like in a world configuration template, you can write math expressions inside ``{}``.
@@ -616,8 +616,8 @@ as equality constraints inside the same loop. This makes closed-loop systems
 numerically robust in RaiSim, because the loop constraints are enforced
 through the same stabilized contact solver that resolves impacts and friction.
 
-An example of a closed-loop system can be found `here <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/minitaur_pd.cpp>`__.
-An example of a closed-loop system URDF can be found `here <https://github.com/raisimTech/raisimLib/blob/master/rsc/minitaur/minitaur.urdf>`__.
+An example of a closed-loop system can be found `here <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/minitaur_pd.cpp>`__.
+An example of a closed-loop system URDF can be found `here <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/minitaur/minitaur.urdf>`__.
 
 
 

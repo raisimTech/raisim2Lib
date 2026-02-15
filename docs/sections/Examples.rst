@@ -41,7 +41,7 @@ environment setup:
 
 .. code-block:: bash
 
-    source /path/to/raisimLib/raisim_env.sh
+    source /path/to/raisim2Lib/raisim_env.sh
 
 This script sets ``LD_LIBRARY_PATH`` on Linux and ``DYLD_LIBRARY_PATH`` on macOS.
 

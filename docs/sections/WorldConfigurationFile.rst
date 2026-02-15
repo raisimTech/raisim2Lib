@@ -2,7 +2,7 @@
 World Configuration File
 ########################
 
-Examples are provided `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts>`__.
+Examples are provided `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts>`__.
 
 The following section outlines the conventions for the RaiSim world configuration XML file.
 Tags marked (optional) indicate elements that are not mandatory within their parent context.
@@ -30,7 +30,7 @@ Tags marked (multiple) indicate that multiple instances of the element may exist
         1. <attribute> ``erp`` : spring term [float]
         2. <attribute> ``erp2`` : damping term [float]
     6. <child> ``objects`` : Detailed in the "Object XML Description" section.
-    7. <child> ``wire`` : `DESCRIPTION <https://raisim.com/sections/Constraints.html>`_, `EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/wire/newtonsCradle.xml>`__
+    7. <child> ``wire`` : `DESCRIPTION <https://raisim.com/sections/Constraints.html>`_, `EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/wire/newtonsCradle.xml>`__
         1. <attribute> ``name`` [string]: Wire name.
         2. <attribute> ``type`` [string]: Wire type ("stiff", "compliant", or "custom").
         3. <attribute> ``stretch_type`` [string]: Stretch type.
@@ -51,7 +51,7 @@ The mask ``collision[-1]`` indicates collision with any group (note: collision l
 
 sphere
 ^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
 
 **attributes**: (optional, default=1) ``collision_group`` [uint64_t], (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``appearance`` [string], (optional) ``body_type`` [string]: {dynamic, kinematic, static}, (optional) ``name`` [string], ``mass`` [float]
 
@@ -63,7 +63,7 @@ sphere
 
 capsule and cylinder
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
 
 **attributes**: (optional, default=1) collision_group[uint64_t], (optional, default=-1) collision_mask[uint64_t], (optional) appearance[string], (optional) body_type[string]: {dynamic, kinematic, static}, (optional) name[string], mass[float]
 
@@ -75,7 +75,7 @@ capsule and cylinder
 
 box
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
 
 **attributes**: (optional, default=1) ``collision_group`` [uint64_t], (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``appearance`` [string], (optional) ``body_type`` [string]: {dynamic, kinematic, static}, (optional) ``name`` [string], ``mass`` [float]
 
@@ -87,7 +87,7 @@ box
 
 compound
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
 
 **attributes**: (optional, default=1) ``collision_group`` [uint64_t], (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``appearance`` [string], (optional) ``body_type`` [string]: {dynamic, kinematic, static}, (optional) ``name`` [string], ``com`` [Vec<3>], ``mass`` [float]
 
@@ -125,7 +125,7 @@ compound
 
 mesh
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/objects/SingleBodies.xml>`__
 
 **attributes**: (optional, default=1) ``collision_group`` [uint64_t], (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``appearance`` [string], (optional) ``body_type`` [string]: {dynamic, kinematic, static}, (optional) ``name`` [string], ``mass`` [float], ``file_name`` [string], ``com`` [Vec<3>], ``scale`` [Vec<3>]
 
@@ -137,13 +137,13 @@ mesh
 
 ground
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/material/material.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/material/material.xml>`__
 
 **attributes**: (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``appearance`` [string], (optional) ``name`` [string], (optional, default=0) ``height`` [float]
 
 heightmap
 ^^^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts/heightMaps>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts/heightMaps>`__
 
 **Options**
 
@@ -159,7 +159,7 @@ heightmap
 
 articulated_system
 ^^^^^^^^^^^^^^^^^^^^^
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/rsc/xmlScripts/heightMaps/heightMapUsingPng.xml>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/xmlScripts/heightMaps/heightMapUsingPng.xml>`__
 
 **attributes**: (optional, default=1) ``collision_group`` [uint64_t], (optional, default=-1) ``collision_mask`` [uint64_t], (optional) ``name`` [string], (optional, default=URDF directory) ``res_dir`` [string], ``urdf_path`` [string]
 
@@ -170,18 +170,18 @@ articulated_system
 Configuration Template
 ----------------------------
 Configuration templates facilitate the systematic creation of simulation worlds.
-An example is available `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts/templatedWorld/templatedWorld.xml>`__.
+An example is available `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts/templatedWorld/templatedWorld.xml>`__.
 
 External configuration files can be imported using the ``include`` tag.
 This is beneficial for modularly combining sub-worlds.
 
 Parameters are denoted by the prefix ``@@``.
 Variables may be defined within the script using the ``params`` tag.
-An example is available `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts/templatedWorld/templatedWorld.xml>`__.
+An example is available `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts/templatedWorld/templatedWorld.xml>`__.
 This allows for runtime modification of the world or the generation of configuration variants.
 
 The ``array`` tag enables the creation of **loops** within the configuration file.
-An example is available `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts/templatedWorld/spheres.xml>`__.
+An example is available `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts/templatedWorld/spheres.xml>`__.
 The attributes ``idx``, ``start``, ``end``, and ``increment`` are mandatory.
 The latter three attributes must be integers.
 
@@ -193,4 +193,4 @@ Parentheses ``()`` are used for function calls and grouping, consistent with C++
 
 Objects support an optional ``exist`` attribute.
 This enables conditional object existence based on runtime parameters.
-An example file is available `here <https://github.com/raisimTech/raisimLib/tree/master/rsc/xmlScripts/templatedWorld/spheres.xml>`__.
+An example file is available `here <https://github.com/raisimTech/raisim2Lib/tree/master/rsc/xmlScripts/templatedWorld/spheres.xml>`__.

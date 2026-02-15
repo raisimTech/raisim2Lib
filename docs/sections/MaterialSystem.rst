@@ -17,7 +17,7 @@ The following graphs illustrate the effects of these material properties.
 
 .. image:: ../image/materials.png
 
-Examples are available in the `restitution example <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/material_restitution.cpp>`_ and the `static friction example <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/material_static_friction.cpp>`_.
+Examples are available in the `restitution example <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/material_restitution.cpp>`_ and the `static friction example <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/material_static_friction.cpp>`_.
 
 A material name is assigned upon creation.
 For instance:
@@ -50,7 +50,7 @@ XML Approach
 .. code-block:: xml
 
     <?xml version="1.0" ?>
-    <raisim version="1.0">
+    <raisim version="2.0.0">
         <timeStep value="0.001"/>
         <objects>
             <ground name="ground" material="steel"/>

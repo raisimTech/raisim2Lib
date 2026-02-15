@@ -54,7 +54,7 @@ For single-body objects, the local index is ignored, and users may pass 0 to com
 Saving the World to an XML File
 ================================
 ``raisim::World::exportToXml(dir, file)`` (or ``exportToXml(path)``) saves the current world state to an XML file.
-`EXAMPLES <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/length_constraints_newtons_cradle.cpp>`__
+`EXAMPLES <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/length_constraints_newtons_cradle.cpp>`__
 
 Collision detection and broadphase
 ==================================

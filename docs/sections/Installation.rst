@@ -8,7 +8,7 @@ Setup
 Local installation is recommended to prevent conflicts with other libraries.
 The following variables are used throughout this guide:
 
-* ``RAISIM_DIR``: The directory where the raisimLib repository has been cloned.
+* ``RAISIM_DIR``: The directory where the raisim2Lib repository has been cloned.
 * ``LOCAL_INSTALL``: The installation directory for exported CMake packages (e.g., ~/raisim_build).
 
 These may be exported as environment variables or replaced with absolute paths in the subsequent commands.
@@ -28,10 +28,10 @@ The source code for Eigen and nanobind is provided in the ``thirdParty`` directo
 RaiSim Installation
 ===================
 
-Clone the raisimLib repository from https://github.com/raisimTech/raisimlib.
+Clone the raisim2Lib repository from https://github.com/raisimTech/raisim2Lib.
 
 The cloned repository includes prebuilt RaiSim packages.
-The installed CMake packages can be found under ``raisimLib/raisim/<OS-TYPE>``.
+The installed CMake packages can be found under ``raisim2Lib/raisim/<OS-TYPE>``.
 
 To integrate RaiSim into your project, add the CMake package path and the shared library path to the corresponding environment variables as follows:
 
@@ -110,15 +110,15 @@ Build Steps
     .. code-block:: powershell
 
         cmake -S visualizer -B build-visualizer ^
-          -DCMAKE_PREFIX_PATH=C:\path\to\raisimLib\raisim\win32
+          -DCMAKE_PREFIX_PATH=C:\path\to\raisim2Lib\raisim\win32
         cmake --build build-visualizer --config Release
-        cmake --install build-visualizer --config Release --prefix C:\path\to\raisimLib\rayrai\win32
+        cmake --install build-visualizer --config Release --prefix C:\path\to\raisim2Lib\rayrai\win32
 
 
 Building RaiSim Examples and Installing RaisimPy
 ====================================================
 
-Use the ``CMakeLists.txt`` file in the ``raisimLib`` directory to build RaiSim examples and other modules.
+Use the ``CMakeLists.txt`` file in the ``raisim2Lib`` directory to build RaiSim examples and other modules.
 The following options are available:
 
 * ``RAISIM_EXAMPLE`` : Compile C++ RaiSim examples.

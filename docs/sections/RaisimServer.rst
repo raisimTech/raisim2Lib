@@ -7,7 +7,7 @@ We provide the RaisimUnity (`doc <https://raisim.com/sections/RaisimUnity.html>`
 Basic usage is described in the `documentation <https://raisim.com/sections/RaisimUnity.html#how-to-use-raisimunity>`_.
 
 In addition to visualizing a ``raisim::World``, ``raisim::RaisimServer`` can visualize additional objects.
-An example can be found `here <https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/visual_objects_showcase.cpp>`__.
+An example can be found `here <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/visual_objects_showcase.cpp>`__.
 The example is displayed as follows:
 
 .. image:: ../image/visuals.gif

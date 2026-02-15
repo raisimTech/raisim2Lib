@@ -25,10 +25,10 @@ Create a link for a sensor_set and give it a ``sensor`` attribute as
 
     <link name="realsense_d435" sensor="realsense435.xml"/>
 
-The `realsense435.xml <https://github.com/raisimTech/raisimLib/blob/master/rsc/anymal_c/sensors/realsense435.xml>`_ file should specify all necessary details of the sensor.
+The `realsense435.xml <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/anymal_c/sensors/realsense435.xml>`_ file should specify all necessary details of the sensor.
 It should be stored in the same directory as the URDF file.
 If it is not found, RaiSim will search the following directories in order: ``[urdf_dir]/sensor``, ``[urdf_dir]/sensors``, ``[urdf_dir]/..``, and ``[urdf_dir]/../sensors``.
-An example URDF file can be found `here <https://github.com/raisimTech/raisimLib/blob/master/rsc/anymal_c/urdf/anymal_sensored.urdf>`__.
+An example URDF file can be found `here <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/anymal_c/urdf/anymal_sensored.urdf>`__.
 
 
 Update
@@ -66,7 +66,7 @@ When reading sensor data from another thread, use RAII locking via the built-in
 
 Example
 ====================================
-Example: https://github.com/raisimTech/raisimLib/blob/master/examples/src/server/sensor_suite.cpp
+Example: https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/sensor_suite.cpp
 
 Using sensors with rayrai
 ====================================

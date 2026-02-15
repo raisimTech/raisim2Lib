@@ -21,7 +21,7 @@ All length constraints offer three stretch types: ``STRETCH_RESISTANT_ONLY``,
 `StiffLengthConstraint <http://raisim.com/sections/StiffLengthConstraint.html>`_.
 
 You can find a short example in
-`examples/src/server/length_constraints_newtons_cradle.cpp <https://github.com/raisimTech/raisimlib/blob/master/examples/src/server/length_constraints_newtons_cradle.cpp>`_.
+`examples/src/server/length_constraints_newtons_cradle.cpp <https://github.com/raisimTech/raisim2Lib/blob/master/examples/src/server/length_constraints_newtons_cradle.cpp>`_.
 This code simulates the following behavior:
 
 .. image:: ../image/constraints.gif
