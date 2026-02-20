@@ -5,6 +5,101 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/en
 SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/bin)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/bin)
 option(RAISIMGYM_TORCH_WITH_LIBTORCH "Enable TorchScript rollout runner (requires libtorch)" OFF)
+if(NOT DEFINED RAISIM_VERSION)
+    set(RAISIM_VERSION 2.0.0)
+endif()
+
+set(_raisim_expected_root "${CMAKE_CURRENT_SOURCE_DIR}/../raisim")
+set(_rayrai_expected_root "${CMAKE_CURRENT_SOURCE_DIR}/../rayrai")
+
+if(NOT EXISTS "${_raisim_expected_root}" OR NOT EXISTS "${_rayrai_expected_root}")
+    if(WIN32)
+        set(_raisim_asset_platform "windows-x86")
+    elseif(UNIX AND NOT APPLE AND NOT ANDROID AND NOT WEBGL)
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+            set(_raisim_asset_platform "linux-arm64")
+        else()
+            set(_raisim_asset_platform "linux-x86")
+        endif()
+    else()
+        message(FATAL_ERROR "Automatic raisim release download is not supported on this platform.")
+    endif()
+
+    set(_raisim_asset_file "${_raisim_asset_platform}-${RAISIM_VERSION}.zip")
+    set(_raisim_download_dir "${CMAKE_CURRENT_BINARY_DIR}/downloads")
+    set(_raisim_asset_path "${_raisim_download_dir}/${_raisim_asset_file}")
+    file(MAKE_DIRECTORY "${_raisim_download_dir}")
+
+    set(_raisim_download_success FALSE)
+    set(_raisim_last_download_error "")
+    set(_raisim_download_urls
+        "https://github.com/raisimTech/raisim2Lib/releases/download/v${RAISIM_VERSION}/${_raisim_asset_file}"
+        "https://github.com/raisimTech/raisim2Lib/releases/download/${RAISIM_VERSION}/${_raisim_asset_file}"
+    )
+
+    foreach(_raisim_url IN LISTS _raisim_download_urls)
+        message(STATUS "Downloading raisim release asset: ${_raisim_url}")
+        file(DOWNLOAD
+            "${_raisim_url}"
+            "${_raisim_asset_path}"
+            STATUS _raisim_download_status
+            SHOW_PROGRESS
+            TLS_VERIFY ON
+        )
+        list(GET _raisim_download_status 0 _raisim_download_code)
+        if(_raisim_download_code EQUAL 0)
+            set(_raisim_download_success TRUE)
+            break()
+        else()
+            list(GET _raisim_download_status 1 _raisim_download_message)
+            set(_raisim_last_download_error "${_raisim_download_code}: ${_raisim_download_message}")
+        endif()
+    endforeach()
+
+    if(NOT _raisim_download_success)
+        message(FATAL_ERROR "Failed to download ${_raisim_asset_file} from raisim releases. Last error: ${_raisim_last_download_error}")
+    endif()
+
+    set(_raisim_extract_dir "${CMAKE_CURRENT_BINARY_DIR}/extract-${RAISIM_VERSION}")
+    file(REMOVE_RECURSE "${_raisim_extract_dir}")
+    file(MAKE_DIRECTORY "${_raisim_extract_dir}")
+    file(ARCHIVE_EXTRACT INPUT "${_raisim_asset_path}" DESTINATION "${_raisim_extract_dir}")
+
+    set(_resolved_raisim_dir "")
+    set(_resolved_rayrai_dir "")
+    if(EXISTS "${_raisim_extract_dir}/raisim")
+        set(_resolved_raisim_dir "${_raisim_extract_dir}/raisim")
+    endif()
+    if(EXISTS "${_raisim_extract_dir}/rayrai")
+        set(_resolved_rayrai_dir "${_raisim_extract_dir}/rayrai")
+    endif()
+
+    if(_resolved_raisim_dir STREQUAL "")
+        file(GLOB _raisim_extract_children LIST_DIRECTORIES TRUE "${_raisim_extract_dir}/*")
+        foreach(_child IN LISTS _raisim_extract_children)
+            if(EXISTS "${_child}/raisim")
+                set(_resolved_raisim_dir "${_child}/raisim")
+            endif()
+            if(EXISTS "${_child}/rayrai")
+                set(_resolved_rayrai_dir "${_child}/rayrai")
+            endif()
+        endforeach()
+    endif()
+
+    if(_resolved_raisim_dir STREQUAL "")
+        message(FATAL_ERROR "Archive extraction completed but could not find a 'raisim' directory in ${_raisim_extract_dir}.")
+    endif()
+
+    if(NOT EXISTS "${_raisim_expected_root}")
+        file(COPY "${_resolved_raisim_dir}" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/..")
+    endif()
+    if(NOT EXISTS "${_rayrai_expected_root}")
+        if(_resolved_rayrai_dir STREQUAL "")
+            message(FATAL_ERROR "Archive extraction completed but could not find a 'rayrai' directory in ${_raisim_extract_dir}.")
+        endif()
+        file(COPY "${_resolved_rayrai_dir}" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/..")
+    endif()
+endif()
 
 ######################
 ### help functions ###
@@ -40,8 +135,11 @@ else ()
 endif()
 
 if (UNIX AND NOT APPLE AND NOT ANDROID AND NOT WEBGL AND NOT WIN32)
-    set(RAISIM_OS linux)
-    list(APPEND CMAKE_PREFIX_PATH ../raisim/${RAISIM_OS})
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+        set(RAISIM_OS linux-arm)
+    else()
+        set(RAISIM_OS linux)
+    endif()
 elseif(APPLE)
     # on macOS "uname -m" returns the architecture (x86_64 or arm64)
     execute_process(
@@ -58,10 +156,8 @@ elseif(APPLE)
         set(RAISIM_OS mac)
     endif()
 
-    list(APPEND CMAKE_PREFIX_PATH ../raisim/${RAISIM_OS})
 elseif(WIN32)
     set(RAISIM_OS win32)
-    list(APPEND CMAKE_PREFIX_PATH ../raisim/${RAISIM_OS})
     list(APPEND CMAKE_PREFIX_PATH ../thirdParty)
     list(APPEND Dependencies Ws2_32)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/bin)
@@ -69,15 +165,41 @@ elseif(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/bin)
 endif()
 
-find_package(raisim CONFIG REQUIRED)
-set(RAYRAI_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../rayrai/${RAISIM_OS})
-set(RAYRAI_LIB ${RAYRAI_ROOT}/lib/librayrai.so)
-set(RAYRAI_INCLUDE_DIR ${RAYRAI_ROOT}/include)
-if(NOT EXISTS ${RAYRAI_LIB})
-    message(FATAL_ERROR "rayrai library not found at ${RAYRAI_LIB}")
+set(RAISIM_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../raisim")
+set(RAISIM_PREFIX "")
+if(EXISTS "${RAISIM_ROOT}/${RAISIM_OS}/lib/cmake/raisim/raisimConfig.cmake")
+    set(RAISIM_PREFIX "${RAISIM_ROOT}/${RAISIM_OS}")
+elseif(EXISTS "${RAISIM_ROOT}/lib/cmake/raisim/raisimConfig.cmake")
+    set(RAISIM_PREFIX "${RAISIM_ROOT}")
 endif()
+if(RAISIM_PREFIX STREQUAL "")
+    message(FATAL_ERROR "Could not find raisim package config under ${RAISIM_ROOT}.")
+endif()
+list(APPEND CMAKE_PREFIX_PATH "${RAISIM_PREFIX}")
+
+find_package(raisim CONFIG REQUIRED)
+set(RAYRAI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../rayrai")
+set(RAYRAI_PREFIX "")
+if(EXISTS "${RAYRAI_ROOT}/${RAISIM_OS}/lib/cmake/rayrai/rayraiConfig.cmake")
+    set(RAYRAI_PREFIX "${RAYRAI_ROOT}/${RAISIM_OS}")
+elseif(EXISTS "${RAYRAI_ROOT}/lib/cmake/rayrai/rayraiConfig.cmake")
+    set(RAYRAI_PREFIX "${RAYRAI_ROOT}")
+endif()
+if(RAYRAI_PREFIX STREQUAL "")
+    message(FATAL_ERROR "Could not find rayrai package config under ${RAYRAI_ROOT}.")
+endif()
+set(RAYRAI_INCLUDE_DIR "${RAYRAI_PREFIX}/include")
+find_library(RAYRAI_LIB
+    NAMES rayrai librayrai
+    PATHS "${RAYRAI_PREFIX}/lib"
+    NO_DEFAULT_PATH
+)
+if(NOT RAYRAI_LIB)
+    message(FATAL_ERROR "rayrai library not found under ${RAYRAI_PREFIX}/lib")
+endif()
+
 add_library(rayrai_shared SHARED IMPORTED)
-set_target_properties(rayrai_shared PROPERTIES IMPORTED_LOCATION ${RAYRAI_LIB})
+set_target_properties(rayrai_shared PROPERTIES IMPORTED_LOCATION "${RAYRAI_LIB}")
 
 if (RAISIMGYM_TORCH_WITH_LIBTORCH)
     find_package(Torch REQUIRED)

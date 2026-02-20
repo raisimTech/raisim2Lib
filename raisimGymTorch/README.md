@@ -14,6 +14,15 @@ Python (runtime + training):
 - Python >= 3.9 (nanobind requirement)
 - See `requirements.txt`
 
+### Virtual Environment (recommended)
+From `raisimGymTorch/`:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
 Install Python deps:
 ```
 python -m pip install -r requirements.txt
