@@ -59,8 +59,8 @@ __raisim_prepend_path() {
   echo "Added to ${__raisim_lib_var}: ${entry}"
 }
 
-__raisim_prepend_path "${RAISIM_DIR}/raisim/${RAISIM_OS}/lib"
-__raisim_prepend_path "${RAISIM_DIR}/rayrai/${RAISIM_OS}/lib"
+__raisim_prepend_path "${RAISIM_DIR}/raisim/lib"
+__raisim_prepend_path "${RAISIM_DIR}/rayrai/lib"
 
 unset -f __raisim_prepend_path
 unset __raisim_lib_var
