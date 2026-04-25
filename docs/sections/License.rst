@@ -5,7 +5,7 @@ License
 Licensing Process
 ========================================
 
-Commercial users must contact info.raisim@gmail.com to obtain a commercial client ID prior to proceeding with the instructions below.
+Commercial users must contact raisim@raionrobotics.com to obtain a commercial client ID prior to proceeding with the instructions below.
 
 An **activation key** is required to operate RaiSim.
 Activation keys may be requested via the **RaiSim License Request Form**:
