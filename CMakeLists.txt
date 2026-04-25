@@ -12,8 +12,6 @@ option(RAISIM_MATLAB "Build a matlab wrapper." FALSE)
 option(RAISIM_PY "Build a python wrapper." FALSE)
 option(RAISIM_DOC "Build a raisim documentation. You can find the latest doc in raisim.com." FALSE)
 option(RAISIM_CHECK_FOR_UPDATES "Check GitHub for newer raisim releases when configuring." TRUE)
-set(RAISIM_UPGRADE "" CACHE STRING "Set to ON to upgrade an existing raisim directory to the latest available release, or OFF to skip the prompt.")
-set_property(CACHE RAISIM_UPGRADE PROPERTY STRINGS "" ON OFF)
 
 if(WIN32)
     set(_raisim_asset_platform "windows-x86")
@@ -224,20 +222,10 @@ else()
     if(NOT _raisim_latest_version STREQUAL ""
             AND NOT _raisim_installed_version STREQUAL ""
             AND _raisim_installed_version VERSION_LESS _raisim_latest_version)
-        if(RAISIM_UPGRADE)
-            set(RAISIM_VERSION "${_raisim_latest_version}")
-            message(STATUS "Upgrading raisim from ${_raisim_installed_version} to ${RAISIM_VERSION}.")
-            _raisim_download_release("${RAISIM_VERSION}")
-            _raisim_find_package_prefix(RAISIM_PREFIX)
-        elseif(RAISIM_UPGRADE STREQUAL "")
-            message(STATUS
-                "A newer raisim release is available (${_raisim_installed_version} -> ${_raisim_latest_version}). "
-                "Would you like to upgrade? Configure with -DRAISIM_UPGRADE=ON to upgrade, "
-                "or -DRAISIM_UPGRADE=OFF to keep the existing copy without this prompt."
-            )
-        else()
-            message(STATUS "Keeping existing raisim ${_raisim_installed_version}; latest online release is ${_raisim_latest_version}.")
-        endif()
+        message(STATUS
+            "A newer raisim release is available (${_raisim_installed_version} -> ${_raisim_latest_version}). "
+            "Run ./raisim_upgrade.sh or .\\raisim_upgrade.ps1 to upgrade."
+        )
     endif()
 endif()
 

@@ -11,8 +11,8 @@ Closed-loop system simulation is now available! Check out the [minitaur example]
 
 ## Install (Generate + Build)
 
-RaiSim/RayRai binaries are downloaded automatically during CMake configure on Linux and Windows from GitHub Releases (`raisimTech/raisim2Lib`, version = `RAISIM_VERSION` in `CMakeLists.txt`).
-If `raisim/` or `rayrai/` already exist, configure removes and replaces them.
+RaiSim/RayRai binaries are downloaded automatically during CMake configure on Linux and Windows from GitHub Releases (`raisimTech/raisim2Lib`, version = `RAISIM_VERSION` in `CMakeLists.txt`) when `raisim/` is missing.
+If `raisim/` already exists, CMake uses the local copy and reports when a newer release is available.
 
 ### 1) Prerequisites
 
@@ -71,6 +71,26 @@ cmake --install build --config Release
 - `-DRAISIM_PY=ON`: build Python bindings (install Python dev headers first)
 - `-DRAISIM_MATLAB=ON`: build Matlab wrapper
 - `-DRAISIM_DOC=ON`: build docs (install Sphinx requirements first)
+
+### 5) Upgrade RaiSim/RayRai binaries
+
+Linux:
+```bash
+./raisim_upgrade.sh
+```
+
+Windows PowerShell:
+```powershell
+.\raisim_upgrade.ps1
+```
+
+Without a version, the upgrade script asks whether to install the latest release.
+If you decline, it lists available releases and asks for the version to install.
+
+Pass a version to install a specific release:
+```bash
+./raisim_upgrade.sh 2.0.0
+```
 
 Optional docs setup:
 ```bash
