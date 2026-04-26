@@ -39,7 +39,9 @@ vcpkg install eigen3:x64-windows sdl2:x64-windows
 
 ```bash
 cd /path/to/raisim2Lib
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local
+cmake -S . -B build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=$HOME/.local
 cmake --build build -j
 cmake --install build
 ```

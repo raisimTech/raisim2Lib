@@ -3,6 +3,8 @@ build-debug/
 build-release/
 build-*/
 build/*
+_build/*
+docs/_build/*
 cmake-build*/*
 .idea/*
 examples/.idea/*
@@ -34,3 +36,4 @@ rayrai/
 windows-x86-*/
 linux-x86-*/
 linux-arm64-*/
+raisim_coacd_*

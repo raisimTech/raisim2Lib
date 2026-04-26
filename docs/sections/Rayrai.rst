@@ -140,6 +140,41 @@ both via ``RayraiWindow``:
 If you need a fully custom shadow view/projection, use the lower-level
 ``raisin::Light`` API directly.
 
+PBR materials
+=============
+rayrai supports a lightweight glTF-style metallic-roughness PBR path in addition to
+the existing simple Phong-style renderer. Simple color and legacy textured meshes stay
+on the fast path; PBR shader work is used only for meshes whose material requests PBR
+features or PBR texture maps.
+
+Supported material inputs include:
+
+* base color factor and base color texture
+* metallic and roughness factors
+* metallic-roughness texture
+* normal texture
+* occlusion texture
+* emissive factor and emissive texture
+
+Lighting is currently based on rayrai's directional light and shadow pass. The PBR path
+uses direct lighting and material response suitable for preview, data generation, and
+asset inspection; it is not an offline path tracer.
+
+The shipped PBR examples are:
+
+* ``rayrai_pbr_material_grid``: Khronos MetalRoughSpheres material grid.
+* ``rayrai_pbr_texture_maps``: Khronos BoomBox textured PBR asset.
+
+CoACD mesh approximation visualization
+======================================
+``rayrai_coacd_mesh_approximation`` visualizes collision convexification. It shows the
+source mesh and the generated convex parts side by side. The decomposition side uses
+per-part colors so individual convex bodies can be inspected.
+
+This example uses real meshes from ``rsc`` such as YCB and Minitaur assets. Some robot
+visual meshes are intentionally not used because they are non-manifold visual shells and
+are rejected by the minimal CoACD integration.
+
 Examples
 ========
 Rayrai examples are documented in :doc:`Examples <Examples>`. Each example page
@@ -154,6 +189,9 @@ Quick map to the shipped examples (``examples/src/rayrai``):
 * ``rayrai_rgb_camera.cpp``: RGBCamera rendering and ImGui preview.
 * ``rayrai_depth_camera.cpp``: DepthCamera rendering + linear depth preview.
 * ``rayrai_lidar_pointcloud.cpp``: LiDAR scan to point cloud visualization.
+* ``rayrai_pbr_material_grid.cpp``: metallic-roughness glTF material grid.
+* ``rayrai_pbr_texture_maps.cpp``: textured PBR glTF asset import.
+* ``rayrai_coacd_mesh_approximation.cpp``: visual comparison of original meshes and COACD convex parts.
 * ``rayrai_complete_showcase.cpp``: end-to-end demo with sensors, UI, and overlays.
 * ``rayrai_tcp_viewer.cpp``: TCP viewer for RaisimServer scenes.
 

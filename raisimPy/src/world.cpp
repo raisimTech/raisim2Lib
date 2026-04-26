@@ -1054,7 +1054,7 @@ void init_world(py::module_ &m) {
               double mass, NDArray inertia, NDArray com,
               double scale = 1., const std::string &material = "default", CollisionGroup group = 1,
               CollisionGroup mask = CollisionGroup(-1),
-              raisim::MeshCollisionMode collision_mode = raisim::MeshCollisionMode::ORIGINAL_MESH) {
+              raisim::MeshCollisionMode collision_mode = raisim::MeshCollisionMode::CONVEXIFY) {
              // convert np.array to raisim matrices
              Mat<3, 3> I;
              I = convert_np_to_mat<3, 3>(inertia);
@@ -1088,7 +1088,7 @@ void init_world(py::module_ &m) {
            py::arg("material") = "default",
            py::arg("collision_group") = 1,
            py::arg("collision_mask") = CollisionGroup(-1),
-           py::arg("collision_mode") = raisim::MeshCollisionMode::ORIGINAL_MESH,
+           py::arg("collision_mode") = raisim::MeshCollisionMode::CONVEXIFY,
            py::rv_policy::reference_internal)
 
       .def("addStiffWire", [](raisim::World &self, raisim::Object &object1, size_t local_idx1,

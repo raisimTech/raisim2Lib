@@ -75,7 +75,8 @@ void init_object(py::module_ &m) {
     // mesh collision mode enum (from include/raisim/configure.hpp)
     py::enum_<raisim::MeshCollisionMode>(m, "MeshCollisionMode", py::is_arithmetic())
         .value("ORIGINAL_MESH", raisim::MeshCollisionMode::ORIGINAL_MESH)
-        .value("CONVEX_HULL", raisim::MeshCollisionMode::CONVEX_HULL);
+        .value("CONVEX_HULL", raisim::MeshCollisionMode::CONVEX_HULL)
+        .value("CONVEXIFY", raisim::MeshCollisionMode::CONVEXIFY);
 
 
     /************/

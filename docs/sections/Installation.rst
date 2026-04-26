@@ -33,6 +33,18 @@ Clone the raisim2Lib repository from https://github.com/raisimTech/raisim2Lib.
 The cloned repository includes prebuilt RaiSim packages.
 The installed CMake packages can be found under ``raisim2Lib/raisim/<OS-TYPE>``.
 
+Linux installer release prompt
+------------------------------
+On Linux, ``linux_install.sh`` asks whether the package should be built for release.
+If you answer yes, the installer follows the release packaging path. If you answer no,
+it only builds and installs the current system architecture into:
+
+* ``~/raisim2Lib/raisim``
+* ``~/raisim2Lib/rayrai``
+
+The non-release path is intended for local development and testing. It avoids building
+extra architecture/package variants that are only needed for release distribution.
+
 To integrate RaiSim into your project, add the CMake package path and the shared library path to the corresponding environment variables as follows:
 
 
