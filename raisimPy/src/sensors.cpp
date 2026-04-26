@@ -120,7 +120,7 @@ void init_sensors(py::module_ &m) {
                     &raisim::RGBCamera::RGBCameraProperties::stringToNoiseType);
 
     py::class_<raisim::RGBCamera, raisim::Sensor>(m, "RGBCamera")
-        .def_static("getType", &raisim::RGBCamera::getType)
+        .def_static("getStaticType", &raisim::RGBCamera::getType)
         .def("getProperties", &raisim::RGBCamera::getProperties, py::rv_policy::reference_internal)
         .def("getImageBuffer", py::overload_cast<>(&raisim::RGBCamera::getImageBuffer, py::const_))
         .def("setImageBuffer", &raisim::RGBCamera::setImageBuffer);
@@ -155,7 +155,7 @@ void init_sensors(py::module_ &m) {
                     &raisim::DepthCamera::DepthCameraProperties::stringToNoiseType);
 
     py::class_<raisim::DepthCamera, raisim::Sensor>(m, "DepthCamera")
-        .def_static("getType", &raisim::DepthCamera::getType)
+        .def_static("getStaticType", &raisim::DepthCamera::getType)
         .def("updateRayDirections", &raisim::DepthCamera::updateRayDirections)
         .def("getDepthArray", py::overload_cast<>(&raisim::DepthCamera::getDepthArray, py::const_))
         .def("setDepthArray", &raisim::DepthCamera::setDepthArray)
@@ -196,7 +196,7 @@ void init_sensors(py::module_ &m) {
                     &raisim::InertialMeasurementUnit::ImuProperties::stringToNoiseType);
 
     py::class_<raisim::InertialMeasurementUnit, raisim::Sensor>(m, "InertialMeasurementUnit")
-        .def_static("getType", &raisim::InertialMeasurementUnit::getType)
+        .def_static("getStaticType", &raisim::InertialMeasurementUnit::getType)
         .def("getLinearAcceleration",
              [](const raisim::InertialMeasurementUnit &self) { return self.getLinearAcceleration(); })
         .def("getAngularVelocity",
@@ -226,7 +226,7 @@ void init_sensors(py::module_ &m) {
         .def_rw("spinDirection", &raisim::SpinningLidar::SpinningLidarProperties::spinDirection);
 
     py::class_<raisim::SpinningLidar, raisim::Sensor>(m, "SpinningLidar")
-        .def_static("getType", &raisim::SpinningLidar::getType)
+        .def_static("getStaticType", &raisim::SpinningLidar::getType)
         .def("getProperties", &raisim::SpinningLidar::getProperties, py::rv_policy::reference_internal)
         .def("setProperties", &raisim::SpinningLidar::setProperties)
         .def("getScan", [](const raisim::SpinningLidar &self) {

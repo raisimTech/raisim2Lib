@@ -1643,8 +1643,15 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
 	    py::arg("mass_matrix"))
         .def("massMatrixVecMul", [](raisim::ArticulatedSystem &self, NDArray vector) {
             VecDyn vec1 = convert_np_to_vecdyn(vector);
-            VecDyn vec;
-            self.massMatrixVecMul(vec1, vec);
+            MatDyn mass = self.getMassMatrix();
+            if (vec1.n != mass.m) {
+                std::ostringstream s;
+                s << "error: massMatrixVecMul expected a vector of size " << mass.m
+                  << " but got " << vec1.n << ".";
+                throw std::domain_error(s.str());
+            }
+            VecDyn vec(mass.n);
+            raisim::matvecmul(mass, vec1, vec);
             return convert_vecdyn_to_np(vec);
         }, py::arg("vector"))
 

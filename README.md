@@ -72,7 +72,49 @@ cmake --install build --config Release
 - `-DRAISIM_MATLAB=ON`: build Matlab wrapper
 - `-DRAISIM_DOC=ON`: build docs (install Sphinx requirements first)
 
-### 5) Upgrade RaiSim/RayRai binaries
+### 5) Build and install RaisimPy
+
+RaisimPy is built by the top-level CMake project when `RAISIM_PY=ON`.
+The Python module is installed into the site-packages directory of the Python interpreter used by CMake, not under `CMAKE_INSTALL_PREFIX`.
+
+Linux prerequisites:
+```bash
+sudo apt update
+sudo apt install -y python3-dev
+```
+
+Create a project-local Python environment with `uv`, then point CMake at that environment's Python executable:
+```bash
+cd /path/to/raisim2Lib
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python numpy
+
+cmake -S . -B build-py \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=$HOME/.local \
+  -DRAISIM_EXAMPLE=ON \
+  -DRAISIM_PY=ON \
+  -DPython_EXECUTABLE=$PWD/.venv/bin/python
+cmake --build build-py -j
+cmake --install build-py
+```
+
+Before importing `raisimpy`, make sure the RaiSim shared libraries are on the runtime library path:
+```bash
+source /path/to/raisim2Lib/raisim_env.sh
+.venv/bin/python -c "import raisimpy as raisim; print(raisim.__doc__)"
+```
+
+CMake installs `raisimpy` into the site-packages directory of `.venv/bin/python`.
+Run RaisimPy scripts with the same interpreter:
+```bash
+source /path/to/raisim2Lib/raisim_env.sh
+.venv/bin/python raisimPy/examples/robots.py
+```
+
+If you install with `sudo`, CMake may install `raisimpy` into a different Python site-packages directory. Prefer the project-local `uv` environment so the module and interpreter match.
+
+### 6) Upgrade RaiSim/RayRai binaries
 
 Linux:
 ```bash
@@ -105,10 +147,32 @@ Further documentation available on the [RaiSim Tech website](http://raisim.com).
 
 
 ## Examples
-Before running examples, load the environment setup script for your shell:
+Before running examples, build with `RAISIM_EXAMPLE=ON` and load the environment setup script for your shell:
 - Linux/macOS: `source /path/to/raisim2Lib/raisim_env.sh`
 - Windows (PowerShell): `.\raisim_env.ps1`
 - Windows (cmd.exe): `raisim_env.bat`
+
+Run C++ examples from the build directory:
+```bash
+cd /path/to/raisim2Lib
+source ./raisim_env.sh
+./build/examples/minitaur_pd
+./build/examples/primitive_grid
+./build/examples/ray_casting
+```
+
+Server examples can be viewed with RaiSimUnity/RaiSimUnreal when applicable. Start the example first, then launch the visualizer from this repository.
+
+Run Python examples after building and installing RaisimPy:
+```bash
+cd /path/to/raisim2Lib
+source ./raisim_env.sh
+.venv/bin/python raisimPy/examples/robots.py
+.venv/bin/python raisimPy/examples/heightMap.py
+.venv/bin/python raisimPy/examples/rayDemo2.py
+```
+
+Most examples expect a valid `rsc/activation.raisim` license file.
 
 ## Features
 - Supports free camera movement

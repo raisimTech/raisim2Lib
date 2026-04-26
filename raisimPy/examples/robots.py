@@ -71,7 +71,8 @@ world.integrate1()
 # mass matrix
 mass_matrix = anymal.getMassMatrix()
 # non-linear term (gravity+coriolis)
-non_linearities = anymal.getNonlinearities([0,0,-9.81])
+gravity = np.array([0.0, 0.0, -9.81])
+non_linearities = anymal.getNonlinearities(gravity)
 # Jacobians
 jaco_foot_lh_linear = anymal.getDenseFrameJacobian("LF_ADAPTER_TO_FOOT")
 jaco_foot_lh_angular = anymal.getDenseFrameRotationalJacobian("LF_ADAPTER_TO_FOOT")

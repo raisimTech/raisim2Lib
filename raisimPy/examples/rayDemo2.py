@@ -52,8 +52,8 @@ for i in range(10000000000):
             yaw = j * math.pi / scanSize2 * 0.6 - 0.3 * math.pi
             pitch = -(i * 0.3/scanSize1) + 0.2
             normInv = 1. / math.sqrt(pitch * pitch + 1)
-            direction = np.mat([np.cos(yaw) * normInv, np.sin(yaw) * normInv, -pitch * normInv], dtype=np.float64)
-            rayDirection = lidarOri.dot(direction.transpose())
+            direction = np.array([np.cos(yaw) * normInv, np.sin(yaw) * normInv, -pitch * normInv], dtype=np.float64)
+            rayDirection = lidarOri.dot(direction)
             col = world.rayTest(lidarPos, rayDirection, 30)
             if col.size() > 0:
                 scans[i * scanSize2 + j].setPosition(col.at(0).getPosition())
@@ -67,4 +67,3 @@ for i in range(10000000000):
         robot.setGeneralizedCoordinate(np.array([0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0]))
 
 server.killServer()
-
