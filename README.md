@@ -17,7 +17,7 @@
   <img src="rsc/docs/image/rayrai/ray_scan_lidar.gif" alt="Husky driving over rough terrain with ray-scan lidar hits colored by range" width="49%" />
 </p>
 
-For full documentation, see the [RaiSim documentation](https://raisim.com/sections/Simulator.html).
+For full documentation, see the [RaiSim documentation](https://raisim.com).
 
 RaiSim is a physics engine for robotics and artificial intelligence research. The public distribution is provided as binary packages with headers, libraries, examples, rayrai viewer sources, and documentation.
 
