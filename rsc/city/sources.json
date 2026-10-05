@@ -1,0 +1,968 @@
+[
+  {
+    "path": "modular_urban_apartments_facade/modular_urban_apartments_facade_2k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_2k.gltf",
+    "sha256": "ce1ef4af29b37ca558ca05c29f0b1cc65d5a51dd66627f9d979b5ffc948b5333",
+    "bytes": 270799
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+    "sha256": "c34c3eb081a60a8d5daacc217bdca889c945225be79b272135abd08fb6b8aa85",
+    "bytes": 2559719
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+    "sha256": "9fa34f2f5c1c421f700b16bd21e143d34c0b5e65423b8d7b5203d2b8761594e4",
+    "bytes": 1991640
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+    "sha256": "56189b59a07675924e8c82d2aa963f861c60191fef337e29cca8f09b47767f72",
+    "bytes": 2238064
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg",
+    "sha256": "eef1cf6efafd3cb92a23d382d09db5817f51dd3f1c09b5785e192bf4561e70c5",
+    "bytes": 3427345
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+    "sha256": "6446a76c4b45a88101f2ba14723ca53f5f2269721249461fcff4c666914b626a",
+    "bytes": 2198191
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+    "sha256": "582ac0de84d07e45d467ac898d2c14492db2258d06fbeba65644c25a346564ec",
+    "bytes": 4895944
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+    "sha256": "0658b150074321691cdd81e04d0c42966034f45f4c74b501ec497a29c4144375",
+    "bytes": 2352206
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+    "sha256": "bab306cc2a40a9f699e5c33fd97e0f3a4ac1817e71afa47518861fb452011e86",
+    "bytes": 2887047
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_objects_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_diff_2k.jpg",
+    "sha256": "0fe0a7ef75c49a7f4f16699b6bfe99f8455f384aefe256d5d0f568fd730c4a26",
+    "bytes": 2013153
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+    "sha256": "cecff1160db9801e7c7d7eb2be4cae63cc883f8e1af9e496a0025a0776610813",
+    "bytes": 3610799
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+    "sha256": "8c3cfb763c1343eed3082ba5f256f9d9c80775f6199aca9dc6434843e7b7a9dd",
+    "bytes": 2064585
+  },
+  {
+    "path": "modular_urban_apartments_facade/textures/modular_urban_apartments_facade_objects_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_arm_2k.jpg",
+    "sha256": "8573bb7a15e809f635aa71fb0348355f93195394f1788bf05ea68ca4daa2e887",
+    "bytes": 2748860
+  },
+  {
+    "path": "modular_urban_apartments_facade/modular_urban_apartments_facade.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_urban_apartments_facade/modular_urban_apartments_facade.bin",
+    "sha256": "f041e71b6bd31864f20dd64d3a82519454a603c300686161e0349ff44f838bf2",
+    "bytes": 8168772
+  },
+  {
+    "path": "modular_factory_facade/modular_factory_facade_2k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/modular_factory_facade/modular_factory_facade_2k.gltf",
+    "sha256": "f659bc368b07878202dbacca63bc60c8150bb61a3ede4869b540864e4dcb1e48",
+    "bytes": 372666
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_trim_01_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_diff_2k.jpg",
+    "sha256": "bc4e041d46829466f8a7cb45b2b84f26e6cd7a41464b89590423d7ba65075c6d",
+    "bytes": 2537009
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_brick_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_nor_gl_2k.jpg",
+    "sha256": "a31341b4b1329bb2c27ce74da866aa56b359a5a60fcddbc6cd5be0029e410611",
+    "bytes": 3471100
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_doors_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_nor_gl_2k.jpg",
+    "sha256": "4c885d8170310e9b26c80780458eee000dcb67ea057cb14b782d10e835b2a698",
+    "bytes": 2099914
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_garage_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_nor_gl_2k.jpg",
+    "sha256": "d42a8cbcffe9a08d4fea5d12dbac82da0622efa49ad083361eead5b94927a086",
+    "bytes": 3235785
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_trim_01_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_arm_2k.jpg",
+    "sha256": "3c70a0bb5e9f4d46183bebe5494d7665a775ea13c428af0dcea2fc29c950d48f",
+    "bytes": 3129201
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_garage_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_diff_2k.jpg",
+    "sha256": "83722741c6bbdfafd285b6f5d0a2913c133d91b11705fb684d526a6695da0537",
+    "bytes": 2189076
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+    "sha256": "1f43fa78247a60f4f06096c95df26b95b94727167e917a18962963b2993eb650",
+    "bytes": 3717593
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_brick_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_arm_2k.jpg",
+    "sha256": "dc313e13bd12687bd8827b5e439c1ea2b56fbc883d935f26132b44781a21be14",
+    "bytes": 2567917
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_windows_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_nor_gl_2k.jpg",
+    "sha256": "7d66b69bf4715555085b1d3c0f95fc2e28f325d8a1ab7a68d1078dca7db7ab04",
+    "bytes": 2675074
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_garage_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_arm_2k.jpg",
+    "sha256": "0efc9b69568cf6b13bb22256edf8bec347fbc0ac5496d5736c8dc3eb69e800dd",
+    "bytes": 2542492
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_windows_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_diff_2k.jpg",
+    "sha256": "2ca66aa0a753ab7fb6dcf605ec64a90fe116d6271719b20ee1a2069b568d2edd",
+    "bytes": 2316599
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_doors_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_arm_2k.jpg",
+    "sha256": "07af095d6ecb4966ec029968ff7b0d111de8b2e1910bbea168dc9c958a4da3d1",
+    "bytes": 2628673
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_windows_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_arm_2k.jpg",
+    "sha256": "963ececefba6c4a104a32258e611f250ea1f715fba747f7a0a640b7e4603f1b6",
+    "bytes": 3333067
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_doors_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_diff_2k.jpg",
+    "sha256": "1189acbe5ed4ecaccda9ec40f0a4a4a454016a22dbab0f18d3bdb61a01d9821a",
+    "bytes": 2081334
+  },
+  {
+    "path": "modular_factory_facade/modular_factory_facade.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_factory_facade/modular_factory_facade.bin",
+    "sha256": "12702fb065a838695e0621e1aac3947af92d32c439fb965c8b0563ad691fed70",
+    "bytes": 6269260
+  },
+  {
+    "path": "modular_factory_facade/textures/modular_factory_facade_brick_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_diff_2k.jpg",
+    "sha256": "02204a7971f406dcd2b6e1e3bc90e5656c5749a4417cfd5977dc7dfa5042a5d4",
+    "bytes": 4421090
+  },
+  {
+    "path": "street_lamp_01/street_lamp_01_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/street_lamp_01/street_lamp_01_1k.gltf",
+    "sha256": "5d0358ede168b5e04547780b99d8e6d651cbe644e468e67cb505019047cbd5c8",
+    "bytes": 6419
+  },
+  {
+    "path": "street_lamp_01/textures/street_lamp_01_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/street_lamp_01/street_lamp_01_arm_1k.jpg",
+    "sha256": "4b5487a6c7ee300c3cf5449629e01c35409e5c7ac1695edb9fe69d4821853c7c",
+    "bytes": 664324
+  },
+  {
+    "path": "street_lamp_01/textures/street_lamp_01_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/street_lamp_01/street_lamp_01_diff_1k.jpg",
+    "sha256": "3e9d3471b33eb1f8075ed741c2b1932103598626d057ca12ef38005ea5fcb165",
+    "bytes": 307889
+  },
+  {
+    "path": "street_lamp_01/textures/street_lamp_01_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/street_lamp_01/street_lamp_01_nor_gl_1k.jpg",
+    "sha256": "172af0fd7ed4999e9f520b9f56e1f357a6dba87adbd7b8aa87e0a0b95840c63d",
+    "bytes": 438623
+  },
+  {
+    "path": "street_lamp_01/street_lamp_01.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/street_lamp_01/street_lamp_01.bin",
+    "sha256": "c283db9b6d95835d9e8fc1692829acadcb21a0623b2daaa7231cec1440488401",
+    "bytes": 748908
+  },
+  {
+    "path": "fire_hydrant/fire_hydrant_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fire_hydrant/fire_hydrant_1k.gltf",
+    "sha256": "aaca81b2904e6e5f1fb10a854c7b9a921232624387d1f8757b5c6bdaedcd9eb0",
+    "bytes": 20926
+  },
+  {
+    "path": "fire_hydrant/fire_hydrant.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fire_hydrant/fire_hydrant.bin",
+    "sha256": "a3c7ed023bc4aff190902764326e7f83ae1a108f6bac2a1b637c38a8e03eb516",
+    "bytes": 1928772
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_nor_gl_1k.jpg",
+    "sha256": "f6786775276c7b48f0582fdd7c43984b63b15b7a8e0ea0e2f2af8cdab98c06d7",
+    "bytes": 490552
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_aged_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_aged_diff_1k.jpg",
+    "sha256": "3198cabcaf5107e59109bd07dfe8e4c87b3f0533173d10fafdaf86f8024a291e",
+    "bytes": 629331
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_aged_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_aged_arm_1k.jpg",
+    "sha256": "9c46b014735a4e8df5a80e4c030ddb321c9aeaa715ad4ea3eb60e6f0909c9d0a",
+    "bytes": 665642
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_aged_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_aged_nor_gl_1k.jpg",
+    "sha256": "6fadc78fd5d696bf594ff021aaf93a0c6aced761830f9aa6971c51b17c869c35",
+    "bytes": 543768
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_diff_1k.jpg",
+    "sha256": "a3d0b8b6fcd8a39c8d5067f8ef95e3290053131887398f89baf57c1f8d24ab45",
+    "bytes": 570746
+  },
+  {
+    "path": "fire_hydrant/textures/fire_hydrant_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fire_hydrant/fire_hydrant_arm_1k.jpg",
+    "sha256": "d15bf8fc6389ae48a1060a38057c2093469e62f585c8033d300b80af81d40f9d",
+    "bytes": 671743
+  },
+  {
+    "path": "metal_trash_can/metal_trash_can_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/metal_trash_can/metal_trash_can_1k.gltf",
+    "sha256": "ccdc55ecfe43db2174c9257891e92551882a874564bb9a7908cafc5268b46c0c",
+    "bytes": 15481
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_diff_1k.jpg",
+    "sha256": "920c895a31b1cd2c000123c0592c70c33d46562752987da98070e7e0eebb662f",
+    "bytes": 551939
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_rust_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_rust_diff_1k.jpg",
+    "sha256": "51c44248305b111d978f7e0cbfe4a71ab7f49549968ce37c54b635d74c2cfba1",
+    "bytes": 768161
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_arm_1k.jpg",
+    "sha256": "b23dcdb2ed40c1c6cfbd2d2779c6f075025b7269bfbbed2a70c6bdb7167e47fb",
+    "bytes": 731776
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_rust_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_rust_nor_gl_1k.jpg",
+    "sha256": "a5497588e00e5e56db72e701457fc8a46d3a1fa7d9dd7bf9d79e02cada09e84b",
+    "bytes": 1085844
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_nor_gl_1k.jpg",
+    "sha256": "b977f17aa9d4718ffc91a62868b7171b4479578b8cffd1d32001d92552af81a4",
+    "bytes": 842945
+  },
+  {
+    "path": "metal_trash_can/metal_trash_can.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/metal_trash_can/metal_trash_can.bin",
+    "sha256": "a9b9f526b655bef865933335f2cfc8c8f0bd1a35fda05b290a93e3061f2b6c8a",
+    "bytes": 378288
+  },
+  {
+    "path": "metal_trash_can/textures/metal_trash_can_rust_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_trash_can/metal_trash_can_rust_arm_1k.jpg",
+    "sha256": "31a6269e98a3a8b2a2d6db8f58724e0151d5312b5137e6d59b5a2ba873989159",
+    "bytes": 620549
+  },
+  {
+    "path": "modular_street_seating/modular_street_seating_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/modular_street_seating/modular_street_seating_1k.gltf",
+    "sha256": "ae0c5b89927446dd3c3dc8fc021c5a6042448b785f340affaa132307d8a7b18d",
+    "bytes": 29629
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_supports_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_supports_diff_1k.jpg",
+    "sha256": "3d2dc8a4ac499b540445be6277a1fa7c84fb7cdbf0fbe04d9738d806393393e4",
+    "bytes": 721380
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_armrests_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_armrests_nor_gl_1k.jpg",
+    "sha256": "1625c7492bfdc6fb97a49a09e5f958bfc62d46b7fc97bdcda97ba83fc13f18c4",
+    "bytes": 324073
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_timber_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_timber_arm_1k.jpg",
+    "sha256": "07b108f3c6ee8afe56c9c23592d48f80344992bd0512080a1cc2bf37e7c7cb84",
+    "bytes": 762344
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_supports_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_supports_nor_gl_1k.jpg",
+    "sha256": "5396d42fc24e0bf0e038767dc0548c4562b359930a9f8ade61897d18192ec929",
+    "bytes": 477177
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_timber_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_timber_diff_1k.jpg",
+    "sha256": "2dce35474445e91743ec1e5a1ffbc405cdd3b7ec94be945d93d684e23e127be3",
+    "bytes": 596026
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_connectors_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_connectors_nor_gl_1k.jpg",
+    "sha256": "1debc33dce0a35acee944281a712b90ce3ba0a1914e0d30201dc45e4639ecd28",
+    "bytes": 398150
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_armrests_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_armrests_diff_1k.jpg",
+    "sha256": "1df79fcf237bcca5dcbd6af8e283e775125e723d2782dee3184550564905990f",
+    "bytes": 612860
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_supports_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_supports_arm_1k.jpg",
+    "sha256": "8dbdaf063699c6d81319a9f0ac2fa5997236981fa703103fdadb008570df8de2",
+    "bytes": 734095
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_connectors_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_connectors_diff_1k.jpg",
+    "sha256": "0b869d0b8d85d89e79fdb74794a45532b64b32221272c3777089730ca9097003",
+    "bytes": 212785
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_armrests_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_armrests_arm_1k.jpg",
+    "sha256": "0016585de0b1d3accd9b204f912e76e03385901410e02e5c8dd3186333ff882f",
+    "bytes": 622643
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_timber_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_timber_nor_gl_1k.jpg",
+    "sha256": "b7d0fff50ca56f12a3ebc3056c0c8104be84efce118a38094608d8e15af27d9a",
+    "bytes": 557669
+  },
+  {
+    "path": "modular_street_seating/textures/modular_street_seating_connectors_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_street_seating/modular_street_seating_connectors_arm_1k.jpg",
+    "sha256": "30af91ae8f610ce5ffc15289005b1e6eaf7e904048ad7cd129dcd6e68163512c",
+    "bytes": 591917
+  },
+  {
+    "path": "modular_street_seating/modular_street_seating.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/modular_street_seating/modular_street_seating.bin",
+    "sha256": "968558aa808b6cf74783b375d32a346a4de2ce9c118c0f17fba24c6999f03547",
+    "bytes": 977224
+  },
+  {
+    "path": "water_manhole_cover/water_manhole_cover_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/water_manhole_cover/water_manhole_cover_1k.gltf",
+    "sha256": "9d692740cb6e70cee977a6ccb54a270271b81250b47468e9ef6387bd58215cf9",
+    "bytes": 4253
+  },
+  {
+    "path": "water_manhole_cover/textures/water_manhole_cover_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/water_manhole_cover/water_manhole_cover_arm_1k.jpg",
+    "sha256": "6d5856a467c9286fc993f2bd80bb5c30464fd8a127c8418fc8fc6c34bc54231d",
+    "bytes": 669586
+  },
+  {
+    "path": "water_manhole_cover/textures/water_manhole_cover_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/water_manhole_cover/water_manhole_cover_nor_gl_1k.jpg",
+    "sha256": "e2c1eac759b8c7430ffc8c59a45f4db98f890f9a22c3d968605a81e99e92bf43",
+    "bytes": 1008913
+  },
+  {
+    "path": "water_manhole_cover/textures/water_manhole_cover_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/water_manhole_cover/water_manhole_cover_diff_1k.jpg",
+    "sha256": "cb78919f60c929125317f19f9ecbba9f21089b7c0d6e0428c68f6fa401e6e720",
+    "bytes": 448420
+  },
+  {
+    "path": "water_manhole_cover/water_manhole_cover.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/water_manhole_cover/water_manhole_cover.bin",
+    "sha256": "ada713d1f6f879164d3475e2ee18d69b4c4ecc8f100126e3921b7b3ea42c9267",
+    "bytes": 202320
+  },
+  {
+    "path": "utility_box_02/utility_box_02_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/utility_box_02/utility_box_02_1k.gltf",
+    "sha256": "d3f87ce0852709498602f6a096be99a9e13f0ac2619f99edcebad9e89f9faf00",
+    "bytes": 2764
+  },
+  {
+    "path": "utility_box_02/textures/utility_box_02_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/utility_box_02/utility_box_02_diff_1k.jpg",
+    "sha256": "78a0c93b1d8d394beee5989c0d3470a9c8c4e902f708acf3c11cd4edafbe08b1",
+    "bytes": 553096
+  },
+  {
+    "path": "utility_box_02/textures/utility_box_02_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/utility_box_02/utility_box_02_arm_1k.jpg",
+    "sha256": "f85575f891c97354d2fff11d5d0e2bc5f7d3aeab853ff3d75100c30c177a9cc5",
+    "bytes": 720694
+  },
+  {
+    "path": "utility_box_02/textures/utility_box_02_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/utility_box_02/utility_box_02_nor_gl_1k.jpg",
+    "sha256": "e7c85b37fa5420591b6fa5dcef7875c927c8dc51f38c39c5844d53284ef37c74",
+    "bytes": 552902
+  },
+  {
+    "path": "utility_box_02/utility_box_02.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/utility_box_02/utility_box_02.bin",
+    "sha256": "0f0a3f8ecc0358e36e97120aa752c2456a78bf922671e6f77e402b0aa58ecfce",
+    "bytes": 199784
+  },
+  {
+    "path": "concrete_road_barrier/concrete_road_barrier_1k.gltf",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/concrete_road_barrier/concrete_road_barrier_1k.gltf",
+    "sha256": "c371e87d303fff3f0c9fbe88520f7837514364e5c66aac3244e115ffa673d061",
+    "bytes": 2868
+  },
+  {
+    "path": "concrete_road_barrier/textures/concrete_road_barrier_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/concrete_road_barrier/concrete_road_barrier_nor_gl_1k.jpg",
+    "sha256": "c1072f51ff5c3d7158f0fbb0aa26e82b816b745b9f03639c4816832af2b37c52",
+    "bytes": 961760
+  },
+  {
+    "path": "concrete_road_barrier/textures/concrete_road_barrier_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/concrete_road_barrier/concrete_road_barrier_arm_1k.jpg",
+    "sha256": "b940847648012f2db8c24b16e07ad1e39b3bd33ea493203364deca209606e4b4",
+    "bytes": 619502
+  },
+  {
+    "path": "concrete_road_barrier/textures/concrete_road_barrier_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/concrete_road_barrier/concrete_road_barrier_diff_1k.jpg",
+    "sha256": "88b2d79829ffec7b11ac4d9c8554328f30b665d2c17f634197fde4f1ca8696fe",
+    "bytes": 792641
+  },
+  {
+    "path": "concrete_road_barrier/concrete_road_barrier.bin",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/concrete_road_barrier/concrete_road_barrier.bin",
+    "sha256": "64a4f9bc6e4af64d714a252c3c13428c430a60569deba3d52ca6b7dd3aa70d8c",
+    "bytes": 1374016
+  },
+  {
+    "path": "textures/asphalt_02/asphalt_02_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/asphalt_02/asphalt_02_diff_2k.jpg",
+    "sha256": "28f5ba8690553f192c0e5e1a5ff40f34765b4b93f4cc7059b1a3e9c795b6c28c",
+    "bytes": 3075676
+  },
+  {
+    "path": "textures/asphalt_02/asphalt_02_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/asphalt_02/asphalt_02_nor_gl_2k.jpg",
+    "sha256": "ffe49db71a0fd34c1e259625df66a302a237597d6ef655307987ec4e45bc6f21",
+    "bytes": 4943950
+  },
+  {
+    "path": "textures/asphalt_02/asphalt_02_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/asphalt_02/asphalt_02_arm_2k.jpg",
+    "sha256": "ed70e88640e4ed51cf1c3e57cb20db26983599b20b867c2526439e3a2c849fea",
+    "bytes": 1299186
+  },
+  {
+    "path": "textures/concrete_pavement_02/concrete_pavement_02_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_diff_2k.jpg",
+    "sha256": "a634f169ef1bb928585340f7feac69375b2bbbdfc0448e316dbaebe03bd5bf89",
+    "bytes": 4215026
+  },
+  {
+    "path": "textures/concrete_pavement_02/concrete_pavement_02_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_nor_gl_2k.jpg",
+    "sha256": "5bd05a222f82cceb6001847dcdf3b75b623ddb38b9cd00acbf4663299553c366",
+    "bytes": 5429141
+  },
+  {
+    "path": "textures/concrete_pavement_02/concrete_pavement_02_arm_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_arm_2k.jpg",
+    "sha256": "31db270fb5f33732bd2099086c292f30d891485cb18505a0780f93812e608f24",
+    "bytes": 2717807
+  },
+  {
+    "path": "textures/concrete_floor_01/concrete_floor_01_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_01/concrete_floor_01_diff_1k.jpg",
+    "sha256": "db7c800f1464359b5f359fc743e82ac51b34e014fdfd53844f4af34bb1949229",
+    "bytes": 755740
+  },
+  {
+    "path": "textures/concrete_floor_01/concrete_floor_01_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_01/concrete_floor_01_nor_gl_1k.jpg",
+    "sha256": "28be1f6fa82eeab137c84954bf7ea0f5d8a4434352d01c29f15e20926eb7227e",
+    "bytes": 909898
+  },
+  {
+    "path": "textures/concrete_floor_01/concrete_floor_01_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_01/concrete_floor_01_arm_1k.jpg",
+    "sha256": "44e3a0d18db295998c8af56ecc80095821e719e134974609aa92e5436709dabd",
+    "bytes": 177301
+  },
+  {
+    "path": "textures/bitumen/bitumen_diff_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bitumen/bitumen_diff_1k.jpg",
+    "sha256": "fa09ed33d59c3bb90ef70d36352207e2e1ca5564cfc61295c0124d1a7d785808",
+    "bytes": 451335
+  },
+  {
+    "path": "textures/bitumen/bitumen_nor_gl_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bitumen/bitumen_nor_gl_1k.jpg",
+    "sha256": "a584bd64cac6ce37153b48a481612bc20be5d5f1d36cac572119560f67c1c756",
+    "bytes": 691370
+  },
+  {
+    "path": "textures/bitumen/bitumen_arm_1k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bitumen/bitumen_arm_1k.jpg",
+    "sha256": "c5bce333c2dcdb4e5cc179aa57e845af8895104b412d9128a1266141020d177e",
+    "bytes": 277874
+  },
+  {
+    "path": "sky/kloofendal_48d_partly_cloudy_puresky_4k.hdr",
+    "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/kloofendal_48d_partly_cloudy_puresky_4k.hdr",
+    "sha256": "3061c00a16ecae748e84fd6c44c04804f539c118bb66325db858bad87b11bf88",
+    "bytes": 20674857
+  },
+  {
+    "path": "traffic_cone/traffic_cone.glb",
+    "url": "https://www.blendkit.com/asset-gallery-detail/4aec6ae7-3b6f-4888-90ec-2e77f890c223/",
+    "sha256": "92b70c5386b81d2d735961a6d6e112b6700d214d41470fb5a11decb13b1c8d9c",
+    "bytes": 3652456
+  },
+  {
+    "path": "cars/fairheaven_lt80/license.txt",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "9513a34f6f9a60e89e3f1ad90e234de67bb6c8f6274fb6b732dd7040e90cd94e",
+    "bytes": 788
+  },
+  {
+    "path": "cars/fairheaven_lt80/scene.bin",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "da96490c44ae853adc382d7375b6c7a9df81b43bdf51cf0dbddf69bf10c322cf",
+    "bytes": 1163756
+  },
+  {
+    "path": "cars/fairheaven_lt80/scene.gltf",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "e6a579cce92dec6be15e1a7a0972eb91c4e747b5ca6fd202082a110ddd074219",
+    "bytes": 100906
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/Carbadges_misc_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "92f4481211087f084d724af7e45555266139eb5883d1d7d1d246e32a8e4a2398",
+    "bytes": 1721641
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/Fairheaven_LT80_Bodymat_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "afbc5998850fef6eb6ab1a1928fefa3b3f25f0f7656adfd8eb4d473bb95e2e6a",
+    "bytes": 2719130
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/Fairheaven_LT80_Bodymat_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "62c7c1d6aa26afa39e9cc07d608e262d50b57ad7a7bac0c855e8d82afd330b17",
+    "bytes": 80287
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/Numberplates_Misk_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "9e2492816670e394108558e30fe827d6ddd43a7cc7f760e25671913a8cbb1551",
+    "bytes": 73083
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/RB1c_Tire_1k_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "d409aff83c4dac27d13e351d6560597081545f8e37104dd54d5167223a9a9903",
+    "bytes": 152653
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/RB1c_Tire_1k_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "3cee479988690947fd0943dbc5d1425a429eb759146ac65bb90dd62a485ee567",
+    "bytes": 976140
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "bad18f36d7b576d569fb5e5c74ec9f9bfd47e8601ac0e617b7b9610dce05202d",
+    "bytes": 931682
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "1d8ea23ee1848612e39e7c4b1357b4090974b8c72d5099fc38639957785bf87e",
+    "bytes": 1397419
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_normal.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "96aadc0464268c3b7c4d9d60d4009797fc4e057aa4868acc299954e36bfec2cb",
+    "bytes": 2286364
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "a998e82f4b9e7ead96ac9cdafd51ab9885284f956e962cdeef51dd5690a164f0",
+    "bytes": 730064
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_Interior_Trim_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "e4f1bb457088ae06d9a52d5a66f44a82699ab099e93ae37513f79356c59cc809",
+    "bytes": 2639924
+  },
+  {
+    "path": "cars/fairheaven_lt80/textures/UCB_Lights_and_Glass_Transperent_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/e2678da920cc4be68dbc193727919ffb",
+    "sha256": "6a30caeb4833329ccc7380dcd01ebcbcb2833951e8892bea9767a22ab8dd17f1",
+    "bytes": 746662
+  },
+  {
+    "path": "cars/fairheaven_sw84/license.txt",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "fa03f2b75fed279de9012f5e27840602cdb8a859c274d392cd446794c51a712a",
+    "bytes": 788
+  },
+  {
+    "path": "cars/fairheaven_sw84/scene.bin",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "328763bcc5361f4d7bed6837e124bd83ea0229a17516503c55bd2682af5c8478",
+    "bytes": 1222108
+  },
+  {
+    "path": "cars/fairheaven_sw84/scene.gltf",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "672abc9b732b037f56a9e145d804391384e1b52c3f70f1912b9b200ffe3b3cd2",
+    "bytes": 113422
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/Carbadges_misc_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "92f4481211087f084d724af7e45555266139eb5883d1d7d1d246e32a8e4a2398",
+    "bytes": 1721641
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "39c328f6f7622e5d5d788995f49c466f5653fed45346319fde964c7dc7660ad5",
+    "bytes": 2684609
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_normal.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "2603c32bb15680ef7421a94f43207dc991463b562f8cee674bbc1c2504f1e575",
+    "bytes": 388542
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "62c7c1d6aa26afa39e9cc07d608e262d50b57ad7a7bac0c855e8d82afd330b17",
+    "bytes": 80287
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/Numberplates_Misk_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "9e2492816670e394108558e30fe827d6ddd43a7cc7f760e25671913a8cbb1551",
+    "bytes": 73083
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "79e42a0679f2c5aa8ab8f48afcc3b26d373956bc816598464035607132a62ce7",
+    "bytes": 153688
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "462545f2ffba9344106a60b1a14c06b9c46e06d11bdeb0db4dfe6c8ba487818d",
+    "bytes": 980933
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "80ba03bd583da5f8ebff4245fac423d46c4aa456b11dd71ffd3272f5cf2c45a7",
+    "bytes": 424912
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "bad18f36d7b576d569fb5e5c74ec9f9bfd47e8601ac0e617b7b9610dce05202d",
+    "bytes": 931682
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "1d8ea23ee1848612e39e7c4b1357b4090974b8c72d5099fc38639957785bf87e",
+    "bytes": 1397419
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_normal.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "96aadc0464268c3b7c4d9d60d4009797fc4e057aa4868acc299954e36bfec2cb",
+    "bytes": 2286364
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "a998e82f4b9e7ead96ac9cdafd51ab9885284f956e962cdeef51dd5690a164f0",
+    "bytes": 730064
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_Interior_Trim_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "e4f1bb457088ae06d9a52d5a66f44a82699ab099e93ae37513f79356c59cc809",
+    "bytes": 2639924
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_Interior_Trim_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "a998e82f4b9e7ead96ac9cdafd51ab9885284f956e962cdeef51dd5690a164f0",
+    "bytes": 730064
+  },
+  {
+    "path": "cars/fairheaven_sw84/textures/UCB_Lights_and_Glass_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/aa0becb6e854422596cac6b21bf79787",
+    "sha256": "14616c455146242b8cfdff3e09b1bab9153e17bcb310ce69b8ca243173677c1c",
+    "bytes": 752971
+  },
+  {
+    "path": "cars/kiri86/license.txt",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "e2c5bd20dc33d7f5e0c72ed2106b322a5b3821fff3ba9f75412026c4856c790a",
+    "bytes": 752
+  },
+  {
+    "path": "cars/kiri86/scene.bin",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "2556937f55110380dcf388bce486c054642beb99b13a112eaf99af81fb7d2d23",
+    "bytes": 1061264
+  },
+  {
+    "path": "cars/kiri86/scene.gltf",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "160ceeac4d3bf0b89c5bad9b754ef5efc34defabd08c5849251238451140dbc5",
+    "bytes": 89436
+  },
+  {
+    "path": "cars/kiri86/textures/Carbadges_misc_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "92f4481211087f084d724af7e45555266139eb5883d1d7d1d246e32a8e4a2398",
+    "bytes": 1721641
+  },
+  {
+    "path": "cars/kiri86/textures/Carbadges_misc_U_normal.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "58b9d697f793022027128d385bb3d475c6a21e17b5fbe34d37b2f87ac83302dc",
+    "bytes": 23995
+  },
+  {
+    "path": "cars/kiri86/textures/Numberplates_Misk_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "9e2492816670e394108558e30fe827d6ddd43a7cc7f760e25671913a8cbb1551",
+    "bytes": 73083
+  },
+  {
+    "path": "cars/kiri86/textures/RB1c_Tire_1k_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "51e2709a890db1e1eefff6bb19ab42f39404709bbbb98fb10bf0c0a5c6ad6f72",
+    "bytes": 153372
+  },
+  {
+    "path": "cars/kiri86/textures/RB1c_Tire_1k_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "3c097e96ce90a851145a0f0c412babba1fbf207b4f11c4d9f7c9e01bb7a382d5",
+    "bytes": 978997
+  },
+  {
+    "path": "cars/kiri86/textures/RB1c_Tire_1k_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "3cd3e38cd660f93f870ac5ffb5b1792dea8e74087f25af95bb9ac36b37a9ca28",
+    "bytes": 424363
+  },
+  {
+    "path": "cars/kiri86/textures/UCB_BOTTOM_GT_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "bad18f36d7b576d569fb5e5c74ec9f9bfd47e8601ac0e617b7b9610dce05202d",
+    "bytes": 931682
+  },
+  {
+    "path": "cars/kiri86/textures/UCB_BOTTOM_GT_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "1d8ea23ee1848612e39e7c4b1357b4090974b8c72d5099fc38639957785bf87e",
+    "bytes": 1397419
+  },
+  {
+    "path": "cars/kiri86/textures/UCB_BOTTOM_GT_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "a998e82f4b9e7ead96ac9cdafd51ab9885284f956e962cdeef51dd5690a164f0",
+    "bytes": 730064
+  },
+  {
+    "path": "cars/kiri86/textures/UCB_Interior_Trim_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "4d593c4a70a1390ef1664bc5bb5d182dfd2fb7aaa200a12b268bb0158dbd535f",
+    "bytes": 2319281
+  },
+  {
+    "path": "cars/kiri86/textures/UCB_Lights_and_Glass_Transperent_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "9b43f72ad12d64f3d77719bc80c43400e51aa493eeb2f0b2d4c3585ea87c641f",
+    "bytes": 750322
+  },
+  {
+    "path": "cars/kiri86/textures/kiri86_Bodymat_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "e0f8cfd2907111250af6883e3761843824fa49cbc3e85aa3fbe34f9c9c433ef6",
+    "bytes": 2720038
+  },
+  {
+    "path": "cars/kiri86/textures/kiri86_Bodymat_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a",
+    "sha256": "62c7c1d6aa26afa39e9cc07d608e262d50b57ad7a7bac0c855e8d82afd330b17",
+    "bytes": 80287
+  },
+  {
+    "path": "cars/canyon75_taxi/license.txt",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "8b34f9d68b390c5e765d6c2de104e68af47755a75a9c27e27aaedb4267ac6bf0",
+    "bytes": 780
+  },
+  {
+    "path": "cars/canyon75_taxi/scene.bin",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "c75f241c1594e550e6a8e9b21e8e3fba1aaa41f0f8609c5e7ae362d1e8afa2b3",
+    "bytes": 1036068
+  },
+  {
+    "path": "cars/canyon75_taxi/scene.gltf",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "9fa6e8ad6fbd4828e29f42bbe58e9ad5119bcbbb2f5e31a7378aec6a1a29d51f",
+    "bytes": 83300
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "3690bd1865ae1ce7f64b509fc0cd76af0a55764be581c93b08bdab7e9a608a61",
+    "bytes": 927780
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "5156d9671638cba57238cecebfeda0a2520ec413da986f532ee520a6cb6eeeb3",
+    "bytes": 2717403
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "62c7c1d6aa26afa39e9cc07d608e262d50b57ad7a7bac0c855e8d82afd330b17",
+    "bytes": 80287
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/Carbadges_misc_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "92f4481211087f084d724af7e45555266139eb5883d1d7d1d246e32a8e4a2398",
+    "bytes": 1721641
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/Numberplates_Misk_U_baseColor.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "9e2492816670e394108558e30fe827d6ddd43a7cc7f760e25671913a8cbb1551",
+    "bytes": 73083
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "c17c6f6bfd2cc502baf967cc707a8047d0fa8eaf191c7701c557f461db835e8b",
+    "bytes": 151440
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "58700f3f118b2447b9af527429744ab29025dfbed589f5d27ef343f93e53fe58",
+    "bytes": 971275
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "c676dfeac1abd3cde1a842efdcfc44d6791dfbf588a74d85c424647a6464e6b6",
+    "bytes": 421676
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "fc28012a2ad328b44d0b261a56eb5f7be6b8e11c9dc4763c3409677389b4785d",
+    "bytes": 252822
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "f8b43f0801ed1d41d473fef99fa2af0c3f57a94bcd314f13837a67890007361f",
+    "bytes": 1135888
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_specularf0.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "cb01899801987c1f199b4c6f3bf502ea04245d4b2b1c116ddc425397b1d13a99",
+    "bytes": 419381
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_Interiors_2_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "0ba1f53b41fa1bc1b5dc1f6605aed02b2eba56a74882fdc541ff82b47448fa61",
+    "bytes": 460902
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_Interiors_2_metallicRoughness.png",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "9e6e4ad1a63972b039f299d3356065fac34688b3984d5ea13758512225f6f0b8",
+    "bytes": 1269758
+  },
+  {
+    "path": "cars/canyon75_taxi/textures/UCB_Lights_and_Glass_Transperent_baseColor.jpeg",
+    "url": "https://sketchfab.com/3d-models/9e8f92a215784f3d8aaaaeab1bef54c4",
+    "sha256": "1331d8a4d46f09a70143dee7e31df4a833146dbf443bce2eeb96a4abd86197fa",
+    "bytes": 740207
+  }
+]

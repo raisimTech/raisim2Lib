@@ -1,0 +1,1545 @@
+{
+  "license": "CC0-1.0",
+  "files": [
+    {
+      "path": "ATTRIBUTION.md",
+      "bytes": 5400,
+      "sha256": "2aa7a373529a3d61e992da3123fa2519face1c25ec857defaa85068302c3a031"
+    },
+    {
+      "path": "LICENSE-CC0-1.0.txt",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "path": "apartments/apartments.bin",
+      "bytes": 8168772,
+      "sha256": "f041e71b6bd31864f20dd64d3a82519454a603c300686161e0349ff44f838bf2"
+    },
+    {
+      "path": "apartments/modules/base_corner_large_01.gltf",
+      "bytes": 4483,
+      "sha256": "2775827d89f1d22f28ac699a66979ae8b71db60ae205a8bea8fe18da0064fdf4"
+    },
+    {
+      "path": "apartments/modules/base_standard_01.gltf",
+      "bytes": 4437,
+      "sha256": "acddab8483e0beb071ef83800f3bf4f0929699d5d50575359e70d768be8ea694"
+    },
+    {
+      "path": "apartments/modules/cornice_standard_corner_large_01.gltf",
+      "bytes": 4536,
+      "sha256": "5b41c2348add444ddfcfa89403178862cb96dc1cca4ec3b89b185956810b48a1"
+    },
+    {
+      "path": "apartments/modules/cornice_standard_standard_01.gltf",
+      "bytes": 4486,
+      "sha256": "416c911f995033db413acee4766cd6eb6d9bc1c0c553b0d506b068bf88e37614"
+    },
+    {
+      "path": "apartments/modules/crown_standard_corner_large_01.gltf",
+      "bytes": 4524,
+      "sha256": "a1c1fbb778770bf1d1514b1414bb0c07eec9ce4e225c92f6c9618aba8fe0b9a9"
+    },
+    {
+      "path": "apartments/modules/crown_standard_standard_01.gltf",
+      "bytes": 4519,
+      "sha256": "2cfbb644a9cdc5b84f5accaef71ecbb24c8ef78e325f9625acd4db5ce2cc4e7c"
+    },
+    {
+      "path": "apartments/modules/dado_door_centered_large_01.gltf",
+      "bytes": 4524,
+      "sha256": "76eb7f77f66b1aa6450135ed35f5fd0b658cbde8f205f9e1e0e1f5d43e01bf9a"
+    },
+    {
+      "path": "apartments/modules/dado_door_centered_small_01.gltf",
+      "bytes": 4490,
+      "sha256": "7e284e79dc5d68b147203099529c08b2a8418c516fc4c38f645ecacc1b752de8"
+    },
+    {
+      "path": "apartments/modules/dado_standard_corner_large_01.gltf",
+      "bytes": 4491,
+      "sha256": "1c2c0c8558e97ace479c4040b0cb3abfc01d00b3306641e29c5da71c630d7bee"
+    },
+    {
+      "path": "apartments/modules/dado_standard_standard_01.gltf",
+      "bytes": 4467,
+      "sha256": "f4ce622291ad0771633104a64c183af3b4df4a613d81bae424d0e0387af96934"
+    },
+    {
+      "path": "apartments/modules/door_centered_large_01.gltf",
+      "bytes": 5253,
+      "sha256": "13ccac120801f17dc4e9f8413f0bc870e1102856364f123cc18debe50934608d"
+    },
+    {
+      "path": "apartments/modules/door_centered_small_01.bin",
+      "bytes": 71816,
+      "sha256": "f879180cbf220e04bb7541d616f18921fb9e0c59b878c0fbd8f5f612b2d6722c"
+    },
+    {
+      "path": "apartments/modules/door_centered_small_01.gltf",
+      "bytes": 5950,
+      "sha256": "00f733832d1feaf0994a5eb7eb488b452d8392cbb7f05dbfbf1b49f970198f25"
+    },
+    {
+      "path": "apartments/modules/wall_door_centered_large_01.bin",
+      "bytes": 456,
+      "sha256": "3b9bf970ec557988bc3c3585336655f4486ebfd8c476b9cb82a9288fe9bc443c"
+    },
+    {
+      "path": "apartments/modules/wall_door_centered_large_01.gltf",
+      "bytes": 5131,
+      "sha256": "5cf9ac21bf5a4e365de7862676a5a9f12fe793674d45a77c0893c475b8e7f3f5"
+    },
+    {
+      "path": "apartments/modules/wall_door_centered_small_01.bin",
+      "bytes": 456,
+      "sha256": "9e9e5183c29ce4f43cc3519bbfc3026b35524e445a4b74c6739d36708c6d5371"
+    },
+    {
+      "path": "apartments/modules/wall_door_centered_small_01.gltf",
+      "bytes": 5092,
+      "sha256": "2c1d4400faa35ffb48ec139de091fac328f7d3fba60f5ac37ddd7e17a9383ab6"
+    },
+    {
+      "path": "apartments/modules/wall_standard_corner_large_01.bin",
+      "bytes": 304,
+      "sha256": "8d3f6cfed7f7fe130627926122d45d77a24d63923f3f80818d50797f57131039"
+    },
+    {
+      "path": "apartments/modules/wall_standard_corner_large_01.gltf",
+      "bytes": 5131,
+      "sha256": "069c0f2e2bb2f5157618c9ef5880127db20b6a6636fd14a46c1d3dd87b5bd700"
+    },
+    {
+      "path": "apartments/modules/wall_standard_standard_01.bin",
+      "bytes": 152,
+      "sha256": "0f6d300095184627c05f198c43c0945a3787ad1ab49225e70762e14945f2943c"
+    },
+    {
+      "path": "apartments/modules/wall_standard_standard_01.gltf",
+      "bytes": 5060,
+      "sha256": "cae10c648c4cd76d5cc1cb4e1820eb89d2e83bbf27bdb9376219124f87e3e1b5"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_double_01.bin",
+      "bytes": 1064,
+      "sha256": "2ab09618e54de15e9af43aba67b3b26eae9cc5b30fa234fbad540ef0dac873ba"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_double_01.gltf",
+      "bytes": 5080,
+      "sha256": "fdc6f16dfd45f49f68831708fab577a600bc812545ea422856c7a5a8d0b04a41"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_double_02.gltf",
+      "bytes": 4476,
+      "sha256": "0cafeda6aa3de59a64a89d9c6c4ede653ad86b47677e3451d6e607ec9e55aeb2"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_double_03.gltf",
+      "bytes": 4495,
+      "sha256": "d90afba695ef4a65d0ab21c6a911d4fe995a29e0b2ec8fc4dad20bbd5425d78c"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_large_01.bin",
+      "bytes": 608,
+      "sha256": "324cc06de4b4633c992e157c345d6f7223c3aecd87e9c7b13974e1be2f1469b8"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_large_01.gltf",
+      "bytes": 5076,
+      "sha256": "156dbf29e6ebe1601359d6e9061ecfb0c0ec57091fac54756333eaf9b3b392ac"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_large_02.bin",
+      "bytes": 608,
+      "sha256": "1ebca1167333d4ca74fcb1fd374466af374a0b36fc951bb11d0824029710ec46"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_large_02.gltf",
+      "bytes": 5076,
+      "sha256": "0400700e62bc5247f62309b1877a8f2f352d83b2e52c8b0cb255624b83b0e220"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_large_03.gltf",
+      "bytes": 4495,
+      "sha256": "8b6fa27bdec8abfb54b152170ab573b22eb0d3a490ee320f10308f8c918bd093"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_small_01.bin",
+      "bytes": 608,
+      "sha256": "eace8ae8c0b50e87e1f0302859acf1febadc32660b0bc2034703435eb2c71d62"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_small_01.gltf",
+      "bytes": 5077,
+      "sha256": "b4dc4498247e4087904104c40f46f7da9f231c87b7e77629f4f5b6e45a7c5ce8"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_small_02.bin",
+      "bytes": 608,
+      "sha256": "eace8ae8c0b50e87e1f0302859acf1febadc32660b0bc2034703435eb2c71d62"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_small_02.gltf",
+      "bytes": 5077,
+      "sha256": "d72a15b57af4648fb9b464ff28725a77c99630fc6c894050ef2c72e8bbad8d2c"
+    },
+    {
+      "path": "apartments/modules/wall_window_centered_small_03.gltf",
+      "bytes": 4495,
+      "sha256": "4eed746462485346c1f3f00ab4aeb10c82f981952eac0a1a21b465e61538f7e8"
+    },
+    {
+      "path": "apartments/modules/window_centered_double_01.gltf",
+      "bytes": 5284,
+      "sha256": "cb50e3932e2c2ce2a1a93afcaff01e7ee9792c868fb97950f36d8bf19bc22684"
+    },
+    {
+      "path": "apartments/modules/window_centered_double_02.gltf",
+      "bytes": 5281,
+      "sha256": "9c0785db06c9941bf6c592cd48a0a4dc188ee53f486a2c7a785d0fa6cf079376"
+    },
+    {
+      "path": "apartments/modules/window_centered_double_03.gltf",
+      "bytes": 6030,
+      "sha256": "2d45fffc25ea00518e4cba3ed892942c7912b03bbfdfc7b356f1e5bbbd500b12"
+    },
+    {
+      "path": "apartments/modules/window_centered_large_01.gltf",
+      "bytes": 5280,
+      "sha256": "2b2ce45f8f3d4dc98499d038872e1871e036f0bad8bf3a245d7bceb1f605f59d"
+    },
+    {
+      "path": "apartments/modules/window_centered_large_02.gltf",
+      "bytes": 5277,
+      "sha256": "5bca37af3d26d7c294459156969d9150e4bf2486b31e7dec8973542753b66868"
+    },
+    {
+      "path": "apartments/modules/window_centered_large_03.gltf",
+      "bytes": 6021,
+      "sha256": "34c1461f138a2f48416931e56d914fef2749e1b8989b5378f70be1a54e70fc94"
+    },
+    {
+      "path": "apartments/modules/window_centered_small_01.gltf",
+      "bytes": 5277,
+      "sha256": "e3ae1addf5579b9962fcd497cd10f27bc38ecd229fb5c2e2fe5b87aa65010bda"
+    },
+    {
+      "path": "apartments/modules/window_centered_small_02.gltf",
+      "bytes": 5274,
+      "sha256": "5eaab8973bd28a53d3db651dd33b8bcf24bbcacf03faf03678ff9617185dcb72"
+    },
+    {
+      "path": "apartments/modules/window_centered_small_03.gltf",
+      "bytes": 6016,
+      "sha256": "15b836e845e4b2165d015d2ae6578ed173c84a60f6293a18fdc569625b45a51a"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_objects_arm_2k.jpg",
+      "bytes": 2748860,
+      "sha256": "8573bb7a15e809f635aa71fb0348355f93195394f1788bf05ea68ca4daa2e887"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_objects_diff_2k.jpg",
+      "bytes": 2013153,
+      "sha256": "0fe0a7ef75c49a7f4f16699b6bfe99f8455f384aefe256d5d0f568fd730c4a26"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+      "bytes": 2064585,
+      "sha256": "8c3cfb763c1343eed3082ba5f256f9d9c80775f6199aca9dc6434843e7b7a9dd"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+      "bytes": 2352206,
+      "sha256": "0658b150074321691cdd81e04d0c42966034f45f4c74b501ec497a29c4144375"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+      "bytes": 2238064,
+      "sha256": "56189b59a07675924e8c82d2aa963f861c60191fef337e29cca8f09b47767f72"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+      "bytes": 4895944,
+      "sha256": "582ac0de84d07e45d467ac898d2c14492db2258d06fbeba65644c25a346564ec"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+      "bytes": 2559719,
+      "sha256": "c34c3eb081a60a8d5daacc217bdca889c945225be79b272135abd08fb6b8aa85"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+      "bytes": 2198191,
+      "sha256": "6446a76c4b45a88101f2ba14723ca53f5f2269721249461fcff4c666914b626a"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+      "bytes": 3610799,
+      "sha256": "cecff1160db9801e7c7d7eb2be4cae63cc883f8e1af9e496a0025a0776610813"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+      "bytes": 2887047,
+      "sha256": "bab306cc2a40a9f699e5c33fd97e0f3a4ac1817e71afa47518861fb452011e86"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+      "bytes": 1991640,
+      "sha256": "9fa34f2f5c1c421f700b16bd21e143d34c0b5e65423b8d7b5203d2b8761594e4"
+    },
+    {
+      "path": "apartments/textures/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg",
+      "bytes": 3427345,
+      "sha256": "eef1cf6efafd3cb92a23d382d09db5817f51dd3f1c09b5785e192bf4561e70c5"
+    },
+    {
+      "path": "cars/canyon75_taxi/license.txt",
+      "bytes": 780,
+      "sha256": "8b34f9d68b390c5e765d6c2de104e68af47755a75a9c27e27aaedb4267ac6bf0"
+    },
+    {
+      "path": "cars/canyon75_taxi/model.bin",
+      "bytes": 828956,
+      "sha256": "0d02bf750870fa7ee7c5dc303acc9551f54b71ac6162251c1a80ae47b60192aa"
+    },
+    {
+      "path": "cars/canyon75_taxi/model.gltf",
+      "bytes": 9158,
+      "sha256": "c0eb4650c719fd0f218354bb9b75576cd1fcf30a13863f49c185381fd32839e6"
+    },
+    {
+      "path": "cars/canyon75_taxi/model.rasset",
+      "bytes": 133,
+      "sha256": "c129cad9437e0e279007a83cc576bb8599131936f8377df35987b692f927f4e6"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_baseColor.jpg",
+      "bytes": 189478,
+      "sha256": "a3ef68d7f3a64a64952b484ad78e6c1ae0781ea7e4453b42f1a9837eb42208d7"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_metallicRoughness.jpg",
+      "bytes": 256094,
+      "sha256": "36996411eb363c0166118a2b7794b88dcc459fae104d939ca9a927f03aa32307"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/Canyon75_Bodymat_specularf0.jpg",
+      "bytes": 4723,
+      "sha256": "e0742422a16f6d9bcf0af2578038e30910937dfe87dcfb76135c4514697f779e"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/Carbadges_misc_U_baseColor.png",
+      "bytes": 971893,
+      "sha256": "de974a8bfd104c44d073fb1060eb00f8f8a55bf2fe2f042fbbd71dfc855d5417"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/Numberplates_Misk_U_baseColor.png",
+      "bytes": 74070,
+      "sha256": "b7a62b6e2f6838a5f9e58c67c15593230ee045381bc03f8f51dff1e9d0423c81"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_baseColor.jpg",
+      "bytes": 107465,
+      "sha256": "4b07847f95beccc7dbf89f54d49dd82b6e941e94aa4c91237bdbf43580d7d014"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_metallicRoughness.jpg",
+      "bytes": 193314,
+      "sha256": "c19a179705e81f11a33534bb3cea4f92faba9c836c4a2ee9b3a27ef1349dd8d3"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/RB1c_Tire_1k_specularf0.jpg",
+      "bytes": 17011,
+      "sha256": "58f808f6687e1757ee143894a71a0f8b86e7241d9bdb20f0cbde5198de2acd22"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_baseColor.jpg",
+      "bytes": 178521,
+      "sha256": "2ec04b92d22947150c7fbf05c203ceceedc8a5c250dd604d3f5d072bf55dfe17"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_metallicRoughness.jpg",
+      "bytes": 202857,
+      "sha256": "e4903cd249734f2eac1d4efea679bbc96ebcabfc45d027a88a6ef065eb668e89"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_BOTTOM_specularf0.jpg",
+      "bytes": 17011,
+      "sha256": "58f808f6687e1757ee143894a71a0f8b86e7241d9bdb20f0cbde5198de2acd22"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_Interiors_2_baseColor.jpg",
+      "bytes": 119604,
+      "sha256": "3f39eec7acefc3ce5bd8931db6f9c5f8d1a998793ab12541ec1c8e7ab3769d6c"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_Interiors_2_metallicRoughness.jpg",
+      "bytes": 82631,
+      "sha256": "9ebd767b2d69413753f92fb60ec5f73ee095f90de23a1e70de68fc7f98c9767c"
+    },
+    {
+      "path": "cars/canyon75_taxi/textures/UCB_Lights_and_Glass_Transperent_baseColor.png",
+      "bytes": 726489,
+      "sha256": "5bcb17ea143650c69bf113c2e12909eaa5d80843301c0ea09953621c7bd5dd02"
+    },
+    {
+      "path": "cars/fairheaven_lt80/license.txt",
+      "bytes": 788,
+      "sha256": "9513a34f6f9a60e89e3f1ad90e234de67bb6c8f6274fb6b732dd7040e90cd94e"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model.bin",
+      "bytes": 803628,
+      "sha256": "352b1b065986b5da5d7c08a9a88c9b27006d37afa429c795643b9f06c8f38854"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model.gltf",
+      "bytes": 9167,
+      "sha256": "b7ea14a710d488743f12e64dec56f782fcdf095db9f7cce8245bf311e126b7ea"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model.rasset",
+      "bytes": 133,
+      "sha256": "d68cf8492b30260dddede5e4f79f9305eb8ba2fe619a96e7630f778179dd98f8"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model_paint1.gltf",
+      "bytes": 9118,
+      "sha256": "e1b1a14f111ab632ee93050c2cf4aa33a09ddd3e00a3b081c47cf5ddb4bd50d0"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model_paint1.rasset",
+      "bytes": 140,
+      "sha256": "8af4d74b160e1aeb499afc8fe7616d2b44466365389c03dce42f06b1b780d247"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model_paint2.gltf",
+      "bytes": 9118,
+      "sha256": "420b5f5114d36bbb5ce5d28b45087dc9b8a3b1df15e1a53e74594885fa3e806a"
+    },
+    {
+      "path": "cars/fairheaven_lt80/model_paint2.rasset",
+      "bytes": 140,
+      "sha256": "f7f1f7f8ef21c35dadfc397c189e172f5af3a97c11655478d2e3adec8ff62532"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/Carbadges_misc_U_baseColor.png",
+      "bytes": 971893,
+      "sha256": "de974a8bfd104c44d073fb1060eb00f8f8a55bf2fe2f042fbbd71dfc855d5417"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/Fairheaven_LT80_Bodymat_metallicRoughness.jpg",
+      "bytes": 256183,
+      "sha256": "e6956df19ecf210e7f26423bf888e64eeca8b6a5a2ddc5c1f81d5766b38a637d"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/Fairheaven_LT80_Bodymat_specularf0.jpg",
+      "bytes": 4723,
+      "sha256": "e0742422a16f6d9bcf0af2578038e30910937dfe87dcfb76135c4514697f779e"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/Numberplates_Misk_U_baseColor.png",
+      "bytes": 74070,
+      "sha256": "b7a62b6e2f6838a5f9e58c67c15593230ee045381bc03f8f51dff1e9d0423c81"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/RB1c_Tire_1k_baseColor.jpg",
+      "bytes": 107447,
+      "sha256": "926eb2a65604312e1c2515fd60fa8f6f1c7613e57d24f09fff68c96b5604e7e6"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/RB1c_Tire_1k_metallicRoughness.jpg",
+      "bytes": 193390,
+      "sha256": "d9fe441154856ee5c29c868a288e5835393f50dcfd4af5b476dce781edfff807"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_baseColor.jpg",
+      "bytes": 152365,
+      "sha256": "3252c7fb8d5eceae5c909792d36388bbb9d1660cfb79bedb4c1141dcaa3c0192"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_metallicRoughness.jpg",
+      "bytes": 170141,
+      "sha256": "290002b7942ce867db811c15e0df423270457649d8de2ea1301e65d359b12120"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_normal.jpg",
+      "bytes": 202074,
+      "sha256": "43d30bdce642f5637a9f1e52b6f441765c22405732a4eae66c48025aa3a87ec1"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_BOTTOM_GT_specularf0.jpg",
+      "bytes": 346205,
+      "sha256": "92f4fae367a68d47ffc2c2d2f6588958be04f4e9fdb8c1cd02a6505707229977"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_Interior_Trim_metallicRoughness.jpg",
+      "bytes": 270886,
+      "sha256": "1c1e79cdc62166ab89252edfe06031f11500717a792d8afea4400d47e3088398"
+    },
+    {
+      "path": "cars/fairheaven_lt80/textures/UCB_Lights_and_Glass_Transperent_baseColor.png",
+      "bytes": 726343,
+      "sha256": "033f845440ded3d15dbc2fb88c73a8907680afed174d618415dcaeb16bcca0fa"
+    },
+    {
+      "path": "cars/fairheaven_sw84/license.txt",
+      "bytes": 788,
+      "sha256": "fa03f2b75fed279de9012f5e27840602cdb8a859c274d392cd446794c51a712a"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model.bin",
+      "bytes": 789916,
+      "sha256": "fe365d13001cc360db5e7476de74ec9192d121044edead8650b4250f9dc58c54"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model.gltf",
+      "bytes": 9529,
+      "sha256": "7b87e6e46522aacc835b5614a8102153b250b6a3b40824c7e1b0baba018e4cf5"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model.rasset",
+      "bytes": 133,
+      "sha256": "8ac426afcd3864fdedcea3a33187fcd94d43ba0a02b00a83af94dd300aa4718d"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model_paint1.gltf",
+      "bytes": 9482,
+      "sha256": "52fab842c0bde140590a58ae4339f7cb038f26de8a623c84d043fc4f5f8f6c3f"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model_paint1.rasset",
+      "bytes": 140,
+      "sha256": "62703dd3ed2c6edbe6e1973c4afa667f818104bf8b24eaca5ec904992c46ce18"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model_paint2.gltf",
+      "bytes": 9484,
+      "sha256": "f66820747b9553d1e20c7348b97f975f9e15fa6bba87a89c093f50f2c75ba9e8"
+    },
+    {
+      "path": "cars/fairheaven_sw84/model_paint2.rasset",
+      "bytes": 140,
+      "sha256": "939e82a28b9192029b09f33526d402b696bdf01839293c93e0fa9c7b9252ffce"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/Carbadges_misc_U_baseColor.png",
+      "bytes": 971893,
+      "sha256": "de974a8bfd104c44d073fb1060eb00f8f8a55bf2fe2f042fbbd71dfc855d5417"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_metallicRoughness.jpg",
+      "bytes": 256525,
+      "sha256": "235df4f36f9178af2ceab6cd694a68be49a541b8050a1426e008b6b6fa6a90cb"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_normal.jpg",
+      "bytes": 46883,
+      "sha256": "7a7137ce247b4938e530802fbb39d89a419d3c167cf1363960bfb481fc6c6ee1"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/Fairheaven_LT80_Bodymat_specularf0.jpg",
+      "bytes": 4723,
+      "sha256": "e0742422a16f6d9bcf0af2578038e30910937dfe87dcfb76135c4514697f779e"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/Numberplates_Misk_U_baseColor.png",
+      "bytes": 74070,
+      "sha256": "b7a62b6e2f6838a5f9e58c67c15593230ee045381bc03f8f51dff1e9d0423c81"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_baseColor.jpg",
+      "bytes": 107547,
+      "sha256": "85ee3fac46e7ab525e5fc4f2351ee07258739edb7c94d3e59600c3fcf6b73aed"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_metallicRoughness.jpg",
+      "bytes": 193421,
+      "sha256": "6e7a826861760022e64cf0a3e31a1e7b5dca20bed10b4fc661827e19945bb447"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/RB1c_Tire_1k_specularf0.jpg",
+      "bytes": 17011,
+      "sha256": "58f808f6687e1757ee143894a71a0f8b86e7241d9bdb20f0cbde5198de2acd22"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_baseColor.jpg",
+      "bytes": 152365,
+      "sha256": "3252c7fb8d5eceae5c909792d36388bbb9d1660cfb79bedb4c1141dcaa3c0192"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_metallicRoughness.jpg",
+      "bytes": 170141,
+      "sha256": "290002b7942ce867db811c15e0df423270457649d8de2ea1301e65d359b12120"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_normal.jpg",
+      "bytes": 202074,
+      "sha256": "43d30bdce642f5637a9f1e52b6f441765c22405732a4eae66c48025aa3a87ec1"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_BOTTOM_GT_specularf0.jpg",
+      "bytes": 346205,
+      "sha256": "92f4fae367a68d47ffc2c2d2f6588958be04f4e9fdb8c1cd02a6505707229977"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_Interior_Trim_metallicRoughness.jpg",
+      "bytes": 270886,
+      "sha256": "1c1e79cdc62166ab89252edfe06031f11500717a792d8afea4400d47e3088398"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_Interior_Trim_specularf0.jpg",
+      "bytes": 346205,
+      "sha256": "92f4fae367a68d47ffc2c2d2f6588958be04f4e9fdb8c1cd02a6505707229977"
+    },
+    {
+      "path": "cars/fairheaven_sw84/textures/UCB_Lights_and_Glass_baseColor.png",
+      "bytes": 726855,
+      "sha256": "acd019311f5929d939c4637f99c929300a8486a8883d8c77b1a1b656be02ea57"
+    },
+    {
+      "path": "cars/kiri86/license.txt",
+      "bytes": 752,
+      "sha256": "e2c5bd20dc33d7f5e0c72ed2106b322a5b3821fff3ba9f75412026c4856c790a"
+    },
+    {
+      "path": "cars/kiri86/model.bin",
+      "bytes": 842648,
+      "sha256": "15d92c48822c6dc0031f373545211c563fd914422f4ae15420d2b21667531b1b"
+    },
+    {
+      "path": "cars/kiri86/model.gltf",
+      "bytes": 9344,
+      "sha256": "83404952d472e5d9809b9e3b9de89ba8dab23ecf5f2eeefedcb583fe0a02e6e2"
+    },
+    {
+      "path": "cars/kiri86/model.rasset",
+      "bytes": 130,
+      "sha256": "be4471aa547e8060993a39a5a467ac2b136bb4c69a53d403214974d32b893fb1"
+    },
+    {
+      "path": "cars/kiri86/model_paint1.gltf",
+      "bytes": 9300,
+      "sha256": "4512b9d98273858ab9c4ad4807f2d24063f55e9d75e7a3097959c75ca2248b76"
+    },
+    {
+      "path": "cars/kiri86/model_paint1.rasset",
+      "bytes": 137,
+      "sha256": "5e9c1fa002f90bc2bdb84f942a140e62ef03bc93578cd5b55ad1a35f4d434a94"
+    },
+    {
+      "path": "cars/kiri86/model_paint2.gltf",
+      "bytes": 9297,
+      "sha256": "a9d3877e2ea4554832610ac90dfd2a3bdbd899d1fbc03373efe8b02a2ca67440"
+    },
+    {
+      "path": "cars/kiri86/model_paint2.rasset",
+      "bytes": 137,
+      "sha256": "100a9eadb760e33bc176b1cb0d68782a92ff5010e845e8092f79fc61a2a388ae"
+    },
+    {
+      "path": "cars/kiri86/textures/Carbadges_misc_U_baseColor.png",
+      "bytes": 971893,
+      "sha256": "de974a8bfd104c44d073fb1060eb00f8f8a55bf2fe2f042fbbd71dfc855d5417"
+    },
+    {
+      "path": "cars/kiri86/textures/Carbadges_misc_U_normal.jpg",
+      "bytes": 43512,
+      "sha256": "2a8e9b59cbdb3c51e7b96fc844957a2e8613817cea97e4b5dff4266fab16a961"
+    },
+    {
+      "path": "cars/kiri86/textures/Numberplates_Misk_U_baseColor.png",
+      "bytes": 74070,
+      "sha256": "b7a62b6e2f6838a5f9e58c67c15593230ee045381bc03f8f51dff1e9d0423c81"
+    },
+    {
+      "path": "cars/kiri86/textures/RB1c_Tire_1k_baseColor.jpg",
+      "bytes": 107482,
+      "sha256": "76afd20c6923d54b2e0b6e4d4604c6388c904100d487a0a80d230e1310a82aaf"
+    },
+    {
+      "path": "cars/kiri86/textures/RB1c_Tire_1k_metallicRoughness.jpg",
+      "bytes": 193404,
+      "sha256": "1febe7f5c0ebe80cfef0eb50b3a4b09969f3ba8c3869e8e28ca8553eaabb613d"
+    },
+    {
+      "path": "cars/kiri86/textures/RB1c_Tire_1k_specularf0.jpg",
+      "bytes": 17011,
+      "sha256": "58f808f6687e1757ee143894a71a0f8b86e7241d9bdb20f0cbde5198de2acd22"
+    },
+    {
+      "path": "cars/kiri86/textures/UCB_BOTTOM_GT_baseColor.jpg",
+      "bytes": 152365,
+      "sha256": "3252c7fb8d5eceae5c909792d36388bbb9d1660cfb79bedb4c1141dcaa3c0192"
+    },
+    {
+      "path": "cars/kiri86/textures/UCB_BOTTOM_GT_metallicRoughness.jpg",
+      "bytes": 170141,
+      "sha256": "290002b7942ce867db811c15e0df423270457649d8de2ea1301e65d359b12120"
+    },
+    {
+      "path": "cars/kiri86/textures/UCB_BOTTOM_GT_specularf0.jpg",
+      "bytes": 346205,
+      "sha256": "92f4fae367a68d47ffc2c2d2f6588958be04f4e9fdb8c1cd02a6505707229977"
+    },
+    {
+      "path": "cars/kiri86/textures/UCB_Interior_Trim_metallicRoughness.jpg",
+      "bytes": 269430,
+      "sha256": "150ce46ec5378208802133f78dfc6dfc000864ca3a81d5036592a5a1745bf2d2"
+    },
+    {
+      "path": "cars/kiri86/textures/UCB_Lights_and_Glass_Transperent_baseColor.png",
+      "bytes": 726597,
+      "sha256": "cd2717b68a4f0255869571e296a664c5d198c639868965cd2e1c7226b9247073"
+    },
+    {
+      "path": "cars/kiri86/textures/kiri86_Bodymat_metallicRoughness.jpg",
+      "bytes": 256137,
+      "sha256": "0e3b1b959ee0c96a4501a52e31125e48bad6e5051a34e458f0ff5e48e2abad96"
+    },
+    {
+      "path": "cars/kiri86/textures/kiri86_Bodymat_specularf0.jpg",
+      "bytes": 4723,
+      "sha256": "e0742422a16f6d9bcf0af2578038e30910937dfe87dcfb76135c4514697f779e"
+    },
+    {
+      "path": "factory/factory.bin",
+      "bytes": 6269260,
+      "sha256": "12702fb065a838695e0621e1aac3947af92d32c439fb965c8b0563ad691fed70"
+    },
+    {
+      "path": "factory/modules/base_standard_corner_large_01.gltf",
+      "bytes": 5046,
+      "sha256": "0a8389c194f8ff1d348ba9ed9924196cd304a4a04851ee90dcbca8873029bdc0"
+    },
+    {
+      "path": "factory/modules/base_standard_standard_01.gltf",
+      "bytes": 5002,
+      "sha256": "dd8df49f92d102500baf2fe01a8dfb20d35fee2ceeb95aa81a9572ae07e2ad10"
+    },
+    {
+      "path": "factory/modules/cornice01_standard_corner_large_01.gltf",
+      "bytes": 5073,
+      "sha256": "e78ec7ab235b13c45c14fd66d6fdebf6f48648da9a915fb634dc155df61156c3"
+    },
+    {
+      "path": "factory/modules/cornice01_standard_standard_01.gltf",
+      "bytes": 5103,
+      "sha256": "836b4d7e30a8f121771179b6fed9ad6e6364462dfcf9130a7968d87521b0ab58"
+    },
+    {
+      "path": "factory/modules/crown_standard_corner_large_01.gltf",
+      "bytes": 5069,
+      "sha256": "4cf766e17783898a240d03b89c7ffc12289d672e962f6c3fa84f93ad43f26846"
+    },
+    {
+      "path": "factory/modules/crown_standard_standard_01.gltf",
+      "bytes": 5041,
+      "sha256": "10d72ea547b60b77523dc995f173b24e22d607b45215e5002a3ab170175454bb"
+    },
+    {
+      "path": "factory/modules/dado_door_recessed_small_01.gltf",
+      "bytes": 5068,
+      "sha256": "9ba5c02895a2e4a9e82b672adca64835bfb1cdc3568c74d5bc249946f210fd3c"
+    },
+    {
+      "path": "factory/modules/dado_garage_door_01.gltf",
+      "bytes": 5098,
+      "sha256": "8717b6b883ae1ef2856aad4320ffa68ede93d1263789a93e0bb2e5dee0c9cbb8"
+    },
+    {
+      "path": "factory/modules/dado_standard_corner_large_01.gltf",
+      "bytes": 5098,
+      "sha256": "604fbc095fb025cefdf7dcb171f937afe94be31917461cba5f3482a50996b127"
+    },
+    {
+      "path": "factory/modules/dado_standard_standard_01.gltf",
+      "bytes": 5094,
+      "sha256": "5adcef423ff77d9ae04600e87ac63ce2495117b756d7e77016c87a0b5e1455dd"
+    },
+    {
+      "path": "factory/modules/door_garage_door_01.bin",
+      "bytes": 29416,
+      "sha256": "6b85b5a33418c799a1abf0faa18a4ce897c508561bbebd69ab8a1c6dced38756"
+    },
+    {
+      "path": "factory/modules/door_garage_door_01.gltf",
+      "bytes": 7292,
+      "sha256": "f59c965d8db5fef8446d8914af25513ef893d9bdf0cd3be54f0e0e095a0241f6"
+    },
+    {
+      "path": "factory/modules/door_recessed_small_01.bin",
+      "bytes": 29416,
+      "sha256": "e3f70aca36c4240b23d3d7d544de7d0e49c72974c7ffa22af0f153ac9259fe3b"
+    },
+    {
+      "path": "factory/modules/door_recessed_small_01.gltf",
+      "bytes": 7288,
+      "sha256": "b07b7fbcdb143fbd24c86779ee70eeebd1a0cc7fb89500a175cb7cc2c6406390"
+    },
+    {
+      "path": "factory/modules/wall_door_garage_door_01.bin",
+      "bytes": 63752,
+      "sha256": "75cd91c50ab66d3767f88e1507e730a1b862090c32e4c94028e3c721f9431dd6"
+    },
+    {
+      "path": "factory/modules/wall_door_garage_door_01.gltf",
+      "bytes": 5793,
+      "sha256": "19659274b885f6566f34fa4a528feb745ed2518f79f17091286c3ebe6a8d66ff"
+    },
+    {
+      "path": "factory/modules/wall_door_recessed_small_01.bin",
+      "bytes": 12072,
+      "sha256": "bc469700959a1a92fc0f5eb1d49088a95949ec0b30e4ecfaa712bafa4b383c47"
+    },
+    {
+      "path": "factory/modules/wall_door_recessed_small_01.gltf",
+      "bytes": 5781,
+      "sha256": "24c5abca75bcdea5d51fca738459824493a1016b615b60bf836877acd534d178"
+    },
+    {
+      "path": "factory/modules/wall_standard_corner_large_01.bin",
+      "bytes": 4752,
+      "sha256": "b1acf6606798fec05d78a0c0b602e833ea55c80ecd8a2b8d04cb0f65f0aad62b"
+    },
+    {
+      "path": "factory/modules/wall_standard_corner_large_01.gltf",
+      "bytes": 5618,
+      "sha256": "e52ea3fd7983ebfe255ca45902b651d1cd9425fbf3da0b083530016b35d59219"
+    },
+    {
+      "path": "factory/modules/wall_standard_standard_01.bin",
+      "bytes": 152,
+      "sha256": "892c590fa3e1dec74d09e7b77685c0870ee8ca1e5130612abd974daf5b2aec7a"
+    },
+    {
+      "path": "factory/modules/wall_standard_standard_01.gltf",
+      "bytes": 5580,
+      "sha256": "45924908b72642f44ff7bc081c33a28c1c950051ff64fe4274a3b440836400e3"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_01.bin",
+      "bytes": 22920,
+      "sha256": "0032be8721e0ebc3a0b579340b1b84fef101ea611e4a65ea519be5c2aad0792f"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_01.gltf",
+      "bytes": 5694,
+      "sha256": "1bcbfc70e3def870ec0ed7668e2770ed54c909ba7914a4c5b7fa665b9c680855"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_02.bin",
+      "bytes": 20584,
+      "sha256": "5cd2f776ba32f079b8cb7fdc5aee03e146912938da4f508a88aec1c5a4c40c17"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_02.gltf",
+      "bytes": 5676,
+      "sha256": "da56cf366d5659ac7feb4506072e5f16168eb3ceebb73792e1cd068266305c19"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_03.bin",
+      "bytes": 18596,
+      "sha256": "4f7fddfd8025ffab9c000a52be22e87095f5f30dfaca2be2f91503ed89db08e9"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_03.gltf",
+      "bytes": 5736,
+      "sha256": "6e47f1ebc0f2a105bdc41ff7ac4129249cceac29234bf8c60ab9ef89bdcd0efd"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_04.bin",
+      "bytes": 16968,
+      "sha256": "397668d4c658140df41d3349933ab6e1ea4bf625edcd5fb6ad37fde4b3186b4f"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_double_04.gltf",
+      "bytes": 5715,
+      "sha256": "801ad9e24a3fe040a42dbce7cb7a2f89ce6815355d95106e34b7e302da842262"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_01.bin",
+      "bytes": 13856,
+      "sha256": "cbd42553d6c8f66ececc71d6ba2781a804f5118096b8e2577b883c08add06b47"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_01.gltf",
+      "bytes": 5683,
+      "sha256": "c4797201aded70f6bbcc94a7329d7803fe60335e1f2f6082846e9e7c229619d9"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_02.bin",
+      "bytes": 56536,
+      "sha256": "a4f6db3575e2df76aa3d782e1dda0b51b88f527c507ab14075084e50d7a5d2d8"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_02.gltf",
+      "bytes": 5763,
+      "sha256": "dda69edbb5b9b16fb628f70fcc74595c7755a505bac5aca7e93758b325165444"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_03.bin",
+      "bytes": 11072,
+      "sha256": "276f123bc5e5080896828481ce8b98840859d3fda25706840a3153d195f16016"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_03.gltf",
+      "bytes": 5708,
+      "sha256": "e8a658a68c852748f7241d55b6b1be8e8bbc361d02524e6aaea1a6679a47ab74"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_04.bin",
+      "bytes": 58488,
+      "sha256": "87f76c7ac49ad35aa2fcf784edd1940748ce90319d4429b17b6c11aabdfbeea1"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_large_04.gltf",
+      "bytes": 5732,
+      "sha256": "0da99dc9b04cbd75dd0c5957e5aa6e168fb5a42c1ea02a67caba4a1263b08006"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_01.bin",
+      "bytes": 11136,
+      "sha256": "2aebe256f24e87ad560564d44496d733a95cf72e991f2e0726708a8778b083bc"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_01.gltf",
+      "bytes": 5719,
+      "sha256": "5bb7d36997fa8c7b0b5f87ac6e44dfbdda3ffb249a7eeab750738266f78441e7"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_02.bin",
+      "bytes": 56712,
+      "sha256": "f1860f53f7443e2f7c246ab31f8113a042bfc0d7995593a37c5154ef48bddb4a"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_02.gltf",
+      "bytes": 5763,
+      "sha256": "4d16305ae9331f265df196eeb642ac7f1e687a0abfc4d9833fd453d3b0491d48"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_03.bin",
+      "bytes": 9456,
+      "sha256": "f33a346f3506b803dd1a0e04be5602994245426c2f87231cb96a8c7b155ab718"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_03.gltf",
+      "bytes": 5709,
+      "sha256": "887b90834de99a4aee49e75004f4082120840c8fd8ac1ff78afea359ab0b891d"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_04.bin",
+      "bytes": 58536,
+      "sha256": "78a15523093d4558aeab7305ac6ef5ee693f2c09c1641110c813f792358038b2"
+    },
+    {
+      "path": "factory/modules/wall_window_centered_medium_04.gltf",
+      "bytes": 5734,
+      "sha256": "4fd77fabc49e329afae8f0702a383434be41efecef2c38d6579ff9e956719208"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_01.bin",
+      "bytes": 27864,
+      "sha256": "07b709da5470f15eb34dd161336cac723f7e4c1025e3ecf398e54b6a0a5beffd"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_01.gltf",
+      "bytes": 5752,
+      "sha256": "cc74f3614514a21d3c694a1106d781b62a757bad6cb3fdaadbd14339dbe7595a"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_02.bin",
+      "bytes": 32336,
+      "sha256": "f974b9b344ffa2a9cd85f73fdf643fe4a0b5927b47d18f53348351e5e97c0b6c"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_02.gltf",
+      "bytes": 5712,
+      "sha256": "37e59a8efdf919cfdb24615c65a83f6a84fe1c1244d735f201660936abde3772"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_04.bin",
+      "bytes": 84608,
+      "sha256": "a05160fcf7ca794c488d8fde2e415d1fcac4900de0efd6d949f89f7548a1d604"
+    },
+    {
+      "path": "factory/modules/wall_window_tall_large_04.gltf",
+      "bytes": 5787,
+      "sha256": "c7c911af08cdb53edad345ed7565fe861e66f34d4fcb3597af5450647f863470"
+    },
+    {
+      "path": "factory/modules/window_centered_double_01.gltf",
+      "bytes": 5842,
+      "sha256": "a32e740607112231317ebbcba1cb10d827f8bf1abb2057b0fb03023eabf5ee3f"
+    },
+    {
+      "path": "factory/modules/window_centered_double_02.gltf",
+      "bytes": 5839,
+      "sha256": "489b3020c2a0f3ff74b8cf75aede14e337810b86522c72ecf3ff98aa9064793c"
+    },
+    {
+      "path": "factory/modules/window_centered_double_03.gltf",
+      "bytes": 5834,
+      "sha256": "01217af297cae06dc9d46131f474e71a4a806a703aaddd74c440552d95a19d66"
+    },
+    {
+      "path": "factory/modules/window_centered_double_04.gltf",
+      "bytes": 5834,
+      "sha256": "76a0519735281df482cec9b7749a0602848a94b03bcf78cf650e11605aa26f9b"
+    },
+    {
+      "path": "factory/modules/window_centered_large_01.bin",
+      "bytes": 50992,
+      "sha256": "e21e6e3bc92858d9e2a32237eb2e8774cae4e21cbe258d2c7587fccd534476bd"
+    },
+    {
+      "path": "factory/modules/window_centered_large_01.gltf",
+      "bytes": 7209,
+      "sha256": "ddf8ccc28ef257ffde88aeef4e35be6ae321c8545a191be7382008575b2c6557"
+    },
+    {
+      "path": "factory/modules/window_centered_large_02.gltf",
+      "bytes": 5834,
+      "sha256": "81179fc85e6bff4da1bb4edd8e4cea1f6d7331d8d71c94f2af387eddad221116"
+    },
+    {
+      "path": "factory/modules/window_centered_large_03.bin",
+      "bytes": 34224,
+      "sha256": "dbddfc79953274cd3f03615383649aa6728896dc2581c0a51847e561319e245e"
+    },
+    {
+      "path": "factory/modules/window_centered_large_03.gltf",
+      "bytes": 7188,
+      "sha256": "b87d7f4e03e83534c3ee19211566c8ba274e5c052d5a2d0cc73080b3385a833e"
+    },
+    {
+      "path": "factory/modules/window_centered_large_04.gltf",
+      "bytes": 5824,
+      "sha256": "6d9a2893188dd63a518b2bef78fe37de3697f922406b25fabb235535d30b1d0a"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_01.bin",
+      "bytes": 38888,
+      "sha256": "bf7b56a69b58009e5169f5a8f3e175591f12642f7d262d01109c91856d59652c"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_01.gltf",
+      "bytes": 7195,
+      "sha256": "5ae7be77e24b2d847b2bf8d9e63e0c114dc6f0e64536333adf5515e4abf71372"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_02.gltf",
+      "bytes": 5826,
+      "sha256": "599a2e90c3976717a54aeba378514680c292323efc9b3431531ba17472cfeb15"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_03.bin",
+      "bytes": 27488,
+      "sha256": "8fc6dda246bdb927d786f088194325e8eb1996e2b1b24bb4e4140fe06641c578"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_03.gltf",
+      "bytes": 7176,
+      "sha256": "982104655562e2e4d2151539f2f762a0dbc4325c5a6f04fc479349e3e4095b56"
+    },
+    {
+      "path": "factory/modules/window_centered_medium_04.gltf",
+      "bytes": 5818,
+      "sha256": "c853b814d4a165b205aea3f1b2d533bf91d7113fb9a9cd5f9c07821930760945"
+    },
+    {
+      "path": "factory/modules/window_tall_large_01.gltf",
+      "bytes": 6573,
+      "sha256": "4aaaa79a15f30c1be3acc73d8d4ae4780ec059c4a4c0d558dd44d07ac0377c36"
+    },
+    {
+      "path": "factory/modules/window_tall_large_02.gltf",
+      "bytes": 5839,
+      "sha256": "191c4880626748f125e3d8d044e5279d406948710e5c4d8f67fe2f25c4bc64d8"
+    },
+    {
+      "path": "factory/modules/window_tall_large_04.gltf",
+      "bytes": 5847,
+      "sha256": "fa69334a86afc47cfc896dd89f568b23b17eeb5438becc8b0d8dda3c937002a3"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_brick_arm_2k.jpg",
+      "bytes": 2567917,
+      "sha256": "dc313e13bd12687bd8827b5e439c1ea2b56fbc883d935f26132b44781a21be14"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_brick_diff_2k.jpg",
+      "bytes": 4421090,
+      "sha256": "02204a7971f406dcd2b6e1e3bc90e5656c5749a4417cfd5977dc7dfa5042a5d4"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_brick_nor_gl_2k.jpg",
+      "bytes": 3471100,
+      "sha256": "a31341b4b1329bb2c27ce74da866aa56b359a5a60fcddbc6cd5be0029e410611"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_doors_arm_2k.jpg",
+      "bytes": 2628673,
+      "sha256": "07af095d6ecb4966ec029968ff7b0d111de8b2e1910bbea168dc9c958a4da3d1"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_doors_diff_2k.jpg",
+      "bytes": 2081334,
+      "sha256": "1189acbe5ed4ecaccda9ec40f0a4a4a454016a22dbab0f18d3bdb61a01d9821a"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_doors_nor_gl_2k.jpg",
+      "bytes": 2099914,
+      "sha256": "4c885d8170310e9b26c80780458eee000dcb67ea057cb14b782d10e835b2a698"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_garage_arm_2k.jpg",
+      "bytes": 2542492,
+      "sha256": "0efc9b69568cf6b13bb22256edf8bec347fbc0ac5496d5736c8dc3eb69e800dd"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_garage_diff_2k.jpg",
+      "bytes": 2189076,
+      "sha256": "83722741c6bbdfafd285b6f5d0a2913c133d91b11705fb684d526a6695da0537"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_garage_nor_gl_2k.jpg",
+      "bytes": 3235785,
+      "sha256": "d42a8cbcffe9a08d4fea5d12dbac82da0622efa49ad083361eead5b94927a086"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_trim_01_arm_2k.jpg",
+      "bytes": 3129201,
+      "sha256": "3c70a0bb5e9f4d46183bebe5494d7665a775ea13c428af0dcea2fc29c950d48f"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_trim_01_diff_2k.jpg",
+      "bytes": 2537009,
+      "sha256": "bc4e041d46829466f8a7cb45b2b84f26e6cd7a41464b89590423d7ba65075c6d"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+      "bytes": 3717593,
+      "sha256": "1f43fa78247a60f4f06096c95df26b95b94727167e917a18962963b2993eb650"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_windows_arm_2k.jpg",
+      "bytes": 3333067,
+      "sha256": "963ececefba6c4a104a32258e611f250ea1f715fba747f7a0a640b7e4603f1b6"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_windows_diff_2k.jpg",
+      "bytes": 2316599,
+      "sha256": "2ca66aa0a753ab7fb6dcf605ec64a90fe116d6271719b20ee1a2069b568d2edd"
+    },
+    {
+      "path": "factory/textures/modular_factory_facade_windows_nor_gl_2k.jpg",
+      "bytes": 2675074,
+      "sha256": "7d66b69bf4715555085b1d3c0f95fc2e28f325d8a1ab7a68d1078dca7db7ab04"
+    },
+    {
+      "path": "ground/city_buildings.bin",
+      "bytes": 79800,
+      "sha256": "ae8dfb3f9915d61e6bb090aaab4bf15c8963f942603347b752b24e6a978f55e1"
+    },
+    {
+      "path": "ground/city_buildings.gltf",
+      "bytes": 3387,
+      "sha256": "ace55e4f119fbf6cd5a5e57e97fb3456818debac8bf8c76b4df143d2942bfdb2"
+    },
+    {
+      "path": "ground/city_streets.bin",
+      "bytes": 1846776,
+      "sha256": "d7e9db356017c5103fc5501058f4bff663112617c2b605b6e5384f7e4fb5d163"
+    },
+    {
+      "path": "ground/city_streets.gltf",
+      "bytes": 8087,
+      "sha256": "9a4ccb6ced4b11c50153f982e2d4c378a351156d9e3554e6cdd3c45d86390c4e"
+    },
+    {
+      "path": "props/concrete_road_barrier/concrete_road_barrier.bin",
+      "bytes": 1374016,
+      "sha256": "64a4f9bc6e4af64d714a252c3c13428c430a60569deba3d52ca6b7dd3aa70d8c"
+    },
+    {
+      "path": "props/concrete_road_barrier/model.gltf",
+      "bytes": 1887,
+      "sha256": "ffdd46a7a0bb2978cbf620589f4ae3d5cf3942b3a3be33f70e4ab1397f44025d"
+    },
+    {
+      "path": "props/concrete_road_barrier/model.rasset",
+      "bytes": 134,
+      "sha256": "be58d8c9a75f9f9a215d8cba6d21e55527c923d3006c946de3337c3aa7c5d8cb"
+    },
+    {
+      "path": "props/concrete_road_barrier/textures/concrete_road_barrier_arm_1k.jpg",
+      "bytes": 619502,
+      "sha256": "b940847648012f2db8c24b16e07ad1e39b3bd33ea493203364deca209606e4b4"
+    },
+    {
+      "path": "props/concrete_road_barrier/textures/concrete_road_barrier_diff_1k.jpg",
+      "bytes": 792641,
+      "sha256": "88b2d79829ffec7b11ac4d9c8554328f30b665d2c17f634197fde4f1ca8696fe"
+    },
+    {
+      "path": "props/concrete_road_barrier/textures/concrete_road_barrier_nor_gl_1k.jpg",
+      "bytes": 961760,
+      "sha256": "c1072f51ff5c3d7158f0fbb0aa26e82b816b745b9f03639c4816832af2b37c52"
+    },
+    {
+      "path": "props/fire_hydrant/fire_hydrant.bin",
+      "bytes": 1928772,
+      "sha256": "a3c7ed023bc4aff190902764326e7f83ae1a108f6bac2a1b637c38a8e03eb516"
+    },
+    {
+      "path": "props/fire_hydrant/model.gltf",
+      "bytes": 7383,
+      "sha256": "029f0546a1ba46d3b255b633fcfbf61565749920d04384107766ea11e18317d6"
+    },
+    {
+      "path": "props/fire_hydrant/model.rasset",
+      "bytes": 138,
+      "sha256": "1881e6e154359a47213fda483dd54e12b1e87ae4204132d19a92d935636cd450"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_aged_arm_1k.jpg",
+      "bytes": 665642,
+      "sha256": "9c46b014735a4e8df5a80e4c030ddb321c9aeaa715ad4ea3eb60e6f0909c9d0a"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_aged_diff_1k.jpg",
+      "bytes": 629331,
+      "sha256": "3198cabcaf5107e59109bd07dfe8e4c87b3f0533173d10fafdaf86f8024a291e"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_aged_nor_gl_1k.jpg",
+      "bytes": 543768,
+      "sha256": "6fadc78fd5d696bf594ff021aaf93a0c6aced761830f9aa6971c51b17c869c35"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_arm_1k.jpg",
+      "bytes": 671743,
+      "sha256": "d15bf8fc6389ae48a1060a38057c2093469e62f585c8033d300b80af81d40f9d"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_diff_1k.jpg",
+      "bytes": 570746,
+      "sha256": "a3d0b8b6fcd8a39c8d5067f8ef95e3290053131887398f89baf57c1f8d24ab45"
+    },
+    {
+      "path": "props/fire_hydrant/textures/fire_hydrant_nor_gl_1k.jpg",
+      "bytes": 490552,
+      "sha256": "f6786775276c7b48f0582fdd7c43984b63b15b7a8e0ea0e2f2af8cdab98c06d7"
+    },
+    {
+      "path": "props/metal_trash_can/metal_trash_can.bin",
+      "bytes": 378288,
+      "sha256": "a9b9f526b655bef865933335f2cfc8c8f0bd1a35fda05b290a93e3061f2b6c8a"
+    },
+    {
+      "path": "props/metal_trash_can/model.gltf",
+      "bytes": 5353,
+      "sha256": "9820cf47f208e4e43dfa7c5b33c25981b2fc5fa38edcbe89024fc07d350d7ff5"
+    },
+    {
+      "path": "props/metal_trash_can/model.rasset",
+      "bytes": 140,
+      "sha256": "b5b7c725a14d0d150d455afd0c61fe369deb4765ebd81a1a0acdd1cc17dcaad6"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_arm_1k.jpg",
+      "bytes": 731776,
+      "sha256": "b23dcdb2ed40c1c6cfbd2d2779c6f075025b7269bfbbed2a70c6bdb7167e47fb"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_diff_1k.jpg",
+      "bytes": 551939,
+      "sha256": "920c895a31b1cd2c000123c0592c70c33d46562752987da98070e7e0eebb662f"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_nor_gl_1k.jpg",
+      "bytes": 842945,
+      "sha256": "b977f17aa9d4718ffc91a62868b7171b4479578b8cffd1d32001d92552af81a4"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_rust_arm_1k.jpg",
+      "bytes": 620549,
+      "sha256": "31a6269e98a3a8b2a2d6db8f58724e0151d5312b5137e6d59b5a2ba873989159"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_rust_diff_1k.jpg",
+      "bytes": 768161,
+      "sha256": "51c44248305b111d978f7e0cbfe4a71ab7f49549968ce37c54b635d74c2cfba1"
+    },
+    {
+      "path": "props/metal_trash_can/textures/metal_trash_can_rust_nor_gl_1k.jpg",
+      "bytes": 1085844,
+      "sha256": "a5497588e00e5e56db72e701457fc8a46d3a1fa7d9dd7bf9d79e02cada09e84b"
+    },
+    {
+      "path": "props/modular_street_seating/model.gltf",
+      "bytes": 12384,
+      "sha256": "f5ae1d123af4ea1ef741ab3b9b2c0ea1a25383af13a46cc5f49be35d0477ea8f"
+    },
+    {
+      "path": "props/modular_street_seating/model.rasset",
+      "bytes": 197,
+      "sha256": "a98ab5f31f78467091ec86b9b0693f723826e8e9ac8afae69df314f7c91d4808"
+    },
+    {
+      "path": "props/modular_street_seating/modular_street_seating.bin",
+      "bytes": 977224,
+      "sha256": "968558aa808b6cf74783b375d32a346a4de2ce9c118c0f17fba24c6999f03547"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_armrests_arm_1k.jpg",
+      "bytes": 622643,
+      "sha256": "0016585de0b1d3accd9b204f912e76e03385901410e02e5c8dd3186333ff882f"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_armrests_diff_1k.jpg",
+      "bytes": 612860,
+      "sha256": "1df79fcf237bcca5dcbd6af8e283e775125e723d2782dee3184550564905990f"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_armrests_nor_gl_1k.jpg",
+      "bytes": 324073,
+      "sha256": "1625c7492bfdc6fb97a49a09e5f958bfc62d46b7fc97bdcda97ba83fc13f18c4"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_connectors_arm_1k.jpg",
+      "bytes": 591917,
+      "sha256": "30af91ae8f610ce5ffc15289005b1e6eaf7e904048ad7cd129dcd6e68163512c"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_connectors_diff_1k.jpg",
+      "bytes": 212785,
+      "sha256": "0b869d0b8d85d89e79fdb74794a45532b64b32221272c3777089730ca9097003"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_connectors_nor_gl_1k.jpg",
+      "bytes": 398150,
+      "sha256": "1debc33dce0a35acee944281a712b90ce3ba0a1914e0d30201dc45e4639ecd28"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_supports_arm_1k.jpg",
+      "bytes": 734095,
+      "sha256": "8dbdaf063699c6d81319a9f0ac2fa5997236981fa703103fdadb008570df8de2"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_supports_diff_1k.jpg",
+      "bytes": 721380,
+      "sha256": "3d2dc8a4ac499b540445be6277a1fa7c84fb7cdbf0fbe04d9738d806393393e4"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_supports_nor_gl_1k.jpg",
+      "bytes": 477177,
+      "sha256": "5396d42fc24e0bf0e038767dc0548c4562b359930a9f8ade61897d18192ec929"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_timber_arm_1k.jpg",
+      "bytes": 762344,
+      "sha256": "07b108f3c6ee8afe56c9c23592d48f80344992bd0512080a1cc2bf37e7c7cb84"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_timber_diff_1k.jpg",
+      "bytes": 596026,
+      "sha256": "2dce35474445e91743ec1e5a1ffbc405cdd3b7ec94be945d93d684e23e127be3"
+    },
+    {
+      "path": "props/modular_street_seating/textures/modular_street_seating_timber_nor_gl_1k.jpg",
+      "bytes": 557669,
+      "sha256": "b7d0fff50ca56f12a3ebc3056c0c8104be84efce118a38094608d8e15af27d9a"
+    },
+    {
+      "path": "props/street_lamp_01/model.gltf",
+      "bytes": 3933,
+      "sha256": "9362929376fde869f8fa8fdcf48a44ad6e8b4d3e40e53f98b361d4956e491f48"
+    },
+    {
+      "path": "props/street_lamp_01/model.rasset",
+      "bytes": 140,
+      "sha256": "d9b138a6e046c3f7d5bd827017ec846705f91baf013defda45a69994d932581a"
+    },
+    {
+      "path": "props/street_lamp_01/street_lamp_01.bin",
+      "bytes": 748908,
+      "sha256": "c283db9b6d95835d9e8fc1692829acadcb21a0623b2daaa7231cec1440488401"
+    },
+    {
+      "path": "props/street_lamp_01/textures/street_lamp_01_arm_1k.jpg",
+      "bytes": 664324,
+      "sha256": "4b5487a6c7ee300c3cf5449629e01c35409e5c7ac1695edb9fe69d4821853c7c"
+    },
+    {
+      "path": "props/street_lamp_01/textures/street_lamp_01_diff_1k.jpg",
+      "bytes": 307889,
+      "sha256": "3e9d3471b33eb1f8075ed741c2b1932103598626d057ca12ef38005ea5fcb165"
+    },
+    {
+      "path": "props/street_lamp_01/textures/street_lamp_01_nor_gl_1k.jpg",
+      "bytes": 438623,
+      "sha256": "172af0fd7ed4999e9f520b9f56e1f357a6dba87adbd7b8aa87e0a0b95840c63d"
+    },
+    {
+      "path": "props/utility_box_02/model.gltf",
+      "bytes": 1786,
+      "sha256": "64613d0da9e68ae45aad085f3bac49171cd48bb6729253f57cb6b4c78850ef31"
+    },
+    {
+      "path": "props/utility_box_02/model.rasset",
+      "bytes": 129,
+      "sha256": "4c2fe239e227ee5272dc1a29f2669f4aa5d4112777e32d1c21de4ccc1b6ec9ae"
+    },
+    {
+      "path": "props/utility_box_02/textures/utility_box_02_arm_1k.jpg",
+      "bytes": 720694,
+      "sha256": "f85575f891c97354d2fff11d5d0e2bc5f7d3aeab853ff3d75100c30c177a9cc5"
+    },
+    {
+      "path": "props/utility_box_02/textures/utility_box_02_diff_1k.jpg",
+      "bytes": 553096,
+      "sha256": "78a0c93b1d8d394beee5989c0d3470a9c8c4e902f708acf3c11cd4edafbe08b1"
+    },
+    {
+      "path": "props/utility_box_02/textures/utility_box_02_nor_gl_1k.jpg",
+      "bytes": 552902,
+      "sha256": "e7c85b37fa5420591b6fa5dcef7875c927c8dc51f38c39c5844d53284ef37c74"
+    },
+    {
+      "path": "props/utility_box_02/utility_box_02.bin",
+      "bytes": 199784,
+      "sha256": "0f0a3f8ecc0358e36e97120aa752c2456a78bf922671e6f77e402b0aa58ecfce"
+    },
+    {
+      "path": "props/water_manhole_cover/model.gltf",
+      "bytes": 2707,
+      "sha256": "0ac0df1be47f53b7cfed446de18927ef264b8219e22bbeab4f33f46c50e47a54"
+    },
+    {
+      "path": "props/water_manhole_cover/textures/water_manhole_cover_arm_1k.jpg",
+      "bytes": 669586,
+      "sha256": "6d5856a467c9286fc993f2bd80bb5c30464fd8a127c8418fc8fc6c34bc54231d"
+    },
+    {
+      "path": "props/water_manhole_cover/textures/water_manhole_cover_diff_1k.jpg",
+      "bytes": 448420,
+      "sha256": "cb78919f60c929125317f19f9ecbba9f21089b7c0d6e0428c68f6fa401e6e720"
+    },
+    {
+      "path": "props/water_manhole_cover/textures/water_manhole_cover_nor_gl_1k.jpg",
+      "bytes": 1008913,
+      "sha256": "e2c1eac759b8c7430ffc8c59a45f4db98f890f9a22c3d968605a81e99e92bf43"
+    },
+    {
+      "path": "props/water_manhole_cover/water_manhole_cover.bin",
+      "bytes": 202320,
+      "sha256": "ada713d1f6f879164d3475e2ee18d69b4c4ecc8f100126e3921b7b3ea42c9267"
+    },
+    {
+      "path": "rayrai_city.rscene",
+      "bytes": 612054,
+      "sha256": "47d630a49fb2936483484b5abe76abbbd350531b37cbbc9d8b732e6c91635e3c"
+    },
+    {
+      "path": "sky/kloofendal_48d_partly_cloudy_puresky_4k.hdr",
+      "bytes": 20333851,
+      "sha256": "9ae9d320fdb62a723e42e2c4f6bba8834158530d8b35ade187885b1a2747a382"
+    },
+    {
+      "path": "sources.json",
+      "bytes": 46954,
+      "sha256": "9b9461a2aa3e83021775fcce906ad25d70e0cb96a6da2aef57187d11fd3d31af"
+    },
+    {
+      "path": "textures/asphalt_02/asphalt_02_arm_2k.jpg",
+      "bytes": 1299186,
+      "sha256": "ed70e88640e4ed51cf1c3e57cb20db26983599b20b867c2526439e3a2c849fea"
+    },
+    {
+      "path": "textures/asphalt_02/asphalt_02_diff_2k.jpg",
+      "bytes": 3075676,
+      "sha256": "28f5ba8690553f192c0e5e1a5ff40f34765b4b93f4cc7059b1a3e9c795b6c28c"
+    },
+    {
+      "path": "textures/asphalt_02/asphalt_02_nor_gl_2k.jpg",
+      "bytes": 4943950,
+      "sha256": "ffe49db71a0fd34c1e259625df66a302a237597d6ef655307987ec4e45bc6f21"
+    },
+    {
+      "path": "textures/bitumen/bitumen_arm_1k.jpg",
+      "bytes": 277874,
+      "sha256": "c5bce333c2dcdb4e5cc179aa57e845af8895104b412d9128a1266141020d177e"
+    },
+    {
+      "path": "textures/bitumen/bitumen_diff_1k.jpg",
+      "bytes": 451335,
+      "sha256": "fa09ed33d59c3bb90ef70d36352207e2e1ca5564cfc61295c0124d1a7d785808"
+    },
+    {
+      "path": "textures/bitumen/bitumen_nor_gl_1k.jpg",
+      "bytes": 691370,
+      "sha256": "a584bd64cac6ce37153b48a481612bc20be5d5f1d36cac572119560f67c1c756"
+    },
+    {
+      "path": "textures/concrete_floor_01/concrete_floor_01_arm_1k.jpg",
+      "bytes": 177301,
+      "sha256": "44e3a0d18db295998c8af56ecc80095821e719e134974609aa92e5436709dabd"
+    },
+    {
+      "path": "textures/concrete_floor_01/concrete_floor_01_diff_1k.jpg",
+      "bytes": 755740,
+      "sha256": "db7c800f1464359b5f359fc743e82ac51b34e014fdfd53844f4af34bb1949229"
+    },
+    {
+      "path": "textures/concrete_floor_01/concrete_floor_01_nor_gl_1k.jpg",
+      "bytes": 909898,
+      "sha256": "28be1f6fa82eeab137c84954bf7ea0f5d8a4434352d01c29f15e20926eb7227e"
+    },
+    {
+      "path": "textures/concrete_pavement_02/concrete_pavement_02_arm_2k.jpg",
+      "bytes": 2717807,
+      "sha256": "31db270fb5f33732bd2099086c292f30d891485cb18505a0780f93812e608f24"
+    },
+    {
+      "path": "textures/concrete_pavement_02/concrete_pavement_02_diff_2k.jpg",
+      "bytes": 4215026,
+      "sha256": "a634f169ef1bb928585340f7feac69375b2bbbdfc0448e316dbaebe03bd5bf89"
+    },
+    {
+      "path": "textures/concrete_pavement_02/concrete_pavement_02_nor_gl_2k.jpg",
+      "bytes": 5429141,
+      "sha256": "5bd05a222f82cceb6001847dcdf3b75b623ddb38b9cd00acbf4663299553c366"
+    },
+    {
+      "path": "traffic_cone/model.bin",
+      "bytes": 349416,
+      "sha256": "cb2ee34d3ed55aed5523fbaa7a05df6d9a02b49e02851fa1b0461226cde96800"
+    },
+    {
+      "path": "traffic_cone/model.gltf",
+      "bytes": 1422,
+      "sha256": "3390acef5f189624ac0c305a8d889cddf56b5c6fd20effa81885668ed4dd1abf"
+    },
+    {
+      "path": "traffic_cone/textures/traffic_cone_diffuse.jpg",
+      "bytes": 404939,
+      "sha256": "c60cd79c109727e977695a5a9326e78dd23047acac7bcab20cb90f55e0bd2d6c"
+    },
+    {
+      "path": "traffic_cone/textures/traffic_cone_normal.jpg",
+      "bytes": 170119,
+      "sha256": "f52033ac122650dc153be373646a7314196dbabad5d3bfa54e5d0ecc97b94225"
+    },
+    {
+      "path": "traffic_cone/textures/traffic_cone_roughness.jpg",
+      "bytes": 352158,
+      "sha256": "48fbd73c8c79fff4887fc992ee320ef50a66eab9d94c92e562e9e09e9ddf12e6"
+    }
+  ]
+}

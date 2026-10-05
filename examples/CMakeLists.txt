@@ -311,6 +311,13 @@ else()
     message(STATUS "Skipping rayrai_forest_from_rscene: the installed rayrai has no .rscene "
                    "support (rayrai/RsceneVisuals.hpp, new in v2.7.1)")
 endif()
+# Photoreal city loaded from rsc/city/rayrai_city.rscene, with an ANYmal C added in C++.
+if(_rayrai_has_rscene)
+    create_rayrai_executable(rayrai_city src/rayrai/worlds/rayrai_city.cpp)
+    target_compile_features(rayrai_city PRIVATE cxx_std_20)
+else()
+    message(STATUS "Skipping rayrai_city: the installed rayrai has no .rscene support")
+endif()
 option(RAISIM_FOREST_COLLISION_BENCHMARK "Build the forest collision benchmark" OFF)
 if(RAISIM_FOREST_COLLISION_BENCHMARK)
     create_executable(forest_collision_benchmark tools/benchmark_forest_collision.cpp)

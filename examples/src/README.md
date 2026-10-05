@@ -72,7 +72,8 @@ without arguments.
   collision detection.
 - `rayrai/tools`: standalone rayrai tools such as the TCP viewer.
 - `rayrai/worlds`: large rayrai worlds such as the instanced forest and its
-  `.rscene` version.
+  `.rscene` version, and the photoreal city loaded from `.rscene` with an
+  ANYmal C on the street.
 - `worlds`: larger packaged scene examples.
 - `xml`: XML world loading and templated XML world examples.
 
@@ -122,6 +123,9 @@ without arguments.
 - `rayrai_forest_from_rscene`: build the `rayrai_forest` world from its saved
   RaiSim Engine `.rscene` file with `raisim::World(path)` and
   `raisin::applyRscene`.
+- `rayrai_city`: a photoreal city of modular buildings, streets and parked cars
+  loaded from `rsc/city/rayrai_city.rscene`, with an ANYmal C standing on the
+  street.
 - `rayrai_runtime_scene_editing`: stable ids, snapshots, collision filters,
   cloning, and removal.
 - `rayrai_swept_ccd`: swept CCD settings for a fast falling sphere.

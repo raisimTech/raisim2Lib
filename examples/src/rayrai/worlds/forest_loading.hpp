@@ -7,6 +7,7 @@
 // The forest queues its assets once before entering the event/render loop.
 struct ForestLoadingProgress {
   size_t total = 0, pending = 0;
+  const char* label = "Loading forest assets";
   void update(size_t count) {
     if (pending == 0 && count != 0) total = count;
     total = std::max(total, count);
@@ -29,11 +30,11 @@ struct ForestLoadingProgress {
     if (fraction()>0)
       draw->AddRectFilled(lo,ImVec2(lo.x+(hi.x-lo.x)*fraction(),hi.y),
                           ImGui::GetColorU32(ImGuiCol_ButtonActive),3);
-    char label[96];
-    std::snprintf(label,sizeof(label),"Loading forest assets: %zu / %zu",total-pending,total);
-    const ImVec2 text = ImGui::CalcTextSize(label);
-    draw->AddText(ImVec2((lo.x+hi.x-text.x)*.5f,(lo.y+hi.y-text.y)*.5f),
-                  ImGui::GetColorU32(ImGuiCol_Text),label);
+    char text[96];
+    std::snprintf(text,sizeof(text),"%s: %zu / %zu",label,total-pending,total);
+    const ImVec2 size = ImGui::CalcTextSize(text);
+    draw->AddText(ImVec2((lo.x+hi.x-size.x)*.5f,(lo.y+hi.y-size.y)*.5f),
+                  ImGui::GetColorU32(ImGuiCol_Text),text);
     return true;
   }
 };

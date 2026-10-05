@@ -55,6 +55,9 @@ Quick map to the current rayrai-related targets:
   v2.7.1, not yet released); see
   :doc:`../examples/rayrai/rayrai_forest_from_rscene` and
   :doc:`../RsceneFile`.
+* ``rayrai_city``: a photoreal city built from free Poly Haven, BlendKit and
+  Sketchfab assets and stored as a ``.rscene`` file, with an ANYmal C
+  quadruped on the street; see :doc:`../examples/rayrai/rayrai_city`.
 * glTF/GLB scene import with authored lights and reflection-probe sidecars is
   described in :doc:`../examples/rayrai/rayrai_blender_scene_import`.
 * OpenUSD visual meshes can be loaded through ``RayraiWindow::addVisualMesh``;

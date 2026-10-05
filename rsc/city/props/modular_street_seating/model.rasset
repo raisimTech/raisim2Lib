@@ -1,0 +1,5 @@
+<rasset version="1">
+  <visual file="model.gltf"/>
+  <collision type="box" size="2.42 0.62 0.48" position="0 0 0.24"/>
+  <collision type="box" size="1.7 0.2 0.42" position="0 0.3 0.66"/>
+</rasset>

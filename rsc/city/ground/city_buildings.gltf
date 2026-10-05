@@ -1,0 +1,244 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "generate_city_rscene.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "city_buildings"
+  }
+ ],
+ "meshes": [
+  {
+   "name": "city_buildings",
+   "primitives": [
+    {
+     "material": 0,
+     "indices": 0,
+     "attributes": {
+      "POSITION": 1,
+      "NORMAL": 2,
+      "TEXCOORD_0": 3
+     }
+    },
+    {
+     "material": 1,
+     "indices": 4,
+     "attributes": {
+      "POSITION": 5,
+      "NORMAL": 6,
+      "TEXCOORD_0": 7
+     }
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "name": "roof",
+   "pbrMetallicRoughness": {
+    "baseColorFactor": [
+     0.85,
+     0.85,
+     0.85,
+     1
+    ],
+    "metallicFactor": 1,
+    "roughnessFactor": 1,
+    "baseColorTexture": {
+     "index": 0
+    },
+    "metallicRoughnessTexture": {
+     "index": 2
+    }
+   },
+   "normalTexture": {
+    "index": 1
+   },
+   "occlusionTexture": {
+    "index": 2
+   }
+  },
+  {
+   "name": "interior",
+   "pbrMetallicRoughness": {
+    "baseColorFactor": [
+     0.025,
+     0.024,
+     0.023,
+     1
+    ],
+    "metallicFactor": 0,
+    "roughnessFactor": 0.9
+   }
+  }
+ ],
+ "buffers": [
+  {
+   "uri": "city_buildings.bin",
+   "byteLength": 79800
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 2520,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 2520,
+   "byteLength": 5040,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 7560,
+   "byteLength": 5040,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 12600,
+   "byteLength": 3360,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 15960,
+   "byteLength": 10080,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 26040,
+   "byteLength": 20160,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 46200,
+   "byteLength": 20160,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 66360,
+   "byteLength": 13440,
+   "target": 34962
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5125,
+   "count": 630,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 420,
+   "type": "VEC3",
+   "min": [
+    -100.5,
+    -100.5,
+    9.57
+   ],
+   "max": [
+    155.5,
+    100.5,
+    18.57
+   ]
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 420,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5126,
+   "count": 420,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 4,
+   "componentType": 5125,
+   "count": 2520,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 5,
+   "componentType": 5126,
+   "count": 1680,
+   "type": "VEC3",
+   "min": [
+    -100.2,
+    -100.2,
+    0.55
+   ],
+   "max": [
+    155.2,
+    100.2,
+    18.55
+   ]
+  },
+  {
+   "bufferView": 6,
+   "componentType": 5126,
+   "count": 1680,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 7,
+   "componentType": 5126,
+   "count": 1680,
+   "type": "VEC2"
+  }
+ ],
+ "images": [
+  {
+   "uri": "../textures/bitumen/bitumen_diff_1k.jpg"
+  },
+  {
+   "uri": "../textures/bitumen/bitumen_nor_gl_1k.jpg"
+  },
+  {
+   "uri": "../textures/bitumen/bitumen_arm_1k.jpg"
+  }
+ ],
+ "textures": [
+  {
+   "source": 0,
+   "sampler": 0
+  },
+  {
+   "source": 1,
+   "sampler": 0
+  },
+  {
+   "source": 2,
+   "sampler": 0
+  }
+ ],
+ "samplers": [
+  {
+   "magFilter": 9729,
+   "minFilter": 9987,
+   "wrapS": 10497,
+   "wrapT": 10497
+  }
+ ]
+}

@@ -188,6 +188,10 @@ Start with these targets when learning a specific feature:
        with ``raisim::World(path)`` and ``raisin::applyRscene``. Requires
        RaiSim and rayrai v2.7.1 (not yet released); see
        :doc:`examples/rayrai/rayrai_forest_from_rscene` and :doc:`RsceneFile`.
+   * - ``rayrai_city``
+     - A photoreal city of modular buildings, streets and parked cars loaded
+       from ``rsc/city/rayrai_city.rscene``, with an ANYmal C quadruped added
+       in C++. See :doc:`examples/rayrai/rayrai_city`.
 
 Targets without a dedicated page
 --------------------------------
@@ -237,6 +241,9 @@ Some targets depend on bundled assets or platform runtime packages:
   beside them. ``rayrai_forest_from_rscene`` reads
   ``rsc/forest/rayrai_forest.rscene`` from the ``rsc`` copy next to the
   executables, and the scene references the same assets.
+* ``rayrai_city`` reads ``rsc/city/rayrai_city.rscene`` from the ``rsc`` copy
+  next to the executables (``--scene`` picks another file). Its street trees
+  are the forest's, so it also needs ``rsc/forest``.
 * ``rayrai_coacd_mesh_approximation`` writes ``raisim_coacd_*`` cache files
   beside the YCB meshes in the build tree's ``rsc`` copy.
 
@@ -292,6 +299,7 @@ Rayrai Tools And Examples
    examples/rayrai/rayrai_motor_operating_region
    examples/rayrai/rayrai_swept_ccd
    examples/rayrai/rayrai_forest_from_rscene
+   examples/rayrai/rayrai_city
    examples/rayrai/rayrai_tcp_viewer
 
 Server Examples
