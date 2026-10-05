@@ -9,7 +9,6 @@
 
 int main(int argc, char **argv) {
   const int loopN = 200000000;
-  raisim::RaiSimMsg::setFatalCallback([](){throw;});
 
   raisim::World world;
   raisim::RaisimServer server(&world);

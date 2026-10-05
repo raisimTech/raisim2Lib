@@ -2,8 +2,8 @@
 Tendon code examples
 #############################
 
-These examples show the C++ needed for individual tendon behaviors. Every block
-below is included directly from the runnable ``tendon_recipes.cpp`` source.
+These examples show the C++ needed for individual tendon behaviors. Every C++
+block below is included directly from the runnable ``tendon_recipes.cpp`` source.
 The program also checks the resulting motion, forces, and exported state, so
 these are executable examples with physical acceptance checks.
 
@@ -285,14 +285,15 @@ The same tendon type supports a commanded tension without a spring or limit:
 For a compression-only spring, set ``springLower = L`` and
 ``springUpper = std::numeric_limits<double>::infinity()``. For a bilateral
 spring, set both endpoints to L. See :doc:`../Constraints` for the complete
-migration table from the former wire API.
+mapping from the legacy wire API.
 
 Python uses the same model
 ==========================
 
-``raisimpy.Tendon`` exposes the same properties, routes, drives, and inspection
-methods. Properties and drive getters return copies; apply edits with the
-corresponding setter so validation and wake-up happen. The world owns tendons
+``raisimpy.Tendon`` exposes the same properties, routes, drives, and scalar
+inspection methods; point and joint gradients are available only in C++.
+Properties and drive getters return copies; apply edits with the corresponding
+setter so validation and wake-up happen. The world owns tendons
 and couplings; do not use their Python handles after explicit removal or after
 removing an attached object.
 

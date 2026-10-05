@@ -9,7 +9,6 @@
 
 int main(int argc, char **argv) {
   const int loopN = 200000000;
-  raisim::RaiSimMsg::setFatalCallback([](){throw;}); /// this will ensure that throw is called upon error
 
   raisim::World world;
   raisim::RaisimServer server(&world);
@@ -39,7 +38,7 @@ int main(int argc, char **argv) {
   anymal->setGeneralizedForce(Eigen::VectorXd::Zero(anymal->getDOF()));
   anymal->setName("Anymal");
 
-  auto front_depthSensor = anymal->getSensorSet("depth_camera_rear_camera_parent")->getSensor<raisim::DepthCamera>("depth");
+  auto front_depthSensor = anymal->getSensorSet("depth_camera_front_camera_parent")->getSensor<raisim::DepthCamera>("depth");
   front_depthSensor->setMeasurementSource(raisim::Sensor::MeasurementSource::MANUAL);
 
   auto front_rgbCamera = anymal->getSensorSet("depth_camera_front_camera_parent")->getSensor<raisim::RGBCamera>("color");

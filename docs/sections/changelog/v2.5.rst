@@ -1,0 +1,66 @@
+Changelog: v2.5
+===============
+
+v2.5.8 (2026-09-04)
+-------------------
+
+* rayrai: mesh GPU buffers shared across GL contexts (no VRAM growth per render thread); windows created on a thread with a current context join its share group.
+* ``RayraiGlobalAsset`` shared GPU-asset cache controls and ``sharedGpuAssetStats``.
+* Async RGB/depth readback uses the full PBO ring; fixed worker cameras sharing a depth texture.
+
+v2.5.7 (2026-09-03)
+-------------------
+
+* rayrai: no "ghost" objects when a removed object's address is reused (stable ``Object::Id``); camera drops a removed target.
+* Linux installer confirms before deleting old installs and retries with ``sudo``.
+
+v2.5.6 (2026-09-02)
+-------------------
+
+* TCP viewer: per-camera frustum and frame toggles.
+* ``"hidden"``/``"invisible"`` appearance removes an object from rendering.
+* Fixed removed heightmaps in depth renders; protocol reader rejects oversized lengths.
+* Faster contact-solver iterations and warm-start lookups.
+
+v2.5.5 (2026-08-30)
+-------------------
+
+* TCP viewer renders the server's ``MANUAL`` RGB/depth sensors and shows previews and frustums.
+* Live Signals graphs, replay seek, network diagnostics; server-side record/screenshot/window-size commands.
+* ``PROTOCOL_FEATURE_CONTACT_OBJECT_TAGS``.
+* Sensors keep updating while their system sleeps or is fixed.
+* Depth rendering can include custom/instanced visuals.
+* TCP viewer ships as example source; ``RAISIM_VISUALIZER_INSTALL`` removed.
+
+v2.5.4 (2026-08-29)
+-------------------
+
+* Heightmap contacts: wheels no longer sink or tunnel on steps, contacts match the triangulated surface, buried bodies recover smoothly.
+* TCP viewer saves the user UI scale.
+* No C++20 ``<bit>`` dependency; ``Mesh``/``World`` ABI guard.
+
+v2.5.3 (2026-08-24)
+-------------------
+
+* Faster heightmap–primitive (bit-identical) and heightmap–mesh contacts.
+* Reproducible contacts across builds (``-ffp-contract=on``); ``CONFIGURE_DEPENDS`` globs; MSVC fix.
+
+v2.5.2 (2026-08-22)
+-------------------
+
+* Heightmap fixes: no false contacts above the surface or across seams, thin/tiny shapes near the boundary, buried primitives, large translations, stale contacts after updates.
+* Clients can connect during a busy simulation; faster TCP viewer mesh batching.
+
+v2.5.1 (2026-08-20)
+-------------------
+
+* Fixed missed heightmap contacts with box edges and cylinder sides/caps.
+* Faster large heightmaps in the TCP viewer; heightmap no longer sent twice.
+* ``Visuals::notifyMeshMaterialsChanged``.
+
+v2.5.0 (2026-08-18)
+-------------------
+
+* ``World::rayTest`` uses a lazily rebuilt BVH.
+* ``World::rayTestLidar`` ~12.5× faster per ray (28 ns vs 355 ns).
+* **Breaking:** ``rayTestLidar`` takes yaw/pitch start, increment and count.

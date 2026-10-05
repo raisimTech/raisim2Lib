@@ -20,10 +20,11 @@ Public Workspace Directories
      - Purpose
    * - ``raisim``
      - Platform-specific binary RaiSim package with headers, libraries, and
-       CMake config files.
+       CMake config files. Downloaded by the first CMake configure (or
+       ``raisim_upgrade``); not tracked in Git.
    * - ``rayrai``
      - Platform-specific binary rayrai package with the renderer library,
-       headers, and CMake config files.
+       headers, and CMake config files. Downloaded together with ``raisim``.
    * - ``examples``
      - C++ example sources and their CMake project. CMake target names include
        ``primitive_grid`` and ``rayrai_tcp_viewer``.
@@ -37,9 +38,20 @@ Public Workspace Directories
    * - ``docs``
      - Sphinx documentation sources and generated example pages.
    * - ``thirdParty``
-     - Third-party code used by optional wrappers and docs tooling.
+     - Bundled third-party sources: Eigen3 (used by Windows builds) and
+       nanobind (used by ``raisimPy``).
    * - ``cmake``
-     - CMake helpers for package discovery and local installation.
+     - CMake find modules for the build (``FindSphinx.cmake`` for the
+       documentation build).
+   * - ``scripts``
+     - Helper scripts: the Blender scene exporter
+       (``export_blender_scene.py``) and the Linux desktop-launcher installer
+       for ``rayrai_tcp_viewer``.
+   * - ``raisim_env.*``, ``raisim_upgrade.*``
+     - Environment scripts that add the package library directories to the
+       library search path (``.sh``, ``.bat``, ``.ps1``) and scripts that
+       download a release package into ``raisim`` and ``rayrai``
+       (``.sh``, ``.ps1``).
 
 Build Directories
 =================
@@ -56,27 +68,29 @@ clarity:
    * - ``build``
      - Default local build for examples and optional wrappers.
    * - ``build-examples``
-     - Common local build directory for the example CMake project.
+     - Top-level build with examples enabled; the example commands in these
+       docs use it.
    * - ``build-debug``
      - Debug build for local debugging.
    * - ``build-docs``
      - CMake-driven docs build.
 
-On Linux and macOS, a top-level build places example executables under the
-``examples`` subdirectory of the build tree. The install target does not copy
-these source-built examples, and the release package does not ship a separate
-prebuilt TCP viewer. For example:
+On Linux and macOS, a top-level build places example executables, together
+with a copy of ``rsc``, under the ``examples`` subdirectory of the build tree.
+The install target does not copy these source-built examples, and the release
+package does not ship a separate prebuilt TCP viewer. For example:
 
 .. code-block:: bash
 
     ./build-examples/examples/primitive_grid
     ./build-examples/examples/rayrai_tcp_viewer
 
-On Windows, CMake places runtime executables under ``<build-dir>/bin``.
+On Windows, CMake places the example executables under ``<build-dir>/bin``,
+together with a copy of ``rsc`` and the runtime DLLs.
 
 The package example tree documented under :doc:`Examples` contains grouped
-source directories such as ``src/server``, ``src/rayrai``, ``src/worlds``, and
-``src/xml``. Target names, not source directory names, are the stable
+source directories such as ``src/server``, ``src/rayrai``, ``src/worlds``,
+``src/xml``, and ``src/benchmark``. Target names, not source directory names, are the stable
 user-facing interface.
 
 Installed Package Layout

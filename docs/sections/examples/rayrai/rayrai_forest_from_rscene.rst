@@ -32,8 +32,10 @@ CMake target: ``rayrai_forest_from_rscene`` (C++20). Source:
 ``examples/src/rayrai/worlds/rayrai_forest_from_rscene.cpp``.
 
 The example needs the ``.rscene`` support in ``raisim::World`` and
-``rayrai/RsceneVisuals.hpp``, which ship with the upcoming RaiSim and rayrai
-release.
+``rayrai/RsceneVisuals.hpp``, which are new in RaiSim and rayrai v2.7.1 (not
+yet released). The 2.7.0 package does not include them, so this target does
+not compile against it; build the other targets explicitly instead, for example
+``cmake --build build-examples --target rayrai_forest``.
 
 Run
 ===
@@ -45,6 +47,7 @@ CMake copies next to the executables:
    ./build-examples/examples/rayrai_forest_from_rscene
 
 On Windows, run ``rayrai_forest_from_rscene.exe`` from ``build-examples\bin``.
+The example renders in process and does not need ``rayrai_tcp_viewer``.
 Meshes load asynchronously; physics starts once they are ready and then runs
 eight 2 ms steps per rendered frame. The mesh LOD caches described in
 :doc:`rayrai_forest` are shared with that example.
@@ -77,6 +80,7 @@ directional light, cameras and the render environment. Editor-only records
 are skipped. Anything it cannot reproduce exactly, such as articulated
 systems, sensors, parented nodes, painted terrain, non-directional lights or
 mesh bodies without a ``.rasset``, is a fatal error naming the line.
+:doc:`../../RsceneFile` documents every record and field of the format.
 
 See :doc:`../../WorldSystem` for the ``World`` constructor and
 :doc:`rayrai_forest` for the assets, scatter and performance notes.

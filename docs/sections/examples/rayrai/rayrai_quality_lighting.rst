@@ -29,15 +29,19 @@ Run the build-tree executable:
 
    ./build-examples/examples/rayrai_quality_lighting
 
-On Windows, run ``rayrai_quality_lighting.exe`` instead. This example uses the
-in-process rayrai renderer and does not need the TCP viewer.
+On Windows, run ``rayrai_quality_lighting.exe`` instead.
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 Details
 =======
-- Enables the ``Ultra`` render-quality preset and explicitly keeps ``fxaaEnabled``, ``depthOfFieldEnabled``, and reflective ground on, using a 5 m focus distance, broad focus range, and conservative blur radius.
-- Adds one point light, one spotlight with inner/outer cone falloff, and one area-light approximation.
+- Enables the ``Ultra`` render-quality preset and explicitly keeps
+  ``fxaaEnabled``, ``depthOfFieldEnabled``, and ``reflectiveGround`` on, with a
+  5 m focus distance, a broad focus range, and a conservative blur radius.
+- Adds one point light, one spotlight with inner/outer cone falloff, and one
+  area-light approximation.
 - Demonstrates the extra-light path used by authored visual scenes. Fast/Balanced
   presets keep the default one-light path inexpensive; High/Ultra can spend more
   budget on additional lights, shadow maps, reflection probes, and postprocessing.
-- Uses the real planar reflection path on the ground material instead of placing duplicate reflection geometry.
+- Uses the real planar reflection path on the ground material instead of
+  placing duplicate reflection geometry.
 

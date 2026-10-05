@@ -4,7 +4,9 @@ Server Example: Ray Scan LiDAR
 
 Overview
 ========
-Sweeps rays from a robot frame to emulate a LiDAR scan and visualizes hits with instanced boxes. This is a compact example of ray-based sensing.
+Sweeps rays from a frame on a Husky robot to emulate a LiDAR scan and
+visualizes the hits with instanced boxes. This is a compact example of
+ray-based sensing; see :doc:`../../RayTest`.
 
 Screenshot
 ==========

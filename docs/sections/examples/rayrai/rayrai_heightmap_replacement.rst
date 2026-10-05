@@ -22,8 +22,8 @@ Run the build-tree executable:
 
    ./build-examples/examples/rayrai_heightmap_replacement
 
-On Windows, run ``rayrai_heightmap_replacement.exe`` instead. This example
-uses the in-process rayrai renderer and does not need the TCP viewer.
+On Windows, run ``rayrai_heightmap_replacement.exe`` instead.
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 How to reproduce
 ================

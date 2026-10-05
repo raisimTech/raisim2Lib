@@ -1,0 +1,84 @@
+Changelog: v2.4
+===============
+
+v2.4.7 (2026-08-15)
+-------------------
+
+* ``World`` aborts when headers and ``libraisim`` layouts differ.
+* Validation: time step, mass/inertia, zero quaternions, unknown link/joint names, collision edits.
+* ``SingleBodyObject::setMassProperties``; fixed gyroscopic modes (energy-conserving implicit midpoint) and kinematic bodies; correct capsule/cylinder inertia.
+* ``ArticulatedSystem`` fixes: ``getJointCoordinate`` by joint type, frame ``setExternalForce`` in world frame, composite COM/mass matrix, collision group/mask kept.
+* ``HeightMap``: ``setPosition`` moves collision and rays; ``getContactHeight``; transactional validated updates; mutable ``getHeightMap()`` removed; 16-bit PNG fix.
+* Heightmap contacts, swept CCD and rays corrected; consistent contact normals; MPR and mesh validation fixes.
+* Granular: periodic minimum image, momentum conservation across substeps, articulated coupling; constraint energy/tension fixes.
+* MJCF ``<equality><connect>`` creates pin constraints; many MJCF/URDF/USD loader fixes and validations.
+* Sensor property validation; fisheye FOV up to π.
+* XML parser hardening; math-library bounds fixes.
+* ``RaisimServer`` rejects malformed requests per connection; transactional spawn/edit.
+
+v2.4.6 (2026-08-11)
+-------------------
+
+* Faster broadphase (SAP −51% dense, no-broadphase −64%), box–cylinder, MPR and GJK, heightmap contacts and ``HeightMap::update``.
+* Contact solver skips unchanged contacts exactly; granular skips redundant grid rebuild.
+* Faster rayrai frame caching and material apply.
+* ``Weather``: ``automaticUtcOffset``, ``utcOffsetHours``.
+
+v2.4.5 (2026-08-02)
+-------------------
+
+* Contact solver: no self-confirmation sweep (stress −24.5%), devirtualized updates, cheaper rank check.
+* ABA contact pass shares basis propagation (−43% at 8 contacts/body); principal-axis revolute fast path (~7%).
+* Convex mesh vs heightmap −20%.
+* Fixed: blended friction cone, MPR hang on deformables, capsule inertia, ``matScalarMul``, terrain rounding, deformable substep velocity, sphere-on-cylinder NaN, ray inside sphere, 0-DOF systems.
+* Joint velocity limit defaults to infinity (ranged MJCF joints no longer frozen).
+* ``Path`` normalization rewritten; MJCF material/fixed-child/slide-range fixes; typeless geoms are spheres.
+* Debug and Release installs coexist; ``RAISIM_INSTALL_CONFIG``; Linux built for Ubuntu 20.04.
+* TCP viewer: non-blocking auto-connect, drains all messages per frame, clean reconnect.
+
+v2.4.4 (2026-06-21)
+-------------------
+
+* ABA/articulated dynamics speedups (up to −7%); allocation-free RNE.
+* Mesh BVH and ray queries reuse scratch stacks (−9%).
+* Math fixes: aliasing-safe ``matmul``, ``cholInv2`` overflow, rectangular ``fillSub``, block/row refs.
+* Frame lookups fail with an error when not found.
+* Server serialization fixes.
+* ``run_tests.sh``/``run_benchmarks.sh`` wrappers.
+
+v2.4.3 (2026-06-13)
+-------------------
+
+* Contact solver: warm start, skip unchanged contacts, early stop and stall detection (primitive pile −54%, Atlas pile −75%).
+* Fixed deformable/granular warm-start read and destructor alignment.
+* ``SingleBodyObject::setPosition(Vec<3>)``.
+* TCP viewer reads all server contact layouts.
+* One shared OpenUSD runtime for raisim and rayrai; Windows ``/FS`` build fix.
+
+v2.4.2 (2026-06-09)
+-------------------
+
+* ``try_lock()`` on ``World``, objects, constraints, sensors and server visuals.
+* Server: Windows ``SOCKET`` fix; viewer forces wake sleeping bodies.
+* TCP viewer: scene-reset slowdown fixed, disconnect status, ``--wait-for-server`` fix.
+* rayrai: async auto-exposure, render caches, hardened fuzz-tested protocol reader, graceful shader failures.
+* Binary STL with undefined alpha loads opaque.
+* macOS x86_64 OpenUSD; source installs on macOS build OpenUSD when it is missing.
+
+v2.4.1 (2026-06-06)
+-------------------
+
+* macOS arm64 and x86_64 packages.
+* rayrai foliage: atlases, GPU and Hi-Z culling, multi-draw indirect, hierarchical clusters, impostors, shadow LOD, alpha-depth prepass.
+* Cached static/dynamic shadows; on-disk mesh preprocess cache and automatic mesh LOD.
+* ``InstancedVisuals::addInstances``, ``reserveInstances`` and foliage policies.
+
+v2.4.0 (2026-06-01)
+-------------------
+
+* USD Physics articulations: ``World::addUsdArticulatedSystem``; ``.usd*`` worlds.
+* OpenUSD always bundled (``RAISIM_OPENUSD`` removed); rayrai loads USD on Windows.
+* Parent–child collision filtering by collision bodies; material changes apply immediately.
+* ``SingleBodyObject::getDOF``/``getGeneralizedCoordinateDim`` are ``constexpr``.
+* TCP: mouse forces scaled by body mass, Shift-drag picking, Windows client and discovery.
+* rayrai: vertex displacement, terrain normal/height maps, auto parallax, foliage wind, ``findInstancedVisuals``.

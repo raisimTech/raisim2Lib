@@ -4,7 +4,9 @@ Server Example: Procedural Heightmap
 
 Overview
 ========
-Creates a procedural heightmap and places ANYmal on top. Use this to see how to configure fractal terrain properties and run a robot on generated terrain.
+Creates a procedural heightmap and drops a grid of ANYmal robots onto it. Use
+it to see how to configure fractal terrain properties and run robots on
+generated terrain.
 
 Screenshot
 ==========
@@ -31,6 +33,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 Details
 =======
 - Generates terrain from ``TerrainProperties`` (fractal noise).
-- Spawns ANYmal on the heightmap with PD control.
-- Demonstrates procedural heightmap creation and appearance.
+- Spawns a 6 × 6 grid of ANYmal robots above the heightmap with joint PD
+  gains.
+- Demonstrates procedural heightmap creation and appearance; see
+  :doc:`../../HeightMap`.
 

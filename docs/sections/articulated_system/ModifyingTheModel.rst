@@ -26,7 +26,7 @@ The elements are ordered by the joint indices.
 * **Mass of the Links**
 
 :code:`getMass` method returns (a non-const reference to) a :code:`std::vector` of link masses.
-**IMPORTANT! You must call :code:`updateMassInfo`** after changing mass values.
+**IMPORTANT!** You must call :code:`updateMassInfo()` after changing mass values.
 The elements are ordered by the body indices (which is the same as the joint indices in RaiSim).
 
 * **Center of Mass Position**
@@ -41,18 +41,18 @@ The elements are ordered by the body indices.
 
 * **Collision Bodies**
 
-:code:`getCollisionBodies` method returns (a non-const reference to) a :code:`std::vector` of the collision bodies.
+:code:`getCollisionBodies` method returns (a non-const reference to) a :code:`raisim::CollisionSet`, a :code:`std::vector` of :code:`raisim::CollisionDefinition`.
 This vector contains all collision bodies associated with the articulated system.
 
 :code:`getCollisionBody` method returns a specific collision body instead.
-All collision bodies are named "LINK_NAME" + "/INDEX". 
+All collision bodies are named "LINK_NAME" + "/INDEX".
 For example, the 2nd collision body of a link named "FOOT" is named "FOOT/1" (1 because the index starts from 0).
 
-The collision body is a class that contains the position/orientation offset from the parent joint frame, name, parent body index, and the ODE collision pointer (:code:`dGeomID`, retrieved using :code:`getCollisionObject`).
-The collision geom can be modified using ODE methods (`ODE manual <http://ode.org/wiki/index.php?title=Manual>`_).
-Users can also modify the material of the collision body.
-This material affects the contact dynamics.
+A :code:`CollisionDefinition` holds the position and orientation offset from the body frame (:code:`posOffset`, :code:`rotOffset`), the body index (:code:`localIdx`), the shape and its parameters, and the collision body handle (:code:`getCollisionBody()`).
+To change the shape or the offsets of a collision body, use :code:`setCollisionBodyShapeParameters()` (primitive shapes only), :code:`setCollisionBodyPositionOffset()` and :code:`setCollisionBodyOrientationOffset()` of the articulated system with the index of the collision body in :code:`getCollisionBodies()`.
+Users can also change the material of a collision body with :code:`setMaterial()`, which affects the contact dynamics, and its collision group and mask with :code:`setCollisionGroup()` and :code:`setCollisionMask()`.
 
 Collision
 ==============================
-Apart from the collision mask and collision group set in the world, users can also disable a collision between a certain pair of links with :code:`ignoreCollisionBetween`.
+Apart from the collision mask and collision group, users can also disable a collision between a certain pair of bodies with :code:`ignoreCollisionBetween(bodyIdx1, bodyIdx2)`.
+If the system is already in a world, call :code:`updateSelfCollisionCache(world)` afterwards.

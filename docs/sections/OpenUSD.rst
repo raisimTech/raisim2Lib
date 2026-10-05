@@ -17,11 +17,11 @@ RaiSim without it.
 Instantiating a World From USD
 ==============================
 
-The **default way to instantiate a ``raisim::World``** is to point the
-constructor at a USD scene file. The constructor inspects the file's
-extension and, when it is ``.usd``, ``.usda``, ``.usdc``, or ``.usdz``,
-dispatches to the USD scene loader to build the world's bodies, joints, and
-collision shapes in a single call:
+The recommended way to create a ``raisim::World`` from a USD asset is to pass
+the USD file to the constructor. The constructor inspects the file's extension
+(case-insensitive) and, when it is ``.usd``, ``.usda``, ``.usdc``, or
+``.usdz``, calls ``World::addUsdArticulatedSystem`` to build the articulation's
+bodies, joints, and collision shapes in a single call:
 
 .. code-block:: cpp
 
@@ -29,26 +29,33 @@ collision shapes in a single call:
 
     raisim::World world("scene.usd");   // <-- recommended default
 
-    // World is now populated with the rigid bodies, articulated systems, and
-    // collision shapes declared in scene.usd. Add a ground, set the time
-    // step, attach controllers, and start stepping as usual.
+    // The world now contains the articulated system defined in scene.usd,
+    // with its collision shapes. Add a ground, set the time step, attach
+    // controllers, and start stepping as usual.
     world.addGround();
     world.setTimeStep(0.0025);
 
-This unifies physics scene authoring on a single text/binary format that public
-USD tooling such as Isaac Sim, Omniverse, and Blender's USD exporter can
-produce and consume. Prefer it over hand-written XML when the scene is going
-to be authored by a tool or exchanged with other USD-native ecosystems.
+The constructor imports exactly one articulation: the default prim if it has
+``PhysicsArticulationRootAPI``, otherwise the first such prim in the stage.
+It throws ``std::runtime_error`` if the file has none. Rigid bodies outside that
+articulation's subtree are not imported. To place several USD robots in one
+world, create the world first and call ``World::addUsdArticulatedSystem`` once
+per file, as the ``nvidia_usd_robots`` example does.
+
+USD lets you author robots with public tools such as Isaac Sim, Omniverse, and
+Blender's USD exporter. Prefer it over hand-written XML when the asset is
+authored by such a tool or exchanged with other USD-based pipelines.
 
 The same constructor still accepts a RaiSim ``.xml`` :doc:`world configuration
-file <WorldConfigurationFile>` or a MuJoCo ``.mjcf``; the file's extension
-(for USD) and root tag (``<raisim>`` / ``<mujoco>``) determine the loader.
-USD is the recommended default; XML stays available for hand-edited and
-template-driven worlds.
+file <WorldConfigurationFile>`, a MuJoCo MJCF file, or, from v2.7.1 (not yet
+released), a ``.rscene`` file (see :doc:`RsceneFile`). The
+extension selects the USD and ``.rscene`` loaders; for other files, the
+content (a ``<raisim>`` or ``<mujoco>`` element) selects the loader. XML stays
+available for hand-edited and template-driven worlds.
 
 .. code-block:: cpp
 
-    raisim::World usdWorld("scene.usd");           // USD scene loader
+    raisim::World usdWorld("scene.usd");           // USD articulation loader
     raisim::World xmlWorld("scene.xml");           // RaiSim XML loader
     raisim::World mjcWorld("scene.mjcf");          // MuJoCo MJCF loader
     raisim::World emptyWorld;                      // empty world, build it
@@ -64,17 +71,37 @@ template-driven worlds.
 What is imported from a USD scene
 ---------------------------------
 
-The USD constructor reads:
+The USD constructor (and ``World::addUsdArticulatedSystem``) reads:
 
-* ``UsdPhysicsRigidBodyAPI`` bodies as rigid objects.
-* ``PhysicsFixedJoint``, ``PhysicsRevoluteJoint``, and
-  ``PhysicsPrismaticJoint`` relationships between bodies, assembled into
-  articulated systems.
+* ``UsdPhysicsRigidBodyAPI`` bodies inside the articulation as links, with
+  their ``UsdPhysicsMassAPI`` properties and initial velocities. Kinematic
+  rigid bodies are rejected.
+* ``PhysicsFixedJoint``, ``PhysicsRevoluteJoint``, ``PhysicsPrismaticJoint``,
+  and ``PhysicsSphericalJoint`` relationships between bodies, including joint
+  limits, assembled into one articulated system.
+* Closed kinematic loops. A joint with ``physics:excludeFromArticulation = true``
+  closes a loop, and so does any additional joint into a body that already has
+  its tree joint (the first joint into a body, in stage order, joins the tree).
+  Loop joints become constraints at the authored pose (see
+  :doc:`articulated_system/ClosedLoopSystems`): a revolute joint becomes two
+  pins 10 cm apart on its axis, a spherical joint a pin at its anchor, and a fixed
+  joint three pins. The two bodies of a loop joint do not collide with each
+  other. Loading fails with ``std::runtime_error`` for a loop joint that cannot
+  be represented this way: a prismatic loop joint, a loop joint with a drive, or
+  a loop joint to the world on a floating-base articulation. Angle limits of a
+  revolute loop joint are not enforced, and a warning says so.
+* ``UsdPhysicsDriveAPI`` stiffness, damping, and target position as the
+  joint's passive spring, damping, and spring rest position; the drive's
+  maximum force becomes the joint effort limit. PhysX joint friction, damping,
+  and armature attributes are also read.
 * Primitive collision shapes — cube, sphere, capsule, cylinder — and
   triangle-mesh collision shapes via ``UsdGeomMesh``.
-* Per-body and per-link transforms.
+* Per-body and per-link transforms, converted to meters and a z-up frame from
+  the stage's ``metersPerUnit`` and up axis.
+* Physics material friction and restitution (as material pair properties),
+  filtered collision pairs, and the gravity of the stage's physics scene.
 
-The constructor does **not** import PhysX tendons, drives, variants,
+The constructor does **not** import PhysX tendons, variant switching,
 skeletons, lights, or full material graphs. For high-fidelity rendering
 materials, pair USD physics import with the :doc:`Rayrai <Rayrai>` visual
 pipeline, or keep a separate render-quality USD/glTF alongside the physics
@@ -104,8 +131,8 @@ Runtime requirements
 ====================
 Installed packages include the OpenUSD runtime next to RaiSim:
 
-* On Linux, the runtime is installed under ``raisim/lib/openusd`` and the
-  package environment script adds the required library path.
+* On Linux and macOS, the runtime is installed under ``raisim/lib/openusd``
+  and the package environment script adds the required library path.
 * On Windows, the USD DLLs are installed next to the RaiSim binaries and the
   plugin resources are under ``raisim/bin/openusd``.
 
@@ -134,28 +161,28 @@ Examples
 ``shadow_hand_usd_cube`` loads
 ``rsc/isaac/Robots/ShadowRobot/ShadowHand/shadow_hand.usd`` through
 ``World(shadow_hand.usd)`` and publishes the scene through ``RaisimServer``.
-The example target is generated only when CMake finds a RaiSim package with USD
-scene loading. RaiSim is expected to include OpenUSD on every supported
-architecture. Start the TCP viewer, then run:
+Start the TCP viewer, then run the example in another terminal:
 
 .. code-block:: bash
 
     ./build-examples/examples/rayrai_tcp_viewer
     ./build-examples/examples/shadow_hand_usd_cube
 
-``nvidia_usd_robots`` provides additional vetted Isaac Sim robot scenes:
-``create3``, ``jetbot``, and ``ant``.
+``nvidia_usd_robots`` adds three Isaac Sim robots (iRobot Create 3, AWS
+RoboMaker JetBot, and the Isaac Sim Ant) to one world with
+``World::addUsdArticulatedSystem``:
 
 .. code-block:: bash
 
     ./build-examples/examples/nvidia_usd_robots
 
-On Windows, use the corresponding ``.exe`` binaries.
+On Windows, the executables are under ``build-examples\bin`` (for example,
+``build-examples\bin\shadow_hand_usd_cube.exe``).
 
 rayrai can also load USD files as visual-only meshes through
 ``RayraiWindow::addVisualMesh``. This is useful for inspection, but the same
-scope applies: geometry, transforms, basic display colour/opacity, not full USD
-scene semantics.
+scope applies: geometry, transforms, and basic display color/opacity, not full
+USD scene semantics.
 
 Troubleshooting
 ===============

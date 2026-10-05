@@ -1,0 +1,71 @@
+Changelog: v2.0 – v2.3
+======================
+
+v2.3.0 (2026-05-28)
+-------------------
+
+* Rolling and spinning friction per material pair (opt-in; XML ``rolling_friction``/``spinning_friction``).
+* Camera lens model: pinhole or equidistant fisheye with intrinsics (``CameraLens.hpp``); ``Sensor::setAttachmentFrame``; depth point clouds use NaN for misses.
+* Visual-only heightmap updates (``updateVisualHeight``, ``updateVisualHeightPatch``, ``setColorPatch``).
+* ``Object::getRenderRevision``; ``DeformableObject::applyRigidTransform``; ``World::loadMjcfFile``.
+* Failed CoACD falls back to a convex hull.
+* Server sim control: pause/resume/step, force, torque, pose and GC requests; ``integrateWorldThreadSafe(beforeStep)``.
+* Server binds to loopback by default; port fallback; UDP discovery beacon.
+* TCP viewer: sim control, robot inspector, measuring tools, X-ray, standard views, screenshots, weather panel.
+* rayrai: weather presets, rain/snow, physical sky, clouds, fog volumes.
+* rayrai post-processing: MSAA, TAA, upscaling, bloom, SSAO, SSR, OIT, auto exposure, tone mapping and many lens/stylized effects.
+* rayrai lighting: shadow cascades, shadowed point/spot lights, reflection probes, irradiance volumes, decals.
+* rayrai materials: sheen, anisotropy, transmission, clearcoat, parallax, foliage; ``Material`` factories; ``PbrEnvironment``.
+* rayrai: shader binary cache and prewarming, multithreaded offscreen rendering, retuned presets, diagnostics.
+* Build: ``RAISIM_OPENUSD``, ARM detection, Windows OpenUSD; docs split into topic pages.
+
+v2.2.0 (2026-05-06)
+-------------------
+
+* Deformable objects (XPBD cloth and soft bodies): ``addDeformableCloth``, ``addDeformableObject``.
+* Granular media (DEM): ``addGranularParticles``, ``addGranularBox``, emitters, boundaries, coupling with all bodies.
+* ``ArticulatedSystem::solveIK``.
+* Swept CCD for fast primitives (opt-in).
+* Stable object IDs, collision filter/material setters, single-body snapshot/restore/clone.
+* ``World::captureDepthCamera`` (CPU depth/segmentation).
+* Mesh asset pipeline (``preprocessMesh``, OBJ cache, ``exportMeshAssetsToObj``); USD mesh colliders with bundled OpenUSD.
+* MJCF ``meshdir`` and Menagerie models.
+* Faster plane, heightmap-mesh, sphere and Jacobian paths; solver skips zero impulses.
+* **Behaviour change:** ``VISUALIZER`` sensor source removed (RGB/depth default to ``MANUAL``); ``RaisimServer::setMap`` removed.
+* Server streams deformables, granular particles and point clouds; protocol 10021 with feature negotiation.
+* Fixes: material updates, wires removed with objects, relative mesh paths, XML, matrix helpers, ray lists.
+* rayrai: quality presets, HDR IBL, reflection probes, bloom, SSAO, DOF, extra lights, glTF materials, async mesh loading and readback, instanced LOD.
+* New asset, USD and rayrai examples; standalone visualizer build.
+
+v2.1.0 (2026-04-26)
+-------------------
+
+* CoACD convex decomposition (``MeshCollisionMode::CONVEXIFY``, ``CoacdOptions``), default for ``addMesh``, cached on disk.
+* rayrai PBR shading of glTF/Assimp materials with soft shadows.
+* ``rayrai_coacd_mesh_approximation`` example.
+* Linux ARM64 rayrai; Linux x86_64/arm64 and Windows packages.
+
+v2.0.1 (2026-04-25)
+-------------------
+
+* ``World::addHeightMap`` is fast again (bounds and tiles only).
+* Linux/Windows install script updates.
+
+v2.0.0 (2026-02-15)
+-------------------
+
+* New built-in collision detection replaces ODE (GJK/EPA, MPR, primitive pairs, mesh and heightmap contacts).
+* Broadphase choice (SAP, MBP, none) via ``setContactSettings``/``setBroadphaseSettings``.
+* Sleeping islands (on by default) with ``setSleeping*``, ``wakeObject``, ``isObjectSleeping``.
+* ``integrateNoContactDetection``; ``rayTestLidar``; **breaking:** ``rayTest`` drops ``closestOnly``.
+* Any Assimp mesh format; ``MeshCollisionMode`` (convex hull default); ``convexifyCollisionMeshes``.
+* ``CollisionBodyHandle`` replaces ``dGeomID``; ``setCollisionBody*`` renames; self-collision helpers.
+* Faster bounding boxes, Jacobians, stepping and material lookup.
+* Fixes: pin-constraint contact indices, capsule tunnelling, mesh/heightmap contact stability, ``Ground::setPosition``.
+* **Behaviour change:** contact ``erp`` 0.3 → 1.5; XML ground collision group 31 → 63.
+* ``SpinningLidar`` sensor; ``SensorSet``; sensor XML references in URDF; depth-camera row and NaN fixes.
+* URDF modules; ordered XML template parameters.
+* Server: point clouds, ``InstancedVisuals::setScale``, faster reconnect.
+* ``lock()``/``unlock()`` on world objects; printf-style logging macros.
+* rayrai renderer and ``RaisimTcpViewer``.
+* System Eigen required; Clang 20; Windows support; Dockerfile.

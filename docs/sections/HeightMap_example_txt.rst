@@ -4,15 +4,17 @@ Height Map Using a Text File
 
 .. image:: ../../rsc/docs/image/heightMapUsingTxt.gif
 
-An example text file is shown below:
+An example text file (``rsc/xmlScripts/heightMaps/heightMapExample.txt``) is shown below:
 
 .. code-block:: text
 
     5 5 10 10
     1 1 1 1 1 1 0 0 0 1 1 0.5 0 0 1 1 0 0 0 1 1 1 1 1 1
 
-The numbers in the first line are "xSamples", "ySamples", "xSize" and "ySize", respectively.
-The numbers in the second line are height values.
+The numbers in the first line are ``xSamples``, ``ySamples``, ``xSize``, and ``ySize``, respectively.
+The remaining numbers are the ``xSamples * ySamples`` height values, row by row (x varies fastest).
+Values are separated by whitespace, so line breaks are optional. A file with the wrong number of
+height values is a fatal error.
 
 XML approach
 -----------------------------
@@ -25,7 +27,9 @@ configuration constructor in your application:
 
     raisim::World world("/path/to/raisim2Lib/rsc/xmlScripts/heightMaps/heightMapUsingTxt.xml");
 
-The XML file is constructed as follows:
+The XML file is equivalent to the following (the asset uses the snake_case
+spellings ``center_x``, ``lin_vel``, ...; the reader accepts both).
+``[THIS_DIR]`` expands to the directory of the XML file.
 
 .. code-block:: xml
 
@@ -54,6 +58,8 @@ The XML file is constructed as follows:
 
 C++ approach
 -----------------------------
+
+The arguments are the file path, ``centerX``, and ``centerY``:
 
 .. code-block:: cpp
 

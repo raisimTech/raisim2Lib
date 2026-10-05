@@ -25,7 +25,7 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_basic_scene
 
 On Windows, run ``rayrai_basic_scene.exe`` instead.
-This example uses the in-process rayrai renderer (no external client required).
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 
 Details

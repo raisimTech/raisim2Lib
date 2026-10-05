@@ -56,6 +56,21 @@ void configureCamera(Camera& camera, const PendingSensorUpdate& update) {
   camera.target = camera.position + camera.front;
 }
 
+/** RaiSim camera properties matching a remote sensor, for reading back its image. */
+template <typename Properties>
+Properties sensorCameraProperties(const SensorInfo& info) {
+  Properties properties;
+  properties.name = info.name;
+  properties.full_name = info.name;
+  properties.width = info.width;
+  properties.height = info.height;
+  properties.clipNear = info.clipNear;
+  properties.clipFar = info.clipFar;
+  properties.hFOV = info.hFov;
+  properties.lens = info.lens;
+  return properties;
+}
+
 void uploadDepthPreview(unsigned int& texture, int width, int height,
                         const std::vector<float>& depth, float nearPlane, float farPlane,
                         float& minimumDepth, float& maximumDepth) {
@@ -171,22 +186,15 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
     configureCamera(*cached->camera, update);
 
     const auto started = std::chrono::steady_clock::now();
+    raisim::Vec<3> position;
+    position.setZero();
+    raisim::Mat<3, 3> rotation;
+    rotation.setIdentity();
     if (info.type == raisim::Sensor::Type::RGB) {
       viewer.renderWithExternalCamera(*cached->camera, overrides);
-      raisim::RGBCamera::RGBCameraProperties properties;
-      properties.name = info.name;
-      properties.full_name = info.name;
-      properties.width = info.width;
-      properties.height = info.height;
-      properties.clipNear = info.clipNear;
-      properties.clipFar = info.clipFar;
-      properties.hFOV = info.hFov;
-      properties.lens = info.lens;
-      raisim::Vec<3> position;
-      position.setZero();
-      raisim::Mat<3, 3> rotation;
-      rotation.setIdentity();
-      raisim::RGBCamera sensor(properties, nullptr, position, rotation);
+      raisim::RGBCamera sensor(
+        sensorCameraProperties<raisim::RGBCamera::RGBCameraProperties>(info), nullptr, position,
+        rotation);
       update.colorBgra.resize(static_cast<size_t>(info.width) *
                               static_cast<size_t>(info.height) * 4u);
       cached->camera->getRawImage(sensor, Camera::SensorStorageMode::CUSTOM_BUFFER,
@@ -198,20 +206,9 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
       // it. Use the same filter as RGB so viewer-only helpers do not leak into
       // either sensor stream.
       viewer.renderDepthPlaneDistance(*cached->camera, nullptr, true, true);
-      raisim::DepthCamera::DepthCameraProperties properties;
-      properties.name = info.name;
-      properties.full_name = info.name;
-      properties.width = info.width;
-      properties.height = info.height;
-      properties.clipNear = info.clipNear;
-      properties.clipFar = info.clipFar;
-      properties.hFOV = info.hFov;
-      properties.lens = info.lens;
-      raisim::Vec<3> position;
-      position.setZero();
-      raisim::Mat<3, 3> rotation;
-      rotation.setIdentity();
-      raisim::DepthCamera sensor(properties, nullptr, position, rotation);
+      raisim::DepthCamera sensor(
+        sensorCameraProperties<raisim::DepthCamera::DepthCameraProperties>(info), nullptr,
+        position, rotation);
       update.depth.resize(static_cast<size_t>(info.width) * static_cast<size_t>(info.height));
       cached->camera->getRawImage(sensor, Camera::SensorStorageMode::CUSTOM_BUFFER,
         update.depth.data(), update.depth.size(), true);

@@ -25,14 +25,15 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_complete_showcase
 
 On Windows, run ``rayrai_complete_showcase.exe`` instead.
-This example uses the in-process rayrai renderer (no external client required).
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 
 Details
 =======
 - Loads a sensored ANYmal, heightmap terrain, primitives, and YCB objects.
 - Updates LiDAR scans into a point cloud and renders RGB/depth sensors.
-- Shows camera frustums and raw sensor buffers in ImGui.
+- Draws the camera frustums in the scene and shows the RGB image, the depth
+  image, and the raw sensor buffers in ImGui windows.
 
 Frame capture
 =============

@@ -53,7 +53,8 @@ Sites, paths, and joints
        different concepts.
    * - Deformable/granular system
      - Particle index
-     - Use zero offset to attach directly to the particle.
+     - World-aligned offset from the particle center (particles have no
+       orientation). Use zero to attach directly to the particle.
 
 For an imported fixed frame, resolve its simulated parent body and express the
 attachment point in that parent's frame. Do not use a fixed-frame index as a
@@ -74,7 +75,9 @@ The example fragment assumes ``load`` and ``guideBody`` already exist and have
 suitable exterior placement. ``sphere(center, radius)`` supplies a sphere guide.
 ``cylinder(center, radius, axis)`` defaults to the local +Z axis. The axis is
 normalized during validation; it must be finite and nonzero. Both radii and
-pulley divisors must be finite and strictly positive.
+pulley divisors must be finite and strictly positive. A guide center must be in
+the world frame, on a single rigid body, or on an articulated-system body;
+particles cannot carry a wrapping guide.
 
 Every branch needs at least two sites, starting and ending with sites. A wrap
 must have an immediate site on both sides. Consequently two consecutive wraps
@@ -106,7 +109,10 @@ After a geometry refresh, the diagnostic records expose:
   repeated contributions even though the returned term list retains them.
 * ``VisualSegment::start`` and ``end``: world-space endpoints of one drawing
   segment; ``wrapped``: whether it tessellates the curved surface portion.
-  These records are refreshed only when visual geometry is requested.
+  ``getVisualSegments()`` returns the records cached by the last
+  ``updateGeometry(true)`` call. ``computeVisualSegments(segments)`` instead
+  fills a caller-owned vector at the current poses without modifying the
+  tendon; renderers use this const function.
 
 Tendon properties
 =================
@@ -313,15 +319,17 @@ A fixed tendon instead contains ``<joint object="robot" joint="joint_name"
 coefficient="0.65"/>`` children. The object name must identify an articulated
 system; joint names identify its revolute/prismatic coordinates.
 
-A coupling uses ``name``, required ``first``, optional ``second``,
-``coefficients="c0, c1, c2, c3, c4"``, ``compliance``,
+A coupling uses the required ``name`` and ``first`` attributes and the optional
+``second``, ``coefficients="c0, c1, c2, c3, c4"``, ``compliance``,
 ``position_correction``, and ``enabled`` attributes. The referenced tendons must
-exist. Omitting the second fixes the first relative to its creation reference.
+exist. Omitting the second fixes the first relative to its reference length.
 
 Give referenced objects unique names. Unknown or ambiguous object names and
 unknown tendon references are rejected. Export writes the current reference and
 activation state as well as properties and commands. It does not serialize an
-arbitrary C++ controller or a future schedule of changing servo targets.
+arbitrary C++ controller or a future schedule of changing servo targets. A
+tendon that backs a legacy C++ wire adapter is exported with additional
+``legacy_*`` attributes, so loading the file restores the wire view as well.
 
 For a complete scene, prefer ``World::exportToXml``. The example programs expose
 ``--export PATH`` and export initial scenes. Their embedded articulated models

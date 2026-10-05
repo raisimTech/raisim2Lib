@@ -2141,8 +2141,6 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
             self.addConstraints(pin_def, convert_np_to_vecdyn(nominal_config));
         }, py::arg("pin_def"), py::arg("pin_constraint_nominal_config"))
         .def("initializeConstraints", &raisim::ArticulatedSystem::initializeConstraints)
-        .def("dumpCollisionBodyPairInfo", &raisim::ArticulatedSystem::dumpCollisionBodyPairInfo,
-             py::arg("link_a"), py::arg("link_b"))
         .def("getIgnoredCollisionPairs", [](const raisim::ArticulatedSystem &self) {
             py::list out;
             for (const auto &pair : self.getIgnoredCollisionPairs())

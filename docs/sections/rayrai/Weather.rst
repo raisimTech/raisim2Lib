@@ -12,29 +12,39 @@ Weather presets
 ===============
 Presets cover ``Clear``, ``Hazy``, ``Overcast``, ``Fog``, ``Rain``,
 ``HeavyRain``, ``Snow``, ``Storm``, ``NightClear``, ``NightRain``, and
-``Custom``. Quality steps (``Low``, ``Medium``, ``High``, ``Ultra``) trade
-fidelity against particle and texture budgets.
+``Custom``; ``defaultWeatherSettings(Custom)`` returns weather disabled.
+``WeatherSettings::quality`` (``WeatherQuality::Low``, ``Medium``, ``High``,
+``Ultra``) sets the cost of the effects: ``Low`` draws no clouds or
+precipitation particles, ``Medium`` adds both, ``High`` (the preset default)
+adds cloud shadows, lightning, and lens droplets, and ``Ultra`` adds volumetric
+fog and the largest particle budget.
 
 Weather is applied by ``setWeatherSettings``, ``setWeatherPreset``,
 ``transitionWeather``, and by ``updateWeather`` while a transition or wetness
-accumulation is running. Each application starts from the current
-``RenderQualitySettings``; overrides the main light (direction, colour,
+accumulation is running. Each application starts from the last settings the
+application passed to ``setRenderQualitySettings`` (returned by
+``getUserRenderQualitySettings``); overrides the main light (direction, color,
 ambient); adjusts ``shadowStrength`` and ``shadowPcfRadius``; sets the
 environment intensity and tints, the clouds, and the wet/snow fields; scales
-``pbrExposure``; re-enables the procedural sky; takes the larger of the two
-fog densities; and passes the result to ``setRenderQualitySettings``. That
-call rebuilds the main light and removes all additional lights (see
-:doc:`Lighting`), so add lights after weather is applied and again after
-later weather updates. Disabling weather stops further updates but does not
-restore the previous values; call ``setRenderQualitySettings`` with your own
-settings afterwards. Numeric units in ``WeatherSettings``: ``timeOfDayHours`` in hours
-``[0, 24)``, ``latitude`` / ``longitude`` in degrees, ``windSpeed`` in m/s,
-``visibilityMeters`` / ``radius`` / distance-fade fields in metres,
-``fogDensity`` in metres⁻¹ (exponential extinction), ``fogAnisotropy`` is
-the Henyey-Greenstein ``g`` in ``[-1, 1]``, ``cloudCoverage`` /
-``cloudDensity`` / ``rainOcclusionStrength`` / ``humidity`` / ``wetness``
-normalized in ``[0, 1]``, and ``wetnessAccumulationRate`` /
-``wetnessDryingRate`` per second.
+``pbrExposure``; re-enables the procedural sky; takes the larger of the user and
+weather fog densities and, for foggy or low-visibility weather, enables height
+fog (and, at ``Ultra``, volumetric fog); and applies the result. Unlike an application's own ``setRenderQualitySettings``
+call (see :doc:`Lighting`), a weather application keeps the additional lights
+the application added. Calling ``setRenderQualitySettings`` while weather is
+enabled replaces the base that later weather applications start from.
+Disabling weather with ``setWeatherSettings`` (``enabled = false``) restores
+those user settings.
+
+Units and ranges in ``WeatherSettings`` (``setWeatherSettings`` clamps values
+to these ranges): ``timeOfDayHours`` in hours ``[0, 24]``, ``latitude`` /
+``longitude`` in degrees, ``windSpeed`` in m/s, ``visibilityMeters`` in metres,
+``fogDensity`` in metres⁻¹ (exponential extinction), ``fogAnisotropy`` is the
+Henyey-Greenstein ``g`` in ``[-0.85, 0.85]``, ``cloudCoverage`` /
+``cloudDensity`` / ``precipitationRate`` / ``rainOcclusionStrength`` /
+``humidity`` / ``wetness`` normalized in ``[0, 1]``, ``lightningRate`` in
+strikes per minute ``[0, 16]``, and ``wetnessAccumulationRate`` /
+``wetnessDryingRate`` per second. ``LocalFogVolume::radius`` and the
+``ProjectedDecal`` distance-fade fields are in metres.
 
 .. list-table::
    :header-rows: 1
@@ -63,13 +73,20 @@ The grid is produced by ``doc_image_weather_presets`` in
 ``docs/image_generators/``.
 
 Start from ``RayraiWindow::defaultWeatherSettings``, apply it with
-``setWeatherSettings`` or ``setWeatherPreset``, and call ``updateWeather``
-from your frame loop when the weather state should animate.
+``setWeatherSettings`` or ``setWeatherPreset``, and call ``updateWeather(dt)``
+once per frame on the render thread. ``updateWeather`` advances transitions,
+wetness accumulation and drying, and the thunder callback; it does not advance
+the clock. Lightning strikes, cloud drift (``cloudAnimationSpeed``), rain
+ripples, and weather-driven volumetric fog follow ``timeOfDayHours``, so
+advance that field and apply it with ``setWeatherSettings`` when they should
+move (``setWeatherSettings`` cancels a running transition).
 ``transitionWeather`` blends between presets or settings over a duration;
 ``weatherDiagnostics`` reports the resolved sun/moon, fog, precipitation,
 wetness, snow, lightning, lens-droplet, and generated sky state.
-``setWeatherThunderCallback`` fires when lightning produces a thunder event
-so the application can play audio or trigger gameplay reactions.
+``updateWeather`` calls the function registered with
+``setWeatherThunderCallback`` once per new lightning strike, passing that
+frame's ``WeatherDiagnostics``, so the application can play thunder audio
+(``thunderDelaySeconds``, ``lightningIntensity``) or trigger other reactions.
 
 .. code-block:: cpp
 
@@ -82,9 +99,11 @@ so the application can play audio or trigger gameplay reactions.
     weather.lensDropletsEnabled = true;
     viewer.setWeatherSettings(weather);
 
-    viewer.setWeatherThunderCallback([](const auto& event) {
-      // play audio at event.delaySeconds with event.intensity, etc.
-    });
+    viewer.setWeatherThunderCallback(
+      [](const raisin::RayraiWindow::WeatherDiagnostics& d) {
+        // Play thunder d.thunderDelaySeconds after the flash, scaled by
+        // d.lightningIntensity.
+      });
 
     // Frame loop animation.
     viewer.updateWeather(dt);
@@ -100,11 +119,12 @@ For local effects, use ``addLocalFogVolume`` / ``clearLocalFogVolumes``,
 ``addProjectedDecal`` / ``clearProjectedDecals``, and
 ``addIrradianceVolume`` / ``clearIrradianceVolumes``. Each list is capped
 (eight local fog volumes, eight projected decals, eight irradiance volumes)
-so the fast frame path stays predictable. Weather-driven sky maps are
-created on demand with
-``generateWeatherSkyEnvironment(envFaceSize, irradianceFaceSize,
-setAsBackground)``; do this at transition points or setup time, not every
-frame. ``clearWeatherSkyEnvironment`` releases the cubemaps.
+so the fast frame path stays predictable; entries beyond the cap are ignored.
+Weather-driven sky maps are created on demand with
+``generateWeatherSkyEnvironment(environmentFaceSize, irradianceFaceSize,
+setVisibleBackground)``; do this at transition points or setup time, not every
+frame. The renderer owns the cubemaps: the next generation,
+``clearWeatherSkyEnvironment``, and ``setWeatherSettings`` delete them.
 
 .. code-block:: cpp
 
@@ -130,45 +150,52 @@ frame. ``clearWeatherSkyEnvironment`` releases the cubemaps.
 
 Enabling the procedural sky and sky IBL
 =======================================
-The procedural sky is **on by default** in rayrai. The struct-default for
-``RenderQualitySettings::proceduralSkyBackgroundEnabled`` is ``true``, so
-every preset (Fast / Balanced / High / Ultra) renders the analytic
-Hillaire sky as the background out of the box. You do not need to do
-anything to turn it on; you only need to call the helpers below if you
-want it to *light* the scene as ambient.
+The procedural sky is **on by default** in rayrai.
+``RenderQualitySettings::proceduralSkyBackgroundEnabled`` defaults to ``true``
+and no preset turns it off, so every preset (Fast / Balanced / High / Ultra)
+draws the analytic Hillaire sky as the background whenever no environment map
+is shown. You do not need to do anything to turn it on; the helpers below are
+only needed if a sky should also *light* the scene.
 
-To let the sky light PBR materials, bake it into cubemaps and assign them:
+To let a sky light PBR materials, bake it into cubemaps and assign them.
+``generateWeatherSkyEnvironment`` evaluates the weather sky model from the
+current ``WeatherSettings`` (time of day, location, clouds, turbidity) on the
+CPU; it does not sample the procedural background sky. The sun appears in the
+bake only while weather is enabled, so apply a weather preset first:
 
 .. code-block:: cpp
 
     raisin::RayraiWindow viewer(world, 1280, 720);
 
-    // 1) Pick a preset. Procedural sky is already enabled by every
-    //    built-in preset, so no flag flip is needed.
+    // 1) Pick a quality preset and a weather preset. The weather preset
+    //    defines the sky that is baked below.
     viewer.setRenderQualityPreset(
         raisin::RayraiWindow::RenderQualityPreset::High);
+    viewer.setWeatherPreset(raisin::RayraiWindow::WeatherPreset::Clear);
 
-    // 2) Bake the current sky into an environment cubemap plus a diffuse
-    //    irradiance cubemap. setAsBackground=true also shows the baked
-    //    map as the background.
+    // 2) Bake the sky into an environment cubemap plus a diffuse irradiance
+    //    cubemap. setVisibleBackground=true also shows the baked map as the
+    //    background.
     auto sky = viewer.generateWeatherSkyEnvironment(
-        /*envFaceSize=*/128,
+        /*environmentFaceSize=*/128,
         /*irradianceFaceSize=*/32,
-        /*setAsBackground=*/true);
+        /*setVisibleBackground=*/true);
 
     // 3) Assign the maps to each visual that should receive sky light.
     visual->setPbrEnvironment(sky.environmentMap, sky.irradianceMap,
                               /*prefilteredEnvironmentMap=*/0, /*brdfLut=*/0);
 
-The bake is not applied to materials automatically. Materials without an
-environment map, and all instanced visuals, use the neutral procedural
-daylight fallback tinted by ``pbrEnvironmentLightingTint`` (see
-:doc:`Lighting`), not the sky's colours.
+The bake is not applied to materials automatically, and the renderer deletes
+the cubemaps on the next bake, on ``clearWeatherSkyEnvironment``, and on
+``setWeatherSettings``, so re-assign the new maps after each bake. Materials
+without an environment map, and all instanced visuals, use the neutral
+procedural daylight fallback tinted by ``pbrEnvironmentLightingTint`` (see
+:doc:`Lighting`), not the sky's colors.
 ``RenderQualitySettings::pbrEnvironmentIntensity`` scales both the fallback
 and assigned environment maps. The preset defaults are tuned for outdoor
 daylight; lower it for an overcast or indoor feel.
 
-If you want to **turn the sky off** (for a flat colour background or to
+If you want to **turn the sky off** (for a flat color background or to
 use an HDR environment instead):
 
 .. code-block:: cpp
@@ -192,10 +219,10 @@ background; ``setEnvironmentBackground`` alone only changes the background:
     visual->setPbrEnvironment(env);  // lighting
     viewer.setEnvironmentBackground(env.environmentCubemap, /*exposure=*/1.0f);
 
-The procedural sky is cheap (a few small LUTs).
-``generateWeatherSkyEnvironment`` evaluates the sky on the CPU for every
-cubemap texel, so call it at setup or at weather transitions, not every frame.
-Both are documented in more detail below.
+The procedural sky is cheap (a few small LUTs); its settings are described in
+the next section. ``generateWeatherSkyEnvironment`` evaluates the sky on the
+CPU for every cubemap texel, so call it at setup or at weather transitions, not
+every frame.
 
 Volumetric fog, sky, and light shafts
 =====================================
@@ -221,7 +248,10 @@ procedural cloud layer adds ``proceduralCloudLayerEnabled``,
 ``proceduralCloudScale``, ``proceduralCloudSoftness``,
 ``proceduralCloudOffset``, ``proceduralCloudTint``; cloud shadows
 (``cloudShadowProjectionEnabled``, ``cloudShadowStrength``,
-``cloudShadowScale``) project that layer back onto the scene.
+``cloudShadowScale``) project that layer back onto the scene. The cloud layer
+is drawn only when ``cloudQuality`` is not ``Off``; every preset sets it, but
+the struct default is ``Off``. The clouds do not drift by themselves: animate
+``proceduralCloudOffset`` to move them.
 
 .. code-block:: cpp
 
@@ -265,7 +295,7 @@ Weather drives the same height fog, which makes it a cheap way to add
 distance haze. With ``WeatherSettings::enabled``, a ``visibilityMeters``
 below 5000 (or a ``fogDensity`` above 0.001) enables height fog with an
 extinction of ``max(0.85 * fogDensity, 3 / visibilityMeters)`` per metre,
-coloured by ``WeatherSettings::fogColor``. Weather adds the volumetric fog
+colored by ``WeatherSettings::fogColor``. Weather adds the volumetric fog
 pass only at ``WeatherQuality::Ultra`` when that extinction exceeds 0.004 per
 metre. ``weatherDiagnostics()`` reports ``heightFogActive``,
 ``heightFogDensity``, ``visibilityTransmittance100m``, and
@@ -331,7 +361,7 @@ but does not enable wind by itself. For instanced batches,
 grass) sets the same response per batch; see :doc:`Materials` for foliage
 materials.
 
-Foliage uses two-sided lighting and weather-driven leaf colour shifts.
+Foliage uses two-sided lighting and weather-driven leaf color shifts.
 Grass patches and dense bushes are usually rendered through
 ``InstancedVisuals`` so thousands of blades share one upload, with
 per-instance scale and rotation driving subtle variation.
@@ -432,7 +462,10 @@ controlled by ``wetnessAccumulationRate`` and ``wetnessDryingRate``.
     viewer.setRenderQualitySettings(quality);
 
     // Optional: drive accumulation/drying from the weather state instead.
+    // With weather enabled, weather overwrites the wet/snow fields set above,
+    // and wetness changes only while updateWeather(dt) is called.
     auto weather = viewer.getWeatherSettings();
+    weather.enabled = true;
     weather.wetnessAccumulationEnabled = true;
     weather.wetnessAccumulationRate = 0.35f;   // per second
     weather.wetnessDryingRate = 0.10f;         // per second
@@ -459,20 +492,24 @@ controlled by ``wetnessAccumulationRate`` and ``wetnessDryingRate``.
      - .. image:: ../../../rsc/docs/image/rayrai/showcase/40_weather_snow_melt_transition.png
           :alt: Snow melting between presets
 
-Rain splashes, snow flurries, lens droplets, and storm lightning
-================================================================
+Precipitation, lens droplets, and storm lightning
+=================================================
 Rain and snow generate animated particle systems on top of the material
-response. Rain splashes are short-lived secondary impact particles spawned
-on upward-facing surfaces; their density follows ``precipitationRate``.
-Lens droplets render screen-space droplets on the lens (controllable via
-``lensDropletsEnabled`` and ``lensDropletStrength``). Derived droplet count,
-maximum pixel size, and alpha are reported by ``WeatherDiagnostics`` rather
-than configured independently. Storms add stochastic lightning controlled by
-``lightningRate`` and the ``lightningLocalPoint*`` fields; subscribe with
-``setWeatherThunderCallback`` to play audio cues. Solar position uses the
-configured latitude / longitude / date and shifts the directional light
-accordingly throughout ``timeOfDayHours``, which is civil time at
-``utcOffsetHours`` (default 9) or local solar time when
+response (``Medium`` quality and above). The particle count follows
+``precipitationRate`` scaled by ``1 - rainOcclusionStrength``, and
+precipitation renders as snow when ``snowCoverage`` is above 0.2. Rain splash
+particles are currently disabled; ``WeatherDiagnostics`` keeps the
+``rainSplash*`` fields for compatibility and reports them as zero. Lens
+droplets render screen-space droplets on the lens during rain at ``High`` or
+``Ultra`` quality (controllable via ``lensDropletsEnabled`` and
+``lensDropletStrength``). Derived droplet count, maximum pixel size, and alpha
+are reported by ``WeatherDiagnostics`` rather than configured independently.
+Storms add stochastic lightning controlled by ``lightningRate`` (strikes per
+minute, ``High`` or ``Ultra`` quality) and the ``lightningLocalPoint*``
+fields; subscribe with ``setWeatherThunderCallback`` to play audio cues.
+Solar position uses the configured latitude / longitude / date and shifts the
+directional light accordingly throughout ``timeOfDayHours``, which is civil
+time at ``utcOffsetHours`` (default 9) or local solar time when
 ``automaticUtcOffset`` derives the offset from ``longitude / 15``. Set
 ``useExplicitSunAngles`` with ``sunAzimuthDegrees`` and
 ``sunElevationDegrees`` (clamped to -8..89) to place the sun directly.
@@ -482,10 +519,10 @@ accordingly throughout ``timeOfDayHours``, which is civil time at
     auto weather = raisin::RayraiWindow::defaultWeatherSettings(
       raisin::RayraiWindow::WeatherPreset::Storm);
     weather.enabled = true;
-    weather.precipitationRate = 12.0f;           // conceptual mm/hr
-    weather.rainOcclusionStrength = 0.6f;        // 0..1
+    weather.precipitationRate = 0.9f;            // normalized 0..1
+    weather.rainOcclusionStrength = 0.6f;        // 0..1, shelter factor
     weather.cloudCoverage = 0.95f;
-    weather.lightningRate = 0.15f;               // events per second (Poisson)
+    weather.lightningRate = 6.0f;                // strikes per minute, 0..16
     weather.lightningLocalPointLightEnabled = true;
     weather.lensDropletsEnabled = true;
     weather.timeOfDayHours = 17.0f;
@@ -494,18 +531,19 @@ accordingly throughout ``timeOfDayHours``, which is civil time at
     weather.year = 2026; weather.month = 5; weather.day = 23;
     viewer.setWeatherSettings(weather);
 
-    viewer.setWeatherThunderCallback([](const auto& event) {
-      audio.playThunder(event.delaySeconds, event.intensity);
-    });
+    viewer.setWeatherThunderCallback(
+      [&audio](const raisin::RayraiWindow::WeatherDiagnostics& d) {
+        audio.playThunder(d.thunderDelaySeconds, d.lightningIntensity);
+      });
 
 .. list-table::
    :header-rows: 1
    :widths: 50 50
 
-   * - Rain splashes
+   * - Rain on a wet ground
      - Lens droplets
    * - .. image:: ../../../rsc/docs/image/rayrai/showcase/34_weather_rain_splashes_poster.png
-          :alt: Rain impact splash particles
+          :alt: Rain scene with a wet, reflective ground
      - .. image:: ../../../rsc/docs/image/rayrai/showcase/35_weather_lens_droplets_poster.png
           :alt: Lens droplet post-process
    * - Snow particles

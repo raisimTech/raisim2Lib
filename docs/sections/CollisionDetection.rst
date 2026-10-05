@@ -7,29 +7,52 @@ Overview
 RaiSim performs collision detection in two stages: an AABB-based broadphase
 filters candidate pairs, followed by a pair-specific narrowphase that generates
 contact points. The narrowphase algorithm depends on the shape pair (analytic
-tests, SAT, MPR, or GJK/EPA).
+tests, SAT, MPR, or GJK/EPA). Pairs rejected by the collision group and mask
+(see :doc:`Contact`) and pairs of two static bodies never reach the narrowphase.
+
+The broadphase is selected with ``contact::BroadphaseSettings::type``
+(``World::setBroadphaseSettings``):
+
+* ``contact::BroadphaseType::Sap3Axis`` (default): sweep and prune on three axes.
+* ``contact::BroadphaseType::MultiBoxPrune``: multi-box pruning on a uniform
+  grid; the ``mbp*`` fields set the grid bounds and cell size.
+* ``contact::BroadphaseType::None``: no AABB culling; every pair goes to the
+  narrowphase. Use it only for debugging.
+
+Scenes with fewer than 35 collision bodies use an all-pairs AABB test
+regardless of this setting.
 
 Global contact limits and merging
 =================================
-* **Per-pair limit**: :code:`ContactSettings::maxContactsPerPair` is clamped to
-  **[1, 8]** inside the contact detector. Any pair listed below is capped by
-  this limit, even if the narrowphase could generate more points.
+* **Per-pair limit**: :code:`ContactSettings::maxContactsPerPair` (default 8)
+  is clamped to **[1, 8]** inside the contact detector. Any pair listed below
+  is capped by this limit, even if the narrowphase could generate more points.
 * **Merging for mesh/heightmap pairs**: contacts produced by triangle-based
   tests are merged to reduce redundancy. The merge uses a distance threshold
-  proportional to the smaller shape size (about 0.105 * characteristic length),
+  proportional to the smaller shape size (about 0.105 * characteristic length;
+  a heightmap counts as infinitely large, so the other shape sets the scale),
   a normal alignment threshold of about 4 degrees, and a small positional
-  epsilon (~1e-4) to coalesce nearly identical points.
-* **Special caps**: some generators have additional caps (e.g., box-cylinder
-  can produce up to 16 contacts internally, but is still clamped to the global
-  limit; cylinder-heightmap is reduced to at most 3 contacts after merging).
+  epsilon (~1e-4) to coalesce nearly identical points. Mesh vs mesh pairs only
+  coalesce points closer than 1e-4.
+* **Heightmap manifold reduction**: heightmap pairs first collect up to 8
+  contacts. RaiSim then drops contacts that duplicate another contact or lie
+  between two contacts with nearly identical normals and add no extra depth,
+  and keeps the deepest remaining contacts up to the per-pair limit.
+* **Special caps**: some generators have additional caps. Box-cylinder can
+  produce up to 16 contacts internally but is still clamped to the per-pair
+  limit; cylinder-heightmap accepts at most 3 contacts from each terrain
+  triangle.
 
 Shape categories
 ================
-* **Primitive**: sphere, box, capsule, cylinder, plane.
-* **ConvexMesh**: convex mesh representation (convex hull or convex decomposition).
-* **Mesh**: triangle mesh (non-convex).
-* **Heightmap**: grid terrain represented by triangles (rotation is not
-  supported in collision).
+* **Primitive**: sphere, box, capsule, cylinder, plane. A plane is the
+  ``World::addGround`` ground. Compound children are ordinary primitive bodies
+  and follow the primitive tables. Cones are not supported.
+* **ConvexMesh**: convex mesh representation (``MeshCollisionMode::CONVEX_HULL``
+  or each part of a ``MeshCollisionMode::CONVEXIFY`` decomposition).
+* **Mesh**: non-convex triangle mesh (``MeshCollisionMode::ORIGINAL_MESH``).
+* **Heightmap**: grid terrain represented by triangles. Rotation is not
+  supported in collision; a rotated heightmap is a fatal error.
 * **Ray**: query-only shape used by ray tests.
 
 Pair list (narrowphase algorithms and contact counts)
@@ -71,11 +94,13 @@ Primitive vs Primitive
      - Up to 2
      - 1 if segment interior hits; otherwise up to 2 cap contacts.
    * - Box vs Cylinder
-     - SAT + clipping (cylinder vs box face/circle).
-     - Up to 16 (clamped to global limit)
+     - SAT + clipping (cylinder vs box face/circle); MPR if clipping yields no
+       point.
+     - Up to 16 (clamped to the per-pair limit)
      - Produces 1-2 for edge hits, more for face overlap.
    * - Capsule vs Capsule
-     - Segment-segment closest points; parallel overlap uses two caps.
+     - Segment-segment closest points; parallel overlap uses both ends of the
+       overlapping axis interval.
      - Up to 2
      - Parallel, overlapping axes can emit two contacts.
    * - Capsule vs Cylinder
@@ -83,13 +108,15 @@ Primitive vs Primitive
      - 1
      - Generic convex-convex contact.
    * - Cylinder vs Cylinder
-     - Parallel case: analytic rim sampling; otherwise MPR fallback.
-     - Up to 8 (parallel), otherwise 1
-     - Non-parallel or end-cap cases use MPR.
+     - Nearly parallel axes in end-to-end (cap-to-cap) contact: analytic rim
+       sampling; otherwise MPR.
+     - Up to 8 (cap-to-cap), otherwise 1
+     - Side-by-side contact and non-parallel axes use MPR.
 
 Primitive vs Plane
 ------------------
-Plane contacts use a fixed plane normal of +Z (world up).
+Plane contacts use the plane's world-frame normal. The ground plane created by
+``World::addGround`` has the normal +Z (world up).
 
 .. list-table::
    :header-rows: 1
@@ -102,7 +129,7 @@ Plane contacts use a fixed plane normal of +Z (world up).
    * - Sphere vs Plane
      - Analytic projection to plane.
      - 1
-     - Contact at sphere bottom along +Z.
+     - Contact at the sphere point deepest along the plane normal.
    * - Box vs Plane
      - Projected box corners and face selection.
      - Up to 4
@@ -110,11 +137,12 @@ Plane contacts use a fixed plane normal of +Z (world up).
    * - Capsule vs Plane
      - Analytic endcap projection.
      - 1
-     - Uses lower capsule cap.
+     - Uses the lower end of the capsule axis, even when the capsule lies flat.
    * - Cylinder vs Plane
-     - Analytic: cap contacts if parallel, otherwise two edge points.
-     - Up to 4 (parallel), otherwise up to 2
-     - Parallel means cylinder axis aligned with +Z.
+     - Analytic: rim contacts if the axis is parallel to the plane normal or
+       the whole lower rim is below the plane; otherwise two edge points.
+     - Up to 4 (parallel or fully submerged rim), otherwise up to 2
+     - Parallel means the cylinder axis is aligned with the plane normal.
 
 ConvexMesh vs Primitive/ConvexMesh
 ----------------------------------
@@ -139,7 +167,7 @@ Convex (primitive/convex mesh) vs Mesh (triangle mesh)
 ------------------------------------------------------
 Mesh pairs use a BVH to find candidate triangles, then test each triangle
 against the convex shape. Contacts are merged by distance/normal and capped
-by the global limit.
+by the per-pair limit.
 
 .. list-table::
    :header-rows: 1
@@ -160,7 +188,8 @@ by the global limit.
    * - Cylinder vs Mesh
      - Segment-triangle closest points.
      - Up to 8
-     - Uses cylinder axis segment and radius.
+     - Uses cylinder axis segment and radius (the cylinder is treated like a
+       capsule).
    * - Box vs Mesh
      - Closest-feature tests + triangle plane test; GJK/EPA fallback.
      - Up to 8
@@ -183,12 +212,15 @@ Mesh vs Mesh
    * - Mesh vs Mesh
      - BVH traversal + GJK/EPA on triangle pairs.
      - Up to 8
-     - Contacts merged; deepest contact is retained.
+     - Only nearly coincident points (closer than 1e-4) are merged.
 
 Heightmap interactions
 ----------------------
 Heightmap contacts operate on grid triangles; heightmap rotation is not
-supported (rotation must be identity).
+supported (rotation must be identity). When the footprint of a box, capsule,
+cylinder, or convex mesh lies over an exactly level patch of the heightmap,
+RaiSim reuses the corresponding plane routine (see the plane tables). All
+heightmap pairs go through the manifold reduction described above.
 
 .. list-table::
    :header-rows: 1
@@ -199,9 +231,10 @@ supported (rotation must be identity).
      - Contact points
      - Notes
    * - Sphere vs Heightmap
-     - Local triangle plane at sampled (x, y).
-     - 1
-     - Uses normal of the triangle under the sphere center.
+     - Closest points on the terrain triangles within reach of the sphere.
+     - Up to 8 (1 on a planar patch)
+     - Keeps the deepest contact and adds contacts from surfaces whose normals
+       differ from it by more than 20 degrees (for example, walls in a corner).
    * - Box vs Heightmap
      - Per-cell plane-box contacts.
      - Up to 8
@@ -212,20 +245,18 @@ supported (rotation must be identity).
      - Contacts merged by distance/normal.
    * - Cylinder vs Heightmap
      - Per-cell plane-cylinder contacts.
-     - Up to 3
-     - Merged then reduced to at most 3 points.
+     - Up to 8
+     - At most 3 contacts per terrain triangle; merged by distance/normal.
    * - ConvexMesh vs Heightmap
      - Vertex vs triangle plane tests.
      - Up to 8
      - Uses convex mesh vertices to generate contacts.
    * - Mesh vs Heightmap
-     - BVH traversal + GJK/EPA on mesh triangle vs heightmap triangle.
+     - BVH traversal + GJK intersection test on mesh triangle vs heightmap
+       triangle; contact from triangle-triangle closest points.
      - Up to 8
-     - Contacts merged by distance/normal.
-   * - Plane vs Heightmap
-     - Plane-mesh style vertex/edge binning.
-     - Up to 8
-     - Same logic as plane vs mesh.
+     - Normal from the terrain triangle; a recovery pass handles mesh vertices
+       that are already below the terrain.
 
 Plane vs Mesh / ConvexMesh
 --------------------------
@@ -278,7 +309,7 @@ penetration.
    * - Ray vs Plane
      - Line-plane intersection.
      - 1
-     - Uses plane normal +Z.
+     - Uses the plane normal, flipped for back-side hits.
    * - Ray vs Mesh/ConvexMesh
      - BVH query + ray-triangle test.
      - 1
@@ -290,31 +321,36 @@ penetration.
    * - Ray vs Ray
      - Closest segment-segment distance.
      - 1
-     - Contact if distance < 1e-6.
+     - Contact if distance <= 1e-6.
 
 Swept CCD
 =========
 Swept continuous collision detection is opt-in through ``contact::ContactSettings``. It is intended
-for fast rigid bodies that may cross thin static terrain or rigid geometry within one time step.
+for fast bodies that may pass through thin static terrain within one time step. It covers dynamic
+sphere, capsule, box, and cylinder collision bodies against static ground planes and heightmaps;
+other pairs use only discrete detection.
 
 .. code-block:: cpp
 
     auto settings = world.getContactSettings();
-    settings.sweptCcdEnabled = true;
-    settings.sweptCcdMinSpeed = 8.0;
-    settings.sweptCcdSpeculativeMargin = 1.0e-4;
+    settings.sweptCcdEnabled = true;            // default: false
+    settings.sweptCcdMinSpeed = 8.0;            // default: 0.0 (sweep every moving body)
+    settings.sweptCcdSpeculativeMargin = 1.0e-4; // default: 1e-4 m
     world.setContactSettings(settings);
 
-When enabled, RaiSim adds speculative contacts for sufficiently fast moving rigid collision bodies.
+When enabled, RaiSim adds speculative contacts for bodies whose speed (linear speed plus angular
+speed times the sweep radius) is at least ``sweptCcdMinSpeed``.
 Use ``World::setCollisionCountersEnabled(true)`` and ``getLastCollisionCounters()`` to inspect
 ``sweptCcdCandidates`` and ``sweptCcdContacts`` in benchmark or diagnostic code. Deformable particle
 contacts are still handled by the discrete deformable collision path.
 
 Collision counters
 ==================
-``World::CollisionCounters`` exposes optional diagnostic counters for deformable particle contact
-candidate counts and swept CCD candidate/contact counts. Counters are disabled by default to keep the
-normal simulation path cheap.
+``World::CollisionCounters`` exposes optional diagnostic counters, reset at every contact detection:
+deformable particle contact statistics (``deformableParticleCandidates``,
+``deformableParticleAabbTests``, ``deformableParticleContacts``, ``deformableParticleGridCells``)
+and swept CCD counts (``sweptCcdCandidates``, ``sweptCcdContacts``). Counters are disabled by
+default to keep the normal simulation path cheap.
 
 .. code-block:: cpp
 
@@ -324,5 +360,7 @@ normal simulation path cheap.
 
 Unsupported or no-op pairs
 ==========================
-* **Plane vs Plane**: no contact generation.
+* **Plane vs Plane**, **Plane vs Heightmap**, **Heightmap vs Heightmap**: no contact generation
+  (pairs of static bodies are never tested).
+* **Cone**: not supported; creating a cone is a fatal error.
 * **Ray vs Plane/Primitive/Mesh/Heightmap**: query-only (not solved as rigid contacts).

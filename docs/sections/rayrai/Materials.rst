@@ -11,8 +11,8 @@ factories described below and applies them via
 below, and `GPU capability tiers`_ lists which features a given GPU renders.
 
 Visual-level material controls (override, remap, overlay, visibility range,
-shadow casting modes) are on the :doc:`Visuals` page. Tone mapping and
-post-process are on :doc:`PostProcess`.
+shadow casting modes) are on the :doc:`Visuals` page. Tone mapping is on
+:doc:`RenderQuality`, and post-process effects are on :doc:`PostProcess`.
 
 Supported PBR inputs
 ====================
@@ -47,9 +47,9 @@ a configurable ``TextureChannel`` (``metallicTextureChannel``,
 
 Material behavior is controlled by several enums on ``raisin::Material``:
 
-* ``Type``: ``SIMPLE_COLOR``, ``TEXTURED``, ``PBR`` — user-facing type hint.
-  ``PBR`` materials, and any material that sets a PBR feature or map, use the
-  PBR shaders; ``forceSimpleShading`` forces the simple shader.
+* ``Type``: ``SIMPLE_COLOR``, ``TEXTURED``, ``PBR`` (the default) — user-facing
+  type hint. ``PBR`` materials, and any material that sets a PBR feature or
+  map, use the PBR shaders; ``forceSimpleShading`` forces the simple shader.
 * ``ShadingModel``: ``Standard``, ``Lambert``, ``Toon``, ``Unlit`` —
   ``setShadingModel()`` writes the matching diffuse, specular, and unlit fields.
 * ``AlphaMode``: ``Opaque``, ``Mask``, ``Hash``, ``Blend`` — glTF-style alpha
@@ -72,20 +72,23 @@ Material behavior is controlled by several enums on ``raisin::Material``:
 * ``StencilCompare`` / ``StencilEffectMode`` (``Disabled`` / ``Outline`` /
   ``Xray`` / ``Custom``) — stencil-driven selection overlays.
 * ``TextureRepeatMode`` and ``TextureFilter`` — per-material sampler overrides
-  (``Repeat`` / ``Mirror`` / ``Disabled`` and ``Nearest`` / ``Linear`` with
-  optional mipmaps and anisotropy).
+  (``Inherit`` by default, or ``Repeat`` / ``Mirror`` / ``Disabled`` and
+  ``Nearest`` / ``Linear`` with optional mipmaps and anisotropy).
 * ``BillboardMode``: ``Disabled``, ``Enabled``, ``FixedZ``, ``Particles`` —
   camera-facing rendering for foliage and sprites.
-* ``UvLayer``: ``Uv1`` / ``Uv2`` — secondary UV channel for detail and
-  lightmap textures.
+* ``UvLayer``: ``Uv1`` / ``Uv2`` — UV channel of the detail textures
+  (``detailUvLayer``). Lightmap, AO, and emissive maps choose the second UV
+  channel with the ``lightmapUsesUv2``, ``aoUsesUv2``, and ``emissiveUsesUv2``
+  flags instead.
 * ``FoliageType``: ``None``, ``Grass``, ``LeafCard``, ``Bush``, ``Branch``,
   ``TreeTrunk``, ``Crop``, ``Vine`` — foliage classification. Any value other
   than ``None`` enables the fields in `Foliage materials`_; the specific value
   does not change shading or wind.
 
-Most of these knobs are populated automatically by the Assimp/glTF importer.
-Authored materials can be constructed directly when in-process code needs a
-specific shading mode; the next section covers the importer's fallback rules.
+Most of these knobs are populated automatically by the Assimp/glTF importer
+(`Material import details`_ covers its fallback rules). Authored materials can
+be constructed directly when in-process code needs a specific shading mode, as
+the next section shows.
 
 Material factories
 ==================
@@ -153,20 +156,20 @@ through glass.
 Heightmap terrain uses a dedicated rough PBR material in both in-process and TCP
 viewer paths. Heightmap color maps are treated as terrain albedo, but the material
 keeps metallic at zero, roughness high, and planar reflection disabled even when
-``RenderQualitySettings.reflectiveGround`` is enabled. This keeps outdoor terrain
+``RenderQualitySettings::reflectiveGround`` is enabled. This keeps outdoor terrain
 from looking like a mirror while retaining sky/IBL fill and normal PBR lighting.
 
 The shipped PBR examples and tools are:
 
-* ``rayrai_pbr_material_grid``: PBR material coverage across a primitive grid
-  under matching HDR/IBL lighting.
+* ``rayrai_pbr_material_grid``: the Khronos MetalRoughSpheres glTF sample, a
+  grid of spheres spanning metallic and roughness values, under the High preset.
 * ``rayrai_pbr_texture_maps``: texture-slot coverage for base color, normal,
-  metallic-roughness, occlusion, and emissive maps.
-* ``rayrai_visual_asset_support``: authored glTF/GLB scene import with PBR
-  materials, embedded lights, reflection-probe sidecars, and screenshot output
-  while keeping visual and collision geometry separate.
-* ``rayrai_quality_lighting``: additional-light and quality preset coverage for
-  inspecting PBR materials.
+  metallic-roughness, occlusion, and emissive maps on glTF sample assets, lit
+  by an HDR environment.
+* ``rayrai_visual_asset_support``: textured URDF visual assets (ANYmal C and
+  YCB objects) whose visual and collision geometry stay separate.
+* ``rayrai_quality_lighting``: point, spot, and area additional lights on the
+  Ultra preset for inspecting PBR materials.
 
 Authored light sources are imported through:
 
@@ -202,7 +205,7 @@ material and visual alpha at one.
   ``refractionFactor`` / ``refractionMap`` also make a surface transmissive and
   add an artistic offset scaled by ``screenSpaceRefractionStrength`` ×
   ``screenSpaceRefractionMaxPixels``.
-* A nonzero ``metallicFactor`` suppresses transmission.
+* ``metallicFactor`` scales transmission and refraction by ``1 - metallic``.
 
 A material pass with ``transmissionFactor``, ``refractionFactor``,
 ``transmissionMap``, or ``refractionMap`` set is drawn in the sorted transparent
@@ -215,12 +218,12 @@ ordinary surface.
 
 .. code-block:: cpp
 
-    auto glass = raisin::Material::glass("green_block", /*thickness=*/1.2f,
+    auto glass = raisin::Material::glass("green_block", /*thickness=*/0.12f,
                                          glm::vec3(0.30f, 0.82f, 0.60f),
                                          /*attenuationDistance=*/0.9f);
-    block->setMaterialOverride(glass);
-    block->setPbrEnvironment(environmentCubemap);  // reflections and fallback
-    block->setCastsShadows(false);  // otherwise glass casts an opaque shadow
+    blockVisual->setMaterialOverride(glass);
+    blockVisual->setPbrEnvironment(environmentCubemap);  // reflections and fallback
+    blockVisual->setCastsShadows(false);  // otherwise glass casts an opaque shadow
 
     auto quality = viewer.getRenderQualitySettings();
     quality.highFidelityPbr = true;
@@ -237,8 +240,10 @@ so screen-space glass does not show glass behind glass, nested liquids,
 internal reflections, dispersion, caustics, or colored shadows. The glass
 shader applies base and vertex color, the albedo, normal, roughness, emissive,
 transmission, thickness, and refraction maps, environment reflections, the main
-and additional lights, and the main-light shadow. It ignores clearcoat, sheen,
-subsurface, parallax, and additional-light shadows. Views that contain glass
+and additional lights, and the main-light shadow. It ignores metallic,
+metallic-roughness/ORM, and AO maps (so a roughness packed into a glTF
+metallic-roughness texture has no effect; use ``roughnessMap``), clearcoat,
+sheen, subsurface, parallax, and additional-light shadows. Views that contain glass
 use sorted blending instead of weighted OIT or the transparent depth prepass.
 ``InstancedVisuals`` ignore transmission; use regular visuals or world meshes
 for glass.
@@ -357,18 +362,20 @@ camera, or a ``VulkanRayQuery`` backend that is unavailable.
 ``geometryRefractionDiagnostics()`` reports whether tracing ran, the backend
 actually used and why (``backend``, ``backendStatus``), triangle, volume, and
 BVH node counts, scene rebuilds, and the scheduled samples per pixel.
-``geometryRefractionSamplingStatistics()`` reads per-pixel sample counts back
-from the GPU and can stall.
+With adaptive sampling, ``geometryRefractionSamplingStatistics()`` reads
+per-pixel sample counts back from the GPU and can stall; without it every pixel
+holds the scheduled budget and no readback happens.
 
-The Vulkan backend exists only in Linux and Windows builds made with the Vulkan
-headers and ``glslc`` shader compiler. Installing ``glslc`` later does not add
+The Vulkan backend is available in Linux and Windows builds. Vulkan headers
+and SPIR-V shaders are checked in, and CMake verifies their source manifest
+without Python. A Vulkan SDK and shader compiler are unnecessary for normal
+builds. Installing development files later does not add
 the backend to an already-built rayrai package; use a package built with it or
 rebuild from source. See :ref:`rayrai-vulkan-ray-query-troubleshooting` for
 setup and verification. At run time it needs a Vulkan 1.2 GPU that matches
 the OpenGL device and supports ray queries, acceleration structures, and
-OpenGL memory and semaphore sharing (``GL_EXT_memory_object``, ``GL_EXT_semaphore``). Set
-``RAYRAI_DISABLE_VULKAN_RAY_QUERY=1`` to force the portable tracer. Changing
-the backend restarts accumulation. While ``geometryRefraction`` is enabled the
+OpenGL memory and semaphore sharing (``GL_EXT_memory_object``, ``GL_EXT_semaphore``);
+without them the portable tracer runs. Changing the backend restarts accumulation. While ``geometryRefraction`` is enabled the
 renderer's frame caches are bypassed even when no glass is visible, so leave it
 off otherwise.
 
@@ -503,19 +510,24 @@ from the URDF or explicit collision objects.
 
 
 Subsurface scattering and backlight
-***********************************
+===================================
 rayrai approximates subsurface scattering with three controls that combine
 cheaply for plausible skin, leaves, wax, and thin plastic.
 
-* ``viewerSubsurfaceWrap`` / ``viewerSubsurfaceTint`` wrap the diffuse falloff
-  past 90 degrees and tint the wrap region (warm flesh tones by default).
-  This is a global, cheap post-shading approximation.
-* The ``Subsurface`` and ``SubsurfaceTransmittance`` ``Material`` texture
-  slots feed a per-material thickness/transmission term. ``Material::DiffuseMode``
-  ``Toon`` and ``LambertWrap`` make the wrap response artist-controllable.
-* The ``Backlight`` slot drives a separate light contribution that comes from
-  *behind* the surface — useful for translucent leaves, candle wax, and thin
-  fabric in rim lighting.
+* ``viewerSubsurfaceWrap`` / ``viewerSubsurfaceTint`` (``RenderQualitySettings``)
+  wrap the diffuse falloff past 90 degrees and tint the wrapped light (warm
+  flesh tones by default). This is a global, cheap wrap term in the PBR
+  lighting of every material; a nonzero value selects the high-fidelity PBR
+  shader.
+* ``Material::subsurfaceScatteringStrength`` (default 0) enables a
+  per-material subsurface term; the ``Subsurface`` texture slot scales that
+  strength, and the ``SubsurfaceTransmittance`` slot tints the transmitted
+  light. ``Material::DiffuseMode::LambertWrap`` forces a fixed, untinted wrap of
+  at least 0.5, while ``Toon`` replaces the diffuse falloff with a hard
+  terminator.
+* The ``Backlight`` slot (added to ``backlightColor``) drives a separate light
+  contribution that comes from *behind* the surface — useful for translucent
+  leaves, candle wax, and thin fabric in rim lighting.
 
 ``DiffuseMode`` values other than ``Lambert`` render only on the full GPU tier,
 and the subsurface and backlight maps are not sampled on the limited tier; see
@@ -523,9 +535,8 @@ and the subsurface and backlight maps are not sampled on the limited tier; see
 
 The two showcase images contrast a wrap-only subsurface response (cheap,
 shader-side) against an authored skin material that uses the dedicated SSS
-texture slots and tuned wrap. The backlight image shows leaves lit from behind
-the camera receiving energy through the leaf rather than just on the camera
-side.
+texture slots and tuned wrap. The backlight image shows leaves lit from behind,
+so light passes through the leaf toward the camera.
 
 .. code-block:: cpp
 
@@ -540,6 +551,7 @@ side.
       "skin", glm::vec4(0.96f, 0.78f, 0.68f, 1.0f),
       /*metallic=*/0.0f, /*roughness=*/0.55f);
     skin.diffuseMode = raisin::Material::DiffuseMode::LambertWrap;
+    skin.subsurfaceScatteringStrength = 1.0f;  // the map below scales this
     skin.subsurfaceMap = subsurfaceMapId;
     skin.subsurfaceTransmittanceMap = transmittanceMapId;
 
@@ -567,12 +579,15 @@ side.
      -
 
 Bloom, HDR, and PBR
-*******************
-Bloom (``bloomEnabled``) uses a Gaussian-pyramid down/upsample with knee
-threshold (``bloomThreshold``, ``bloomKnee``), strength, source clamp, and
-optional anamorphic squeeze. The ``bloomDirtTexture`` slot multiplies bloom
-by a lens-dirt mask for a stylized lens look. Emissive surfaces with
-intensities above the threshold bloom naturally.
+===================
+Bloom (``bloomEnabled``) blurs a soft-thresholded bright-pass
+(``bloomThreshold``, ``bloomKnee``) with strength, source clamp, and optional
+anamorphic stretch. ``bloomQuality`` picks the blur: 1 or less is a 12-tap
+gather, 2 a 24-tap gather, and 3 or more a 4-level downsample/upsample chain
+(the Ultra preset uses 3). ``bloomDirtStrength`` multiplies bloom by a
+lens-dirt mask for a stylized lens look, read from ``bloomDirtTexture`` or, when
+that is 0, generated procedurally. Emissive surfaces with intensities above the
+threshold bloom naturally.
 
 HDR / IBL setup loads a single equirectangular HDR file and integrates the
 diffuse irradiance + GGX-prefiltered specular cubemaps plus the split-sum
@@ -593,7 +608,7 @@ included for context.
     quality.bloomStrength = 0.28f;
     quality.bloomRadius = 4.0f;
     quality.bloomKnee = 0.22f;
-    quality.bloomQuality = 1;              // 0=fast, 1=high
+    quality.bloomQuality = 3;              // 1=12-tap, 2=24-tap, 3=down/upsample chain
     quality.bloomDirtTexture = lensDirtTextureId;  // optional
     quality.bloomDirtStrength = 0.35f;
     viewer.setRenderQualitySettings(quality);
@@ -664,7 +679,7 @@ three shader tiers when it starts:
        splatting, wet/snow weather response, additional-light shadows, or
        light projectors.
    * - Limited
-     - 16 or fewer units, and every macOS build
+     - 16 units (the minimum rayrai accepts), and every macOS build
      - As compact, minus planar reflection, height-map parallax, and the
        subsurface, subsurface-transmittance, and backlight maps. Simple and
        instanced meshes also lose additional-light shadows and light
@@ -676,21 +691,22 @@ also runs everywhere.
 
 Maps that do not fit the reported unit count are moved to the unit of a slot
 the material leaves empty (bent-normal, refraction, subsurface, subsurface
-transmittance, backlight, detail, rim, height, and texture-blend maps). If no
-unit is free, that map is ignored for the draw. On 16-unit GPUs the lightmap,
+transmittance, backlight, detail mask/albedo/normal, rim, height, lightmap, and
+texture-blend maps). If no unit is free, that map is ignored for the draw. On 16-unit GPUs the lightmap,
 sheen, transmission, thickness, anisotropy, weather-mask, and clearcoat-normal
 maps are always ignored; glass binds its own transmission, thickness, and
 refraction maps and is unaffected.
 
 On the limited tier post-processing uses a reduced program that keeps depth of
-field, FXAA, bloom, SSAO, and temporal AA, but not effects such as SSR,
-projected decals, color grading, saturation, or white balance (see
+field, FXAA, bloom, SSAO, temporal AA, white balance, and saturation, but not
+effects such as SSR, projected decals, or color grading (see
 :doc:`PostProcess`). On macOS, material textures are also sampled without
 mipmaps (``TextureFilter`` modes with mipmaps behave like ``Linear``), and
 geometry refraction always uses the portable tracer.
 
-To check the tier, set ``RAYRAI_LOG_SHADER_COMPILE=1``, which prints the
-fallback in use. ``RAYRAI_FORCE_COMPACT_PBR_SAMPLER_FALLBACK=1`` or
+rayrai does not print the tier it picked; compare the
+``GL_MAX_TEXTURE_IMAGE_UNITS`` value your driver reports with the table above.
+``RAYRAI_FORCE_COMPACT_PBR_SAMPLER_FALLBACK=1`` or
 ``RAYRAI_FORCE_LIMITED_PBR_SAMPLER_FALLBACK=1``, set before the application
 starts, previews a lower tier on a capable GPU.
 ``RAYRAI_LOG_MATERIAL_BINDINGS=1`` prints the texture unit each map is bound

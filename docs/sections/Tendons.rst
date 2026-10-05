@@ -17,9 +17,12 @@ by the TCP viewer connected to ``RaisimServer``.
    :alt: Elastic suspensions, cylinder and sphere wrapping, and coupled joints in Rayrai
    :width: 100%
 
-Straight length constraints use this same tendon API with two sites. The former
-wire classes have been removed; see :doc:`Constraints` for migration mappings
-and legacy XML import behavior.
+Straight length constraints use this same tendon API with two sites. The legacy
+C++ wire functions (``addStiffWire``, ``addCompliantWire``, ``addCustomWire``)
+remain as source-compatible adapters: each wire is a view of a two-site spatial
+tendon, returned by ``LengthConstraint::getTendon()``. See :doc:`Constraints`
+for the mapping from wire behavior to tendon properties and for legacy XML
+import.
 
 .. toctree::
    :maxdepth: 2
@@ -103,8 +106,8 @@ optional first argument supplies an activation-key path.
    :caption: tendon_quickstart.cpp
 
 Download :download:`the complete source <../code/tendon_quickstart.cpp>`.
-For focused, tested C++ recipes, including current-length locks and wire API
-comparisons, see :doc:`tendons/CodeExamples`.
+For focused, tested C++ recipes, including current-length locks and straight
+two-site connections, see :doc:`tendons/CodeExamples`.
 Build and run the larger ``tendon_elastic``, ``tendon_pulleys``,
 ``tendon_coupling``, and ``rayrai_tendons`` programs using
 :doc:`tendons/Examples`.
@@ -193,9 +196,13 @@ sites, and removes their dependent couplings. Discard borrowed pointers after
 such removals. A path and its joint-term list are immutable through the public
 API: remove and recreate a tendon to change its topology.
 
-For particle sites, ``localIndex`` identifies one particle. Keep particle indices
-stable while attached. Remove/recreate the tendon before deleting or reordering
-particles. World ownership does not turn particle indices into stable handles.
+For particle sites, ``localIndex`` identifies one particle, not a stable
+handle. ``GranularSystem::removeParticle()`` (also used by the bulk removal
+functions) moves the last particle into the removed index. The world then
+removes tendons attached to the removed particle, together with their couplings,
+and remaps sites on the moved particle to its new index. Other operations that
+replace or reorder particles, such as ``GranularSystem::loadGranularState()``,
+are not tracked: remove the affected tendons first and recreate them afterward.
 
 ``setEnabled(false)`` disables the tendon's solver contributions and, after
 scene synchronization, its drawing. Couplings involving that tendon also stop
@@ -204,9 +211,15 @@ reported force components; disabling does not retroactively change previous
 step results. The force-activation state is retained and is not advanced while
 disabled. Re-enabling resumes from that state.
 
-Enabled attachments are kept awake. Participating articulated systems use
-semi-implicit position integration for the constrained step so their positions
-advance consistently with the solved end-step velocities.
+With sleeping enabled (the default), bodies connected by an enabled tendon or
+coupling belong to one sleeping island and sleep and wake together. A tendon
+wakes its attachments while its length is changing, while its drive is active
+(nonzero feedforward force, activation state, or gain), or while a length lock
+has not converged. A tendon that only holds a steady load lets its bodies sleep,
+as a resting contact does. Changing a tendon's properties, drive, or enable state
+wakes its attached objects. Participating articulated systems use semi-implicit
+position integration for the constrained step so their positions advance
+consistently with the solved end-step velocities.
 
 Make tendon topology changes between complete steps. Adding/removing tendons or
 couplings between ``integrate1()`` and ``integrate2()`` is rejected. Apply

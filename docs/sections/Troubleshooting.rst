@@ -15,6 +15,7 @@ under the build directory:
     ./build-examples/examples/primitive_grid
     ./build-examples/examples/rayrai_tcp_viewer
 
+On Windows, the executables are under ``build-examples\bin`` instead.
 The unpacked package does not include a prebuilt TCP viewer. Build the
 ``rayrai_tcp_viewer`` example target and run it from the build tree.
 If a command from old docs uses an ``example_`` prefix, check :doc:`Examples`
@@ -33,6 +34,9 @@ running examples, rayrai tools, applications, or importing ``raisimPy``:
 
 The script adds both RaiSim and rayrai libraries to the platform loader path.
 On macOS this is ``DYLD_LIBRARY_PATH``. On Linux this is ``LD_LIBRARY_PATH``.
+On Windows, run ``raisim_env.bat`` (Command Prompt) or ``raisim_env.ps1``
+(PowerShell), which add the library directories to ``PATH``; the examples build
+also copies the runtime DLLs next to the example executables.
 Because this is a per-terminal shell setting, source the script again in every
 new terminal before starting a viewer, an example, or Python with ``raisimPy``.
 
@@ -45,11 +49,16 @@ Place the activation key at:
 
     $HOME/.raisim/activation.raisim
 
-or pass an explicit path before creating worlds:
+(``$HOME/raisim/activation.raisim`` is also checked), or pass an explicit path
+before creating the first world:
 
 .. code-block:: cpp
 
     raisim::World::setActivationKey("/absolute/path/to/activation.raisim");
+
+RaiSim looks up the key once per process, when the first ``raisim::World`` is
+created, so calling ``setActivationKey`` after that has no effect. If no key is
+found, RaiSim prints the paths it checked and your machine id, then stops.
 
 TCP Viewer Does Not Connect
 ===========================
@@ -59,16 +68,25 @@ Check these points:
 * The simulation must create ``raisim::RaisimServer`` and call
   ``launchServer``.
 * The server-based example and TCP viewer must use the same port. The default
-  is ``8080``.
-* Run ``linux_install.sh``, ``mac_install.sh``, or ``win_install.ps1`` after
-  updating the package, then rebuild the examples copy of
-  ``rayrai_tcp_viewer``. A stale viewer source can connect but disagree with
-  the installed rayrai/RaiSim protocol implementation.
+  is ``8080``. If that port is already in use, the server moves to the next
+  free port; ``RaisimServer::getPort()`` returns the port it actually bound.
+* By default the server listens only on ``127.0.0.1``. To connect a viewer
+  from another machine, call ``server.setBindLoopbackOnly(false)`` before
+  ``launchServer``. Any client that can reach the port can then control the
+  simulation, so do this only on a trusted network.
+* Keep the viewer source in sync with the installed packages: build
+  ``rayrai_tcp_viewer`` from a ``raisim2Lib`` checkout whose pinned version
+  (``RAISIM_VERSION`` in the top-level ``CMakeLists.txt``) matches the
+  installed RaiSim and rayrai libraries. If you installed another version with
+  ``raisim_upgrade.sh`` or ``raisim_upgrade.ps1``, check out the matching
+  ``raisim2Lib`` release, or configure again so that CMake restores the pinned
+  packages (see :doc:`Installation`). A stale viewer source can connect but
+  disagree with the installed rayrai/RaiSim protocol implementation.
 
 For manual RGB/depth cameras, keep the examples-built viewer connected. It
 renders requested frames and returns them to ``RaisimServer``. If the viewer
-reports ``Refusing RGB sensor update without a complete render``, rerun the
-platform install script and rebuild ``rayrai_tcp_viewer`` in
+reports ``Refusing RGB sensor update without a complete render``, update the
+viewer sources as described above and rebuild ``rayrai_tcp_viewer`` in
 ``build-examples``; do not launch an older installed viewer binary.
 
 rayrai Window Or Offscreen Context Fails
@@ -89,23 +107,15 @@ Geometry-traced glass can use Vulkan ray queries on Linux and Windows. If
 rayrai was built without the optional Vulkan backend, the portable OpenGL
 tracer remains available. Installing a compiler or driver after a binary
 package was built does not add the missing backend to that package. Use a
-package built with Vulkan support or rebuild rayrai from source. A
-``RayraiWindow`` from a build configured without ``glslc`` prints a warning
-once to standard output with installation and rebuild steps. An existing
-Vulkan-enabled binary does not need ``glslc`` at run time.
+package built with Vulkan support or rebuild rayrai from source. Source and
+binary builds use checked-in SPIR-V shaders and vendored Vulkan headers. CMake
+verifies the source manifest and binary hashes without Python. Building and
+running the backend requires neither a shader compiler nor a Vulkan SDK; the
+Vulkan driver is loaded at run time. Regenerating shaders after editing their
+GLSL requires ``glslc``.
 
-For a source build on Ubuntu, install the Vulkan development files and the
-``glslc`` shader compiler (Python 3 is also required):
-
-.. code-block:: bash
-
-    sudo apt update
-    sudo apt install libvulkan-dev glslc
-    glslc --version
-
-A source build enables the optional Vulkan ray-query backend automatically
-when these tools are present; ``RAYRAI_ENABLE_VULKAN_RAY_QUERY`` defaults to
-``ON``. Reconfigure and build after installing ``glslc``:
+``RAYRAI_ENABLE_VULKAN_RAY_QUERY`` defaults to ``ON`` on Linux and Windows.
+Reconfigure and build to enable it:
 
 .. code-block:: bash
 
@@ -115,7 +125,7 @@ when these tools are present; ``RAYRAI_ENABLE_VULKAN_RAY_QUERY`` defaults to
 An existing CMake cache with ``RAYRAI_ENABLE_VULKAN_RAY_QUERY=OFF`` keeps that
 explicit setting; change it to ``ON`` when reconfiguring. If tests were
 enabled in that source build, check the hardware cases with
-``ctest --test-dir /path/to/existing-build -j12 -L hardware-ray-query``.
+``ctest --test-dir /path/to/existing-build -j1 -L hardware-ray-query``.
 
 Check for the CMake message
 ``optional Vulkan ray queries enabled``. A message about ``portable glass
@@ -160,9 +170,10 @@ First Launch Of An Example Is Slow
 
 ``rayrai_coacd_mesh_approximation`` runs CoACD for every mesh on its first run,
 which can take a few minutes; Ctrl-C stops it during that phase. RaiSim caches
-the parts beside each mesh, so later runs load them directly. ``rayrai_forest``
-builds mesh LODs on its first launch and saves them as ``rayrai_cache_*.lods``
-files beside its assets. Delete these cache files to force regeneration.
+the parts beside each mesh as ``raisim_coacd_*.obj`` files, so later runs load
+them directly. ``rayrai_forest`` builds mesh LODs on its first launch and saves
+them as ``rayrai_cache_*.lods`` files beside its assets. Delete these cache
+files to force regeneration.
 
 Example Asset Missing
 =====================
@@ -175,12 +186,13 @@ that the top-level ``rsc`` directory exists and that CMake copied it to
 OpenUSD Runtime Or Plugin Missing
 =================================
 
-USD mesh loading uses the bundled OpenUSD runtime. Keep the installed
-``openusd`` directory and USD shared libraries next to the RaiSim binaries:
-``raisim/lib/openusd`` on Linux, and ``raisim/bin/openusd`` plus the ``usd_*.dll``
-files on Windows.
+USD loading (USD meshes and USD worlds) uses the bundled OpenUSD runtime. Keep
+the installed ``openusd`` directory and USD shared libraries next to the RaiSim
+binaries: ``raisim/lib/openusd`` on Linux and macOS, and ``raisim/bin/openusd``
+plus the ``usd_*.dll`` files on Windows. See :doc:`OpenUSD`.
 
 If an executable is launched from another directory, run the package environment
 script first so the runtime loader can find RaiSim and OpenUSD. If an OpenUSD
 runtime is missing from the public package, reinstall or upgrade the matching
-``raisim2Lib`` release instead of trying to rebuild the closed-source engine.
+``raisim2Lib`` release (for example, with ``raisim_upgrade.sh`` or
+``raisim_upgrade.ps1``) instead of trying to rebuild the closed-source engine.

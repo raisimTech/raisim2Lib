@@ -19,26 +19,34 @@ RaiSim |raisim_version_title|
      - .. image:: ../rsc/docs/image/procedural_heightmap.gif
           :alt: procedural_heightmap animated example
           :width: 100%
-   * - .. image:: ../rsc/docs/image/rayrai_blue_wall_scene.png
-          :alt: Blue Wall rayrai example
+   * - .. image:: ../rsc/docs/image/rayrai/rayrai_blue_wall_scene.gif
+          :alt: Camera orbiting the Blue Wall rayrai scene
           :width: 100%
-     - .. image:: ../rsc/docs/image/granular_media_showcase.png
-          :alt: Granular media example with ANYmal
+     - .. image:: ../rsc/docs/image/rayrai/granular_media_kicking.gif
+          :alt: ANYmal kicking simulated sand with noisy PD joint targets
           :width: 100%
-   * - .. image:: ../rsc/docs/image/tendon_pulleys.png
-          :alt: Tendon pulley example
+   * - .. image:: ../rsc/docs/image/rayrai/tendon_pulleys.gif
+          :alt: Tendon-driven loads moving around wrapped pulleys
           :width: 100%
-     - .. image:: ../rsc/docs/image/rayrai_nested_glass_showcase.png
-          :alt: Nested glass rayrai example
+     - .. image:: ../rsc/docs/image/rayrai/rayrai_nested_glass_showcase.gif
+          :alt: Camera orbiting nested and overlapping glass solids
           :width: 100%
+   * - .. image:: ../rsc/docs/image/rayrai/strandbeest_closed_loops.gif
+          :alt: 12-legged Strandbeest walking, driven by one crank through 36 closed kinematic loops
+          :width: 100%
+          :target: sections/examples/server/strandbeest_closed_loops.html
+     - .. image:: ../rsc/docs/image/rayrai/ray_scan_lidar.gif
+          :alt: Husky driving over rough terrain with ray-scan lidar hits colored by range
+          :width: 100%
+          :target: sections/examples/server/ray_scan_lidar.html
 
 RaiSim is a cross-platform multi-body physics engine for robotics and AI. The
-binary package includes rigid bodies, articulated systems, deformable bodies,
+binary package provides rigid bodies, articulated systems, deformable bodies,
 granular particles, rayrai RGB/depth sensor rendering, deterministic CPU ray
-sensors for headless fallback, ``RaisimServer`` streaming, and the rayrai
-OpenGL visualizer.
+sensors for headless use, ``RaisimServer`` streaming, and the rayrai OpenGL
+visualizer.
 
-Use this documentation in this order if you are new to RaiSim:
+If you are new to RaiSim, start with the page that matches your goal:
 
 .. list-table::
    :header-rows: 1

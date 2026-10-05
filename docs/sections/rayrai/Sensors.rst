@@ -9,13 +9,17 @@ viewer) see :doc:`Capture`.
 
 Sensor alignment
 ================
-rayrai can align rendering to RaiSim camera sensors. Use
-``syncRaisimCameraPose`` and ``renderWithExternalCamera`` to ensure the
-render camera matches the sensor pose and intrinsics. RaiSim sensor rendering is
-world-object-only: custom visuals, instanced visuals, point clouds, coordinate
-frames, and other viewer-only helpers are excluded from RGB, depth, and LiDAR
-data-generation passes. Use generic external-camera rendering only when you
-intentionally want a viewer render that includes visualization objects.
+rayrai can align rendering to RaiSim camera sensors. Constructing a
+``raisin::Camera`` from a RaiSim ``RGBCamera`` or ``DepthCamera`` copies the
+sensor's resolution, clip planes, horizontal field of view, and lens model (a GL
+context must be current). The sensor overloads of ``renderWithExternalCamera``
+and ``renderDepthPlaneDistance`` then copy the sensor's world pose into that
+camera on every call; ``syncRaisimCameraPose`` does the same for other render
+paths. RaiSim sensor rendering is world-object-only: custom visuals, instanced
+visuals, point clouds, coordinate frames, and other viewer-only helpers are
+excluded from RGB, depth, and LiDAR data-generation passes. Use generic
+external-camera rendering only when you intentionally want a viewer render that
+includes visualization objects.
 Note: ``syncRaisimCameraPose`` updates ``Camera::position/front/up`` directly;
 avoid calling ``Camera::update()`` immediately afterward unless you also update
 ``yaw``/``pitch``.
@@ -44,26 +48,33 @@ RGB/Depth camera workflow (manual source + external camera):
     raisin::Camera rgbCamera(*rgbCam);
     raisin::Camera depthCamera(*depthCam);
 
-    viewer.renderWithExternalCamera(*rgbCam, rgbCamera, {});
-    viewer.renderWithExternalCamera(*depthCam, depthCamera, {});
-    viewer.renderDepthPlaneDistance(*depthCam, depthCamera);
+    viewer.renderWithExternalCamera(*rgbCam, rgbCamera, {});   // color image
+    viewer.renderWithExternalCamera(*depthCam, depthCamera, {}); // optional color view of the depth sensor
+    viewer.renderDepthPlaneDistance(*depthCam, depthCamera);    // linear depth
 
-You can read back the camera buffers on CPU:
+``renderDepthPlaneDistance`` does not need the color render before it; render
+the depth camera's color image only when you want to show it.
+
+You can read back the camera buffers on CPU. ``getRawImage`` reads the scene
+color target as 8-bit BGRA (``width * height * 4`` bytes); the sensor resolution
+must match the camera's render target. ``SensorStorageMode::SENSOR_SETTER``
+(the default) writes into the RaiSim sensor instead of a caller buffer:
 
 .. code-block:: cpp
 
     const auto& prop = rgbCam->getProperties();
     const int width = std::max(1, prop.width);
     const int height = std::max(1, prop.height);
-    std::vector<char> rgba(size_t(width) * size_t(height) * 4);
+    std::vector<char> bgra(size_t(width) * size_t(height) * 4);
     rgbCamera.getRawImage(*rgbCam, raisin::Camera::SensorStorageMode::CUSTOM_BUFFER,
-      rgba.data(), rgba.size(), /*flipVertical=*/false);
+      bgra.data(), bgra.size(), /*flipVertical=*/false);
 
-Depth uses a ``float`` buffer with ``width * height`` entries. In 2.5.8,
-constructing ``Camera`` from a ``DepthCamera`` allocates depth targets without
-also eagerly allocating the RGB/post-processing targets. Keep the camera alive
-across frames to reuse its buffers, and destroy it while its owning GL context
-is current. ``Camera`` cannot be copied or moved because it owns GL handles.
+Depth uses a ``float`` buffer with ``width * height`` entries. Constructing a
+``Camera`` from a ``DepthCamera`` allocates only the linear-depth target; the
+color and post-processing targets are allocated if the camera is later used
+for a color render. Keep the camera alive across frames to reuse its buffers,
+and destroy it while its owning GL context is current. ``Camera`` cannot be
+copied or moved because it owns GL handles.
 
 The ``RGBCamera``/``DepthCamera`` overloads of ``renderWithExternalCamera``
 always render without MSAA, temporal AA, or viewer upscaling, whatever the
@@ -75,12 +86,13 @@ sensor images; pass ``postProcess = false`` to keep the previous output.
 Asynchronous readback
 =====================
 ``getRawImage`` is synchronous. For high-rate capture,
-``Camera::setAsyncReadbackEnabled(true, ringSize)`` (ring size at least 2,
-default 3) enables a ring of pixel-buffer objects:
-``readSceneColorRgbaAsync(rgba)`` and ``readLinearDepthAsync(depth)`` start a
-readback of the current frame and return ``true`` once they have copied an
-earlier one. The first calls return ``false`` until the ring is full, and the
-copied frame then lags the latest render by ``ringSize`` calls.
+``Camera::setAsyncReadbackEnabled(true, ringSize)`` (default 3; values below 2
+are raised to 2) enables a ring of pixel-buffer objects:
+``readSceneColorRgbaAsync(rgba)`` (RGBA8, unlike the BGRA of ``getRawImage``)
+and ``readLinearDepthAsync(depth)`` start a readback of the current frame and
+return ``true`` once they have copied an earlier one. The first ``ringSize``
+calls return ``false`` while the ring fills, and the copied frame then lags the
+latest render by ``ringSize`` calls.
 
 .. code-block:: cpp
 
@@ -95,11 +107,11 @@ Fisheye lenses
 ==============
 A RaiSim camera whose ``lens`` property is an equidistant fisheye model
 (``raisim::CameraLensModel::setOpenCvFisheye(fx, fy, cx, cy, k1, k2, k3, k4)``)
-is honoured by ``raisin::Camera``. The ``RGBCamera`` and ``DepthCamera``
+is honored by ``raisin::Camera``. The ``RGBCamera`` and ``DepthCamera``
 constructors copy the lens, ``isFisheyeLens()`` reports it, and
-``renderWithExternalCamera`` resamples the rendered colour image through the
+``renderWithExternalCamera`` resamples the rendered color image through the
 OpenCV/ROS equidistant model with ``k1``–``k4`` distortion. The source view is
-rasterized with a horizontal field of view of at most 179°. Only the colour
+rasterized with a horizontal field of view of at most 179°. Only the color
 image is remapped; depth from ``renderDepthPlaneDistance`` stays rectilinear.
 For a camera that is not built from a RaiSim sensor, call
 ``Camera::setLensModel(lens, hFovRad)`` and set ``zoom`` (the vertical field of
@@ -113,22 +125,25 @@ negotiated feature set. A viewer rejects newer unsupported protocol versions wit
 error instead of attempting to parse an incompatible stream.
 
 Current feature bits cover the explicit header, deformable delta streaming, sim
-control, and contact ownership tags. Deformable objects send mesh topology during initialization or topology
-changes; ordinary update frames send vertex positions only. This keeps dynamic
-cloth/cube streaming cheaper while avoiding binary compression until network bandwidth
-is measured as a bottleneck. Sim-control messages share the same feature-negotiated
-request path.
+control, contact ownership tags, and actuator state. Deformable objects send
+mesh topology during initialization or topology changes; ordinary update
+frames send vertex positions only. This keeps dynamic cloth/cube streaming
+cheaper while avoiding binary compression until network bandwidth is measured
+as a bottleneck. Sim-control messages share the same feature-negotiated request
+path.
 
-The protocol constants live in ``rayrai/RaisimTcpCommon.hpp`` (namespace
-``raisin::tcp_viewer``):
+The protocol constants are defined in ``rayrai/TcpProtocolReader.hpp``, which
+``rayrai/RaisimTcpCommon.hpp`` includes (namespace ``raisin::tcp_viewer``):
 
-* ``kDefaultPort`` — default ``RaisimServer`` port the viewer connects to.
+* ``kDefaultPort`` — default ``RaisimServer`` port the viewer connects to
+  (8080).
 * ``kProtocolVersion`` — the current wire version. Mismatched versions cause
   the viewer to disconnect with a versioned-protocol error.
 * ``kProtocolFeatureExplicitHeader``, ``kProtocolFeatureDeformableDelta``,
-  ``kProtocolFeatureSimControl``, and ``kProtocolFeatureContactObjectTags`` —
-  the currently-negotiated feature bits;
+  ``kProtocolFeatureSimControl``, ``kProtocolFeatureContactObjectTags``, and
+  ``kProtocolFeatureActuatorState`` — the currently negotiated feature bits;
   ``kProtocolSupportedFeatures`` is the OR of all bits this build understands.
+  The viewer rejects a server update that sets any other bit.
 * ``kMaxMessageBytes`` — maximum accepted message size (default 64 MiB),
   overridable at build time via the
   ``RAISIM_TCP_VIEWER_MAX_MESSAGE_BYTES`` preprocessor define when very large
@@ -136,27 +151,31 @@ The protocol constants live in ``rayrai/RaisimTcpCommon.hpp`` (namespace
 
 The wire format is a native-endian binary stream. Each TCP frame begins with
 an ``int32_t`` total-frame-size header (including the 4-byte header itself).
-Scene strings use ``int32_t`` lengths; sensor-response names use ``uint64_t``
-lengths to remain ABI-compatible with the legacy ``RaisimServer`` protocol.
+Strings in both directions, including sensor names in sensor-update messages,
+carry ``int32_t`` byte-length prefixes.
 
 Custom TCP clients should use ``raisin::tcp_viewer::BufferReader`` to decode
-frames. It is a non-owning view over the received byte buffer with bounds-
-checked accessors:
+frames. It is a non-owning view over the received byte buffer (the buffer must
+outlive the reader) with bounds-checked accessors:
 
 .. code-block:: cpp
 
-    raisin::tcp_viewer::BufferReader reader(buffer);
+    raisin::tcp_viewer::BufferReader reader(buffer);  // const std::vector<char>&
     auto version = reader.read<int>();
     auto features = reader.read<std::uint64_t>();
     auto name = reader.readString();
-    auto positions = reader.readVector<float>();
+    auto positions = reader.readFloatVector();
     if (!reader.ok) {
       // malformed frame; drop the connection
     }
 
-Each read advances ``reader.offset()`` and sets ``reader.ok = false`` if there
-is not enough data left, so callers can decode an entire frame and check
-``ok`` at the end rather than after every field.
+Each read advances the cursor (``reader.offset()``) and clears ``reader.ok`` if
+there is not enough data left or a length prefix is invalid. The flag is
+sticky, so callers can decode an entire frame and check ``ok`` at the end
+rather than after every field. Besides ``read<T>()`` and ``readString()``, the
+reader provides ``readBool``, ``readVec3f``, ``readVec4f``, ``readQuatWxyz``,
+``readFloatVector``, ``readIntVector``, ``readByteVector``, and
+``readColorMap``.
 
 The current viewer also services ``MeasurementSource::MANUAL`` RGB/depth
 requests received in the scene stream. It renders from the streamed camera
@@ -171,15 +190,20 @@ The renderer supports a linear depth plane and a GPU-assisted LiDAR pass. These 
 passes render RaiSim world objects only; visualization-only objects are intentionally
 ignored so they cannot leak into training observations.
 
-* ``renderDepthPlaneDistance`` renders a linear depth texture. Its optional
-  ``drawVisualizationObjects`` argument (default ``false``) adds custom and
-  instanced visuals; only detectable ones are included unless
+* ``renderDepthPlaneDistance`` renders camera-plane distance into the camera's
+  ``R32F`` linear-depth texture; pixels without geometry are ``0``. Its
+  optional ``drawVisualizationObjects`` argument (default ``false``) adds custom
+  and instanced visuals; only detectable ones are included unless
   ``visualizationObjectsMustBeDetectable`` is ``false``.
-* ``measureSpinningLidarSingleDrawGPU`` renders a LiDAR slice using a
-  spherical chunk shader. Pass ``objectToExclude`` (for example the robot
+* ``measureSpinningLidarSingleDrawGPU`` renders, using a spherical chunk
+  shader, the yaw span the LiDAR swept since the previous call (from the world
+  time and the spin rate) and stores the hits, in the sensor frame, with
+  ``SpinningLidar::setScan``. Pass ``objectToExclude`` (for example the robot
   carrying the sensor) to leave one object out of the scan.
 
-You can retrieve the depth texture via ``getDepthPlaneTexture()``.
+Read the depth texture of an external camera with
+``Camera::getLinearDepthTexture()``; ``getDepthPlaneTexture()`` returns the one
+of the viewer's internal camera.
 
 LiDAR usage has two paths. Prefer the rayrai GPU path when rayrai is available:
 

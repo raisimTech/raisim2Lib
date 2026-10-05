@@ -7,11 +7,14 @@
   <img src="rsc/docs/image/deformable_objects.gif" alt="deformable objects example" width="49%" />
   <img src="rsc/docs/image/procedural_heightmap.gif" alt="procedural heightmap example" width="49%" />
   <br />
-  <img src="rsc/docs/image/rayrai_blue_wall_scene.png" alt="Blue Wall rayrai example" width="49%" />
-  <img src="rsc/docs/image/granular_media_showcase.png" alt="Granular media example with ANYmal" width="49%" />
+  <img src="rsc/docs/image/rayrai/rayrai_blue_wall_scene.gif" alt="Camera orbiting the Blue Wall rayrai scene" width="49%" />
+  <img src="rsc/docs/image/rayrai/granular_media_kicking.gif" alt="ANYmal kicking simulated sand with noisy PD joint targets" width="49%" />
   <br />
-  <img src="rsc/docs/image/tendon_pulleys.png" alt="Tendon pulley example" width="49%" />
-  <img src="rsc/docs/image/rayrai_nested_glass_showcase.png" alt="Nested glass rayrai example" width="49%" />
+  <img src="rsc/docs/image/rayrai/tendon_pulleys.gif" alt="Tendon-driven loads moving around wrapped pulleys" width="49%" />
+  <img src="rsc/docs/image/rayrai/rayrai_nested_glass_showcase.gif" alt="Camera orbiting nested and overlapping glass solids" width="49%" />
+  <br />
+  <img src="rsc/docs/image/rayrai/strandbeest_closed_loops.gif" alt="12-legged Strandbeest walking, driven by one crank through 36 closed kinematic loops" width="49%" />
+  <img src="rsc/docs/image/rayrai/ray_scan_lidar.gif" alt="Husky driving over rough terrain with ray-scan lidar hits colored by range" width="49%" />
 </p>
 
 For full documentation, see the [RaiSim documentation](https://raisim.com/sections/Simulator.html).

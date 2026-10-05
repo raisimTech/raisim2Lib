@@ -2,36 +2,41 @@
 Quick Start
 #############################
 
-This page gets an unpacked RaiSim binary package to a running example. For
-package layout, environment variables, and activation details, see
+This page takes a ``raisim2Lib`` checkout to a running example. For package
+layout, dependencies, environment variables, and activation details, see
 :doc:`Installation`.
 
 1. Install and activate RaiSim
 ==============================
 
-Install the binary package for your platform and place the activation file at
-the default location:
+Clone ``raisim2Lib`` and place the activation file at the default location:
 
 .. code-block:: text
 
     Linux/macOS: $HOME/.raisim/activation.raisim
     Windows:     C:\Users\<YOUR-USERNAME>\.raisim\activation.raisim
 
-Source the environment and build the examples from the release workspace:
+Build the examples. The first configure downloads the RaiSim and rayrai binary
+packages that match the checkout into ``raisim/`` and ``rayrai/``:
 
 .. code-block:: bash
 
-    cd /path/to/raisim2Lib
-    source ./raisim_env.sh
+    git clone https://github.com/raisimTech/raisim2Lib.git
+    cd raisim2Lib
     cmake -S . -B build-examples \
       -DCMAKE_BUILD_TYPE=Release \
       -DRAISIM_EXAMPLE=ON
     cmake --build build-examples --parallel 12
+    source ./raisim_env.sh
+
+``raisim_env.sh`` adds the RaiSim and rayrai library directories to the library
+search path. It only adds directories that exist, so source it after the first
+configure has downloaded the packages.
 
 On Linux and macOS, example executables are then under
 ``build-examples/examples``. On Windows, configure without
 ``CMAKE_BUILD_TYPE`` and build with ``--config Release``; executables are under
-``build-examples\\bin``.
+``build-examples\bin``, next to copies of the runtime DLLs.
 
 2. Run a server-based example
 =============================
@@ -48,9 +53,11 @@ Run a server example in another terminal:
 
     ./build-examples/examples/primitive_grid
 
-``primitive_grid`` and the other server examples create a ``raisim::RaisimServer``
-scene. The viewer connects to the default port ``8080`` unless the application
-changes it.
+``primitive_grid`` and the other server examples publish their world through a
+``raisim::RaisimServer``, which listens on port ``8080`` by default. On first
+launch the viewer connects to ``127.0.0.1:8080``; if an application uses another
+host or port, pass ``--connect host:port`` to the viewer or edit the endpoint in
+its **Connection** tab (see :doc:`RayraiTcpViewer`).
 
 3. Run an in-process rayrai example
 ===================================
@@ -73,7 +80,8 @@ need the TCP viewer:
 5. Run an OpenUSD mesh-loading example
 ======================================
 
-Start the TCP viewer, then run the ShadowHand USD example:
+As in step 2, start the TCP viewer in one terminal and the ShadowHand USD
+example in another:
 
 .. code-block:: bash
 

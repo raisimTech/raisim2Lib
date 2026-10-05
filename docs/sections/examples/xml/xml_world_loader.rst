@@ -4,40 +4,44 @@ XML Example: World Loader
 
 Overview
 ========
-Provides a small editable source template for loading a world XML file and
-running a ``RaisimServer`` session. It is not a generic command-line XML
-loader: the shipped public example keeps its ``xmlScript`` constant empty and exits
-after printing an instruction.
+Loads a world XML file and publishes it through ``RaisimServer``. With no
+argument it loads ``objects/SingleBodies.xml``; pass another file to load it
+instead. See :doc:`../../WorldConfigurationFile` for the XML format.
 
 Screenshot
 ==========
 .. image:: ../../../../rsc/docs/image/heightMapUsingPNG.gif
+   :alt: xml_world_loader running heightMaps/heightMapUsingPng.xml
+
+The screenshot shows ``heightMaps/heightMapUsingPng.xml``.
 
 Target
 ======
 CMake target: ``xml_world_loader``.
 
 Run
-====
-To use the template, set ``xmlScript`` in
-``examples/src/xml/xml_world_loader.cpp`` to a path relative to
-``rsc/xmlScripts``, rebuild the target, and run:
+===
+Run the build-tree executable, optionally with an XML file:
 
 .. code-block:: bash
 
-   cmake --build build-examples --target xml_world_loader --parallel 12
    ./build-examples/examples/xml_world_loader
+   ./build-examples/examples/xml_world_loader heightMaps/heightMapUsingPng.xml
+   ./build-examples/examples/xml_world_loader /absolute/path/to/world.xml
 
 On Windows, run ``xml_world_loader.exe`` instead.
 This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
-
+``--help`` prints the usage.
 
 Details
 =======
-- Resolves the selected file below the copied ``rsc/xmlScripts`` directory.
-- Constructs ``raisim::World`` from that XML path and publishes it through
+- Uses the argument as given if that file exists; otherwise looks for it under
+  the ``rsc/xmlScripts`` copy next to the executable. It exits with an error if
+  neither exists.
+- The bundled worlds under ``rsc/xmlScripts`` include ``objects/``,
+  ``heightMaps/``, ``material/``, ``templatedWorld/``, and ``wire/`` examples.
+- Constructs ``raisim::World`` from the resolved path and publishes it through
   ``RaisimServer``.
-- Does not parse command-line arguments or record video in the shipped example.
 
 For application code that already has a path, construct the world directly:
 

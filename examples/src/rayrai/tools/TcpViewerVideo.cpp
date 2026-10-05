@@ -86,10 +86,20 @@ std::vector<std::filesystem::path> executableSearchDirectories() {
   return directories;
 }
 
-/** ffmpeg's yuv420p encoders need even dimensions; crop rather than stretch. */
-void appendEvenDimensionFilter(std::vector<std::string>& arguments) {
-  arguments.emplace_back("-vf");
-  arguments.emplace_back("crop=trunc(iw/2)*2:trunc(ih/2)*2");
+/** The encoder options and output path shared by every ffmpeg encode. */
+void appendEncodeOutputArguments(std::vector<std::string>& arguments,
+                                 const VideoEncoderSettings& sanitized,
+                                 const std::filesystem::path& output) {
+  arguments.insert(arguments.end(), {
+    // ffmpeg's yuv420p encoders need even dimensions; crop rather than stretch.
+    "-vf", "crop=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-c:v", sanitized.codec,
+    "-crf", std::to_string(sanitized.quality),
+    "-pix_fmt", sanitized.pixelFormat,
+    // Fast-start metadata so the file plays while it is still being copied.
+    "-movflags", "+faststart",
+    output.string(),
+  });
 }
 
 /**
@@ -157,17 +167,7 @@ std::vector<std::string> buildRawVideoEncodeArguments(
     "-framerate", formatFrameRate(sanitized.framesPerSecond),
     "-i", "-",
   };
-  appendEvenDimensionFilter(arguments);
-  arguments.emplace_back("-c:v");
-  arguments.emplace_back(sanitized.codec);
-  arguments.emplace_back("-crf");
-  arguments.emplace_back(std::to_string(sanitized.quality));
-  arguments.emplace_back("-pix_fmt");
-  arguments.emplace_back(sanitized.pixelFormat);
-  // Fast-start metadata so the file plays while it is still being copied.
-  arguments.emplace_back("-movflags");
-  arguments.emplace_back("+faststart");
-  arguments.emplace_back(output.string());
+  appendEncodeOutputArguments(arguments, sanitized, output);
   return arguments;
 }
 
@@ -183,16 +183,7 @@ std::vector<std::string> buildPngSequenceEncodeArguments(
     "-start_number", "0",
     "-i", inputPattern.string(),
   };
-  appendEvenDimensionFilter(arguments);
-  arguments.emplace_back("-c:v");
-  arguments.emplace_back(sanitized.codec);
-  arguments.emplace_back("-crf");
-  arguments.emplace_back(std::to_string(sanitized.quality));
-  arguments.emplace_back("-pix_fmt");
-  arguments.emplace_back(sanitized.pixelFormat);
-  arguments.emplace_back("-movflags");
-  arguments.emplace_back("+faststart");
-  arguments.emplace_back(output.string());
+  appendEncodeOutputArguments(arguments, sanitized, output);
   return arguments;
 }
 
@@ -241,12 +232,10 @@ std::string findFfmpegExecutable() {
     return isExecutableFile(overridePath) ? overridePath : std::string();
   }
   for (const std::filesystem::path& directory : executableSearchDirectories()) {
-    std::error_code ec;
     const std::filesystem::path candidate = directory / kFfmpegExecutableName;
     if (isExecutableFile(candidate)) {
       return candidate.string();
     }
-    static_cast<void>(ec);
   }
   return {};
 }

@@ -24,11 +24,10 @@ Note the keyword "movable".
 The fixed joints contribute to neither the generalized coordinate nor the generalized velocity.
 Only movable joints do.
 
-The joint order starts with the **root body** which is the first body of the articulated system. 
-For floating-base systems, the root body is the floating base.
-For fixed-base systems, the root body is the one rigidly attached to the world.
-Even though the fixed base cannot move physically, users can move it using :code:`setBaseOrientation` and :code:`setBasePosition`.
-So :code:`getMovableJointNames()` method will return the fixed base name and the fixed base joint is a part of the joint order.
+The **root body** is the first body (body 0) of the articulated system.
+For floating-base systems, the root body is the floating base. Its floating joint comes first in the joint order and is named ``ROOT`` in :code:`getMovableJointNames()`.
+For fixed-base systems, the root body is the one rigidly attached to the world. Its joint is fixed, so it is not part of the joint order, and the joint order starts with the first movable joint.
+Even though the fixed base cannot move physically, users can move it using :code:`setBaseOrientation` and :code:`setBasePos`.
 
 To set the state of the system, the following methods can be used
 
@@ -45,9 +44,7 @@ To obtain the state of the system, the following methods can be used
 The dimensions of each vector can be obtained respectively by
 
 * :code:`getGeneralizedCoordinateDim`
-* :code:`getDOF` or :code:`getGeneralizedVelocityDim`. 
-
-These two methods are identical
+* :code:`getDOF` or :code:`getGeneralizedVelocityDim` (these two methods are identical)
 
 .. _articulated_systems:
 
@@ -107,10 +104,10 @@ Types of Indices
 =============================
 The ArticulatedSystem class contains multiple types of indices. To query a specific quantity, you have to provide an index of the right type. The types of indices in Articulated Systems are:
 
-* **Body/Joint Index**: All fixed bodies are combined to a single movable body. Each movable body has a unique body index. Because there is a movable joint associated with a movable body, there is a 1-to-1 mapping between the joints and the bodies and they share the same index. For a fixed-base system, the first body rigidly fixed to the world is body-0. For a floating-base system, the floating base is body-0.
-* **Generalized Velocity (DOF) Index**: All joints are mapped to a specific set of generalized velocity indices.
-* **Generalized Coordinate Index**:
-* **Frame Index**:
+* **Body/Joint Index**: Links connected by fixed joints are merged into a single body. Each body has a unique body index. Because every body has exactly one parent joint, there is a 1-to-1 mapping between the joints and the bodies and they share the same index. For a fixed-base system, the body rigidly fixed to the world is body 0. For a floating-base system, the floating base is body 0. Retrieve it with :code:`getBodyIdx()`.
+* **Generalized Velocity (DOF) Index**: The index of an entry in the generalized velocity (and in the generalized force). Each movable joint occupies a block of 1 (revolute, prismatic), 3 (spherical) or 6 (floating) consecutive entries.
+* **Generalized Coordinate Index**: The index of an entry in the generalized coordinate. Each movable joint occupies a block of 1 (revolute, prismatic), 4 (spherical) or 7 (floating) consecutive entries.
+* **Frame Index**: The index of a frame in :code:`getFrames()`. Every joint, including fixed joints, has a frame (see `Frames`_). Retrieve it with :code:`getFrameIdxByName()`.
 
 Conversions Between Indices
 *****************************
@@ -128,8 +125,8 @@ The position and velocity of a specific point on a body of an articulated system
 This is the recommended way to get kinematics information for a point of an articulated system in RaiSim.
 
 All joints have a frame attached and their names are the same as the joint name.
-To create a custom frame, define a fixed frame at the point of interest.
-A dummy link with zero inertia and zero mass must be added on one side of the fixed joint to complete the kinematic tree.
+To create a custom frame, define a fixed joint at the point of interest.
+A dummy link with zero inertia and zero mass must be added as the child of the fixed joint to complete the kinematic tree.
 
 A frame can be stored locally as an index in user code. For example:
 
@@ -166,11 +163,12 @@ Joint limits can be defined in a URDF file **per joint** as follows:
 The ``lower`` and ``upper`` are joint position limits and the ``velocity`` is the joint velocity limit.
 The joint limits are implemented as if there is a hard stop at the limits.
 This means that there is a hard collision (with a restitution coefficient of 0) when the joint hits a limit.
+The ``effort`` is not a joint limit but the actuation limit of the joint: it bounds the feedforward generalized force plus the built-in PD torque (see :doc:`DynamicsAndControl`).
+It does not bound actuator torques, which are limited by the operating regions of their motors (see :doc:`../Actuators`).
 
-You can modify the joint position limits in C++ using ``raisim::ArticulatedSystem::setJointLimits()``.
-Currently, you cannot modify the velocity joint limits in code.
+You can modify the joint position limits in C++ using ``raisim::ArticulatedSystem::setJointLimits()`` (one entry per degree of freedom) and the joint velocity limits using ``raisim::ArticulatedSystem::setJointVelocityLimits()`` (one entry per body; a non-finite entry means no limit).
 
-During simulation, you can get information on joint limit violations using ``raisim::ArticulatedSystem::getJointLimitViolations``.
+During simulation, you can get information on joint limit violations using ``raisim::ArticulatedSystem::getJointLimitViolations(*world.getContactProblem())``.
 Even though joint limits are collisions (and thus handled by a contact solver), they are not listed in ``raisim::Object::getContacts()``.
 
 Jacobians

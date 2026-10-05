@@ -1,0 +1,2476 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Strandbeest" xsi:schemaLocation="http://drake.mit.edu ../../doc/drakeURDF.xsd">
+  <material name="#FF9619">
+    <color rgba="1.0 0.5882353 0.098039225 1" />
+  </material>
+  <material name="#FE6860">
+    <color rgba="0.9960785 0.40784317 0.37647063 1" />
+  </material>
+  <material name="#D2588C">
+    <color rgba="0.8235295 0.34509805 0.54901963 1" />
+  </material>
+  <material name="#8C5C99">
+    <color rgba="0.54901963 0.36078432 0.6 1" />
+  </material>
+  <material name="#4A5782">
+    <color rgba="0.2901961 0.34117648 0.50980395 1" />
+  </material>
+  <material name="#2F4858">
+    <color rgba="0.18431373 0.28235295 0.34509805 1" />
+  </material>
+  <link name="crossbar">
+    <inertial>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="1" radius="0.02" />
+      </geometry>
+      <material name="orange">
+        <color rgba="1 .6392 .0980 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="crank_axle">
+    <inertial>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="1.57079632679 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="1" radius="0.03" />
+      </geometry>
+      <material name="orange" />
+    </visual>
+  </link>
+  <joint name="joint_crossbar_crank" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="crank_axle" />
+    <origin rpy="0 0 0" xyz="0 0 0.078" />
+  </joint>
+  <transmission name="crossbar_crank_transmission" type="pr2_mechanism_model/SimpleTransmission">
+    <joint name="joint_crossbar_crank" />
+    <actuator name="crossbar_crank_motor" />
+    <mechanicalReduction>1</mechanicalReduction>
+  </transmission>
+  <link name="pair01_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <link name="pair01_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_bar_l" />
+    <child link="pair01_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair01_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <link name="pair01_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <link name="pair01_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg1_bar_j" />
+    <child link="pair01_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair01_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg1_bar_k" />
+    <child link="pair01_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair01_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair01_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg1_bar_k" />
+    <child link="pair01_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair01_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg1_bar_j" />
+    <child link="pair01_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair01_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg1_bars_b_d_e" />
+    <child link="pair01_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair01_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_bar_m" />
+    <child link="pair01_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair01_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <link name="pair01_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg2_bar_j" />
+    <child link="pair01_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair01_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg2_bar_k" />
+    <child link="pair01_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair01_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair01_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg2_bar_k" />
+    <child link="pair01_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair01_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg2_bar_j" />
+    <child link="pair01_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair01_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#2F4858" />
+    </visual>
+  </link>
+  <joint name="pair01_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_leg2_bars_b_d_e" />
+    <child link="pair01_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair01_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair01_bar_m" />
+    <child link="pair01_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair01_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair01_bar_l" />
+    <origin rpy="0 0 0" xyz="0 -0.5 0" />
+  </joint>
+  <joint name="pair01_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair01_bar_m" />
+    <origin rpy="0 0 0" xyz="0 -0.5 0" />
+  </joint>
+  <link name="pair02_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <link name="pair02_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_bar_l" />
+    <child link="pair02_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair02_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <link name="pair02_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <link name="pair02_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg1_bar_j" />
+    <child link="pair02_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair02_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg1_bar_k" />
+    <child link="pair02_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair02_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair02_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg1_bar_k" />
+    <child link="pair02_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair02_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg1_bar_j" />
+    <child link="pair02_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair02_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg1_bars_b_d_e" />
+    <child link="pair02_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair02_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_bar_m" />
+    <child link="pair02_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair02_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <link name="pair02_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg2_bar_j" />
+    <child link="pair02_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair02_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg2_bar_k" />
+    <child link="pair02_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair02_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair02_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg2_bar_k" />
+    <child link="pair02_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair02_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg2_bar_j" />
+    <child link="pair02_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair02_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#4A5782" />
+    </visual>
+  </link>
+  <joint name="pair02_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_leg2_bars_b_d_e" />
+    <child link="pair02_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair02_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair02_bar_m" />
+    <child link="pair02_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair02_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair02_bar_l" />
+    <origin rpy="0 0 0" xyz="0 -0.3 0" />
+  </joint>
+  <joint name="pair02_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair02_bar_m" />
+    <origin rpy="0 2.09439510239 0" xyz="0 -0.3 0" />
+  </joint>
+  <link name="pair03_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <link name="pair03_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_bar_l" />
+    <child link="pair03_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair03_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <link name="pair03_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <link name="pair03_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg1_bar_j" />
+    <child link="pair03_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair03_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg1_bar_k" />
+    <child link="pair03_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair03_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair03_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg1_bar_k" />
+    <child link="pair03_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair03_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg1_bar_j" />
+    <child link="pair03_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair03_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg1_bars_b_d_e" />
+    <child link="pair03_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair03_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_bar_m" />
+    <child link="pair03_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair03_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <link name="pair03_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg2_bar_j" />
+    <child link="pair03_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair03_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg2_bar_k" />
+    <child link="pair03_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair03_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair03_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg2_bar_k" />
+    <child link="pair03_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair03_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg2_bar_j" />
+    <child link="pair03_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair03_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#8C5C99" />
+    </visual>
+  </link>
+  <joint name="pair03_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_leg2_bars_b_d_e" />
+    <child link="pair03_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair03_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair03_bar_m" />
+    <child link="pair03_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair03_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair03_bar_l" />
+    <origin rpy="0 0 0" xyz="0 -0.1 0" />
+  </joint>
+  <joint name="pair03_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair03_bar_m" />
+    <origin rpy="0 4.18879020479 0" xyz="0 -0.1 0" />
+  </joint>
+  <link name="pair04_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <link name="pair04_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_bar_l" />
+    <child link="pair04_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair04_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <link name="pair04_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <link name="pair04_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg1_bar_j" />
+    <child link="pair04_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair04_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg1_bar_k" />
+    <child link="pair04_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair04_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair04_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg1_bar_k" />
+    <child link="pair04_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair04_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg1_bar_j" />
+    <child link="pair04_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair04_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg1_bars_b_d_e" />
+    <child link="pair04_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair04_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_bar_m" />
+    <child link="pair04_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair04_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <link name="pair04_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg2_bar_j" />
+    <child link="pair04_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair04_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg2_bar_k" />
+    <child link="pair04_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair04_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair04_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg2_bar_k" />
+    <child link="pair04_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair04_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg2_bar_j" />
+    <child link="pair04_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair04_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#D2588C" />
+    </visual>
+  </link>
+  <joint name="pair04_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_leg2_bars_b_d_e" />
+    <child link="pair04_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair04_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair04_bar_m" />
+    <child link="pair04_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair04_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair04_bar_l" />
+    <origin rpy="0 0 0" xyz="0 0.1 0" />
+  </joint>
+  <joint name="pair04_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair04_bar_m" />
+    <origin rpy="0 1.0471975512 0" xyz="0 0.1 0" />
+  </joint>
+  <link name="pair05_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <link name="pair05_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_bar_l" />
+    <child link="pair05_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair05_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <link name="pair05_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <link name="pair05_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg1_bar_j" />
+    <child link="pair05_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair05_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg1_bar_k" />
+    <child link="pair05_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair05_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair05_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg1_bar_k" />
+    <child link="pair05_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair05_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg1_bar_j" />
+    <child link="pair05_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair05_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg1_bars_b_d_e" />
+    <child link="pair05_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair05_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_bar_m" />
+    <child link="pair05_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair05_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <link name="pair05_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg2_bar_j" />
+    <child link="pair05_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair05_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg2_bar_k" />
+    <child link="pair05_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair05_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair05_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg2_bar_k" />
+    <child link="pair05_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair05_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg2_bar_j" />
+    <child link="pair05_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair05_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#FE6860" />
+    </visual>
+  </link>
+  <joint name="pair05_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_leg2_bars_b_d_e" />
+    <child link="pair05_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair05_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair05_bar_m" />
+    <child link="pair05_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair05_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair05_bar_l" />
+    <origin rpy="0 0 0" xyz="0 0.3 0" />
+  </joint>
+  <joint name="pair05_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair05_bar_m" />
+    <origin rpy="0 3.14159265359 0" xyz="0 0.3 0" />
+  </joint>
+  <link name="pair06_bar_l">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.039" />
+      <geometry>
+        <cylinder length="0.078" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <link name="pair06_bar_a">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.76" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_joint_l_a" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_bar_l" />
+    <child link="pair06_bar_a" />
+    <origin rpy="0 -1.57079632679 0" xyz="0 0 0" />
+  </joint>
+  <link name="pair06_bar_m">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.075" />
+      <geometry>
+        <cylinder length="0.15" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <link name="pair06_leg1_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <link name="pair06_leg1_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg1_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg1_bar_j" />
+    <child link="pair06_leg1_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair06_leg1_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg1_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg1_bar_k" />
+    <child link="pair06_leg1_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair06_leg1_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair06_leg1_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg1_bar_k" />
+    <child link="pair06_leg1_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair06_leg1_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg1_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg1_bar_j" />
+    <child link="pair06_leg1_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair06_leg1_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg1_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg1_bars_b_d_e" />
+    <child link="pair06_leg1_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair06_leg1_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_bar_m" />
+    <child link="pair06_leg1_bar_j" />
+    <origin rpy="0 0 0" xyz="0 0 0.15" />
+  </joint>
+  <link name="pair06_leg2_bar_j">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25" />
+      <geometry>
+        <cylinder length="0.50" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <link name="pair06_leg2_bar_k">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.3095" />
+      <geometry>
+        <cylinder length="0.619" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg2_joint_j_k" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg2_bar_j" />
+    <child link="pair06_leg2_bar_k" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+    <limit effort="0" lower="-1.8" upper="-1.1" velocity="1000" />
+  </joint>
+  <link name="pair06_leg2_bar_c">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.1965" />
+      <geometry>
+        <cylinder length="0.393" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg2_joint_k_c" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg2_bar_k" />
+    <child link="pair06_leg2_bar_c" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="1.57079632679" upper="3.14159265359" velocity="1000" />
+  </joint>
+  <link name="pair06_leg2_bars_g_h_i">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.245" />
+      <geometry>
+        <cylinder length="0.49" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 1.73 0" xyz="0.1812 0 -0.0291" />
+      <geometry>
+        <cylinder length="0.367" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 2.5576 0" xyz="0.1811 0 0.2159" />
+      <geometry>
+        <cylinder length="0.657" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.49" />
+      <geometry>
+        <sphere radius="0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="pair06_leg2_joint_k_i" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg2_bar_k" />
+    <child link="pair06_leg2_bars_g_h_i" />
+    <origin rpy="0 0 0" xyz="0 0 0.619" />
+    <limit effort="0" lower="-2" upper="-0.05" velocity="1000" />
+  </joint>
+  <link name="pair06_leg2_bars_b_d_e">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.279" />
+      <geometry>
+        <cylinder length="0.558" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 -2.3056 0" xyz="-0.1488 0 0.4236" />
+      <geometry>
+        <cylinder length="0.401" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+    <visual>
+      <origin rpy="0 -0.8 0" xyz="-0.1489 0 0.1446" />
+      <geometry>
+        <cylinder length="0.415" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg2_joint_j_e" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg2_bar_j" />
+    <child link="pair06_leg2_bars_b_d_e" />
+    <origin rpy="0 0 0" xyz="0 0 0.50" />
+    <limit effort="0" lower="-1.9" upper="-1.0" velocity="1000" />
+  </joint>
+  <link name="pair06_leg2_bar_f">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <mass value="1" />
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.197" />
+      <geometry>
+        <cylinder length="0.394" radius="0.02" />
+      </geometry>
+      <material name="#FF9619" />
+    </visual>
+  </link>
+  <joint name="pair06_leg2_joint_e_f" type="revolute">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_leg2_bars_b_d_e" />
+    <child link="pair06_leg2_bar_f" />
+    <origin rpy="0 0 0" xyz="0 0 0.558" />
+    <limit effort="0" lower="-1.7" upper="0.4" velocity="1000" />
+  </joint>
+  <joint name="pair06_leg2_joint_m_j" type="continuous">
+    <axis xyz="0 1 0" />
+    <parent link="pair06_bar_m" />
+    <child link="pair06_leg2_bar_j" />
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0.15" />
+  </joint>
+  <joint name="pair06_joint_crossbar_l" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crossbar" />
+    <child link="pair06_bar_l" />
+    <origin rpy="0 0 0" xyz="0 0.5 0" />
+  </joint>
+  <joint name="pair06_joint_crank_axle_m" type="fixed">
+    <axis xyz="0 1 0" />
+    <parent link="crank_axle" />
+    <child link="pair06_bar_m" />
+    <origin rpy="0 5.23598775598 0" xyz="0 0.5 0" />
+  </joint>
+  <constraints nominal_config="0 0 0.850294586185 1 0 0 0 0 -1.20717372415 -1.58837283334 2.34807263335 -0.620460617083 -1.3462733752 -1.1274416499 -1.20717372415 -1.58837283334 2.34807263335 -0.620460617078 -1.34627337519 -1.12744164991 -2.82409556503 -1.53234484361 2.17798957151 -0.465434623288 -1.17246664905 -1.43278140112 1.48718575006 -1.32179037775 2.92391794339 -1.53494452107 -1.81921537376 0.114618911015 1.48718575007 -1.32179037775 2.92391794339 -1.53494452108 -1.81921537376 0.114618911016 -2.82409556503 -1.53234484361 2.17798957151 -0.465434623288 -1.17246664905 -1.43278140112 -2.08412023627 -1.5062237176 2.12054078068 -0.414469748643 -1.11196162988 -1.53515168605 -0.0939604132029 -1.50041597649 2.76062950933 -1.16539639118 -1.7153946316 -0.268964889312 2.70075122291 -1.60256533481 2.49398793931 -0.774581010081 -1.48760047081 -0.849373411068 2.7007512229 -1.60256533481 2.49398793931 -0.774581010083 -1.48760047082 -0.849373411065 -0.0939604131923 -1.50041597648 2.76062950933 -1.16539639119 -1.7153946316 -0.268964889298 -2.08412023628 -1.5062237176 2.12054078068 -0.414469748641 -1.11196162987 -1.53515168605">
+    <equality body1="pair01_leg1_bar_f" body2="pair01_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair01_leg1_bars_b_d_e" body2="pair01_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair01_bar_a" body2="pair01_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair01_leg2_bar_f" body2="pair01_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair01_leg2_bars_b_d_e" body2="pair01_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair01_bar_a" body2="pair01_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_leg1_bar_f" body2="pair02_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_leg1_bars_b_d_e" body2="pair02_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_bar_a" body2="pair02_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_leg2_bar_f" body2="pair02_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_leg2_bars_b_d_e" body2="pair02_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair02_bar_a" body2="pair02_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_leg1_bar_f" body2="pair03_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_leg1_bars_b_d_e" body2="pair03_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_bar_a" body2="pair03_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_leg2_bar_f" body2="pair03_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_leg2_bars_b_d_e" body2="pair03_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair03_bar_a" body2="pair03_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_leg1_bar_f" body2="pair04_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_leg1_bars_b_d_e" body2="pair04_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_bar_a" body2="pair04_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_leg2_bar_f" body2="pair04_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_leg2_bars_b_d_e" body2="pair04_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair04_bar_a" body2="pair04_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_leg1_bar_f" body2="pair05_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_leg1_bars_b_d_e" body2="pair05_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_bar_a" body2="pair05_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_leg2_bar_f" body2="pair05_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_leg2_bars_b_d_e" body2="pair05_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair05_bar_a" body2="pair05_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_leg1_bar_f" body2="pair06_leg1_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_leg1_bars_b_d_e" body2="pair06_leg1_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_bar_a" body2="pair06_leg1_bar_c" anchor="0 0 0.38">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_leg2_bar_f" body2="pair06_leg2_bars_g_h_i" anchor="0 0 0.394">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_leg2_bars_b_d_e" body2="pair06_leg2_bar_c" anchor="-0.2978 0 0.2892">
+      <axis xyz="-1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+    <equality body1="pair06_bar_a" body2="pair06_leg2_bar_c" anchor="0 0 -0.38">
+      <axis xyz="1 0 0" />
+      <axis xyz="0 0 1" />
+    </equality>
+  </constraints>
+</robot>

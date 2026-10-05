@@ -1,9 +1,11 @@
-rayrai_blender_scene_import
-===========================
+Rayrai Workflow: Blender Scene Import
+=====================================
 
 Rayrai can import complete authored visual scenes through glTF/GLB. This is the
 recommended workflow for rooms, offices, shelves, lamps, props, and other scenes that
 should stay authored in Blender instead of being reconstructed object by object in C++.
+This page describes a workflow, not a build target; the ``rayrai_blue_wall_scene``
+target loads a GLB scene and its light sidecar in the same way.
 
 The pipeline is:
 
@@ -29,24 +31,23 @@ scene rendering because material, normal-map, and light semantics are too limite
 
 Exporter location
 -----------------
-The general Blender exporter is installed in:
+The general Blender exporter ships with ``raisim2Lib`` as
+``scripts/export_blender_scene.py``. The commands below assume the checkout is
+at ``$HOME/raisim2Lib``:
 
 .. code-block:: bash
 
-
    $HOME/raisim2Lib/scripts/export_blender_scene.py
 
-It is copied from the public helper used by the RayRai examples. The script is not
-asset-specific. It exports renderable Blender objects, applies modifiers, preserves
-Z-up coordinates, writes glTF/GLB output, and emits a RayRai sidecar for Blender area
-lights that glTF cannot store directly.
+The script is not asset-specific. It exports renderable Blender objects, applies
+modifiers, preserves Z-up coordinates, writes glTF/GLB output, and emits a rayrai
+sidecar for Blender area lights that glTF cannot store directly.
 
 Export command
 --------------
 Run Blender in background mode:
 
 .. code-block:: bash
-
 
    blender --background /path/to/scene.blend \
      --python $HOME/raisim2Lib/scripts/export_blender_scene.py \
@@ -55,7 +56,6 @@ Run Blender in background mode:
 The exporter also supports separate glTF output:
 
 .. code-block:: bash
-
 
    blender --background /path/to/scene.blend \
      --python $HOME/raisim2Lib/scripts/export_blender_scene.py \
@@ -72,7 +72,6 @@ and lamp shades. The exporter writes those lights next to the scene:
 
 .. code-block:: text
 
-
    scene.glb
    scene.glb.rayrai_lights.json
 
@@ -86,7 +85,6 @@ Load the scene as a visual scene:
 
 .. code-block:: cpp
 
-
    raisin::RayraiWindow::SceneImportReport report;
    auto scene = viewer.importVisualScene(
      "imported_room",
@@ -95,9 +93,13 @@ Load the scene as a visual scene:
      /*importLights=*/true,
      /*lightIntensityScale=*/0.08f);
 
-The returned object owns the imported visual nodes. The import report records mesh,
-material, texture, and light decisions. Use it when diagnosing missing maps, unexpected
-alpha, or lights that look too strong or too weak.
+The returned object owns the imported visual nodes. The import report records whether
+the visual loaded, how many scene lights were found, imported, or dropped, whether one
+was promoted to the main shadow caster, and any light-import error in ``notes``. Use it
+when lights are missing or look too strong or too weak. For missing maps or unexpected
+alpha, pass the report to ``RayraiWindow::writeRenderDiagnosticsFiles``; the
+``mesh_diagnostics_full.json`` it writes lists the texture slots and alpha mode of every
+mesh.
 
 The scene import is renderer-only. It does not create RaiSim collision bodies. For a
 simulation scene, create simplified collision geometry separately and use the glTF scene
@@ -110,21 +112,21 @@ shadow budget explicitly:
 
 .. code-block:: cpp
 
-
    auto quality = raisin::RayraiWindow::defaultRenderQualitySettings(
      raisin::RayraiWindow::RenderQualityPreset::Ultra);
    quality.autoSelectImportedShadowLight = true;
    quality.updateShadowsEveryFrame = false;
    quality.maxAdditionalLightsPerFrame = 12;
-   quality.maxAdditionalShadowLights = 4;
+   quality.shadowedLightBudget = 5;  // the main light plus four additional lights
    quality.maxPointShadowLights = 2;
    quality.additionalShadowResolutionScale = 0.5f;
    quality.pointShadowResolutionScale = 0.5f;
    viewer.setRenderQualitySettings(quality);
 
-``updateShadowsEveryFrame = false`` bakes shadows at startup or on demand. This is much
-faster for static rooms. Enable per-frame updates when lights or shadow-casting objects
-move every frame.
+With ``updateShadowsEveryFrame = false``, shadow maps are re-rendered only when the
+scene, a light, or the camera moves enough, or when ``requestShadowUpdate()`` is
+called. This is much faster for static rooms. Enable per-frame updates when lights or
+shadow-casting objects move every frame.
 
 Material and texture expectations
 ---------------------------------
@@ -150,10 +152,10 @@ If the imported scene looks wrong, check these first:
 * White or flat objects usually mean the texture path is missing or the asset package
   omitted the PBR map slot.
 * Transparent walls or frames usually mean an alpha mode/cutoff is being imported from
-  the source material; inspect the import report.
-* Missing lamp or ceiling meshes usually means the Blender object was hidden for render,
+  the source material; check the alpha mode in ``mesh_diagnostics_full.json``.
+* Missing lamp or ceiling meshes usually mean the Blender object was hidden for render,
   disabled in the view layer, or not converted/exportable by Blender's glTF exporter.
-* Missing area lights usually means the ``.rayrai_lights.json`` sidecar was not copied
+* Missing area lights usually mean the ``.rayrai_lights.json`` sidecar was not copied
   next to the GLB.
 * Over-bright interiors usually mean HDR/environment light, imported light scale, and
   authored light energy need to be balanced for real-time rendering.

@@ -4,8 +4,8 @@
 #include "rayrai/TextureBindingCache.hpp"
 #include "glass_geometry.hpp"
 #include <chrono>
+#include <cstdio>
 #include <filesystem>
-#include <fstream>
 #include <iomanip>
 #define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -15,20 +15,18 @@ namespace {
 using namespace raisin; using namespace gl;
 struct Options {
   int width=1280,height=800,samples=10,bounces=10,frames=128,warmup=8,objects=0,msaa=1,layers=0;
-  bool benchmark=false,legacy=false,raw=false,animate=false;
-  bool qmc=false,adaptive=false,converge=false,rareLight=false,opaqueOnly=false;
-  int minimum=256,seed=0,maxSamples=65536;
-  float relativeError=.02f,absoluteError=.001f;
-  double seconds=0;
+  bool benchmark=false,animate=false,opaqueOnly=false;
   float roughness=0.f;
   GeometryRefractionBackend backend=GeometryRefractionBackend::Automatic;
   std::string output;
+  std::filesystem::path recording;
 };
 Options parse(int argc,char** argv) {
   Options o;
   for(int i=1;i<argc;++i) {
     const std::string a=argv[i]; auto p=a.find('='); auto k=a.substr(0,p),v=p==a.npos?"":a.substr(p+1);
     if(k=="--out") o.output=v;
+    else if(k=="--record") o.recording=v;
     else if(k=="--backend") {
       if(v=="auto") o.backend=GeometryRefractionBackend::Automatic;
       else if(v=="portable") o.backend=GeometryRefractionBackend::Portable;
@@ -40,31 +38,16 @@ Options parse(int argc,char** argv) {
     else if(k=="--frames") o.frames=std::stoi(v); else if(k=="--warmup") o.warmup=std::stoi(v);
     else if(k=="--objects") o.objects=std::stoi(v); else if(k=="--msaa") o.msaa=std::stoi(v);
     else if(k=="--layers") o.layers=std::stoi(v);
-    else if(k=="--benchmark") o.benchmark=true; else if(k=="--legacy") o.legacy=true;
-    else if(k=="--raw") o.raw=true;
+    else if(k=="--benchmark") o.benchmark=true;
     else if(k=="--animate") o.animate=true;
     else if(k=="--roughness") o.roughness=std::stof(v);
-    else if(k=="--qmc") o.qmc=true;
-    else if(k=="--adaptive") o.adaptive=true;
-    else if(k=="--converge") { o.converge=true; o.benchmark=true; }
-    else if(k=="--rare-light") o.rareLight=true;
     else if(k=="--opaque-only") o.opaqueOnly=true;
-    else if(k=="--min-samples") o.minimum=std::stoi(v);
-    else if(k=="--max-samples") o.maxSamples=std::stoi(v);
-    else if(k=="--relative-error") o.relativeError=std::stof(v);
-    else if(k=="--absolute-error") o.absoluteError=std::stof(v);
-    else if(k=="--seed") o.seed=std::stoi(v);
-    else if(k=="--seconds") o.seconds=std::stod(v);
     else throw std::runtime_error("Unknown option: "+a);
   }
   if(o.width<16||o.height<16||o.width>8192||o.height>8192||o.samples<1||o.samples>64||
       o.bounces<1||o.bounces>128||o.frames<1||o.warmup<0||o.objects<0||o.objects>1024||
       o.layers<0||o.layers>16||(o.layers>0&&o.objects>0)||
       !std::isfinite(o.roughness)||o.roughness<0||o.roughness>1||
-      o.minimum<16||o.minimum>1048576||o.maxSamples<1||o.maxSamples>1048576||o.seed<0||
-      !std::isfinite(o.relativeError)||o.relativeError<0||o.relativeError>1||
-      !std::isfinite(o.absoluteError)||o.absoluteError<0||o.absoluteError>1.e6f||
-      !std::isfinite(o.seconds)||o.seconds<0||(o.seconds>0&&!o.converge)||
       (o.msaa!=1&&o.msaa!=2&&o.msaa!=4&&o.msaa!=8)) throw std::runtime_error("Invalid dimensions, samples, bounces or counts");
   return o;
 }
@@ -76,28 +59,14 @@ void save(Camera& camera,const Options& o) {
       pixels.begin()+(o.height-1-y)*o.width*4);
   auto parent=std::filesystem::path(o.output).parent_path(); if(!parent.empty()) std::filesystem::create_directories(parent);
   if(!stbi_write_png(o.output.c_str(),o.width,o.height,4,pixels.data(),o.width*4)) throw std::runtime_error("Capture failed");
-  if(o.raw) {
-    camera.resolveSceneFboIfNeeded(); glBindFramebuffer(GL_READ_FRAMEBUFFER,camera.getSceneFbo());
-    std::vector<glm::vec4> hdr(size_t(o.width)*o.height);
-    std::vector<float> depth(hdr.size());
-    glReadPixels(0,0,o.width,o.height,GL_RGBA,GL_FLOAT,hdr.data());
-    glReadPixels(0,0,o.width,o.height,GL_DEPTH_COMPONENT,GL_FLOAT,depth.data());
-    std::ofstream file(o.output+".rgba-depth",std::ios::binary);
-    file.write(reinterpret_cast<const char*>(hdr.data()),std::streamsize(hdr.size()*sizeof(glm::vec4)));
-    file.write(reinterpret_cast<const char*>(depth.data()),std::streamsize(depth.size()*sizeof(float)));
-    if(!file) throw std::runtime_error("HDR/depth capture failed");
-  }
 }
 void run(ExampleApp& app,const Options& o) {
   raisim::World world; RayraiWindow viewer(world,o.width,o.height,RayraiWindow::ThreadingMode::SingleThread);
   auto q=RenderQualitySettings::preset(RenderQualityPreset::High);
-  q.highFidelityPbr=true; q.geometryRefraction=!o.legacy; q.screenSpaceRefraction=true;
+  q.highFidelityPbr=true; q.geometryRefraction=true; q.screenSpaceRefraction=true;
   q.geometryRefractionBackend=o.backend;
   q.geometryRefractionSamples=o.samples; q.geometryRefractionMaxBounces=o.bounces;
-  q.geometryRefractionProgressive=!o.benchmark||o.converge; q.geometryRefractionMaxSamples=o.maxSamples;
-  q.geometryRefractionLowDiscrepancy=o.qmc; q.geometryRefractionAdaptive=o.adaptive;
-  q.geometryRefractionMinSamples=o.minimum; q.geometryRefractionRelativeError=o.relativeError;
-  q.geometryRefractionAbsoluteError=o.absoluteError; q.geometryRefractionSeed=o.seed;
+  q.geometryRefractionProgressive=!o.benchmark; q.geometryRefractionMaxSamples=65536;
   q.viewerMsaaSamples=o.msaa; q.temporalAaEnabled=false; q.fxaaEnabled=true;
   q.autoExposureEnabled=false; q.screenSpaceAoEnabled=false; q.reflectiveGround=false;
   q.shadowsEnabled=true; q.addViewerFillLights=false; q.mainLightAmbient=glm::vec3(.09f,.11f,.14f);
@@ -116,8 +85,7 @@ void run(ExampleApp& app,const Options& o) {
     {.18,.04,4},i%3==0?glm::vec3(.04,.22,.32):i%3==1?glm::vec3(.7,.2,.035):glm::vec3(.055,.065,.085));
   // Real offscreen emissive geometry: refraction and internal reflection rays
   // can hit these softboxes even though the primary camera cannot see them.
-  box("softbox left",{-5,-6,4.8},o.rareLight?glm::vec3(.15,.18,.18):glm::vec3(.15,2.5,2.2),
-      o.rareLight?glm::vec3(250,240,230):glm::vec3(9.5,9.1,8.6),true)->setCastsShadows(false);
+  box("softbox left",{-5,-6,4.8},{.15,2.5,2.2},{9.5,9.1,8.6},true)->setCastsShadows(false);
   box("softbox right",{5,-6,4},{.15,2.5,2},{4,6,9},true)->setCastsShadows(false);
   box("softbox ceiling",{0,1,6},{6,3,.1},{4.5,4.5,4.5},true)->setCastsShadows(false);
   auto clear=Material::glass("clear solid",1,glm::vec3(.96,.99,1),4,0,1.5f);
@@ -177,9 +145,8 @@ void run(ExampleApp& app,const Options& o) {
   viewer.updateObjectLists();
   const glm::vec3 eye=o.objects?glm::vec3(10,-17,17):glm::vec3(1.6f,-8.3f,3.22f);
   const glm::vec3 lookAt(0,.4f,.9f);
-  if(o.benchmark || !o.output.empty()) {
-    // Offscreen paths keep a private fixed camera so captures and timings stay
-    // reproducible; only the interactive path is user-driven.
+  if(o.benchmark || !o.output.empty() || !o.recording.empty()) {
+    // Offscreen paths use a private camera for reproducible captures, recordings and timings.
     Camera camera; camera.ensureRenderTargets(o.width,o.height); camera.setSceneMsaaSamples(o.msaa);
     camera.position=eye; camera.front=glm::normalize(lookAt-eye);
     camera.up=camera.worldUp={0,0,1}; camera.zoom=42; camera.nearPlane=camera.zNear=.05;
@@ -192,31 +159,37 @@ void run(ExampleApp& app,const Options& o) {
         const auto p=item.second+glm::vec3(.04f*std::sin(frame*.11f),0,0);
         item.first->setPosition(p.x,p.y,p.z);
       }
-      camera.position=eye; if(o.benchmark&&!o.converge) camera.position.x+=.001f*std::sin(frame*.037f);
+      camera.position=eye;
+      if(!o.recording.empty()) {
+        const auto offset=eye-lookAt;
+        const float angle=.10f*std::sin(2.f*3.14159265359f*frame/o.frames);
+        camera.position=lookAt+glm::vec3(std::cos(angle)*offset.x-std::sin(angle)*offset.y,
+                                       std::sin(angle)*offset.x+std::cos(angle)*offset.y,offset.z);
+      } else if(o.benchmark) camera.position.x+=.001f*std::sin(frame*.037f);
       camera.front=glm::normalize(lookAt-camera.position); viewer.renderWithExternalCamera(camera,ov);
     };
     for(int i=0;i<o.warmup;++i) render(i);
-    if(o.converge) { ++q.geometryRefractionRevision; viewer.setRenderQualitySettings(q); }
     glFinish(); const auto start=std::chrono::steady_clock::now(); double submitMs=0;
-    int frames=0;
-    for(int i=0;o.seconds>0||i<o.frames;++i) {
-      const auto submitStart=std::chrono::steady_clock::now(); render(i+o.warmup);
+    for(int i=0;i<o.frames;++i) {
+      const auto submitStart=std::chrono::steady_clock::now(); render(o.recording.empty()?i+o.warmup:i);
       submitMs+=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-submitStart).count();
       glFinish();
-      ++frames;
-      if(o.seconds>0 && std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()>=o.seconds) break;
+      if(!o.recording.empty()) {
+        char name[32]; std::snprintf(name,sizeof(name),"frame_%03d.png",i);
+        auto capture=o; capture.output=(o.recording/name).string(); save(camera,capture);
+        if((i+1)%25==0) std::cout<<"Nested glass: recorded "<<i+1<<'/'<<o.frames<<std::endl;
+      }
     }
     const double totalMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
-    const double ms=totalMs/frames;
+    const double ms=totalMs/o.frames;
     if(!o.output.empty()) save(camera,o);
     const auto d=viewer.geometryRefractionDiagnostics();
     std::cout<<"backend="<<(d.backend==GeometryRefractionBackend::VulkanRayQuery?"vulkan":"portable")<<" status="<<d.backendStatus<<'\n';
     std::cout<<"GPU: "<<glGetString(GL_RENDERER)<<'\n'<<std::fixed<<std::setprecision(4)
-      <<"completed_ms="<<ms<<" submit_ms="<<submitMs/frames<<" total_ms="<<totalMs<<" objects="<<o.objects<<" triangles="<<d.triangles<<" volumes="<<d.volumes
+      <<"completed_ms="<<ms<<" submit_ms="<<submitMs/o.frames<<" total_ms="<<totalMs<<" objects="<<o.objects<<" triangles="<<d.triangles<<" volumes="<<d.volumes
       <<" samples_per_frame="<<o.samples<<" accumulated_samples="<<d.accumulatedSamples
-      <<" bounces="<<o.bounces<<" frames="<<frames<<" warmup="<<o.warmup
-      <<" animate="<<o.animate<<" roughness="<<o.roughness
-      <<" qmc="<<o.qmc<<" adaptive="<<o.adaptive<<" converge="<<o.converge<<" seed="<<o.seed<<'\n';
+      <<" bounces="<<o.bounces<<" frames="<<o.frames<<" warmup="<<o.warmup
+      <<" animate="<<o.animate<<" roughness="<<o.roughness<<'\n';
     const auto statistics=viewer.geometryRefractionSamplingStatistics();
     std::cout<<"sampling_pixels="<<statistics.pixels<<" mean_samples="<<statistics.meanSamples
       <<" min_samples="<<statistics.minSamples<<" max_samples="<<statistics.maxSamples
@@ -268,7 +241,7 @@ int main(int argc,char** argv) {
   ExampleApp app;
   try {
     const auto o=parse(argc,argv);
-    if(!app.init("Rayrai nested glass",o.width,o.height,!o.benchmark&&o.output.empty())) return 1;
+    if(!app.init("Rayrai nested glass",o.width,o.height,!o.benchmark&&o.output.empty()&&o.recording.empty())) return 1;
     SDL_GL_SetSwapInterval(0); run(app,o); app.shutdown(); return 0;
   } catch(const std::exception& e) { std::cerr<<e.what()<<'\n'; if(app.context) app.shutdown(); return 1; }
 }

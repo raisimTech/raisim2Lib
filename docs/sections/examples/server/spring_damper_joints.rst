@@ -30,7 +30,9 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Loads cartpole and chain URDFs with spring/damper joint parameters.
+- Loads ``rsc/springDamper/cartpole.urdf`` (revolute and prismatic joints) and
+  ``rsc/springDamper/chainSpringed.urdf`` (ball joints), both with
+  spring/damper joint parameters.
 - Demonstrates URDF-based joint spring/damper behavior.
-- Focuses on the ball-joint chain for clarity.
+- Focuses the camera on the cartpole.
 

@@ -1,5 +1,5 @@
 ##################################
-Server Example: Heightmap From Png
+Server Example: Heightmap From PNG
 ##################################
 
 Overview
@@ -30,7 +30,9 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Loads a heightmap directly from a PNG file with scale/offset.
+- Loads ``rsc/xmlScripts/heightMaps/zurichHeightMap.png`` directly as a
+  500 m × 500 m heightmap with a height scale and offset.
 - Drops ANYmal onto the terrain and sets a terrain appearance.
-- Reference for ``World::addHeightMap`` using images.
+- Reference for ``World::addHeightMap`` using images; see
+  :doc:`../../HeightMap`.
 

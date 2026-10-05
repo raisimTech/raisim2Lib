@@ -7,7 +7,6 @@
 
 int main(int argc, char* argv[]) {
   raisim::World::setActivationKey(exampleRscPath(argv[0], "activation.raisim"));
-  raisim::RaiSimMsg::setFatalCallback([](){throw;});
 
   /// create raisim world
   raisim::World world;

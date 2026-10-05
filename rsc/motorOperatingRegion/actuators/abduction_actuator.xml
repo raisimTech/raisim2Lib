@@ -6,7 +6,6 @@
   Losses measured at the output (the joint): 0.01 Nm s/rad viscous damping, 0.2 Nm Coulomb friction.
   They add to the joint's own <dynamics damping friction>.
 -->
-<motor_group name="abduction_6to1" gear_ratio="6" bus_voltage="24">
-  <motor resistance="0.4" torque_constant="0.1" velocity_constant="10" peak_torque="3"
-         output_damping="0.01" output_friction="0.2"/>
-</motor_group>
+<actuator_model name="abduction_6to1" gear_ratio="6" output_damping="0.01" output_friction="0.2">
+  <motor resistance="0.4" torque_constant="0.1" velocity_constant="10" bus_voltage="24" peak_torque="3"/>
+</actuator_model>

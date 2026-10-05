@@ -1,27 +1,38 @@
-mjcf_gymnasium_walker2d
-=======================
+#######################################
+Server Example: MJCF Gymnasium Walker2d
+#######################################
 
 .. image:: ../../../../rsc/docs/image/mjcf_gymnasium_walker2d.png
    :alt: mjcf_gymnasium_walker2d example
    :width: 100%
 
-
+Overview
+========
 Loads the Gymnasium Walker2d MuJoCo XML asset through ``raisim::World`` and
-runs it through ``raisim::RaisimServer``. The vendored Walker2d XML keeps the
-Gymnasium model structure but enables the default geom collision affinity so
-RaiSim creates collision bodies for the articulated links.
+publishes it through ``raisim::RaisimServer``. The vendored Walker2d XML keeps
+the Gymnasium model structure but enables the default geom collision affinity
+so RaiSim creates collision bodies for the articulated links.
 
-Run:
+Target
+======
+CMake target: ``mjcf_gymnasium_walker2d``.
+
+Run
+===
+Run the build-tree executable:
 
 .. code-block:: bash
 
    ./build-examples/examples/mjcf_gymnasium_walker2d
 
-Start ``rayrai_tcp_viewer`` in another terminal to visualize the server
-scene.
+On Windows, run ``mjcf_gymnasium_walker2d.exe`` instead.
+This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
 
-What it demonstrates:
-
-- Loading ``rsc/mjcf/gymnasium/walker2d.xml`` with ``raisim::World``.
-- Handling a multi-link MJCF articulated system with contact-enabled geoms.
-- Applying a small procedural torque pattern to the non-root joints.
+Details
+=======
+- Loads ``rsc/mjcf/gymnasium/walker2d.xml`` with the ``raisim::World``
+  constructor and retrieves the articulated system by its root body name
+  (``torso``).
+- Handles a multi-link MJCF articulated system with contact-enabled geoms.
+- Applies a small sinusoidal torque pattern to the non-root joints in
+  ``FORCE_AND_TORQUE`` control mode.

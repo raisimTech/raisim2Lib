@@ -580,6 +580,190 @@ std::filesystem::path settingsFilePath() {
   return (ec ? std::filesystem::path(".") : cwd) / ".rayrai" / "settings.yaml";
 }
 
+namespace
+{
+
+/**
+ * @brief Visits every scalar setting in file order.
+ *
+ * Called as `visit(key, field)`, or as `visit(key, field, indexFromName, name)`
+ * for enum settings that are stored by name. Works for const and mutable
+ * settings, so loading and saving share one key table.
+ */
+template <typename Settings, typename Visitor>
+void forEachScalarSetting(Settings& s, Visitor&& visit) {
+  visit("render_quality", s.renderQuality, qualityIndexFromName, qualityName);
+  visit("render_quality_user_set", s.renderQualityUserSet);
+  visit("background_color_rgb255", s.backgroundColorRgb255);
+  visit("main_light_ambient", s.mainLightAmbient);
+  visit("main_light_diffuse", s.mainLightDiffuse);
+  visit("main_light_specular", s.mainLightSpecular);
+  visit("camera_speed", s.cameraSpeed);
+  visit("camera_fov_deg", s.cameraFovDeg);
+  visit("camera_near", s.cameraNear);
+  visit("camera_far", s.cameraFar);
+  visit("light_yaw_deg", s.lightYawDeg);
+  visit("light_pitch_deg", s.lightPitchDeg);
+  visit("light_strength", s.lightStrength);
+  visit("ambient_strength", s.ambientStrength);
+  visit("shadows_enabled", s.shadowsEnabled);
+  visit("shadow_resolution", s.shadowResolution);
+  visit("shadow_bias", s.shadowBias);
+  visit("shadow_strength", s.shadowStrength);
+  visit("shadow_pcf_radius", s.shadowPcfRadius);
+  visit("shadow_ortho_half_size", s.shadowOrthoHalfSize);
+  visit("shadow_near", s.shadowNear);
+  visit("shadow_far", s.shadowFar);
+  visit("shadow_center_offset", s.shadowCenterOffset);
+  visit("fog_density", s.fogDensity);
+  visit("gamma", s.gamma);
+  visit("color_mode", s.colorMode, colorModeIndexFromName, colorModeName);
+  visit("fxaa_enabled", s.fxaaEnabled);
+  visit("bloom_enabled", s.bloomEnabled);
+  visit("bloom_threshold", s.bloomThreshold);
+  visit("bloom_strength", s.bloomStrength);
+  visit("bloom_radius", s.bloomRadius);
+  visit("bloom_knee", s.bloomKnee);
+  visit("bloom_quality", s.bloomQuality);
+  visit("screen_space_ao_enabled", s.screenSpaceAoEnabled);
+  visit("screen_space_ao_radius", s.screenSpaceAoRadius);
+  visit("screen_space_ao_strength", s.screenSpaceAoStrength);
+  visit("screen_space_ao_bias", s.screenSpaceAoBias);
+  visit("opaque_depth_prepass", s.opaqueDepthPrepass);
+  visit("depth_of_field_enabled", s.depthOfFieldEnabled);
+  visit("depth_of_field_focus_distance", s.depthOfFieldFocusDistance);
+  visit("depth_of_field_focus_range", s.depthOfFieldFocusRange);
+  visit("depth_of_field_max_radius", s.depthOfFieldMaxRadius);
+  visit("high_fidelity_pbr", s.highFidelityPbr);
+  visit("pbr_tone_mapping", s.pbrToneMapping);
+  visit("pbr_exposure", s.pbrExposure);
+  visit("pbr_environment_max_lod", s.pbrEnvironmentMaxLod);
+  visit("pbr_environment_intensity", s.pbrEnvironmentIntensity);
+  visit("pbr_key_light_intensity", s.pbrKeyLightIntensity);
+  visit("sky_enabled", s.skyEnabled);
+  visit("sky_sun_strength", s.skySunStrength);
+  visit("sky_sun_size", s.skySunSize);
+  visit("sky_weather_enabled", s.skyWeatherEnabled);
+  visit("sky_weather_preset", s.skyWeatherPreset, weatherPresetIndexFromName, weatherPresetName);
+  visit("sky_weather_quality", s.skyWeatherQuality, weatherQualityIndexFromName, weatherQualityName);
+  visit("sky_weather_seed", s.skyWeatherSeed);
+  visit("sky_time_of_day_hours", s.skyTimeOfDayHours);
+  visit("sky_latitude", s.skyLatitude);
+  visit("sky_longitude", s.skyLongitude);
+  visit("sky_automatic_utc_offset", s.skyAutomaticUtcOffset);
+  visit("sky_utc_offset_hours", s.skyUtcOffsetHours);
+  visit("sky_year", s.skyYear);
+  visit("sky_month", s.skyMonth);
+  visit("sky_day", s.skyDay);
+  visit("sky_wind_direction_deg", s.skyWindDirectionDeg);
+  visit("sky_wind_speed", s.skyWindSpeed);
+  visit("sky_cloud_coverage", s.skyCloudCoverage);
+  visit("sky_cloud_density", s.skyCloudDensity);
+  visit("sky_cloud_altitude_m", s.skyCloudAltitudeMeters);
+  visit("sky_cloud_thickness_m", s.skyCloudThicknessMeters);
+  visit("sky_cloud_shadow_strength", s.skyCloudShadowStrength);
+  visit("sky_cloud_scale", s.skyCloudScale);
+  visit("sky_cloud_animation_speed", s.skyCloudAnimationSpeed);
+  visit("sky_cloud_quality", s.skyCloudQuality, cloudQualityIndexFromName, cloudQualityName);
+  visit("sky_precipitation_rate", s.skyPrecipitationRate);
+  visit("sky_rain_occlusion_strength", s.skyRainOcclusionStrength);
+  visit("sky_snow_coverage", s.skySnowCoverage);
+  visit("sky_humidity", s.skyHumidity);
+  visit("sky_wetness", s.skyWetness);
+  visit("sky_wetness_accumulation", s.skyWetnessAccumulationEnabled);
+  visit("sky_wetness_accumulation_rate", s.skyWetnessAccumulationRate);
+  visit("sky_wetness_drying_rate", s.skyWetnessDryingRate);
+  visit("sky_lightning_rate", s.skyLightningRate);
+  visit("sky_fog_density", s.skyFogDensity);
+  visit("sky_visibility_m", s.skyVisibilityMeters);
+  visit("sky_fog_color", s.skyFogColor);
+  visit("sky_fog_anisotropy", s.skyFogAnisotropy);
+  visit("sky_air_turbidity", s.skyAirTurbidity);
+  visit("sky_ground_albedo", s.skyGroundAlbedo);
+  visit("sky_use_explicit_sun_angles", s.skyUseExplicitSunAngles);
+  visit("sky_sun_azimuth_deg", s.skySunAzimuthDeg);
+  visit("sky_sun_elevation_deg", s.skySunElevationDeg);
+  visit("sky_moon_size", s.skyMoonSize);
+  visit("sky_lens_droplets_enabled", s.skyLensDropletsEnabled);
+  visit("sky_lens_droplet_strength", s.skyLensDropletStrength);
+  visit("reflective_ground", s.reflectiveGround);
+  visit("reflective_ground_roughness", s.reflectiveGroundRoughness);
+  visit("reflective_ground_metallic", s.reflectiveGroundMetallic);
+  visit("shadowed_light_budget", s.shadowedLightBudget);
+  visit("max_point_shadow_lights", s.maxPointShadowLights);
+  visit("additional_shadow_resolution_scale", s.additionalShadowResolutionScale);
+  visit("point_shadow_resolution_scale", s.pointShadowResolutionScale);
+  visit("min_additional_shadow_resolution", s.minAdditionalShadowResolution);
+  visit("update_shadows_every_frame", s.updateShadowsEveryFrame);
+  visit("max_additional_lights_per_frame", s.maxAdditionalLightsPerFrame);
+  visit("min_additional_light_influence", s.minAdditionalLightInfluence);
+  visit("auto_select_imported_shadow_light", s.autoSelectImportedShadowLight);
+  visit("sort_transparent_instances", s.sortTransparentInstances);
+  visit("add_viewer_fill_lights", s.addViewerFillLights);
+  visit("ui_scale", s.uiScale);
+  visit("ui_scale_user_set", s.uiScaleUserSet);
+  visit("show_collapsed_logo", s.showCollapsedLogo);
+  visit("tcp_update_rate_hz", s.tcpUpdateRateHz);
+}
+
+using SettingIndexFromName = int (*)(const std::string&, int);
+using SettingName = const char* (*)(int);
+
+/** Assigns the setting whose key matches, keeping the old value when unparsable. */
+struct SettingLoader {
+  const std::string& key;
+  const std::string& value;
+  bool matched = false;
+
+  bool hit(const char* name) {
+    if (matched || key != name) {
+      return false;
+    }
+    matched = true;
+    return true;
+  }
+  void operator()(const char* name, bool& field) {
+    if (hit(name)) field = parseBoolValue(value, field);
+  }
+  void operator()(const char* name, int& field) {
+    if (hit(name)) field = parseIntValue(value, field);
+  }
+  void operator()(const char* name, float& field) {
+    if (hit(name)) field = parseFloatValue(value, field);
+  }
+  void operator()(const char* name, glm::vec3& field) {
+    if (hit(name)) field = parseVec3Value(value, field);
+  }
+  void operator()(const char* name, glm::vec4& field) {
+    if (hit(name)) field = parseVec4Value(value, field);
+  }
+  void operator()(const char* name, int& field, SettingIndexFromName indexFromName, SettingName) {
+    if (hit(name)) field = indexFromName(value, field);
+  }
+};
+
+/** Writes one `key: value` line per setting. */
+struct SettingWriter {
+  std::ostream& output;
+
+  template <typename T>
+  void operator()(const char* name, const T& field) {
+    output << name << ": " << field << "\n";
+  }
+  void operator()(const char* name, const glm::vec3& field) {
+    output << name << ": " << field.r << ", " << field.g << ", " << field.b << "\n";
+  }
+  void operator()(const char* name, const glm::vec4& field) {
+    output << name << ": " << field.r << ", " << field.g << ", " << field.b << ", " << field.a
+           << "\n";
+  }
+  void operator()(const char* name, const int& field, SettingIndexFromName, SettingName toName) {
+    output << name << ": " << toName(field) << "\n";
+  }
+};
+
+} // namespace
+
 void loadViewerSettings(ViewerSettings& settings) {
   std::ifstream input(settingsFilePath());
   if (!input) {
@@ -601,119 +785,12 @@ void loadViewerSettings(ViewerSettings& settings) {
     }
     const std::string key = trimAscii(line.substr(0, sep));
     const std::string value = trimAscii(line.substr(sep + 1));
-    if (key == "render_quality") settings.renderQuality = qualityIndexFromName(value, settings.renderQuality);
-    else if (key == "render_quality_user_set") settings.renderQualityUserSet = parseBoolValue(value, settings.renderQualityUserSet);
-    else if (key == "background_color_rgb255") settings.backgroundColorRgb255 = parseVec4Value(value, settings.backgroundColorRgb255);
-    else if (key == "main_light_ambient") settings.mainLightAmbient = parseVec3Value(value, settings.mainLightAmbient);
-    else if (key == "main_light_diffuse") settings.mainLightDiffuse = parseVec3Value(value, settings.mainLightDiffuse);
-    else if (key == "main_light_specular") settings.mainLightSpecular = parseVec3Value(value, settings.mainLightSpecular);
-    else if (key == "camera_speed") settings.cameraSpeed = parseFloatValue(value, settings.cameraSpeed);
-    else if (key == "camera_fov_deg") settings.cameraFovDeg = parseFloatValue(value, settings.cameraFovDeg);
-    else if (key == "camera_near") settings.cameraNear = parseFloatValue(value, settings.cameraNear);
-    else if (key == "camera_far") settings.cameraFar = parseFloatValue(value, settings.cameraFar);
-    else if (key == "light_yaw_deg") settings.lightYawDeg = parseFloatValue(value, settings.lightYawDeg);
-    else if (key == "light_pitch_deg") settings.lightPitchDeg = parseFloatValue(value, settings.lightPitchDeg);
-    else if (key == "light_strength") settings.lightStrength = parseFloatValue(value, settings.lightStrength);
-    else if (key == "ambient_strength") settings.ambientStrength = parseFloatValue(value, settings.ambientStrength);
-    else if (key == "shadows_enabled") settings.shadowsEnabled = parseBoolValue(value, settings.shadowsEnabled);
-    else if (key == "shadow_resolution") settings.shadowResolution = parseIntValue(value, settings.shadowResolution);
-    else if (key == "shadow_bias") settings.shadowBias = parseFloatValue(value, settings.shadowBias);
-    else if (key == "shadow_strength") settings.shadowStrength = parseFloatValue(value, settings.shadowStrength);
-    else if (key == "shadow_pcf_radius") settings.shadowPcfRadius = parseFloatValue(value, settings.shadowPcfRadius);
-    else if (key == "shadow_ortho_half_size") settings.shadowOrthoHalfSize = parseFloatValue(value, settings.shadowOrthoHalfSize);
-    else if (key == "shadow_near") settings.shadowNear = parseFloatValue(value, settings.shadowNear);
-    else if (key == "shadow_far") settings.shadowFar = parseFloatValue(value, settings.shadowFar);
-    else if (key == "shadow_center_offset") settings.shadowCenterOffset = parseFloatValue(value, settings.shadowCenterOffset);
-    else if (key == "fog_density") settings.fogDensity = parseFloatValue(value, settings.fogDensity);
-    else if (key == "gamma") settings.gamma = parseFloatValue(value, settings.gamma);
-    else if (key == "color_mode") settings.colorMode = colorModeIndexFromName(value, settings.colorMode);
-    else if (key == "fxaa_enabled") settings.fxaaEnabled = parseBoolValue(value, settings.fxaaEnabled);
-    else if (key == "bloom_enabled") settings.bloomEnabled = parseBoolValue(value, settings.bloomEnabled);
-    else if (key == "bloom_threshold") settings.bloomThreshold = parseFloatValue(value, settings.bloomThreshold);
-    else if (key == "bloom_strength") settings.bloomStrength = parseFloatValue(value, settings.bloomStrength);
-    else if (key == "bloom_radius") settings.bloomRadius = parseFloatValue(value, settings.bloomRadius);
-    else if (key == "bloom_knee") settings.bloomKnee = parseFloatValue(value, settings.bloomKnee);
-    else if (key == "bloom_quality") settings.bloomQuality = parseIntValue(value, settings.bloomQuality);
-    else if (key == "screen_space_ao_enabled") settings.screenSpaceAoEnabled = parseBoolValue(value, settings.screenSpaceAoEnabled);
-    else if (key == "screen_space_ao_radius") settings.screenSpaceAoRadius = parseFloatValue(value, settings.screenSpaceAoRadius);
-    else if (key == "screen_space_ao_strength") settings.screenSpaceAoStrength = parseFloatValue(value, settings.screenSpaceAoStrength);
-    else if (key == "screen_space_ao_bias") settings.screenSpaceAoBias = parseFloatValue(value, settings.screenSpaceAoBias);
-    else if (key == "opaque_depth_prepass") settings.opaqueDepthPrepass = parseBoolValue(value, settings.opaqueDepthPrepass);
-    else if (key == "depth_of_field_enabled") settings.depthOfFieldEnabled = parseBoolValue(value, settings.depthOfFieldEnabled);
-    else if (key == "depth_of_field_focus_distance") settings.depthOfFieldFocusDistance = parseFloatValue(value, settings.depthOfFieldFocusDistance);
-    else if (key == "depth_of_field_focus_range") settings.depthOfFieldFocusRange = parseFloatValue(value, settings.depthOfFieldFocusRange);
-    else if (key == "depth_of_field_max_radius") settings.depthOfFieldMaxRadius = parseFloatValue(value, settings.depthOfFieldMaxRadius);
-    else if (key == "high_fidelity_pbr") settings.highFidelityPbr = parseBoolValue(value, settings.highFidelityPbr);
-    else if (key == "pbr_tone_mapping") settings.pbrToneMapping = parseBoolValue(value, settings.pbrToneMapping);
-    else if (key == "pbr_exposure") settings.pbrExposure = parseFloatValue(value, settings.pbrExposure);
-    else if (key == "pbr_environment_max_lod") settings.pbrEnvironmentMaxLod = parseFloatValue(value, settings.pbrEnvironmentMaxLod);
-    else if (key == "pbr_environment_intensity") settings.pbrEnvironmentIntensity = parseFloatValue(value, settings.pbrEnvironmentIntensity);
-    else if (key == "pbr_key_light_intensity") settings.pbrKeyLightIntensity = parseFloatValue(value, settings.pbrKeyLightIntensity);
-    else if (key == "sky_enabled") settings.skyEnabled = parseBoolValue(value, settings.skyEnabled);
-    else if (key == "sky_sun_strength") settings.skySunStrength = parseFloatValue(value, settings.skySunStrength);
-    else if (key == "sky_sun_size") settings.skySunSize = parseFloatValue(value, settings.skySunSize);
-    else if (key == "sky_weather_enabled") settings.skyWeatherEnabled = parseBoolValue(value, settings.skyWeatherEnabled);
-    else if (key == "sky_weather_preset") settings.skyWeatherPreset = weatherPresetIndexFromName(value, settings.skyWeatherPreset);
-    else if (key == "sky_weather_quality") settings.skyWeatherQuality = weatherQualityIndexFromName(value, settings.skyWeatherQuality);
-    else if (key == "sky_weather_seed") settings.skyWeatherSeed = parseIntValue(value, settings.skyWeatherSeed);
-    else if (key == "sky_time_of_day_hours") settings.skyTimeOfDayHours = parseFloatValue(value, settings.skyTimeOfDayHours);
-    else if (key == "sky_latitude") settings.skyLatitude = parseFloatValue(value, settings.skyLatitude);
-    else if (key == "sky_longitude") settings.skyLongitude = parseFloatValue(value, settings.skyLongitude);
-    else if (key == "sky_automatic_utc_offset") settings.skyAutomaticUtcOffset = parseBoolValue(value, settings.skyAutomaticUtcOffset);
-    else if (key == "sky_utc_offset_hours") settings.skyUtcOffsetHours = parseFloatValue(value, settings.skyUtcOffsetHours);
-    else if (key == "sky_year") settings.skyYear = parseIntValue(value, settings.skyYear);
-    else if (key == "sky_month") settings.skyMonth = parseIntValue(value, settings.skyMonth);
-    else if (key == "sky_day") settings.skyDay = parseIntValue(value, settings.skyDay);
-    else if (key == "sky_wind_direction_deg") settings.skyWindDirectionDeg = parseFloatValue(value, settings.skyWindDirectionDeg);
-    else if (key == "sky_wind_speed") settings.skyWindSpeed = parseFloatValue(value, settings.skyWindSpeed);
-    else if (key == "sky_cloud_coverage") settings.skyCloudCoverage = parseFloatValue(value, settings.skyCloudCoverage);
-    else if (key == "sky_cloud_density") settings.skyCloudDensity = parseFloatValue(value, settings.skyCloudDensity);
-    else if (key == "sky_cloud_altitude_m") settings.skyCloudAltitudeMeters = parseFloatValue(value, settings.skyCloudAltitudeMeters);
-    else if (key == "sky_cloud_thickness_m") settings.skyCloudThicknessMeters = parseFloatValue(value, settings.skyCloudThicknessMeters);
-    else if (key == "sky_cloud_shadow_strength") settings.skyCloudShadowStrength = parseFloatValue(value, settings.skyCloudShadowStrength);
-    else if (key == "sky_cloud_scale") settings.skyCloudScale = parseFloatValue(value, settings.skyCloudScale);
-    else if (key == "sky_cloud_animation_speed") settings.skyCloudAnimationSpeed = parseFloatValue(value, settings.skyCloudAnimationSpeed);
-    else if (key == "sky_cloud_quality") settings.skyCloudQuality = cloudQualityIndexFromName(value, settings.skyCloudQuality);
-    else if (key == "sky_precipitation_rate") settings.skyPrecipitationRate = parseFloatValue(value, settings.skyPrecipitationRate);
-    else if (key == "sky_rain_occlusion_strength") settings.skyRainOcclusionStrength = parseFloatValue(value, settings.skyRainOcclusionStrength);
-    else if (key == "sky_snow_coverage") settings.skySnowCoverage = parseFloatValue(value, settings.skySnowCoverage);
-    else if (key == "sky_humidity") settings.skyHumidity = parseFloatValue(value, settings.skyHumidity);
-    else if (key == "sky_wetness") settings.skyWetness = parseFloatValue(value, settings.skyWetness);
-    else if (key == "sky_wetness_accumulation") settings.skyWetnessAccumulationEnabled = parseBoolValue(value, settings.skyWetnessAccumulationEnabled);
-    else if (key == "sky_wetness_accumulation_rate") settings.skyWetnessAccumulationRate = parseFloatValue(value, settings.skyWetnessAccumulationRate);
-    else if (key == "sky_wetness_drying_rate") settings.skyWetnessDryingRate = parseFloatValue(value, settings.skyWetnessDryingRate);
-    else if (key == "sky_lightning_rate") settings.skyLightningRate = parseFloatValue(value, settings.skyLightningRate);
-    else if (key == "sky_fog_density") settings.skyFogDensity = parseFloatValue(value, settings.skyFogDensity);
-    else if (key == "sky_visibility_m") settings.skyVisibilityMeters = parseFloatValue(value, settings.skyVisibilityMeters);
-    else if (key == "sky_fog_color") settings.skyFogColor = parseVec3Value(value, settings.skyFogColor);
-    else if (key == "sky_fog_anisotropy") settings.skyFogAnisotropy = parseFloatValue(value, settings.skyFogAnisotropy);
-    else if (key == "sky_air_turbidity") settings.skyAirTurbidity = parseFloatValue(value, settings.skyAirTurbidity);
-    else if (key == "sky_ground_albedo") settings.skyGroundAlbedo = parseFloatValue(value, settings.skyGroundAlbedo);
-    else if (key == "sky_use_explicit_sun_angles") settings.skyUseExplicitSunAngles = parseBoolValue(value, settings.skyUseExplicitSunAngles);
-    else if (key == "sky_sun_azimuth_deg") settings.skySunAzimuthDeg = parseFloatValue(value, settings.skySunAzimuthDeg);
-    else if (key == "sky_sun_elevation_deg") settings.skySunElevationDeg = parseFloatValue(value, settings.skySunElevationDeg);
-    else if (key == "sky_moon_size") settings.skyMoonSize = parseFloatValue(value, settings.skyMoonSize);
-    else if (key == "sky_lens_droplets_enabled") settings.skyLensDropletsEnabled = parseBoolValue(value, settings.skyLensDropletsEnabled);
-    else if (key == "sky_lens_droplet_strength") settings.skyLensDropletStrength = parseFloatValue(value, settings.skyLensDropletStrength);
-    else if (key == "reflective_ground") settings.reflectiveGround = parseBoolValue(value, settings.reflectiveGround);
-    else if (key == "reflective_ground_roughness") settings.reflectiveGroundRoughness = parseFloatValue(value, settings.reflectiveGroundRoughness);
-    else if (key == "reflective_ground_metallic") settings.reflectiveGroundMetallic = parseFloatValue(value, settings.reflectiveGroundMetallic);
-    else if (key == "shadowed_light_budget") settings.shadowedLightBudget = parseIntValue(value, settings.shadowedLightBudget);
-    else if (key == "max_point_shadow_lights") settings.maxPointShadowLights = parseIntValue(value, settings.maxPointShadowLights);
-    else if (key == "additional_shadow_resolution_scale") settings.additionalShadowResolutionScale = parseFloatValue(value, settings.additionalShadowResolutionScale);
-    else if (key == "point_shadow_resolution_scale") settings.pointShadowResolutionScale = parseFloatValue(value, settings.pointShadowResolutionScale);
-    else if (key == "min_additional_shadow_resolution") settings.minAdditionalShadowResolution = parseIntValue(value, settings.minAdditionalShadowResolution);
-    else if (key == "update_shadows_every_frame") settings.updateShadowsEveryFrame = parseBoolValue(value, settings.updateShadowsEveryFrame);
-    else if (key == "max_additional_lights_per_frame") settings.maxAdditionalLightsPerFrame = parseIntValue(value, settings.maxAdditionalLightsPerFrame);
-    else if (key == "min_additional_light_influence") settings.minAdditionalLightInfluence = parseFloatValue(value, settings.minAdditionalLightInfluence);
-    else if (key == "auto_select_imported_shadow_light") settings.autoSelectImportedShadowLight = parseBoolValue(value, settings.autoSelectImportedShadowLight);
-    else if (key == "sort_transparent_instances") settings.sortTransparentInstances = parseBoolValue(value, settings.sortTransparentInstances);
-    else if (key == "add_viewer_fill_lights") settings.addViewerFillLights = parseBoolValue(value, settings.addViewerFillLights);
-    else if (key == "ui_scale") settings.uiScale = parseFloatValue(value, settings.uiScale);
-    else if (key == "ui_scale_user_set") settings.uiScaleUserSet = parseBoolValue(value, settings.uiScaleUserSet);
-    else if (key == "show_collapsed_logo") settings.showCollapsedLogo = parseBoolValue(value, settings.showCollapsedLogo);
-    else if (key == "tcp_update_rate_hz") settings.tcpUpdateRateHz = parseFloatValue(value, settings.tcpUpdateRateHz);
-    else if (key == "recent_connection") {
+    SettingLoader loader{key, value};
+    forEachScalarSetting(settings, loader);
+    if (loader.matched) {
+      continue;
+    }
+    if (key == "recent_connection") {
       ConnectionEntry entry;
       if (parseConnectionLabel(value, entry)) {
         auto& connections = settings.recentConnections;
@@ -790,127 +867,9 @@ bool writeSettingsFileAtomically(
 } // namespace detail
 
 void writeViewerSettings(std::ostream& output, const ViewerSettings& settings) {
-
   output << "# rayrai TCP viewer settings\n";
   output << std::boolalpha << std::setprecision(6);
-  output << "render_quality: " << qualityName(settings.renderQuality) << "\n";
-  output << "render_quality_user_set: " << settings.renderQualityUserSet << "\n";
-  output << "background_color_rgb255: " << settings.backgroundColorRgb255.r << ", "
-         << settings.backgroundColorRgb255.g << ", " << settings.backgroundColorRgb255.b << ", "
-         << settings.backgroundColorRgb255.a << "\n";
-  output << "main_light_ambient: " << settings.mainLightAmbient.r << ", "
-         << settings.mainLightAmbient.g << ", " << settings.mainLightAmbient.b << "\n";
-  output << "main_light_diffuse: " << settings.mainLightDiffuse.r << ", "
-         << settings.mainLightDiffuse.g << ", " << settings.mainLightDiffuse.b << "\n";
-  output << "main_light_specular: " << settings.mainLightSpecular.r << ", "
-         << settings.mainLightSpecular.g << ", " << settings.mainLightSpecular.b << "\n";
-  output << "camera_speed: " << settings.cameraSpeed << "\n";
-  output << "camera_fov_deg: " << settings.cameraFovDeg << "\n";
-  output << "camera_near: " << settings.cameraNear << "\n";
-  output << "camera_far: " << settings.cameraFar << "\n";
-  output << "light_yaw_deg: " << settings.lightYawDeg << "\n";
-  output << "light_pitch_deg: " << settings.lightPitchDeg << "\n";
-  output << "light_strength: " << settings.lightStrength << "\n";
-  output << "ambient_strength: " << settings.ambientStrength << "\n";
-  output << "shadows_enabled: " << settings.shadowsEnabled << "\n";
-  output << "shadow_resolution: " << settings.shadowResolution << "\n";
-  output << "shadow_bias: " << settings.shadowBias << "\n";
-  output << "shadow_strength: " << settings.shadowStrength << "\n";
-  output << "shadow_pcf_radius: " << settings.shadowPcfRadius << "\n";
-  output << "shadow_ortho_half_size: " << settings.shadowOrthoHalfSize << "\n";
-  output << "shadow_near: " << settings.shadowNear << "\n";
-  output << "shadow_far: " << settings.shadowFar << "\n";
-  output << "shadow_center_offset: " << settings.shadowCenterOffset << "\n";
-  output << "fog_density: " << settings.fogDensity << "\n";
-  output << "gamma: " << settings.gamma << "\n";
-  output << "color_mode: " << colorModeName(settings.colorMode) << "\n";
-  output << "fxaa_enabled: " << settings.fxaaEnabled << "\n";
-  output << "bloom_enabled: " << settings.bloomEnabled << "\n";
-  output << "bloom_threshold: " << settings.bloomThreshold << "\n";
-  output << "bloom_strength: " << settings.bloomStrength << "\n";
-  output << "bloom_radius: " << settings.bloomRadius << "\n";
-  output << "bloom_knee: " << settings.bloomKnee << "\n";
-  output << "bloom_quality: " << settings.bloomQuality << "\n";
-  output << "screen_space_ao_enabled: " << settings.screenSpaceAoEnabled << "\n";
-  output << "screen_space_ao_radius: " << settings.screenSpaceAoRadius << "\n";
-  output << "screen_space_ao_strength: " << settings.screenSpaceAoStrength << "\n";
-  output << "screen_space_ao_bias: " << settings.screenSpaceAoBias << "\n";
-  output << "opaque_depth_prepass: " << settings.opaqueDepthPrepass << "\n";
-  output << "depth_of_field_enabled: " << settings.depthOfFieldEnabled << "\n";
-  output << "depth_of_field_focus_distance: " << settings.depthOfFieldFocusDistance << "\n";
-  output << "depth_of_field_focus_range: " << settings.depthOfFieldFocusRange << "\n";
-  output << "depth_of_field_max_radius: " << settings.depthOfFieldMaxRadius << "\n";
-  output << "high_fidelity_pbr: " << settings.highFidelityPbr << "\n";
-  output << "pbr_tone_mapping: " << settings.pbrToneMapping << "\n";
-  output << "pbr_exposure: " << settings.pbrExposure << "\n";
-  output << "pbr_environment_max_lod: " << settings.pbrEnvironmentMaxLod << "\n";
-  output << "pbr_environment_intensity: " << settings.pbrEnvironmentIntensity << "\n";
-  output << "pbr_key_light_intensity: " << settings.pbrKeyLightIntensity << "\n";
-  output << "sky_enabled: " << settings.skyEnabled << "\n";
-  output << "sky_sun_strength: " << settings.skySunStrength << "\n";
-  output << "sky_sun_size: " << settings.skySunSize << "\n";
-  output << "sky_weather_enabled: " << settings.skyWeatherEnabled << "\n";
-  output << "sky_weather_preset: " << weatherPresetName(settings.skyWeatherPreset) << "\n";
-  output << "sky_weather_quality: " << weatherQualityName(settings.skyWeatherQuality) << "\n";
-  output << "sky_weather_seed: " << settings.skyWeatherSeed << "\n";
-  output << "sky_time_of_day_hours: " << settings.skyTimeOfDayHours << "\n";
-  output << "sky_latitude: " << settings.skyLatitude << "\n";
-  output << "sky_longitude: " << settings.skyLongitude << "\n";
-  output << "sky_automatic_utc_offset: " << settings.skyAutomaticUtcOffset << "\n";
-  output << "sky_utc_offset_hours: " << settings.skyUtcOffsetHours << "\n";
-  output << "sky_year: " << settings.skyYear << "\n";
-  output << "sky_month: " << settings.skyMonth << "\n";
-  output << "sky_day: " << settings.skyDay << "\n";
-  output << "sky_wind_direction_deg: " << settings.skyWindDirectionDeg << "\n";
-  output << "sky_wind_speed: " << settings.skyWindSpeed << "\n";
-  output << "sky_cloud_coverage: " << settings.skyCloudCoverage << "\n";
-  output << "sky_cloud_density: " << settings.skyCloudDensity << "\n";
-  output << "sky_cloud_altitude_m: " << settings.skyCloudAltitudeMeters << "\n";
-  output << "sky_cloud_thickness_m: " << settings.skyCloudThicknessMeters << "\n";
-  output << "sky_cloud_shadow_strength: " << settings.skyCloudShadowStrength << "\n";
-  output << "sky_cloud_scale: " << settings.skyCloudScale << "\n";
-  output << "sky_cloud_animation_speed: " << settings.skyCloudAnimationSpeed << "\n";
-  output << "sky_cloud_quality: " << cloudQualityName(settings.skyCloudQuality) << "\n";
-  output << "sky_precipitation_rate: " << settings.skyPrecipitationRate << "\n";
-  output << "sky_rain_occlusion_strength: " << settings.skyRainOcclusionStrength << "\n";
-  output << "sky_snow_coverage: " << settings.skySnowCoverage << "\n";
-  output << "sky_humidity: " << settings.skyHumidity << "\n";
-  output << "sky_wetness: " << settings.skyWetness << "\n";
-  output << "sky_wetness_accumulation: " << settings.skyWetnessAccumulationEnabled << "\n";
-  output << "sky_wetness_accumulation_rate: " << settings.skyWetnessAccumulationRate << "\n";
-  output << "sky_wetness_drying_rate: " << settings.skyWetnessDryingRate << "\n";
-  output << "sky_lightning_rate: " << settings.skyLightningRate << "\n";
-  output << "sky_fog_density: " << settings.skyFogDensity << "\n";
-  output << "sky_visibility_m: " << settings.skyVisibilityMeters << "\n";
-  output << "sky_fog_color: " << settings.skyFogColor.r << ", "
-         << settings.skyFogColor.g << ", " << settings.skyFogColor.b << "\n";
-  output << "sky_fog_anisotropy: " << settings.skyFogAnisotropy << "\n";
-  output << "sky_air_turbidity: " << settings.skyAirTurbidity << "\n";
-  output << "sky_ground_albedo: " << settings.skyGroundAlbedo << "\n";
-  output << "sky_use_explicit_sun_angles: " << settings.skyUseExplicitSunAngles << "\n";
-  output << "sky_sun_azimuth_deg: " << settings.skySunAzimuthDeg << "\n";
-  output << "sky_sun_elevation_deg: " << settings.skySunElevationDeg << "\n";
-  output << "sky_moon_size: " << settings.skyMoonSize << "\n";
-  output << "sky_lens_droplets_enabled: " << settings.skyLensDropletsEnabled << "\n";
-  output << "sky_lens_droplet_strength: " << settings.skyLensDropletStrength << "\n";
-  output << "reflective_ground: " << settings.reflectiveGround << "\n";
-  output << "reflective_ground_roughness: " << settings.reflectiveGroundRoughness << "\n";
-  output << "reflective_ground_metallic: " << settings.reflectiveGroundMetallic << "\n";
-  output << "shadowed_light_budget: " << settings.shadowedLightBudget << "\n";
-  output << "max_point_shadow_lights: " << settings.maxPointShadowLights << "\n";
-  output << "additional_shadow_resolution_scale: " << settings.additionalShadowResolutionScale << "\n";
-  output << "point_shadow_resolution_scale: " << settings.pointShadowResolutionScale << "\n";
-  output << "min_additional_shadow_resolution: " << settings.minAdditionalShadowResolution << "\n";
-  output << "update_shadows_every_frame: " << settings.updateShadowsEveryFrame << "\n";
-  output << "max_additional_lights_per_frame: " << settings.maxAdditionalLightsPerFrame << "\n";
-  output << "min_additional_light_influence: " << settings.minAdditionalLightInfluence << "\n";
-  output << "auto_select_imported_shadow_light: " << settings.autoSelectImportedShadowLight << "\n";
-  output << "sort_transparent_instances: " << settings.sortTransparentInstances << "\n";
-  output << "add_viewer_fill_lights: " << settings.addViewerFillLights << "\n";
-  output << "ui_scale: " << settings.uiScale << "\n";
-  output << "ui_scale_user_set: " << settings.uiScaleUserSet << "\n";
-  output << "show_collapsed_logo: " << settings.showCollapsedLogo << "\n";
-  output << "tcp_update_rate_hz: " << settings.tcpUpdateRateHz << "\n";
+  forEachScalarSetting(settings, SettingWriter{output});
   for (const auto& entry : settings.recentConnections) {
     output << "recent_connection: " << formatConnectionLabel(entry) << "\n";
   }

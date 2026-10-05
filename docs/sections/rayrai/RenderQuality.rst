@@ -19,7 +19,12 @@ linear colours before passing them in. The convention:
 * ``Camera::setBackgroundColorRgb255`` and ``RayraiWindow::setBackgroundColorRgb255``
   use legacy ``0..255`` RGBA. ``setBackgroundColor`` is kept as a compatibility wrapper
   for the same ``0..255`` range.
-* ``setBackgroundColorLinear`` accepts linear ``0..1`` RGBA and converts it internally.
+* ``setBackgroundColorLinear`` takes ``0..1`` RGBA and multiplies it by 255, so the
+  two background calls below set the same colour; neither converts between sRGB and
+  linear. The background colour shows only where no sky or environment map is
+  drawn, so it is hidden by the procedural sky unless
+  ``proceduralSkyBackgroundEnabled`` is false. ``setRenderQualitySettings`` and
+  ``setRenderQualityPreset`` replace it with ``backgroundColorRgb255``.
 * Texture uploads distinguish color maps and data maps. Use ``loadColorTextureWithTiling``
   for sRGB albedo/emissive maps, and ``loadDataTextureWithTiling`` for normal,
   metallic-roughness, AO, depth, mask, or other linear data textures.
@@ -30,15 +35,15 @@ linear colours before passing them in. The convention:
     sphere->setColor(glm::vec4(0.95f, 0.43f, 0.12f, 1.0f));
 
     // Background: pick the API that matches your colour range.
-    viewer.setBackgroundColorRgb255({40, 45, 55, 255});           // 0..255 sRGB
-    viewer.setBackgroundColorLinear({0.157f, 0.176f, 0.216f, 1});  // 0..1 linear
+    viewer.setBackgroundColorRgb255({40, 45, 55, 255});           // 0..255 per channel
+    viewer.setBackgroundColorLinear({0.157f, 0.176f, 0.216f, 1});  // same colour, 0..1
 
     // Texture uploads distinguish colour maps from data maps:
     unsigned int albedo = raisin::RayraiWindow::loadColorTextureWithTiling(
         "/path/wood_albedo.png");      // treated as sRGB
     unsigned int normal = raisin::RayraiWindow::loadDataTextureWithTiling(
         "/path/wood_normal.png");      // treated as linear data
-    unsigned int roughness = raisin::RayraiWindow::loadDataTextureWithTiling(
+    unsigned int orm = raisin::RayraiWindow::loadDataTextureWithTiling(
         "/path/wood_orm.png");         // treated as linear data
 
 Render-quality controls
@@ -275,14 +280,17 @@ materials; see :doc:`Materials`.
 
 Tone mapping, exposure, and color grading
 =========================================
-The viewer color pipeline is driven by ``RenderQualitySettings``. Tone mapping is
-selected by ``colorMode`` (``ViewerColorMode``): ``FastLinear`` (no tone curve),
-``AcesApprox`` (ACES-fitted), ``UnrealPreviewApprox``, ``FilmicApprox``, and
-``AgXApprox``. Exposure is controlled by ``pbrExposure`` plus an optional
-auto-exposure loop (``autoExposureEnabled``, ``autoExposureKey``,
-``autoExposureSpeed``, ``autoExposureMinFactor``, ``autoExposureMaxFactor``)
-that drives exposure toward a target post-tonemap luma. White balance and
-saturation use ``viewerWhiteBalance`` and ``viewerSaturation``.
+The viewer color pipeline is driven by ``RenderQualitySettings``. The tone curve
+is applied only when ``pbrToneMapping`` is true, and ``colorMode``
+(``ViewerColorMode``) selects it: ``FastLinear`` (the default; it currently uses the
+same fitted ACES curve as ``AcesApprox``), ``AcesApprox`` (fitted ACES),
+``UnrealPreviewApprox``, ``FilmicApprox``, and ``AgXApprox``. To render without a
+tone curve, set ``pbrToneMapping = false``. Exposure is controlled by
+``pbrExposure`` plus an optional auto-exposure loop (``autoExposureEnabled``,
+``autoExposureKey``, ``autoExposureSpeed``, ``autoExposureMinFactor``,
+``autoExposureMaxFactor``) that adapts exposure toward a target average luminance
+of the displayed frame. White balance and saturation use ``viewerWhiteBalance``
+and ``viewerSaturation``.
 
 .. code-block:: cpp
 
@@ -310,10 +318,12 @@ saturation use ``viewerWhiteBalance`` and ``viewerSaturation``.
 
     viewer.setRenderQualitySettings(quality);
 
-The five tone-mapping curves render the same scene very differently — flat
-linear preserves source intensity but rolls off bright surfaces; ACES and
-Filmic compress highlights cinematically; AgX trades a slightly desaturated
-look for cleaner skin tones; UnrealPreview matches the engine reference:
+The curves compress highlights differently. ``AcesApprox`` is a fitted ACES
+filmic curve, and ``FastLinear`` currently renders identically to it.
+``UnrealPreviewApprox`` is ACES with a slight shadow lift and highlight
+desaturation, ``FilmicApprox`` is a Hejl/Burgess-Dawson-style filmic curve, and
+``AgXApprox`` is an AgX-style log curve that stays neutral and preserves hue (the
+Ultra preset uses it):
 
 .. list-table::
    :header-rows: 1
@@ -369,8 +379,8 @@ grid by ``doc_image_color_grading`` in ``docs/image_generators/``.
 
 .. note::
    On macOS and on GPUs with 16 or fewer fragment texture units, the post pass
-   supports only depth of field, FXAA, bloom, SSAO and temporal AA, so white
-   balance, saturation and color grading have no effect there. Tone curves and
+   supports only depth of field, FXAA, bloom, SSAO, temporal AA, white balance
+   and saturation, so color grading has no effect there. Tone curves and
    exposure still apply. See :ref:`rayrai-platform-support` and
    :ref:`GPU capability tiers <sections/rayrai/Materials:GPU capability tiers>`.
 
@@ -385,7 +395,9 @@ Linear HDR rendering
 resolve, fog, bloom and depth of field, then applies exposure (including
 auto-exposure), the ``colorMode`` curve (when ``pbrToneMapping`` is on) and
 gamma once in the final post pass. It is off by default. Because it is a window
-setting, presets and ``setRenderQualitySettings`` leave it unchanged.
+setting, presets and ``setRenderQualitySettings`` leave it unchanged. Temporal AA
+with ``TemporalAaMethod::Reprojected`` uses this path even when the toggle is off
+(see :doc:`PostProcess`).
 
 In this mode bloom thresholds are compared with scene-linear radiance, and a
 post pass runs even when no other post effect is enabled. External renders with

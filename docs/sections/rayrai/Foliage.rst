@@ -25,7 +25,7 @@ floating or buried on slopes.
 
 .. code-block:: cpp
 
-    viewer.setAsyncMeshLoadingEnabled(true);  // Before creating mesh visuals.
+    viewer.setAsyncMeshLoadingEnabled(true);  // The default; set before creating mesh visuals.
     auto grass = viewer.addInstancedVisuals(
       "grass", raisim::Shape::Mesh, glm::vec3(1.0f),
       glm::vec4(1.0f), glm::vec4(1.0f), "/path/to/grass/model.gltf", true);
@@ -33,8 +33,9 @@ floating or buried on slopes.
     std::vector<raisin::InstancedVisuals::InstanceSpec> instances;
     raisin::InstancedVisuals::InstanceSpec plant;
     plant.position = glm::vec3(x, y, terrain->getHeight(x, y));
-    plant.orientation = glm::vec4(0.0f, 0.0f,
-                                  std::sin(yaw * 0.5f), std::cos(yaw * 0.5f));
+    // Yaw about +Z as a (w, x, y, z) quaternion.
+    plant.orientation = glm::vec4(std::cos(yaw * 0.5f), 0.0f,
+                                  0.0f, std::sin(yaw * 0.5f));
     plant.scale = glm::vec3(1.0f);
     instances.push_back(plant);  // Repeat for the remaining scatter positions.
     grass->addInstances(instances);
@@ -46,11 +47,15 @@ floating or buried on slopes.
     grass->setSortTransparentInstances(false);  // Opaque/alpha-masked plants.
     grass->setFoliageImpostorPolicy(false);
 
-The quaternion vector uses **XYZW** order. ``setUseMeshColor(true)`` keeps
-the imported material/texture colors. The wind arguments are local root
-height, tip height, strength, stiffness, and flutter weight. Global wind and
-its clock are controlled through render quality or weather settings; see
-:doc:`Weather`. Keep transparency sorting for genuinely alpha-blended assets.
+The orientation ``glm::vec4`` holds the quaternion in **(w, x, y, z)** order:
+its ``x`` component is ``w`` and its ``w`` component is ``z``.
+``setUseMeshColor(true)`` keeps the imported material/texture colors. The wind
+arguments are local root height, tip height, strength, stiffness, and flutter
+weight. ``configureFoliageWind`` also enables impostors, the shadow foliage LOD
+policy (2.5 pixels, stride 16), and hierarchical cluster culling with default
+parameters, which is why the example disables impostors after it. The global
+wind field and its clock are render quality settings; see :doc:`Weather`. Keep
+transparency sorting for genuinely alpha-blended assets.
 
 Visibility, detail, and shadows
 =================================
@@ -73,18 +78,22 @@ per-instance culling and shared draw submission.
      - Generate/select simplified mesh levels; enabled by default.
    * - ``setProjectedLodPolicy``
      - Opt-in instance thinning below a projected pixel radius, with a maximum
-       stride. The explicit ``setRenderedInstanceStride`` remains a lower bound.
+       stride (``configureGrassPatch`` also enables it). The explicit
+       ``setRenderedInstanceStride`` remains a lower bound.
    * - ``setShadowFoliageLodPolicy``
-     - Opt-in shadow-only instance thinning and optional maximum shadow distance.
+     - Shadow-only instance thinning and optional maximum shadow distance; off
+       until set or enabled by ``configureFoliageWind`` / ``configureGrassPatch``.
        It does not change color-pass density.
    * - ``setCastsShadows``
      - Shadow casting is enabled by default. Foliage/wind configuration preserves
        the caller's choice; the scene light must also have shadows enabled.
    * - ``setFoliageImpostorPolicy``
-     - Opt-in camera-facing quads for sufficiently small distant foliage.
-       Disabled in the forest example to retain mesh silhouettes.
+     - Camera-facing quads for sufficiently small distant foliage; off until set
+       or enabled by ``configureFoliageWind``. Disabled in the forest example to
+       retain mesh silhouettes.
    * - ``setHierarchicalFoliageClustersPolicy``
-     - Opt-in conservative cluster culling for large batches. Inspect
+     - Conservative cluster culling for large batches; off until set or enabled
+       by ``configureFoliageWind`` / ``configureGrassPatch``. Inspect
        ``hierarchicalFoliageClusterDiagnostics()`` for use and fallback status.
 
 The renderer reuses visibility/LOD selections and instance uploads while their
@@ -103,7 +112,9 @@ image quality and should be evaluated separately from renderer optimizations.
 Leaf lighting and cutouts
 ===========================
 
-``Material::foliage`` selects a foliage class and enables foliage two-sided
+``Material::foliage`` sets the foliage class, a rough non-metallic PBR base,
+and ``doubleSided`` (no back-face culling, both faces lit). Set
+``foliageTwoSidedLighting = true`` for the foliage-specific thin-leaf diffuse
 lighting. ``foliageTransmissionStrength`` controls thin-leaf direct and indirect
 transmission; ``foliageTransmissionColor`` is a linear RGB tint of the base
 color. High-fidelity indirect lighting also gathers illumination from the
@@ -121,15 +132,17 @@ independently of the visible sky/fog palette. HDR environment maps keep their
 captured color. The forest uses subdued neutral fill and strong direct sunlight
 with ACES tone mapping to preserve canopy shade and bright sunlit leaves.
 
-The limited-sampler OpenGL path used on macOS supports directional shadow
-cascades and diffuse environment illumination too. Do not disable cascades
-solely because the platform uses the compact shaders. See :doc:`Lighting`
-for shadow settings and :doc:`Materials` for material authoring.
+The limited shader tier used on macOS (see the GPU capability tiers in
+:doc:`Materials`) supports directional shadow cascades and diffuse environment
+illumination too. Do not disable cascades solely because the platform uses a
+reduced shader tier. See :doc:`Lighting` for shadow settings and
+:doc:`Materials` for material authoring.
 
 Asynchronous loading and persistent LOD caches
 ================================================
 
-Call ``setAsyncMeshLoadingEnabled(true)`` before adding mesh assets. File import,
+Asynchronous loading is on by default; ``setAsyncMeshLoadingEnabled`` affects
+only mesh assets added after the call. File import,
 base-geometry preparation, and instanced LOD generation run on workers;
 material/texture resolution and incremental GPU uploads remain on the render
 thread. Pending instances are skipped until ready. This does not make RaiSim
@@ -150,9 +163,7 @@ and texture properties are taken from the current import. Invalid caches are
 ignored and rebuilt. Deleting these optional files trades disk space for a
 slower next load without reducing geometry precision or quality.
 
-* Set ``RAYRAI_ASYNC_LOD_CACHE_DIR`` to choose a cache directory.
-* Set ``RAYRAI_DISABLE_ASYNC_LOD_CACHE=1`` to benchmark without this cache;
-  unset the variable to restore caching.
+Set ``RAYRAI_ASYNC_LOD_CACHE_DIR`` to choose a cache directory.
 
 Use the :doc:`forest test and benchmark commands <../examples/rayrai/rayrai_forest>`
 to measure completed frames separately from cold/cached loading. CPU preparation

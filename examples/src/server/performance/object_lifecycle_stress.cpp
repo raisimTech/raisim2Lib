@@ -7,14 +7,15 @@
 int main(int argc, char* argv[]) {
   raisim::World world;
   world.setTimeStep(0.005);
+  // the ground stays; only the bodies below are created and removed every iteration
+  auto ground = world.addGround();
+  ground->setName("ground");
+  ground->setAppearance("grid");
 
   while (1) {
     RS_TIMED_LOOP(int(world.getTimeStep()*1e6))
 
     /// create objects
-    auto ground = world.addGround();
-    ground->setName("ground");
-    ground->setAppearance("grid");
     std::vector<raisim::Box*> cubes;
     std::vector<raisim::Sphere*> spheres;
     std::vector<raisim::Capsule*> capsules;

@@ -1,0 +1,48 @@
+Changelog: v2.6
+===============
+
+v2.6.1 (2026-09-13)
+-------------------
+
+* TCP viewer: restored panes auto-reconnect (``--no-auto-connect`` / ``RAYRAI_TCP_VIEWER_AUTO_CONNECT=0``); command-line endpoint applies to the first pane only.
+* TCP viewer: pane outlines/dividers drawn under popups.
+* Windows installer verifies all CMake package files are staged.
+
+v2.6.0 (2026-09-12)
+-------------------
+
+**Tendons**
+
+* ``World::addSpatialTendon``, ``addFixedTendon``, ``addTendonCoupling`` and get/remove functions; ``raisim::Tendon``. See :doc:`../Tendons`.
+* Spatial tendons through sites and anchors, wrapping spheres/cylinders, side sites, pulley branches; fixed tendons over joint coordinates.
+* Springs, deadband, friction loss, armature, length limits; ``Tendon::Drive`` actuation, ``setTension``, ``setActuationForce``; polynomial ``TendonCoupling``.
+* Attach to articulated systems, rigid bodies, world anchors, deformable and granular particles; solved with contacts (no cost without tendons).
+* Wires (``addStiffWire``, ``addCompliantWire``, ``addCustomWire``) are now tendon wrappers: implicit springs, no longer reported as contacts, width 0 hides them.
+* MJCF ``<tendon>`` (spatial/fixed) and ``<equality><tendon>`` import.
+
+**World**
+
+* ``World::captureCheckpoint`` / ``restoreCheckpoint`` for in-memory rewind.
+* World XML export/import covers simulation settings, all material properties, per-object tuning, mesh collision/CoACD options, articulated control state, sensors, deformable/granular objects and tendons; full-precision, locale-independent numbers.
+* Sleeping: default ``quietSteps`` 2 → 5, both thresholds must hold, tendon-linked bodies sleep together.
+* ``setStaticFrictionVelocityThreshold`` treats ≤0 as disabled; IMU noise defaults to none.
+* Contact solver cache-line layout (granular scenes 3–8% faster); repeated object removal is ASan-clean.
+
+**RaisimServer**
+
+* ``launchServer`` binds before returning (correct ``getPort``); tendons streamed; viewer can delete tendons.
+
+**rayrai**
+
+* Tendons drawn automatically (``getTendonVisual``).
+* Faster PBR: instanced unshadowed primitives (1,024 boxes 8.2 → 0.56 ms), specialized depth prepasses (+14.5% on dense meshes).
+* Lazy camera targets and depth-only allocation (−69.5% VRAM for depth, −33% for RGB over 8 contexts); checker texture leak fixed.
+* Displaced heightmap normals; ``setKeyboardInputEnabled``; fixed missing robot meshes under PBR and heightmap texture-unit clash.
+
+**TCP viewer**
+
+* Simulate a dropped world XML or ``--simulate world.xml`` in a child process.
+* Scene editing (spawn, delete, export XML), Ctrl-drag interaction wire, Live Signals with CSV export, MP4/PNG recording.
+* File browser, camera presets, grouped object list, help panel, more render options.
+* Split panes (``Ctrl+Shift+O/E/W``) with a server discovery table; layout saved in ``~/.rayrai/settings.yaml``.
+* ``SimControlRequest`` renamed to ``ClientRequest``.

@@ -113,24 +113,3 @@ ctest --test-dir BUILD -j 12 --output-on-failure -R tendon_example
 On Windows, also pass `-C Release`. The `gpu` tests skip with exit code 77 if
 SDL cannot create a graphics context. All generated test XML and captures use
 temporary directories or explicit output paths.
-
-## Recorded validation
-
-Validated on 2026-09-06 with Linux x86-64, Clang 20.1.8, Release mode, and the
-installed RaiSim/Rayrai packages. All ten CTests passed with `ctest -j 12`.
-The three TCP servers also completed finite startup/step/shutdown runs. The
-showcase above was captured after 90 frames (1,440 physics steps), with 85
-rendered cable segments. macOS, Windows, and ARM were reviewed for portable
-APIs but were not executed on this host.
-
-Serial timings on an AMD Ryzen 9 3950X, median of five 20,000-step runs:
-
-| Target | Microseconds per step |
-| --- | ---: |
-| `tendon_elastic` | 3.62 |
-| `tendon_pulleys` | 10.36 |
-| `tendon_coupling` | 3.70 |
-| `rayrai_tendons` | 22.81 |
-
-These timings include controller updates and finite-state/constraint diagnostics;
-`rayrai_tendons` was measured in headless mode with all scenes enabled.

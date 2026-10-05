@@ -4,7 +4,9 @@ Server Example: Ray Casting
 
 Overview
 ========
-Performs a ray test from a fixed origin, then visualizes the hit point with a polyline and a sphere. Use it as the simplest reference for ray casting.
+Casts a ray from a fixed origin and visualizes the hit point with a polyline
+and a sphere. Use it as the simplest reference for ray casting; see
+:doc:`../../RayTest`.
 
 Screenshot
 ==========
@@ -30,7 +32,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Casts a single ray from a fixed origin each frame.
+- Casts a single ray from a fixed origin every step; the ray direction sweeps
+  around the vertical so the hit point traces a spiral.
 - Visualizes the hit point with a polyline and marker sphere.
 - Uses ``World::rayTest`` against terrain and primitives.
 

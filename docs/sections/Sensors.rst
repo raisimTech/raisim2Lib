@@ -41,10 +41,10 @@ How to attach a sensor to a link
 ====================================
 
 Before further explanations, we clarify some terms used throughout this page.
-**sensor** means one measurement stream, such as an RGB camera, depth camera,
-gyroscope, accelerometer, or LiDAR scan. **sensor_set** means a set of sensors
-contained in one link. For example, an Intel RealSense-like link can contain RGB,
-depth, and IMU sensors.
+**sensor** means one measurement stream, such as an RGB camera, a depth camera,
+an IMU, or a LiDAR scan. **sensor_set** means a set of sensors contained in one
+link. For example, an Intel RealSense-like link can contain RGB, depth, and IMU
+sensors.
 
 Create a link for a sensor set and give it a ``sensor`` attribute:
 
@@ -52,9 +52,13 @@ Create a link for a sensor set and give it a ``sensor`` attribute:
 
     <link name="realsense_d435" sensor="realsense435.xml"/>
 
-The sensor XML file should be stored in the same directory as the URDF file. If
-it is not found, RaiSim searches ``[urdf_dir]/sensor``, ``[urdf_dir]/sensors``,
-``[urdf_dir]/..``, and ``[urdf_dir]/../sensors``. An example sensor file is
+Such a link must be empty: its inertial, visual and collision elements are
+defined in the sensor XML file. The sensor XML file should be stored in the same
+directory as the URDF file. If it is not found, RaiSim searches
+``[urdf_dir]/sensor``, ``[urdf_dir]/sensors``, ``[urdf_dir]/..``, and
+``[urdf_dir]/../sensors``. For a URDF given as a string, the resource directory
+passed to ``World::addArticulatedSystem()`` takes the place of ``[urdf_dir]``.
+An example sensor file is
 `realsense435.xml <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/anymal_c/sensors/realsense435.xml>`_.
 An example URDF is
 `anymal_sensored.urdf <https://github.com/raisimTech/raisim2Lib/blob/master/rsc/anymal_c/urdf/anymal_sensored.urdf>`__.
@@ -65,12 +69,15 @@ Measurement source and update modes
 
 The update method is selected with ``raisim::Sensor::setMeasurementSource``:
 
-* ``RAISIM``: measurement is computed by RaiSim. This is the default for IMU and
-  spinning LiDAR sensors. ``DepthCamera`` supports RaiSim-side CPU ray updates,
-  but use this for headless fallback rather than for rendered camera images when
-  rayrai is available.
-* ``MANUAL``: user code writes the buffers. Use this for in-process rayrai
-  RGB/depth rendering or real hardware integration.
+* ``RAISIM``: measurement is computed by RaiSim. The owning articulated system
+  refreshes it during ``World::integrate()`` whenever ``1 / update_rate`` of
+  simulated time has passed since the last update. This is the default for IMU
+  and spinning LiDAR sensors. ``DepthCamera`` supports RaiSim-side CPU ray
+  updates, but use this for headless fallback rather than for rendered camera
+  images when rayrai is available. ``RGBCamera`` cannot use it.
+* ``MANUAL``: user code writes the buffers. This is the default for RGB and
+  depth cameras. Use it for in-process rayrai RGB/depth rendering or real
+  hardware integration.
 
 There is no ``VISUALIZER`` measurement source in the RaiSim API. RaiSim does not
 request RGB or depth frames from a TCP visualizer and does not update sensor
@@ -119,8 +126,8 @@ CPU-only fallback update:
                     ->getSensor<raisim::DepthCamera>("depth");
     depth->setMeasurementSource(raisim::Sensor::MeasurementSource::RAISIM);
 
-    world.integrate();
-    depth->update(world);
+    world.integrate();     // refreshes the image at the sensor's update rate
+    depth->update(world);  // optional: ray-cast a new image now
 
     const auto& z = depth->getDepthArray();
     const int w = depth->getProperties().width;
@@ -145,8 +152,11 @@ loading, call ``updateRayDirections()`` before the next update.
 RGB camera
 ====================================
 
-``raisim::RGBCamera`` stores an RGBA8 buffer with ``width * height * 4`` bytes.
-RaiSim itself does not render RGB. Use rayrai or manual hardware input.
+``raisim::RGBCamera`` stores an image buffer with ``width * height * 4`` bytes
+(4 bytes per pixel, rows contiguous). RaiSim itself does not render RGB and does
+not interpret the channel order; rayrai's ``Camera::getRawImage()`` writes BGRA.
+Use rayrai or manual hardware input; ``update()`` is a fatal error for an RGB
+camera.
 
 Manual buffer update:
 
@@ -185,10 +195,10 @@ Typical robot-attached LiDAR update:
 
     auto* lidar = anymal->getSensorSet("lidar_link")
                     ->getSensor<raisim::SpinningLidar>("lidar");
-    lidar->setMeasurementSource(raisim::Sensor::MeasurementSource::RAISIM);
+    lidar->setMeasurementSource(raisim::Sensor::MeasurementSource::RAISIM);  // the default
 
-    world.integrate();
-    lidar->update(world);
+    world.integrate();     // refreshes the scan at the sensor's update rate
+    lidar->update(world);  // optional: scan now
 
     const auto& scanS = lidar->getScan(); // points in sensor frame
     lidar->updatePose();
@@ -210,22 +220,28 @@ and performance considerations.
 IMU
 ====================================
 
-``raisim::InertialMeasurementUnit`` is updated by RaiSim and rejects visualizer
-updates. The IMU is intended for robot-attached sensor sets loaded from URDF
-sensor XML. Set the measurement source to ``RAISIM`` and read the sensor values
-after stepping the world.
+``raisim::InertialMeasurementUnit`` is intended for robot-attached sensor sets
+loaded from URDF sensor XML. With ``RAISIM``, the default, the owning articulated
+system writes the measurements during ``World::integrate()`` at the sensor's
+update rate; ``update()`` does nothing. This requires inverse dynamics, which the
+URDF and world-XML loaders enable when they create an IMU. Read the values after
+stepping the world:
 
 .. code-block:: cpp
 
-    auto* imu = anymal->getSensorSet("imu_link")
+    auto* imu = anymal->getSensorSet("lidar_link")
                   ->getSensor<raisim::InertialMeasurementUnit>("imu");
-    imu->setMeasurementSource(raisim::Sensor::MeasurementSource::RAISIM);
 
     world.integrate();
-    imu->update(world);
 
-Use the public ``InertialMeasurementUnit`` API below for the exact measurement
-accessors available in the installed header.
+    const Eigen::Vector3d& acc = imu->getLinearAcceleration();  // specific force, IMU frame [m/s^2]
+    const Eigen::Vector3d& angVel = imu->getAngularVelocity();  // IMU frame [rad/s]
+    const raisim::Vec<4>& quat = imu->getOrientation();         // IMU frame in world, (w, x, y, z)
+
+Like a real accelerometer, the IMU reports the specific force (acceleration
+minus gravity): an IMU at rest reads the negated gravity vector in the IMU frame.
+With ``MANUAL``, set the values from hardware with ``setLinearAcceleration()``,
+``setAngularVelocity()`` and ``setOrientation()``.
 
 
 CPU depth camera fallback
@@ -470,15 +486,18 @@ sensors, and render the sensor views every frame.
                                /*flipVertical=*/false);
     }
 
-``renderWithExternalCamera`` uses the sensor pose and intrinsics.
+``renderWithExternalCamera`` renders from the sensor pose; the ``raisin::Camera``
+constructed from the sensor carries its intrinsics and resolution.
 ``renderDepthPlaneDistance`` converts the depth camera render into a linear
 plane-distance texture and the ``float`` readback buffer contains one depth
-value per pixel. The RGB readback buffer contains four bytes per pixel.
+value per pixel. The RGB readback buffer contains four bytes per pixel in BGRA
+order.
 
-For LiDAR, prefer the rayrai GPU slice API when you need renderer-side LiDAR
-measurements. Use the existing point-cloud example to see how to fetch the
-robot-mounted ``SpinningLidar``, update its pose, transform sensor-frame points
-to world coordinates, and display the result in rayrai.
+For LiDAR, ``rayrai_lidar_pointcloud`` computes the scan of the robot-mounted
+``SpinningLidar`` on the CPU with ``update(world)``, transforms the sensor-frame
+points to world coordinates and displays them as a rayrai point cloud. To
+measure the scan on the GPU instead, call ``measureSpinningLidarSingleDrawGPU``,
+which stores the sensor-frame hit points in the LiDAR with ``setScan()``:
 
 .. code-block:: cpp
 
@@ -486,6 +505,7 @@ to world coordinates, and display the result in rayrai.
                   ->getSensor<raisim::SpinningLidar>("lidar");
 
     lidar->updatePose();
+    // toGlm(): small conversion helper defined in rayrai_lidar_pointcloud.cpp
     const glm::dvec3 posW = toGlm(lidar->getPosition());
     const glm::dmat3 rotW = toGlm(lidar->getOrientation());
     viewer->measureSpinningLidarSingleDrawGPU(*lidar, posW, rotW);

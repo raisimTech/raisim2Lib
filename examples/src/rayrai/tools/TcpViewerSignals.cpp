@@ -111,7 +111,7 @@ std::vector<SignalChannelDesc> buildSignalChannels(
       channels.push_back({"joint." + token + ".q", selectedInfo->jointNames[i] + " angle",
                           SignalChannelScope::SelectionOnly, "%.5g"});
     }
-    if (!gvOffsets.empty() && i < gvOffsets.size() &&
+    if (i < gvOffsets.size() &&
         jointGvDim(i < selectedInfo->jointTypes.size() ? selectedInfo->jointTypes[i] : 0) == 1) {
       channels.push_back({"joint." + token + ".qd", selectedInfo->jointNames[i] + " velocity",
                           SignalChannelScope::SelectionOnly, "%.5g"});

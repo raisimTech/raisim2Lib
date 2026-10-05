@@ -8,6 +8,7 @@
 #include <vector>
 #include "raisim/World.hpp"
 #include "raisim/object/terrain/HeightMap.hpp"
+#include "forest_tree_index.hpp"
 
 namespace forest {
 constexpr int samples = 161;
@@ -22,6 +23,8 @@ inline double elevation(double x, double y) {
 inline raisim::HeightMap* addTerrain(raisim::World& world) {
   std::vector<double> heights;
   std::vector<raisim::ColorRGB> colors;
+  heights.reserve(samples * samples);
+  colors.reserve(samples * samples);
   for (int y = 0; y < samples; ++y) for (int x = 0; x < samples; ++x) {
     const double px = -extent / 2 + extent * x / (samples - 1);
     const double py = -extent / 2 + extent * y / (samples - 1);
@@ -39,6 +42,8 @@ inline std::vector<Plant> scatter(const raisim::HeightMap& terrain) {
   // Explicit conversion keeps the scatter identical across standard libraries.
   auto unit = [&] { return double(rng()) / 4294967296.0; };
   std::vector<Plant> plants;
+  plants.reserve(2 * 880 + 128 + 3 * 18000 + 4 * 1800);
+  TreeProximityIndex trees;
   for (int type = 0; type < 10; ++type) {
     const bool tree = type < 3;
     const int count = type < 2 ? 880 : type == 2 ? 128 : type < 6 ? 18000 : 1800;
@@ -48,9 +53,7 @@ inline std::vector<Plant> scatter(const raisim::HeightMap& terrain) {
       double x = (unit() - .5) * span, y = (unit() - .5) * span;
       if (tree && (std::abs(x - trail(y)) < 3.0 || std::hypot(x, y + 9) < 4)) continue;
       // Let crowns overlap while keeping neighboring trunks separate.
-      if (tree && std::any_of(plants.begin(), plants.end(), [&](const Plant& p) {
-            return p.type < 3 && std::hypot(x-p.x,y-p.y) < .8;
-          })) continue;
+      if (tree && trees.anyWithin(x, y, .8)) continue;
       const double z = terrain.getHeight(x, y);
       if (tree) {
         const double slope = std::hypot(terrain.getHeight(x+.25,y)-terrain.getHeight(x-.25,y),
@@ -59,6 +62,7 @@ inline std::vector<Plant> scatter(const raisim::HeightMap& terrain) {
       }
       const double base = type < 2 ? 4.0 : type == 2 ? 1.5 : type == 3 ? 3 : type == 4 ? 3.5 : 1.0;
       plants.push_back({x,y,z,base*(.8+.4*unit()),unit()*6.283185307179586,type});
+      if (tree) trees.add(x, y);
       ++n;
     }
   }
@@ -70,15 +74,16 @@ inline std::vector<Plant> scatterRocks(const raisim::HeightMap& terrain,
   std::mt19937 rng(93);
   auto unit = [&] { return double(rng()) / 4294967296.0; };
   std::vector<Plant> rocks;
+  rocks.reserve(180);
+  TreeProximityIndex trees;
+  for (const auto& p : plants) if (p.type < 3) trees.add(p.x, p.y);
   for (int attempts = 0; rocks.size() < 180 && attempts < 18000; ++attempts) {
     const double y = (unit()-.5)*72;
     const double x = attempts%2 ? (unit()-.5)*72
       : trail(y)+(unit()<.5 ? -1 : 1)*(2.8+unit()*2.2);
     const double scale = .35 + .85*unit();
     if (std::abs(x-trail(y)) < 2.1+1.2*scale || std::hypot(x,y+9) < 4+scale) continue;
-    if (std::any_of(plants.begin(),plants.end(),[&](const Plant& p) {
-          return p.type < 3 && std::hypot(x-p.x,y-p.y) < scale+.25;
-        })) continue;
+    if (trees.anyWithin(x, y, scale+.25)) continue;
     if (std::any_of(rocks.begin(),rocks.end(),[&](const Plant& p) {
           return std::hypot(x-p.x,y-p.y) < scale+p.scale;
         })) continue;
@@ -167,6 +172,7 @@ inline std::vector<DemoPrimitive> demoPrimitives(
   std::vector<std::size_t> nearby;
   for (std::size_t i = 0; i < plants.size(); ++i) {
     const auto& tree = plants[i];
+    if (tree.type >= 3) continue;
     const double sideways = std::abs(tree.x - trail(tree.y));
     if (tree.type < 3 && tree.y > -20 && tree.y < 2 &&
         sideways >= 3 && sideways <= 6.5)

@@ -2,9 +2,9 @@
 Acknowledgement
 #############################
 
-If your research utilizes RaiSim, please cite the following publication:
+If your research uses RaiSim, please cite the following publication:
 
-.. code-block:: latex
+.. code-block:: bibtex
 
     @article{raisim,
       title={Per-contact iteration method for solving contact dynamics},

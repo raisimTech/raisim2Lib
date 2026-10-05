@@ -40,9 +40,10 @@ box is fixed in size. You can customize both via ``RayraiWindow``:
 
 ``setRenderQualitySettings`` re-applies ``shadowCenterOffset``,
 ``shadowOrthoHalfSize``, ``shadowNear``, and ``shadowFar`` from the settings, so
-set those fields instead when you also change quality settings later. If you
-need a fully custom shadow view/projection, use the lower-level
-``raisin::Light`` API directly.
+set those fields instead when you also change quality settings later. The
+renderer re-applies the shadow box size and centre every frame, so they can
+only be changed through these calls; ``getLight().setShadowPosition(pos)``
+additionally pins the position the directional shadow is projected from.
 
 Additional lights are controlled explicitly and capped so the fast path stays fast.
 Rayrai currently supports up to ``RayraiWindow::kMaxAdditionalLights`` (16) additional
@@ -107,20 +108,24 @@ shadow budget. PBR meshes drawn by the compact PBR program receive neither
 additional-light shadows nor cookies (see the GPU capability tiers in :doc:`Materials`).
 ``updateAdditionalLight(index, light)`` replaces one light in place.
 Imported scenes can be brought in with ``importSceneLights(sceneFile, intensityScale)``,
-and ``promoteDominantAdditionalLightToMainShadowCaster()`` reassigns the strongest imported
-light to the main shadow path so the remaining shadow budget covers the rest.
+and ``promoteDominantAdditionalLightToMainShadowCaster(preferSpotLights = true,
+removePromotedAdditionalLight = true)`` moves the dominant shadow-casting
+additional light to the main shadow path (spot lights are preferred by default;
+point lights are never promoted), so the remaining shadow budget covers the
+rest. The main light takes over that light's type, pose, colour, and
+attenuation.
 
 The main ``raisin::Light`` returned by ``RayraiWindow::getLight()`` exposes
-ergonomic helpers for spotlight angles and point-light
-range so callers do not have to set raw cosine/attenuation fields by hand:
+helpers for spotlight angles and point-light range so callers do not have to set
+raw cosine/attenuation fields by hand. The main light is directional, and
+``setRenderQualitySettings`` makes it directional again, so these helpers only
+matter after its type has been changed, for example by the promotion above:
 
 .. code-block:: cpp
 
-    auto& main = viewer.getLight();
-    main.setSpotAngles(/*innerDeg=*/14.0f, /*outerDeg=*/28.0f);
-    main.setRange(/*rangeMeters=*/12.0f);  // picks constant/linear/quadratic so
-                                           // intensity ~1% at 12m, and sets
-                                           // radius=12 as a culling hint.
+    auto& mainLight = viewer.getLight();
+    mainLight.setSpotAngles(/*innerDeg=*/14.0f, /*outerDeg=*/28.0f);
+    mainLight.setRange(/*rangeMeters=*/12.0f);  // full intensity at the source, ~1.2% at 12 m
 
 Numeric units used throughout ``raisin::Light``: positions and ``radius`` /
 ``distanceFade*`` in metres; ``temperatureKelvin`` in Kelvin; ``setSpotAngles``
@@ -129,12 +134,34 @@ takes degrees (and stores the cosines internally so the raw
 ``AdditionalLight`` plain-data struct uses the same field conventions, so
 ``std::cos(glm::radians(deg))`` is still the manual recipe for those.
 
+Point, spot, and area lights are attenuated by
+``1 / (constant + linear * d + quadratic * d²)``, where ``d`` is the distance in
+metres from the surface to the light (to the nearest point of an area light's
+rectangle) but never less than ``radius``; area lights use a quarter of
+``radius``, and at least 0.1 m. ``radius`` is the size of the light source, not
+a cutoff: a surface closer than ``radius`` receives the attenuation at
+``d = radius`` instead of getting brighter, and the light still reaches surfaces
+beyond it. ``radius`` also softens an area light's specular highlights and, for
+additional lights, raises their priority for a shadow map. Directional lights
+ignore all of these fields.
+
+``setRange(R)`` sets ``constant = 1``, ``linear = 4.5 / R`` and
+``quadratic = 75 / R²`` (``R`` is at least 0.01 m): full intensity at the
+source, 1/80.5, about 1.2%, at ``d = R``, and a falloff that continues beyond
+``R`` (0.3% at ``2R``) without reaching zero. It does not change ``radius``.
+The range does not stop a light from shading distant objects; to keep an
+additional light from shading them at all, use the range cutoff described in
+`Additional-light range cutoff`_, which derives the range from the light's
+color and attenuation coefficients.
+
 ``setRenderQualitySettings`` and ``setRenderQualityPreset`` rebuild the main light
 from the ``mainLight*`` and ``shadow*`` fields (it becomes directional again) and remove
-every additional light. Applying weather (see :doc:`Weather`), an environment sidecar,
-or a reflection-probe sidecar goes through the same call. Apply quality settings first
-and add or import lights afterwards; ``setAdditionalLightContributionThreshold`` and
+every additional light. Applying an environment sidecar or a reflection-probe sidecar
+goes through the same call. Apply quality settings first and add or import lights
+afterwards; ``setAdditionalLightContributionThreshold`` and
 ``setDepthPrepassesEnabled`` change their settings without touching the lights.
+Weather (see :doc:`Weather`) is layered on top of the last quality settings: it
+can change the main light's direction and colour but keeps the additional lights.
 
 With ``RenderQualitySettings::addViewerFillLights`` (on by default) every
 ``setRenderQualitySettings`` call also re-adds two viewer lights: a directional fill at
@@ -185,7 +212,9 @@ default.
 
 ``directionalShadowCascadeLambda`` blends uniform and logarithmic split
 distances; ``directionalShadowCascadeSplitOverrides`` sets explicit split
-distances (ignored unless they increase and stay below the far plane). Each
+distances in metres. Only the first ``count - 1`` entries are used, and they are
+ignored unless they increase and lie between the camera near plane and the
+shadowed distance. Each
 cascade is padded for the filter footprint and snapped to a world-anchored
 texel grid, so it stays stable while the camera moves. Cascades also work on
 macOS and other GPUs limited to 16 fragment texture units.
@@ -259,20 +288,21 @@ manage GL handles individually:
 
 Use HDR environments with visible features when inspecting reflective materials. A
 featureless sky or uniform studio HDR can make it hard to tell whether reflections are
-working. ``rayrai_pbr_material_grid``, ``rayrai_pbr_texture_maps``, and
-``rayrai_visual_asset_support`` use HDR/image-based lighting so metallic and
-glossy surfaces show visible reflections while non-metallic assets remain
-mostly diffuse.
+working. ``rayrai_pbr_texture_maps`` and ``rayrai_blue_wall_scene`` load HDR
+environments so metallic and glossy surfaces show visible reflections while
+non-metallic assets remain mostly diffuse.
 
 Materials without an environment cubemap use a procedural daylight fallback: a
 neutral sky term tinted by ``RenderQualitySettings::pbrEnvironmentLightingTint``
-(default white) over a ground term tinted by ``pbrEnvironmentGroundTint``, scaled
-by ``pbrEnvironmentIntensity``. It does not follow the visible sky or fog colours;
+(default white) over a ground term tinted by ``pbrEnvironmentGroundTint``, plus a
+sun highlight from the main light, scaled by ``pbrEnvironmentIntensity`` when
+``highFidelityPbr`` is on. It does not follow the visible sky or fog colours;
 ``pbrEnvironmentSkyTint``, ``pbrEnvironmentHorizonTint``, and
 ``pbrEnvironmentHorizonStrength`` only tint the procedural background. HDR
 environments keep their captured colour. Instanced visuals with PBR materials use
 a hemispheric version of the same fallback and never sample environment cubemaps;
-``Material::iblStrength`` and ``environmentMapStrength`` scale it.
+``Material::iblStrength`` scales it, and ``environmentMapStrength`` scales only
+its specular part.
 ``RayraiWindow::setEnvironmentBackground`` only draws the background; assign
 environment maps to visuals with ``setPbrEnvironment``.
 
@@ -287,7 +317,7 @@ fast interactive runs; increase those values for screenshots or inspection.
 
 .. code-block:: cpp
 
-    auto capture = raisin::ReflectionProbeCaptureSettings{};
+    raisin::RayraiWindow::ReflectionProbeCaptureSettings capture;
     capture.resolution = 128;
     auto filter = viewer.reflectionProbeFilterSettingsForCurrentQuality();
     auto probe = viewer.captureFilteredReflectionProbe(
@@ -297,14 +327,22 @@ fast interactive runs; increase those values for screenshots or inspection.
 
 Use ``captureReflectionProbeCubemapCached``/``captureFilteredReflectionProbeCached``
 when the same probe position is recomputed across frames (for example, while authoring
-or scrubbing weather). The cache is content-addressed by capture/filter settings; call
-``clearReflectionProbeCache()`` to drop it. ``selectReflectionProbeBlend(position)``
-returns the weighted blend that ``applyNearestReflectionProbe`` uses internally, which
-is useful for debug overlays.
+or scrubbing weather). Cache entries are keyed by all arguments (position, radius,
+strength, and capture/filter settings), and their textures stay owned by the
+renderer. ``clearReflectionProbeCache()`` deletes them, after which probes returned
+by the cached calls are dangling. ``selectReflectionProbeBlend(position, blend)``
+fills ``blend`` with up to two probes and their normalized weights and returns false
+when no probe influences the position; ``applyNearestReflectionProbe`` binds the
+primary probe of that blend. The blend is useful for debug overlays.
 
 Authored scene sidecars can ship next to imported assets and describe reflection
-probes, environment/background settings, and weather. Loading and applying them is
-symmetric:
+probes, environment/background settings, and weather. For a scene file
+``scene.glb`` the loaders look for ``scene.glb.rayrai_probes.json`` (or
+``.rayrai_environment.json`` / ``.rayrai_weather.json``), then
+``scene.rayrai_probes.json`` in the same directory; a path that already ends in
+``.json`` is read directly. Each sidecar type has a ``load*`` call that only
+parses the file and an ``apply*`` call that loads it and applies it to the
+renderer:
 
 .. code-block:: cpp
 
@@ -326,19 +364,21 @@ symmetric:
 
     // Authoring helper: serialize a weather setup next to the scene file.
     raisin::RayraiWindow::writeWeatherSidecar(
-        "/path/to/scene.weather.json", weatherSettings, localFogVolumes);
+        "/path/to/scene.rayrai_weather.json", weatherSettings, localFogVolumes);
 
-The ``apply*`` sidecar calls go through ``setRenderQualitySettings`` (a weather
-sidecar that enables weather through ``setWeatherSettings``), so they remove
-additional lights; apply sidecars before adding or importing lights.
+When the sidecar supplies settings, ``applyEnvironmentSidecarSettings`` and
+``applyReflectionProbeSidecarQualitySettings`` go through
+``setRenderQualitySettings`` and therefore remove additional lights, so apply
+them before adding or importing lights. ``applyWeatherSidecarSettings`` goes
+through ``setWeatherSettings`` and keeps them.
 ``suggestReflectionProbePlacementFromSceneBounds()`` is a non-mutating helper that
 proposes probe positions from current scene AABBs; use it as a starting point when
 authoring a sidecar by hand.
 
 Reflections, decals, irradiance volumes, and lightmaps
 ======================================================
-Beyond probes and IBL, rayrai supports projected decals, irradiance volumes,
-and authored lightmaps as cheap indirect-light alternatives:
+Beyond probes and IBL, rayrai supports projected decals for surface detail, and
+irradiance volumes and authored lightmaps as cheap indirect-light alternatives:
 
 * **Projected decals** (``addProjectedDecal``) — project a textured box onto
   any surface inside it; supports albedo / emission / normal / ORM slots,
@@ -347,14 +387,21 @@ and authored lightmaps as cheap indirect-light alternatives:
   constant indirect colour for authored interiors that need indirect light
   without a full GI bake.
 * **Lightmaps** — populate ``Material::lightmapMap`` from an external bake
-  tool to drive ``92_lightmap_gi``-style authored interiors.
+  tool and set ``lightmapStrength`` (default 0, which disables the map) to drive
+  ``92_lightmap_gi``-style authored interiors. Set ``lightmapUsesUv2`` when the
+  bake uses the second UV channel.
 
 Irradiance volumes and lightmaps are evaluated only by the full PBR program;
 PBR meshes drawn by the compact program get neither. rayrai picks the program
 from the GPU's fragment texture units; see the GPU capability tiers in
 :doc:`Materials`. Projected decals are a post-process pass and are not drawn on
 macOS or other GPUs limited to 16 fragment texture units; see
-:doc:`PostProcess`.
+:doc:`PostProcess`. Up to eight decals render per frame. Their albedo,
+emission, normal and ORM maps share the texture units the post pass has left:
+25 maps per frame on the GPUs that report 32 fragment texture units (the
+NVIDIA, AMD and Intel OpenGL drivers), all 32 with 39 or more. Maps are
+assigned in decal order; a map beyond the limit is not applied, but its decal
+still draws with its color.
 
 .. code-block:: cpp
 
@@ -385,7 +432,9 @@ macOS or other GPUs limited to 16 fragment texture units; see
     auto floor = raisin::Material::pbr("floor", glm::vec4(1.0f),
                                        /*metallic=*/0.0f, /*roughness=*/0.55f);
     floor.albedoMap = floorAlbedoMapId;
-    floor.lightmapMap = floorLightmapBakeId;   // second UV channel
+    floor.lightmapMap = floorLightmapBakeId;
+    floor.lightmapStrength = 1.0f;             // 0 (the default) ignores the map
+    floor.lightmapUsesUv2 = true;              // bake uses the second UV channel
     floorVisual->setMaterialOverride(floor);
 
 .. list-table::
@@ -447,11 +496,13 @@ in linear scene units before exposure; ``raisin::accumulateIrradiance`` and
 ``raisin::deringIrradiance`` in ``rayrai/BakedIrradiance.hpp`` help build them.
 It respects material AO and metallic, scales with ``Material::iblStrength``,
 and lights the back of thin foliage through ``foliageTransmissionColor`` and
-``foliageTransmissionStrength``. Its strength range is 0-4.
+``foliageTransmissionStrength`` when ``foliageTwoSidedLighting`` is on. Its
+strength range is 0-4.
 
 Outside its bounds each grid has no effect; ``edgeFadeMeters`` fades it in at
 the boundary. Each axis needs 2-256 samples and a grid holds at most 2,097,152
 samples. Unlike the resource-creation calls, the setters throw
-``std::invalid_argument`` for invalid data and ``std::runtime_error`` when no
-GL context is current. Moving geometry or changing the lighting requires a new
+``std::invalid_argument`` for invalid data or a grid larger than the GPU
+texture limit, and ``std::runtime_error`` when no GL context is current or no
+texture unit is free. Moving geometry or changing the lighting requires a new
 bake.

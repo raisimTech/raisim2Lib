@@ -38,15 +38,18 @@ Alignment and ownership
   Standard containers therefore need over-aligned allocation support. The
   exported RaiSim target requires C++20, which provides the needed language and
   standard-library baseline.
-* ``raisim::MatDyn``/``raisim::VecDyn`` allocate 32-byte aligned storage
-  internally. Do not free their memory manually.
+* ``raisim::MatDyn``/``raisim::VecDyn`` own their heap storage, which is
+  32-byte aligned on Linux and macOS and allocated with Eigen's aligned
+  allocator on Windows. Do not free their memory manually.
 * ``.e()`` returns a non-owning map. Its lifetime must not exceed the underlying
   RaiSim object.
-* Any call to ``resize()`` (dynamic types) invalidates raw pointers and Eigen maps.
+* Any call to ``resize()`` (dynamic types) reallocates the storage, discards
+  the previous contents, and invalidates raw pointers and Eigen maps.
 
 Initialization and indexing
 =============================
-``raisim::Mat`` and ``raisim::Vec`` store data in **column-major** order.
+``raisim::Mat`` and ``raisim::Vec`` store data in **column-major** order. Their
+default constructor leaves the elements uninitialized, so set them before use.
 
 .. code-block:: cpp
 
@@ -97,5 +100,15 @@ Common pitfalls
   row-major arrays, transpose or fill by columns.
 * **Dangling maps/pointers:** ``.e()`` and ``ptr()`` become invalid after
   ``resize()`` (dynamic types) or when the object goes out of scope.
-* **Size mismatches:** ``VecDyn::operator=(Eigen::VectorXd)`` checks dimensions
-  at runtime. Resize first or use ``setZero(size)`` before assignment.
+* **Implicit resizing:** assigning an Eigen vector, a ``Vec<n>``, or another
+  ``VecDyn`` to a ``VecDyn`` resizes the destination when the sizes differ.
+  Resizing reallocates, so maps and pointers taken before the assignment become
+  invalid. Element-wise ``+=`` and ``-=`` between ``VecDyn`` objects do not
+  check sizes.
+* **Expression templates:** arithmetic on ``Mat``/``Vec`` (``+``, ``-``, ``*``,
+  ``/``) builds lazy expressions that reference their operands. Do not store
+  such an expression with ``auto`` when it refers to temporaries; assign it to
+  a ``Mat``/``Vec`` instead. A product or transpose that reads its own
+  destination (``a = a * b``, ``a = a.transpose()``) gives wrong results; use a
+  separate result variable. Element-wise expressions such as ``a = a + b`` are
+  safe.

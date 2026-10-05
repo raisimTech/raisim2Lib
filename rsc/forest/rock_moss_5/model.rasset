@@ -1,4 +1,4 @@
 <rasset version="1">
-    <visual file="model.gltf" />
-    <collision type="convex_mesh" file="model_collision_2.obj" position="0 0 0" quaternion="1 0 0 0" />
+  <visual file="model.gltf" />
+  <collision type="convex_mesh" file="collision.obj" />
 </rasset>

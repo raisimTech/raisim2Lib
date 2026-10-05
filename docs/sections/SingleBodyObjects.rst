@@ -8,35 +8,40 @@ All SingleBodyObjects have **6 degrees of freedom**: 3 for position and 3 for or
 
 Primitives
 =========================
-The following five primitive shapes are supported in RaiSim.
+RaiSim supports four dynamic primitive shapes: sphere, box, capsule, and
+cylinder (``World::addSphere``, ``addBox``, ``addCapsule``, and
+``addCylinder``). ``World::addGround`` adds a static, infinite ground plane.
+The image below shows the four primitives and a compound object.
+The ``raisim::Cone`` class remains only for source compatibility; its
+constructor raises a fatal error because the collision engine does not support
+cones.
 
 .. image:: ../../rsc/docs/image/SingleBodyObjects.png
 
 
 Compound
 ===================================
-Legacy RaisimUnity examples are no longer supported; use rayrai for current
-visualization examples.
-
 ``raisim::Compound`` has multiple primitive shapes that are rigidly attached to each other to form a single rigid body.
 The shapes do not have to overlap to stay attached.
 
 A compound object can be added to the world using the method ``raisim::World::addCompound``.
-This method takes a vector of children, which have their own shape, material, position, and orientation.
-The shape can be specified by a geometric type (i.e., ``raisim::ObjectType``) and its size parameters (``objectParam``).
+This method takes a vector of at least two children (``Compound::CompoundObjectChild``), each with its own shape, material, position, and orientation.
+The shape is specified by a geometric type (``raisim::ObjectType``: ``SPHERE``, ``BOX``, ``CAPSULE``, or ``CYLINDER``) and its size parameters (``objectParam``).
 The ``objectParam`` follows a standard way to represent the size of a primitive in RaiSim:
 
 *  Sphere: radius, 0, 0, 0
-*  Box: x, y, z, 0
+*  Box: x, y, z (full side lengths), 0
 *  Capsule and cylinder: radius, height, 0, 0
 
 The ``objectParam`` is an instance of ``raisim::Vec<4>``.
-All shapes require fewer than four parameters and the unused elements (i.e., the zeroes above) are ignored.
+No shape needs all four values; the unused elements (the zeroes above) are ignored.
 
 The ``trans`` member defines the position and orientation of the child in the body frame.
-It is a ``struct`` with public ``rot`` and ``pos`` members.
+It is a ``raisim::Transformation`` with public ``rot`` and ``pos`` members.
 
 The ``mass``, ``COM``, and ``inertia`` arguments specify the dynamical properties of the combined body.
+``COM`` is expressed in the body frame and ``inertia`` is taken about the center of mass in the body frame;
+RaiSim does not compute them from the children.
 
 Mesh
 ===================================
@@ -56,8 +61,9 @@ The public ``addMesh`` API exposes three collision representations:
 * ``MeshCollisionMode::CONVEX_HULL``: one convex hull built from the mesh.
 * ``MeshCollisionMode::ORIGINAL_MESH``: the original non-convex triangle mesh.
 
-
-Original non-convex triangle mesh collision is useful for imported visual meshes that are invalid
+Convex hulls and CoACD parts are handled as convex meshes by the collision engine, while
+``ORIGINAL_MESH`` uses the triangle-mesh pair routines; see :doc:`CollisionDetection`.
+Original triangle-mesh collision keeps concave features and accepts meshes that are not valid
 CoACD input, but it is usually slower and less robust than convex collision geometry.
 
 Default convex approximation
@@ -142,7 +148,8 @@ CoACD cache files
 -----------------
 Successful ``MeshCollisionMode::CONVEXIFY`` calls write an OBJ cache beside the
 source mesh. This keeps repeated runs cheap: the first call pays the CoACD decomposition cost, while later calls with
-the same parameters load the saved convex parts directly.
+the same parameters load the saved convex parts directly. If the directory is not writable, RaiSim
+prints a warning and continues without a cache.
 
 The file name starts with ``raisim_coacd_`` and includes the source mesh stem, a hash of the
 source mesh contents, and a hash of the scale and CoACD option values, for example:
@@ -153,8 +160,8 @@ source mesh contents, and a hash of the scale and CoACD option values, for examp
 
 The cache stores each convex part as a separate OBJ group named ``raisim_coacd_part_N``. On later
 ``addMesh`` calls with the same source mesh contents and CoACD parameters, RaiSim loads these groups
-instead of running CoACD again. The loaded convex parts are expected to match the generated parts
-exactly.
+instead of running CoACD again, unless the cache file is older than the source mesh. The loaded
+convex parts match the generated parts exactly.
 
 Changing the source mesh contents changes the hash and therefore produces a different cache file.
 Different CoACD settings also produce different cache file names, so changing options such as

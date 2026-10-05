@@ -15,7 +15,11 @@ world configuration constructor in your application:
 
     raisim::World world("/path/to/raisim2Lib/rsc/xmlScripts/heightMaps/heightMapUsingRawValues.xml");
 
-The XML file is constructed as follows:
+The XML file is equivalent to the following. The asset spells the attributes
+in snake_case (``x_sample``, ``x_size``, ``center_x``, ``lin_vel``, ...); the
+reader accepts both spellings. ``xSample`` and ``ySample`` are the numbers of
+samples, and ``height`` lists ``xSample * ySample`` values row by row (x varies
+fastest).
 
 .. code-block:: xml
 
@@ -46,12 +50,18 @@ The XML file is constructed as follows:
 C++ approach
 -----------------------------
 
+The arguments are ``xSamples``, ``ySamples``, ``xSize``, ``ySize``,
+``centerX``, ``centerY``, and the height samples (one row of five values per
+line below):
+
 .. code-block:: cpp
 
   std::vector<double> height = {
-    1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0.5, 0,
-    0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1
+    1, 1,   1, 1, 1,
+    1, 0,   0, 0, 1,
+    1, 0.5, 0, 0, 1,
+    1, 0,   0, 0, 1,
+    1, 1,   1, 1, 1
   };
   auto* heightMap = world.addHeightMap(5, 5, 10, 10, 0, 0, height);
-
 

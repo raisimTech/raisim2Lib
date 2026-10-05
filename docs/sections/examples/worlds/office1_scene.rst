@@ -1,10 +1,11 @@
-############################
-Office1 Scene
-############################
+#############################
+Server Example: Office1 Scene
+#############################
 
 Overview
 ========
-Loads the office1 XML world, adds a dynamic ball, and spawns Aliengo with PD control. 
+Loads the office1 XML world, adds a dynamic ball, and spawns an Aliengo
+quadruped with PD control.
 
 Screenshot
 ==========
@@ -30,7 +31,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Loads the office1 XML world and adds a moving sphere.
+- Loads ``rsc/maps/office1.xml`` with the ``raisim::World`` constructor, adds
+  a grid-textured ground, and launches a sphere with an initial velocity.
 - Spawns Aliengo with PD posture control on top of the scene.
 - Focuses the camera on the robot.
 

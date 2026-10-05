@@ -1,16 +1,11 @@
 <?xml version="1.0"?>
 <!--
-  Sagittal leg actuator in the style of KAIST Hound: the hip (HFE) and knee (KFE) motors both sit on
-  the body. The knee reducer's ring gear turns with the thigh, so the knee motor sees
-    w_knee_motor = w_HFE + 10 w_KFE,
-  while the hip motor sees w_hip_motor = 10 w_HFE. motor_from_joint is that transmission, row by row.
-  Both motors are the same DC motor as in the abduction actuator and share the 24 V bus. The losses
-  are measured at the output: 0.02 Nm s/rad and 0.3 Nm on the joint in the same position of joints
-  (hip: HFE, knee: KFE).
+  Sagittal leg actuator in the style of KAIST Hound, used for the hip (HFE) and the knee (KFE):
+  the same DC motor as the abduction actuator behind a 10:1 reducer, on the 24 V bus.
+  Both motors sit on the body. The knee reducer's ring gear turns with the thigh, so the knee motor
+  also turns with the hip; the URDF declares that with a <coupling> on each knee <actuator>.
+  Losses measured at the output (the joint): 0.02 Nm s/rad viscous damping, 0.3 Nm Coulomb friction.
 -->
-<motor_group name="hound_leg" motor_from_joint="10 0 1 10" bus_voltage="24">
-  <motor name="hip" resistance="0.4" torque_constant="0.1" velocity_constant="10" peak_torque="3"
-         output_damping="0.02" output_friction="0.3"/>
-  <motor name="knee" resistance="0.4" torque_constant="0.1" velocity_constant="10" peak_torque="3"
-         output_damping="0.02" output_friction="0.3"/>
-</motor_group>
+<actuator_model name="hound_leg" gear_ratio="10" output_damping="0.02" output_friction="0.3">
+  <motor resistance="0.4" torque_constant="0.1" velocity_constant="10" bus_voltage="24" peak_torque="3"/>
+</actuator_model>

@@ -7,32 +7,44 @@ objects within a single World instance can collide with one another unless their
 collision group and mask settings disable that pair. See :doc:`Contact` and
 :doc:`CollisionDetection` for contact and collision details.
 
-A ``raisim::World`` can be instantiated in four ways:
+A ``raisim::World`` can be instantiated in four ways. The constructor that takes
+a path chooses the loader from the file extension and content.
 
-#. **From a USD scene file (recommended default).** Pass a ``.usd``, ``.usda``,
-   ``.usdc``, or ``.usdz`` path to the constructor. RaiSim opens the USD
-   stage, imports the rigid bodies, articulated systems, and supported
-   collision shapes, and the world is ready to step. See :doc:`OpenUSD` for
-   the full import semantics and tooling story.
+#. **From a USD file.** Pass a ``.usd``, ``.usda``, ``.usdc``, or ``.usdz``
+   path to the constructor. RaiSim opens the USD stage and imports one USD
+   Physics articulation (the default prim if it has
+   ``PhysicsArticulationRootAPI``, otherwise the first such prim) as an
+   ``ArticulatedSystem``, with its rigid bodies, joints, and supported
+   collision shapes, and applies the stage's physics-scene gravity and
+   physics materials when present. Other prims, such as free rigid bodies outside that
+   articulation, are not imported, so add the ground and other objects in
+   code. A stage without an articulation root throws ``std::runtime_error``.
+   See :doc:`OpenUSD` for the full import semantics and tooling.
 
    .. code-block:: cpp
 
-     raisim::World world("scene.usd");
+     raisim::World world("robot.usd");
+     world.addGround();
 
-   This is the preferred entry point because the scene is portable across
-   public USD-native tools such as Isaac Sim, Omniverse, and Blender.
+   Use this entry point for robots authored in USD-native tools such as Isaac
+   Sim, Omniverse, and Blender.
 
-#. **From a RaiSim XML or MuJoCo MJCF configuration file.** Pass an ``.xml``
-   or ``.mjcf`` path to the same constructor; the file's root tag
-   (``<raisim>`` or ``<mujoco>``) selects the loader. Use this when the
-   scene is hand-edited, template-driven, or already lives in one of those
-   formats. See :doc:`WorldConfigurationFile` for the XML schema.
+#. **From a RaiSim XML or MuJoCo MJCF configuration file.** Pass the file path
+   to the same constructor. The file content, a ``<raisim>`` or a ``<mujoco>``
+   element, selects the loader; the extension does not matter. Use this when
+   the scene is hand-edited, template-driven, or already lives in one of those
+   formats. See :doc:`WorldConfigurationFile` for the RaiSim XML schema and
+   the MJCF notes below.
 
-#. **From a RaiSim Engine scene file.** Pass a ``.rscene`` path to the same
-   constructor. RaiSim reads the solver settings, sampled terrain, primitive
-   bodies and ``.rasset`` collision bodies. The parsed scene stays available
-   through ``World::getRscene()``, so rayrai can apply its render settings,
-   sky, sun, instanced visuals and camera in one call:
+#. **From a RaiSim Engine scene file** (from v2.7.1, not yet released; the
+   v2.7.0 package does not include the reader). Pass a ``.rscene`` path to the
+   same constructor. RaiSim reads the solver settings and contact materials,
+   sampled terrain, primitive, mesh and ``.rasset`` bodies, and wires;
+   :doc:`RsceneFile` documents the format. The parsed scene stays available
+   through ``World::getRscene()``, so rayrai can apply the rest of the scene,
+   as RaiSim Engine 2's viewport shows it (render settings, sky, lights, fog,
+   visual-only objects, instanced visuals, terrain foliage and textures, and
+   the camera), in one call:
 
    .. code-block:: cpp
 
@@ -49,8 +61,10 @@ A ``raisim::World`` can be instantiated in four ways:
      raisin::applyRscene(*world->getRscene(), viewer, render);
 
    Content the reader cannot reproduce exactly, such as articulated systems,
-   parented nodes or non-directional lights, is a fatal error naming the
-   line rather than being dropped. See
+   compounds or nodes that inherit another node's transform, is a fatal error
+   naming the line rather than being dropped. The scene's solver settings replace the
+   world's defaults; Engine 2's defaults differ from ``raisim::World``'s (see
+   :ref:`sections/RsceneFile:Solver defaults`). See
    :doc:`examples/rayrai/rayrai_forest_from_rscene` for a complete example.
 
 #. **Programmatically.** Default-construct an empty world and add objects
@@ -62,29 +76,36 @@ A ``raisim::World`` can be instantiated in four ways:
      world.addGround();
      auto* box = world.addBox(1.0, 1.0, 1.0, 1.0);
 
-These methods can be combined: load an initial USD or XML scene and then
-add or remove objects in code before stepping.
+These methods can be combined: load an initial file and then add or remove
+objects in code before stepping.
 
-An experimental MJCF (MuJoCo file format) reader is also available. MJCF files
-can be loaded with the same
-``raisim::World`` constructor used for RaiSim XML:
+MJCF files
+==========
+
+The MJCF (MuJoCo file format) reader is experimental. MJCF files are loaded
+with the same ``raisim::World`` constructor used for RaiSim XML:
 
 .. code-block:: cpp
 
   raisim::World world("rsc/mjcf/gymnasium/hopper.xml");
 
-The reader supports the subset used by the bundled MJCF examples: world bodies,
-articulated bodies, free, slide, and hinge joints, primitive geoms, mesh assets,
-inertial tags, defaults, compiler ``angle``/``eulerseq`` settings,
-``compiler meshdir``, and material colors. Mesh asset paths are resolved
+The reader supports the subset used by the bundled MJCF examples: static
+``worldbody`` geoms, articulated bodies (each top-level ``body`` becomes one
+``ArticulatedSystem``), free, ball, slide, and hinge joints, primitive geoms,
+mesh assets, inertial tags, defaults, compiler ``angle``/``eulerseq``
+settings, ``compiler meshdir``, material colors, ``option timestep``,
+``equality connect`` constraints between bodies of the same top-level body,
+and tendons (see :doc:`tendons/Reference`). Mesh asset paths are resolved
 relative to the MJCF file directory, or relative to ``compiler meshdir`` when it
 is provided. MJCF files without an ``asset`` block are accepted. Following the
 MJCF default, a ``geom`` with no ``type`` attribute is treated as a sphere and
 must provide at least one ``size`` value for its radius.
 
-It is not a complete MuJoCo replacement; advanced MJCF features such as
-``include``, tendons, equality constraints, actuators beyond the supported
-examples, and full simulator options should be validated before relying on them.
+It is not a complete MuJoCo replacement. ``<actuator>`` elements are not
+imported (the example programs apply joint torques from C++), ``<include>`` is
+not supported, equality types other than ``connect`` and tendon equalities are
+fatal errors, and integrators other than Euler are ignored with a warning.
+Validate other MuJoCo features before relying on them.
 
 Example targets:
 
@@ -102,11 +123,11 @@ from the file path), use ``World::loadMjcfFile``:
   raisim::World world;
   world.loadMjcfFile("rsc/mjcf/gymnasium/hopper.xml");
 
-This is the same dispatch that ``World(configFile)`` does internally when
-the file's root is ``<mujoco>``. The world should normally be empty before
-calling — MJCF files often declare ground planes, ``worldbody`` lights, and
-option blocks that overwrite world-level state. The rayrai TCP viewer uses
-this entry point in its drag-drop **Joint Inspector** mode (see
+This is the same loader that ``World(configFile)`` calls internally for a
+``<mujoco>`` file. The world should normally be empty before the call: MJCF
+files often declare ground planes, ``worldbody`` geoms, and ``option`` blocks
+that change world-level state such as the time step. The rayrai TCP viewer uses
+this entry point in its drag-and-drop articulated-system inspector mode (see
 :doc:`RayraiTcpViewer`).
 
 Adding New Objects
@@ -119,15 +140,18 @@ For example, to add a sphere:
   raisim::World world;
   auto sphere = world.addSphere(0.5, 1.0);
 
-:code:`sphere` represents a pointer to the internal resource.
-It facilitates access to and modification of internal variables.
+:code:`sphere` is a pointer to the object, which the world owns. Use it to read
+and modify the object's state. The pointer becomes invalid when the object is
+removed with ``World::removeObject``.
 
 Most object-creation methods accept optional :code:`material`, :code:`collisionGroup`, and :code:`collisionMask` arguments.
-Static objects such as ground and heightmaps use a fixed collision group and expose only a collision mask.
-Collision variables are detailed in the "Contact and Collision" section.
-The :code:`material` argument specifies the material governing contact dynamics, as further explained in the "Material System" chapter.
+A ground (``addGround``) has a fixed collision group and exposes only a
+collision mask. Height maps (``addHeightMap``) accept a group that defaults to
+the static collision group ``RAISIM_STATIC_COLLISION_GROUP``.
+Collision groups and masks are described in :doc:`Contact`.
+The :code:`material` argument names the material that governs contact dynamics; see :doc:`MaterialSystem`.
 
-A comprehensive list of objects is provided in the "Object" chapter.
+The object types are described in :doc:`Object`.
 
 Upon object addition, a name may be assigned:
 
@@ -150,14 +174,16 @@ Stable object identifiers
 -------------------------
 ``Object::Id`` (a ``uint64_t``) is assigned when an object is added to a world
 and remains valid for the lifetime of that object even when other objects are
-removed. ``World::getObjectById(id)`` returns a pointer or ``nullptr`` when the
-object has been removed; ``isObjectAlive(id)`` returns the same information
-without dereferencing. ``getIndexInWorld()`` is fine for steady-state lookups,
-but in code that adds and removes objects (RL resets, asset streaming) prefer
-the stable id because indices shift after every removal.
+removed; ids are not reused within a world. ``World::getObjectById(id)``
+returns a pointer, or ``nullptr`` when the object has been removed;
+``isObjectAlive(id)`` returns the same information as a ``bool``.
+``getIndexInWorld()`` is fine for steady-state lookups, but in code that adds
+and removes objects (RL resets, asset streaming) prefer the stable id: when an
+object is removed, the last object in the world's list moves into the removed
+object's index.
 
-Snapshots and cloning
----------------------
+Snapshots, checkpoints, and cloning
+-----------------------------------
 Single-body objects support a fast capture/restore workflow for RL resets and
 rollback debugging. ``captureSingleBodySnapshot(obj, snapshotOut)`` fills a
 ``SingleBodySnapshot`` (object id, type, body type, pose, linear/angular
@@ -167,8 +193,17 @@ reapplies it later, either by pointer to the same object or by stable
 collision filter restoration. The snapshot is plain data and cheap to copy and
 reuse. ``cloneSingleBodyObject(source, name)`` produces a new single-body
 object with the same primitive shape, mass, pose, velocity, body type,
-material, collision filter, and appearance; it returns ``nullptr`` for
-non-primitive single-body types.
+material, collision filter, and appearance. It supports spheres, boxes,
+cylinders, and capsules and returns ``nullptr`` for other types.
+
+To rewind the whole world, ``World::captureCheckpoint()`` returns an in-memory
+``World::Checkpoint`` of the runtime state, including controls, pending forces,
+sensors, sleeping islands, and contact-solver history, and
+``restoreCheckpoint(checkpoint)`` restores it. Capture between complete steps
+(not between ``integrate1()`` and ``integrate2()``) and keep the
+object/constraint/sensor topology unchanged until the restore; otherwise the
+restore is rejected and returns ``false``. Checkpoints belong to the world that
+captured them and are not files.
 
 .. code-block:: cpp
 
@@ -181,9 +216,13 @@ non-primitive single-body types.
 
 Saving the World to an XML File
 ================================
-``raisim::World::exportToXml(dir, file)`` (or ``exportToXml(path)``) saves the current world state to an XML file.
-The current examples index lists the source targets that exercise world
-creation and asset loading.
+``raisim::World::exportToXml(dir, file)`` (or ``exportToXml(path)``) saves the
+current world to a RaiSim XML file that ``raisim::World(path)`` can load again.
+The file stores gravity, the time step, solver, contact and sleeping settings,
+materials, objects with their current state, and tendons (see
+:doc:`WorldConfigurationFile`). Unnamed objects receive generated names. An
+articulated system that was not loaded from a file is written as a URDF file
+(``model_<index>.urdf``) in ``dir``, next to the XML file.
 
 Stepping and time
 =================
@@ -199,18 +238,20 @@ calling ``integrate1()`` and then ``integrate2()``.
      - Work performed
    * - ``setTimeStep(dt)``
      - Updates the world timestep, contact solver timestep, and object-local
-       timestep state.
+       timestep state. A non-finite or non-positive ``dt`` is a fatal error.
    * - ``integrate1()``
      - Clears previous contacts, runs collision detection, registers contacts,
        and calls each object's first pre-solver update hook.
    * - ``integrate2()``
-     - Runs the second pre-solver update hook, solves contacts, and integrates
-       object state.
+     - Runs the second pre-solver update hook, solves contacts, integrates
+       object state, and advances the world time.
    * - ``integrate()``
      - Runs ``integrate1(); integrate2();``.
    * - ``integrateNoContactDetection()``
-     - Updates objects without contact detection and contact-problem
-       construction.
+     - Replaces ``integrate1()`` when contacts are not needed: clears previous
+       contacts and updates collision geometry and the first pre-solver hook,
+       but skips collision detection and contact-problem construction. Call
+       ``integrate2()`` afterwards to complete the step.
 
 ``getWorldTime()`` returns the integrated simulation time, and
 ``setWorldTime(time)`` can manually adjust it. For visualization through
@@ -255,8 +296,11 @@ The current ``contact::ContactSettings`` defaults are:
      - ``1e-4``
    * - ``broadphase.type``
      - ``Sap3Axis``
+   * - ``broadphase.mbpUseWorldBounds``
+     - ``false`` (the grid covers the padded bounds of all bodies)
    * - ``broadphase.mbpWorldMin`` / ``mbpWorldMax``
-     - ``{-100, -100, -100}`` / ``{100, 100, 100}``
+     - ``{-100, -100, -100}`` / ``{100, 100, 100}``; used only when
+       ``mbpUseWorldBounds`` is ``true``
    * - ``broadphase.mbpCellSize``
      - ``{1, 1, 1}``
    * - ``broadphase.mbpPadding``
@@ -288,14 +332,20 @@ Contact Solver Settings
 
 ``World::setERP(erp, erp2)`` updates the contact solver's error-reduction
 parameters. ``World::setContactSolverParam(alpha_init, alpha_min, alpha_decay,
-maxIter, threshold)`` updates the solver configuration. In the current public
-API, the alpha arguments are kept for compatibility; the practical knobs are
-``maxIter`` and ``threshold``. The solver defaults are ``maxIteration = 150`` and
+maxIter, threshold)`` updates the solver configuration. The alpha arguments are
+kept for compatibility and ignored; the effective parameters are ``maxIter`` and
+``threshold``. The solver defaults are ``maxIteration = 150`` and
 ``error_to_terminate = 1e-8``.
 
-Use ``World::setContactSolverIterationOrder(order)`` when you need a fixed
-contact iteration order for determinism. Without an explicit order, the solver
-order may flip between integration calls.
+The contact solver sweeps through the contacts forward or backward and flips the
+direction after every solve, so consecutive steps alternate.
+``World::setContactSolverIterationOrder(order)`` sets the direction of the next
+solve (``true``: forward). Call it before a step when the result must not
+depend on how many solves preceded it, for example when replaying from a
+restored state; see :doc:`Determinism`. Articulated-system loop constraints
+(pins and equality constraints) are eliminated before the solve and do not
+affect the sweep; only pin rows added directly to the solver force forward
+sweeps.
 
 Sleeping islands
 ================
@@ -304,7 +354,8 @@ connected by contacts. Sleeping is **enabled by default**. An island goes to
 sleep when all objects in the island remain quiet for a configurable number of
 consecutive steps (:code:`quietSteps`, default **5**) and their maximum linear
 and angular velocities stay below the configured thresholds (defaults:
-**linear 0.002**, **angular 0.01**).
+**linear 0.002 m/s**, **angular 0.01 rad/s**). Disabling sleeping wakes every
+sleeping object.
 
 Notes:
 

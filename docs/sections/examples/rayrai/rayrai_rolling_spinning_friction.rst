@@ -4,14 +4,14 @@ Rayrai Example: Rolling And Spinning Friction
 
 Overview
 ========
-This example visualises native rolling and spinning friction on a grid of
+This example visualizes native rolling and spinning friction on a grid of
 spheres and cylinders, all spawned with initial linear and angular
-velocity. As bodies dissipate energy through the new friction modes they
-slow, come to rest, and are recoloured to indicate sleeping; the demo
-loops on a fixed cadence so the build-up and decay are easy to compare.
+velocity. As the bodies dissipate energy through these friction modes they
+slow down, come to rest, and are recolored to indicate sleeping. The demo
+restarts on a fixed cadence so the motion and its decay are easy to compare.
 
-The matching renderer-side reference image (smaller grid, captured
-headlessly) is regenerated as part of the documentation build:
+The GIF below uses a smaller 6 × 6 grid. A headless image generator rebuilds it
+during the documentation build:
 
 .. image:: ../../../../rsc/docs/image/rayrai/rayrai_rolling_spinning_friction.gif
    :alt: rolling and spinning friction demo — spheres and cylinders settling on a checkered ground
@@ -23,27 +23,27 @@ CMake target: ``rayrai_rolling_spinning_friction``.
 
 Run
 ====
-Run the build-tree executable directly:
+Run the build-tree executable:
 
 .. code-block:: bash
 
    ./build-examples/examples/rayrai_rolling_spinning_friction
 
-On Windows, use ``rayrai_rolling_spinning_friction.exe``. The example uses
-the in-process rayrai renderer and does not need a TCP viewer.
+On Windows, run ``rayrai_rolling_spinning_friction.exe`` instead.
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
-Command-line knobs:
+Command-line options:
 
 .. code-block:: bash
 
-   rayrai_rolling_spinning_friction \
+   ./build-examples/examples/rayrai_rolling_spinning_friction \
      --grid=12             \
      --steps=2500          \
      --steps-per-frame=16  \
      --hold-frames=120
 
 * ``--grid`` — N × N body grid (default ``10``). Larger values exercise the
-  solver harder; the GIF in this page uses ``--grid=6`` for clarity.
+  solver harder; the GIF on this page uses a 6 × 6 grid for clarity.
 * ``--steps`` — physics steps per cycle (default ``2500``). One cycle is
   one full reset → run-until-rest sequence.
 * ``--steps-per-frame`` — physics steps per render frame (default ``16``).
@@ -68,12 +68,11 @@ up in ``main()``:
                                0.12,   // rolling friction (mu_r)
                                0.08);  // spinning friction (mu_spin)
 
-That seventh and eighth arguments are the new ``rollingFriction`` and
-``spinningFriction`` coefficients introduced in v2.3.0. Both default to
-zero in every other ``setMaterialPairProp`` overload, so existing scenes
-behave exactly as before; opting into them switches the solver onto the
-extended path for that pair. See :doc:`../../MaterialSystem` for the full
-contact-impulse derivation.
+The last two arguments are the ``rollingFriction`` and ``spinningFriction``
+coefficients introduced in v2.3.0. Both are zero in every other
+``setMaterialPairProp`` overload, so existing scenes behave exactly as before;
+setting them switches the solver onto the extended path for that pair. See
+:doc:`../../MaterialSystem` for the full contact-impulse derivation.
 
 The scene is built once at startup:
 
@@ -88,7 +87,8 @@ The scene is built once at startup:
   to a blue appearance.
 
 Each rendered frame integrates ``--steps-per-frame`` physics steps,
-updates the sleep appearance, and prints aggregate statistics:
+updates the sleep appearance, and shows aggregate statistics in an ImGui
+overlay. Abridged from the source:
 
 .. code-block:: cpp
 
@@ -121,13 +121,14 @@ updates the sleep appearance, and prints aggregate statistics:
 What to look for
 ================
 
-* **Cylinders roll across the floor instead of skidding.** With rolling
-  friction off, the cylinders would keep spinning indefinitely after
-  their linear motion decayed. Rolling friction couples angular and
-  linear energy and brings them down together.
-* **Spheres lose spin after stopping translation.** The spin component
-  doesn't decouple from the floor — spinning friction extracts torque
-  about the contact normal until the body is fully at rest.
+* **Rolling bodies come to rest.** Sliding friction first turns the initial
+  skid into rolling; rolling friction then removes energy from the rolling
+  motion, so linear and angular speed decay together. Without rolling
+  friction, a body rolling without slipping would keep rolling.
+* **Spheres stop spinning about the vertical axis.** Each sphere also starts
+  with spin about the contact normal. Spinning friction applies a torque about
+  the normal that removes this spin; without it, a sphere would keep spinning
+  in place after it stops rolling.
 * **Sleeping bodies turn blue.** RaiSim's sleep detector fires when the
   averaged velocity drops below the configured thresholds; sleeping
   bodies skip integration and stay on the cheaper path until the next

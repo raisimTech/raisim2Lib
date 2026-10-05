@@ -1,10 +1,14 @@
-#################################################
-Server Example: Length Constraints Newtons Cradle
-#################################################
+##################################################
+Server Example: Length Constraints Newton's Cradle
+##################################################
 
 Overview
 ========
-Creates a Newton's cradle with stiff and compliant wires, adds robots, and exports the world to XML. It is the main reference for length constraints and wire APIs.
+Hangs a Newton's cradle from spatial tendons, attaches a box and two ANYmal
+robots with spring and tension-driven tendons, and exports the world to XML.
+Despite the target name, the example uses the tendon API
+(``World::addSpatialTendon``); the older wire API now wraps tendons. See
+:doc:`../../Tendons`.
 
 Screenshot
 ==========
@@ -30,7 +34,12 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Builds a Newton's cradle with stiff wires and steel balls.
-- Adds compliant and custom wires attached to a box and robots.
-- Exports the world to XML and removes a custom wire mid-simulation.
+- Hangs four steel balls from static pins with cable tendons that have a
+  2 m upper length limit; the first cable is drawn wider and in red. The last
+  ball starts pulled out to the side.
+- Hangs a box and an ANYmal C from spring tendons (stiffness 200 and 1000).
+- Lifts an ANYmal B with a tendon driven by ``Tendon::setTension`` and removes
+  that tendon with ``World::removeTendon`` after 5000 loop iterations.
+- Exports the world to ``exportedWorld.xml`` next to the executable.
+- Integrates only while a viewer is connected.
 

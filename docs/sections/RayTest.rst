@@ -16,19 +16,25 @@ Signature (C++):
 
 .. code-block:: cpp
 
-    const RayCollisionList& rayTest(const Vec<3>& start,
-                                    const Vec<3>& direction,
+    const RayCollisionList& rayTest(const Eigen::Ref<const Eigen::Vector3d, Eigen::Unaligned>& start,
+                                    const Eigen::Ref<const Eigen::Vector3d, Eigen::Unaligned>& direction,
                                     double length,
                                     size_t objectId = size_t(-10),
                                     size_t localId = size_t(-10),
                                     CollisionGroup collisionMask = CollisionGroup(-1));
 
+Overloads accept ``{x, y, z}`` initializer lists for ``start``, ``direction``,
+or both. Pass a ``raisim::Vec<3>`` as ``vec.e()``.
+
 * :code:`start`: ray origin in world frame.
-* :code:`direction`: ray direction in world frame. It does not need to be normalized.
-* :code:`length`: ray length in meters. Only hits within [0, length] are returned.
-* :code:`objectId` / :code:`localId`: optional self-filter. Collisions with the given
-  object and local body id pair are ignored (useful for sensors attached to robots).
-  The defaults disable this filter.
+* :code:`direction`: ray direction in world frame. It is normalized internally,
+  so it does not need to be a unit vector; a zero vector is treated as +z.
+* :code:`length`: ray length in meters. Only hits within [0, length] are returned;
+  a non-positive length returns no hit.
+* :code:`objectId` / :code:`localId`: optional self-filter. Collisions with the body
+  whose object world index (``Object::getIndexInWorld()``) and local body index
+  match are ignored (useful for sensors attached to robots). Both must be set for
+  the filter to take effect; the defaults disable it.
 * :code:`collisionMask`: collision mask to filter which groups the ray can hit.
   The default (-1) allows all groups.
 
@@ -37,13 +43,14 @@ The returned :code:`RayCollisionList` stores only the closest hit (0 or 1 item).
 Example
 ========================================
 
-Only the following line
+The ray test itself is a single call:
 
 .. code-block:: cpp
 
     auto& col = world.rayTest({0,0,5}, direction, 50.);
 
-performs the ray test. The rest of the code is for demonstration only. The ray test stores only the closest hit.
+The ``ray_casting`` example sweeps this ray over the ground and visualizes the
+hit point through ``RaisimServer``.
 
 Getting the hit object (example)
 --------------------------------
@@ -107,10 +114,24 @@ For sample indices :math:`y` and :math:`p`, the angles are
 where :math:`0 \le y < \mathrm{yawCount}` and
 :math:`0 \le p < \mathrm{pitchCount}`. Increments are signed: use a negative
 increment to scan an axis in the decreasing-angle direction. A single-sample
-axis normally uses an increment of zero. If either count is zero, :code:`scan`
-is cleared and no rays are cast.
+axis normally uses an increment of zero. If either count is zero, an angle is
+not finite, or :code:`rangeMax <= rangeMin`, :code:`scan` is cleared and no
+rays are cast.
 
-Minimal example for a complete yaw revolution with 16 pitch channels:
+Each ray direction in the sensor frame is
+
+.. math::
+
+    \boldsymbol{d} = (\cos\mathrm{pitch}\cos\mathrm{yaw},\;
+                  \cos\mathrm{pitch}\sin\mathrm{yaw},\;
+                  \sin\mathrm{pitch}),
+
+so yaw rotates about the sensor z axis starting from the sensor x axis, and a
+positive pitch tilts the ray toward the sensor +z axis.
+
+Minimal example for a complete yaw revolution with 16 pitch channels
+(``rot``, ``pos``, ``rangeMin``, ``rangeMax``, ``objectId``, ``localId``, and
+``collisionMask`` come from the application):
 
 .. code-block:: cpp
 
@@ -178,14 +199,16 @@ candidate list. These fallbacks preserve the same closest-hit and compact-output
 semantics.
 
 Use the public ``ray_scan_lidar`` example to inspect structured scans and
-``large_scale_ray_test`` to inspect repeated ray queries:
+``large_scale_ray_test`` to inspect repeated ray queries. Build them together
+with the TCP viewer and start the viewer:
 
 .. code-block:: bash
 
-    cmake --build build-examples --target ray_scan_lidar large_scale_ray_test --parallel 12
+    cmake --build build-examples --target ray_scan_lidar large_scale_ray_test rayrai_tcp_viewer --parallel 12
     ./build-examples/examples/rayrai_tcp_viewer
 
-Start either simulation in another terminal. These examples visualize the APIs;
+Then start either simulation (for example,
+``./build-examples/examples/ray_scan_lidar``) in another terminal. These examples visualize the APIs;
 they are not timing comparisons. For application benchmarks, time
 ``World::rayTestLidar`` and repeated ``World::rayTest`` calls with identical
 sensor poses, rays, ranges, and collision filters on one thread, and verify the
@@ -200,8 +223,8 @@ RayCollisionItem summary
 Each hit entry stores:
 
 * :code:`getObject()`: pointer to the hit :code:`raisim::Object` (or nullptr if none).
-* :code:`getPosition()`: world-frame hit position (contact point).
-* :code:`getCollisionBody()`: collision body handle for the hit (may be null for some objects).
+* :code:`getPosition()`: world-frame hit position as an ``Eigen::Vector3d``.
+* :code:`getCollisionBody()`: pointer to the collision body that was hit (may be null for some objects).
 
 RayCollisionList summary
 ------------------------
@@ -216,8 +239,9 @@ Container semantics:
 
 Notes
 =====
-* :code:`RayCollisionList` is a lightweight container reused across calls. It is
-  cleared and populated by :code:`rayTest(...)`.
+* :code:`RayCollisionList` is a lightweight container owned by the world and
+  reused across calls. Every :code:`rayTest(...)` call overwrites it, so copy
+  any hit you need before the next ray test.
 * It contains **at most one item** because RaiSim keeps only the closest hit
   along the ray. Use :code:`list.size()` to check whether a hit occurred (0 or 1).
 

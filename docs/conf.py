@@ -14,8 +14,6 @@ exclude_patterns = [
     "_build",
     ".venv",
     ".venv/**",
-    "sections/Visualizers.rst",
-    "sections/examples/maps/*.rst",
 ]
 
 # General information about the project.

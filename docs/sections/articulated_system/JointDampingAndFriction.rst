@@ -66,9 +66,10 @@ To change the damping at runtime, call ``setJointDamping()`` with one coefficien
 freedom (``getDOF()`` entries). The new values act from the next step. Leave the six entries of a
 floating base at zero: they are not joints, and their damping would not be integrated implicitly.
 
-The URDF ``effort`` limit bounds the commanded torque (PD and feedforward). For a joint without an
-actuator, it also bounds the explicit part :math:`-b\,u_t` of the damping torque, but not the
-implicit part. For a joint with an actuator, the damping is never clipped.
+The URDF ``effort`` limit bounds only the commanded torque (PD plus feedforward). The damping torque
+is passive and is never clipped. Actuator torques (see :doc:`../Actuators`) are not bounded by the
+effort limit either: they are limited by the operating regions of their motors and are added after
+the effort clamp.
 
 Friction
 =============================
@@ -86,9 +87,11 @@ Once the other torques exceed :math:`\tau_c`, the joint accelerates with their s
 :math:`I\,(u_{t+1} - u_t)/\Delta t = \tau - \tau_c\,\mathrm{sgn}(u_{t+1})`.
 
 RaiSim solves friction as a joint impulse bounded by :math:`\tau_c\,\Delta t` in the contact
-solver, together with the contacts, the joint limits and the motor operating regions. A joint
-therefore stops exactly instead of chattering around zero velocity, and the friction torque is
-consistent with the contact forces on the robot. A robot with friction adds one row to the contact
+solver, together with the contacts and the joint limits. A joint therefore stops exactly instead
+of chattering around zero velocity, and the friction torque is consistent with the contact forces
+on the robot. A robot with friction adds one row to the contact
 solver; robots without friction do not pay for it.
 
-Friction is set in the model file. There is no C++ setter.
+The joint's own friction is set in the model file; there is no C++ setter for it. The
+``output_friction`` of an actuator can be changed at runtime by editing the definitions from
+``getActuators()`` and passing them to ``setActuators()``.

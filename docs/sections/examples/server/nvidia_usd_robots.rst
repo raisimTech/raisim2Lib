@@ -4,24 +4,21 @@ Server Example: NVIDIA USD Robots
 
 Overview
 ========
-Loads several bundled Isaac Sim robot USD scenes with
+Loads three bundled Isaac Sim robot USD files with
 ``World::addUsdArticulatedSystem`` and publishes them together through
 ``RaisimServer``. The example is intentionally limited to assets that were
 smoke-tested as RaiSim articulated systems with supported collision bodies.
+See :doc:`../../OpenUSD`.
 
 .. image:: ../../../../rsc/docs/image/rayrai/rayrai_usd_nvidia_robots.png
    :alt: Collision bodies from three Isaac Sim USD robot assets imported into RaiSim
    :width: 100%
 
-Build Availability
-==================
-The executable is generated only when CMake finds a RaiSim package with USD
-scene loading. RaiSim is expected to include OpenUSD on every supported
-architecture.
-
 Target
 ======
-CMake target when available: ``nvidia_usd_robots``.
+CMake target: ``nvidia_usd_robots`` (C++20). RaiSim loads USD through its
+bundled OpenUSD runtime on every supported platform, so no extra build switch
+is needed.
 
 Assets
 ======
@@ -33,19 +30,20 @@ The bundled assets are:
 
 Run
 ===
-Run the example:
+Run the build-tree executable:
 
 .. code-block:: bash
 
    ./build-examples/examples/nvidia_usd_robots
 
-On Windows, run ``nvidia_usd_robots.exe`` instead. This example uses
-RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
+On Windows, run ``nvidia_usd_robots.exe`` instead.
+This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
 
 Details
 =======
-- Loads each USD file with ``World::addUsdArticulatedSystem``.
-- Fails fast if the USD scene does not import as an articulated system or if no
-  supported collision bodies are imported.
-- Places the imported floating bases above the ground and applies a shared
-  ``nvidia_usd_robot`` collision material.
+- Loads each USD file with ``World::addUsdArticulatedSystem`` and simulates at
+  500 Hz.
+- Throws an error if a USD file does not import as an articulated system or if
+  no supported collision bodies are imported.
+- Places the imported floating bases above a checkerboard ground and applies a
+  shared ``nvidia_usd_robot`` collision material.

@@ -77,7 +77,10 @@ int main(int argc, char* argv[]) {
           const double z = 11.0;
 
           const double scale = 0.5 + 0.05 * static_cast<double>(dropped % 5);
-          auto* mesh = world.addMesh(meshPath, 2.0, scale);
+          /// the monkey mesh is not 2-manifold, so CoACD decomposition fails on it;
+          /// collide with the original triangle mesh directly
+          auto* mesh = world.addMesh(meshPath, 2.0, scale, "",
+                                     raisim::MeshCollisionMode::ORIGINAL_MESH);
           mesh->setName("mesh_" + std::to_string(dropped));
           mesh->setPosition(x, y, z);
 

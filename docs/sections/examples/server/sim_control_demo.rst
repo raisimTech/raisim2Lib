@@ -10,26 +10,26 @@ Demonstrates the interactive simulation-control requests supported by
 external force and torque application, single-body pose edits, and articulated
 generalized-coordinate edits.
 
-Target And Source
-=================
-
-CMake target: ``sim_control_demo``.
-
-Source file: ``examples/src/server/sim_control_demo.cpp``.
+Target
+======
+CMake target: ``sim_control_demo``. The source is
+``examples/src/server/sim_control_demo.cpp``.
 
 Run
 ===
-
-Start the source-built viewer and then the build-tree example:
+Start the viewer, then run the build-tree example:
 
 .. code-block:: bash
 
+   # Terminal 1
    ./build-examples/examples/rayrai_tcp_viewer
+
+   # Terminal 2
    ./build-examples/examples/sim_control_demo
 
-Select ``anymal`` or ``poke_box`` in the viewer. Use the Object tab to
-pause/resume/step, or use the force and pose tools described in
-:doc:`../../RayraiTcpViewer`.
+On Windows, run ``sim_control_demo.exe`` instead. Select ``anymal`` or
+``poke_box`` in the viewer. Use the Objects tab to pause, resume, and step, or
+use the force and pose tools described in :doc:`../../RayraiTcpViewer`.
 
 Security Boundary
 =================

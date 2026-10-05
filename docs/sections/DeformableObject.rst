@@ -12,7 +12,9 @@ isometric bending constraints between adjacent triangles. Collision is handled
 by one aggregate deformable object in the broad phase, with spherical particle
 proxies used internally for contact generation. This keeps deformable objects
 cheap to register in the world while still allowing particle-level contacts
-against the ground, rigid bodies, and other deformable objects.
+against the ground, rigid bodies, and other deformable objects. The
+``deformable_objects`` example (:doc:`examples/server/deformable_objects`)
+drapes a cloth over a sphere and stacks mesh-based soft cubes.
 
 API Surface
 ===========
@@ -23,12 +25,17 @@ The public constructors are exposed through ``raisim::World``:
   creates a deformable cloth or shell directly from world-space particle
   positions and triangle indices.
 * ``World::addDeformableCloth(meshFileInObjFormat, scale, pinnedVertices, material, contactMaterial, collisionGroup, collisionMask)``
-  loads an OBJ mesh as a surface cloth/shell.
+  loads an OBJ mesh as a surface cloth/shell and uses its vertices directly as
+  particles.
 * ``World::addDeformableObject(meshFileInObjFormat, material, options, pinnedVertices, contactMaterial, collisionGroup, collisionMask)``
-  loads an OBJ mesh with ``MeshBuildOptions`` for surface particles, filled
-  particles, and optional internal struts.
+  loads an OBJ mesh with ``MeshBuildOptions`` for resampled surface particles,
+  filled particles, and optional internal struts.
 
-All three creation paths register one ``DeformableObject`` in the world.
+Trailing arguments have defaults: scale ``1``, no pinned vertices, a
+default-constructed ``Material``, contact material ``"default"``, collision
+group ``1``, and a collision mask that accepts every group.
+``addDeformableObject`` always requires its material and build options. All
+three creation paths register one ``DeformableObject`` in the world.
 Particle-level operations use local particle indices. Pinned particles report
 ``BodyType::STATIC`` through ``getBodyType(localIdx)``; all other particles
 report ``BodyType::DYNAMIC``.
@@ -41,12 +48,20 @@ The simulated state is particle based:
 * ``getNumParticles()`` returns the number of particles.
 * ``getPositions()`` returns world-space particle positions.
 * ``getTriangles()`` returns the visual/surface triangle topology.
-* ``getVisualPosition(idx)`` returns the particle position plus any visual
-  offset created by filled-mesh construction.
+* ``getVisualPosition(idx)`` returns the particle position plus its visual
+  offset. For a closed triangle mesh, construction moves each surface particle
+  inward by about ``collisionRadius`` so that the collision envelope matches the
+  input surface; the visual offset undoes that shift. For an open mesh the
+  offset is zero.
 * ``getDistanceConstraintCount()`` and ``getBendingConstraintCount()`` expose
   the generated constraint counts for diagnostics.
 * ``getCollisionBodyCount()`` is normally ``1`` because one aggregate collision
   body represents the deformable object in the broad phase.
+* ``setPositionOffset(offset)`` translates all particles, including the
+  positions that pinned particles are held at.
+  ``applyRigidTransform(translation, rotation)`` rotates all particles about the
+  world origin and then translates them; velocities and pending forces are
+  rotated as well.
 
 The collision proxy radius is not the visual mesh thickness. It controls the
 spherical particle contacts used by the solver. If visual geometry appears to
@@ -88,7 +103,11 @@ Mesh surface particles
 ----------------------
 
 Use ``World::addDeformableObject`` with ``MeshParticleOptions::Mode::Surface``
-when the simulated particles should be the OBJ mesh vertices.
+to resample an OBJ surface. Every triangle is subdivided so that none of its
+edges is longer than ``spacing`` (default 0.05 m), and the resulting vertices
+become the particles; triangles that are already finer keep their original
+vertices. To use the OBJ vertices directly without resampling, call
+``World::addDeformableCloth(meshFile, scale, ...)`` instead.
 
 .. code-block:: cpp
 
@@ -102,12 +121,18 @@ when the simulated particles should be the OBJ mesh vertices.
 OBJ polygon faces are triangulated as a fan. Texture and normal indices are
 ignored. This mode is suitable for cloth and shell meshes.
 
+``addDeformableObject`` raises ``Material::collisionRadius`` to at least
+``0.58 * spacing`` in both Surface and Filled modes so that neighboring
+particle spheres overlap. Pinned-vertex indices passed to
+``addDeformableObject`` refer to the generated particle list, not to the
+original OBJ vertex numbering.
+
 Filled mesh particles
 ---------------------
 
 Use ``MeshParticleOptions::Mode::Filled`` for a closed OBJ triangle mesh that
-should receive interior particles. RaiSim samples interior particles on a
-regular grid controlled by ``spacing``.
+should receive interior particles. RaiSim resamples the surface as in Surface
+mode and adds interior particles on a regular grid with the same ``spacing``.
 
 .. code-block:: cpp
 
@@ -120,22 +145,26 @@ regular grid controlled by ``spacing``.
     auto* softBody = world.addDeformableObject("closed_cube.obj", material, build);
     softBody->setPositionOffset({0.0, 0.0, 1.0});
 
-Filled mode requires a closed triangle mesh. It is intended for feasible,
-watertight meshes with a meaningful inside/outside volume. If the mesh is not
-closed, construction fails instead of guessing an interior.
+Filled mode requires a closed (watertight) triangle mesh with a meaningful
+inside/outside volume: interior particles are selected by inside/outside tests
+against that surface, which are not meaningful for an open mesh.
 
-When using filled mode, tune ``spacing`` and ``maxFillParticles`` together.
-Smaller spacing increases particle count and usually improves shape support,
-but it also increases contact and constraint cost. ``maxFillParticles`` is a
-safety cap; if the requested spacing would generate too many particles, use a
-larger spacing or a simpler mesh instead of silently accepting an unexpectedly
-large model.
+When using filled mode, tune ``spacing`` and ``maxFillParticles`` (default
+50000) together. Smaller spacing increases particle count and usually improves
+shape support, but it also increases contact and constraint cost.
+``maxFillParticles`` limits the number of interior particles; if the requested
+spacing would exceed it, use a larger spacing or a simpler mesh rather than
+raising the limit for an unexpectedly large model.
 
 Internal struts
 ---------------
 
 Internal struts are additional distance constraints used to preserve a rest
 shape and provide bounce/recovery for soft shells or filled objects.
+``PairsWithinRadius`` connects every particle pair whose distance is at most
+``radius``; pairs that already share a constraint are skipped. Generation tests
+every particle pair (quadratic in the particle count), and a large radius
+creates many constraints that each cost solver time.
 
 .. code-block:: cpp
 
@@ -157,42 +186,51 @@ You can also add constraints after construction:
     softBody->addInternalStruts(build.internalStruts);
 
 Manual constraints are useful for adding diagonal support to coarse shells.
-They use current particle positions as the rest configuration, so add them
+Their rest length is the current distance between the two particles, so add them
 immediately after construction or after intentionally placing the object in its
-desired rest pose.
+desired rest pose. ``addDistanceConstraints`` skips pairs that already have a
+constraint; ``addDistanceConstraint`` does not check for duplicates.
 
 Material Parameters
 ===================
 
 ``DeformableObject::Material`` controls mass, solver behavior, collision proxy
-size, and elastic response:
+size, and elastic response. Defaults are shown in parentheses:
 
-* ``totalMass``: total mass distributed uniformly over all particles.
-* ``distanceCompliance``: XPBD distance compliance. ``0`` is rigid; larger
+* ``totalMass`` (1 kg): total mass distributed uniformly over all particles.
+* ``distanceCompliance`` (-1): XPBD distance compliance. ``0`` is rigid; larger
   values are softer. Negative values preserve legacy behavior by using
-  ``1 / distanceStiffness``.
-* ``distanceStiffness``: legacy stiffness parameter. Prefer
+  ``1 / distanceStiffness``, so the default compliance is ``1e-4``.
+* ``distanceStiffness`` (1e4): legacy stiffness parameter. Prefer
   ``distanceCompliance`` for new code.
-* ``bendCompliance``: XPBD isometric bending compliance for adjacent triangle
-  pairs. ``0`` is rigid; larger values allow easier folding. Negative values
-  disable bending unless ``bendStiffness`` is positive.
-* ``bendStiffness``: legacy bending stiffness parameter. Prefer
+* ``bendCompliance`` (-1): XPBD isometric bending compliance for adjacent
+  triangle pairs. ``0`` is rigid; larger values allow easier folding. Negative
+  values use ``1 / bendStiffness`` when ``bendStiffness`` is positive and
+  otherwise disable bending, so bending is off by default.
+* ``bendStiffness`` (0): legacy bending stiffness parameter. Prefer
   ``bendCompliance`` for new code.
-* ``youngsModulus``: Young's modulus in Pa. If positive, per-edge XPBD
-  compliance is derived from rest length and effective area.
-* ``poissonRatio``: stored and validated for elastic material definitions.
-  The current distance-constraint model does not implement a volumetric
+* ``youngsModulus`` (-1, unused): Young's modulus in Pa. If positive, per-edge
+  XPBD compliance is derived from rest length and effective area, and
+  ``distanceCompliance`` is ignored.
+* ``poissonRatio`` (0.3): stored for elastic material definitions and, when
+  ``youngsModulus`` is positive, required to lie between -1 and 0.5. The
+  current distance-constraint model does not implement a volumetric
   shear/Poisson model.
-* ``thickness``: surface thickness used to derive an effective area from each
-  edge length when ``youngsModulus`` is positive and ``crossSectionArea`` is not
-  set.
-* ``crossSectionArea``: effective area for each distance constraint. If
-  positive, this overrides the thickness-based estimate.
-* ``damping``: per-step velocity damping in ``[0, 1]``.
-* ``collisionRadius``: radius of each internal particle collision proxy.
-* ``iterations``: number of constraint projection iterations per substep.
-* ``substeps``: number of deformable substeps per RaiSim world step.
-* ``solverMode``: ``XPBD`` by default; ``PBD`` is also available.
+* ``thickness`` (0.01 m): surface thickness used to derive an effective area
+  from each edge length when ``youngsModulus`` is positive and
+  ``crossSectionArea`` is not set.
+* ``crossSectionArea`` (-1, unused): effective area for each distance
+  constraint. If positive, this overrides the thickness-based estimate.
+* ``damping`` (0.02): fraction of particle velocity removed per world step,
+  clamped to ``[0, 1]``. The result does not depend on ``substeps``.
+* ``collisionRadius`` (0.01 m): radius of each internal particle collision
+  proxy.
+* ``iterations`` (6): number of constraint projection iterations per substep.
+* ``substeps`` (1): number of deformable substeps per RaiSim world step.
+* ``solverMode`` (``XPBD``): ``XPBD`` or ``PBD``. ``PBD`` projects every
+  constraint rigidly and ignores the compliance magnitudes, so its effective
+  stiffness depends on ``iterations`` and the time step. Whether bending
+  constraints exist is still decided by ``bendCompliance``/``bendStiffness``.
 
 Elastic Modulus
 ===============
@@ -217,32 +255,39 @@ as:
     \alpha = \frac{L}{E A}
 
 where ``L`` is the rest length, ``E`` is ``youngsModulus``, and ``A`` is either
-``crossSectionArea`` or the thickness-derived area. Larger ``youngsModulus``
-therefore produces a stiffer object.
+``crossSectionArea`` or the thickness-derived area ``thickness * L``. With the
+thickness-derived area the compliance reduces to ``1 / (E * thickness)`` for
+every edge. Larger ``youngsModulus`` therefore produces a stiffer object.
 
 Pinned Vertices And Forces
 ==========================
 
-Pinned vertices are fixed in world coordinates and are exposed to collision as
-static proxies. They can be specified at construction time or changed later:
+Pinned vertices are fixed in world coordinates, have infinite mass, and are
+exposed to collision as static proxies. They can be specified at construction
+time or changed later; ``pinVertex`` holds the particle at its current
+position:
 
 .. code-block:: cpp
 
     cloth->pinVertex(0);
     cloth->unpinVertex(0, 0.01);
 
+``unpinVertex(idx, mass)`` restores a finite, positive mass for that particle.
+Use a mass consistent with the surrounding particles (``totalMass`` divided by
+the particle count). Constraint corrections are distributed in proportion to
+inverse mass: a much lighter particle absorbs most of each correction and
+reacts strongly to forces, while a much heavier one barely moves and drags its
+neighbors as if it were nearly pinned.
+
 External forces can be applied per particle with the standard ``Object``
-interface:
+interface. They act on the next step only, and calls on pinned particles are
+ignored. Particles have no rotational state, so ``setExternalTorque`` has no
+effect:
 
 .. code-block:: cpp
 
     softBody->setExternalForce(3, {0.0, 0.0, 2.0});
     softBody->clearExternalForcesAndTorques();
-
-``unpinVertex(idx, mass)`` restores a finite mass for that particle. Use a
-positive mass that is consistent with the surrounding particles; an extremely
-small mass makes the particle hard to move, while a very large mass can make
-the local constraints dominate the rest of the object.
 
 Solver Tuning
 =============
@@ -261,9 +306,11 @@ this order:
 5. Reduce ``distanceCompliance`` or increase ``youngsModulus`` only after the
    discretization and solver budget are reasonable.
 
-``XPBD`` is the recommended default because compliance is less dependent on the
-number of iterations than legacy PBD stiffness. Use ``PBD`` mainly for
-backward-compatible behavior or controlled comparisons.
+``XPBD`` is the recommended default because its compliance gives a material
+stiffness that depends far less on the iteration count and time step than
+``PBD``, where stiffness is only a by-product of how many rigid projections are
+performed. Use ``PBD`` mainly for backward-compatible behavior or controlled
+comparisons.
 
 Common failure modes:
 
@@ -271,37 +318,55 @@ Common failure modes:
   the stiffness/contact radius combination.
 * A cloth that stretches too much needs lower ``distanceCompliance`` or more
   iterations.
-* A cloth that folds too easily needs lower ``bendCompliance`` or a positive
-  legacy ``bendStiffness``.
+* A cloth that folds too easily needs bending constraints (a nonnegative
+  ``bendCompliance``; bending is off by default) and then a lower
+  ``bendCompliance``.
 * Filled objects that collapse need more internal struts, smaller spacing, or
   higher elastic stiffness.
 
 Rayrai Visualization
 ====================
 
-``RaisimServer`` serializes deformable objects as dynamic ``Shape::Mesh``
-visuals for rayrai viewers. The first visualizer packet sends the object
-name, triangle topology, and current vertex positions. Later packets keep the
-same topology and stream updated vertex positions only. Rayrai rebuilds the
-custom OpenGL mesh, recomputes normals from the triangle list, and renders the
-deformable surface in world coordinates.
+A local ``RayraiWindow`` draws deformable objects in its world automatically.
+``RaisimServer`` serializes them as dynamic ``Shape::Mesh`` visuals for the
+Rayrai TCP viewer. The first visualizer packet sends the object name, triangle
+topology, and current vertex positions. Later packets stream updated vertex
+positions and resend the triangle list only if the topology changes. Rayrai
+rebuilds the custom OpenGL mesh, recomputes normals from the triangle list, and
+renders the deformable surface in world coordinates. Both paths draw the
+vertices at ``getVisualPosition()``.
 
 The particle collision proxies are an internal physics representation and are
-not rendered as one sphere per vertex. The visible mesh can therefore be smaller
-or larger than the collision proxy envelope by approximately ``collisionRadius``.
-For stacked soft cubes or other closed shapes, choose particle spacing and
-``collisionRadius`` together: neighboring particle spheres should cover the
-surface without leaving gaps, but the radius should not be so large that the
-visual mesh appears to float far outside the collision envelope.
+not rendered as one sphere per vertex. For an open cloth, the drawn surface
+passes through the particle centers, so the collision envelope extends about
+``collisionRadius`` to either side of it. For a closed mesh, the inward particle
+shift and the visual offset make the drawn surface approximately coincide with
+the collision envelope. For stacked soft cubes or other closed shapes, choose
+particle spacing and ``collisionRadius`` together: neighboring particle spheres
+should cover the surface without leaving gaps, but the radius should stay small
+relative to the object's features.
+
+World XML
+=========
+
+``World::exportToXml`` writes each deformable object as a ``<deformable>``
+object with its material, contact material, collision group and mask, every
+particle's position, rest position, velocity, visual offset, inverse mass, and
+pinned flag, the triangle list, and the distance constraints. Loading the file
+with ``raisim::World(path)`` recreates the object; bending constraints are
+rebuilt from the triangles and material. The element layout is intended for
+this export/import round trip; the loader requires the attributes that the
+exporter writes.
 
 Limitations
 ===========
 
-This is still an experimental implementation. It does not yet include
-tetrahedral finite elements, deformable self-collision, or topology-changing
-visual mesh updates in ``RaisimServer``. Swept CCD is available for rigid body
-contact settings, but deformable particle contacts use the discrete collision
-path described above.
+This is still an experimental implementation. It does not include tetrahedral
+finite elements, collisions between particles of the same object
+(self-collision), or topology changes such as tearing or cutting. Granular
+systems do not collide with deformable objects. Swept CCD is available for
+rigid-body contact settings, but deformable particle contacts use the discrete
+collision path described above.
 
 API Reference
 =============

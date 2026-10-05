@@ -10,9 +10,6 @@
 #include "example_resources.hpp"
 
 int main(int argc, char* argv[]) {
-
-  raisim::RaiSimMsg::setFatalCallback([]() { throw; });
-
   raisim::World world;
   world.setTimeStep(0.001);
 

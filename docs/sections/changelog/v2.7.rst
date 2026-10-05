@@ -1,0 +1,162 @@
+Changelog: v2.7
+===============
+
+v2.7.1 (unreleased)
+-------------------
+
+Rebuild applications after updating (``InstancedVisuals`` ABI change).
+
+**Motors and joints**
+
+* Actuators (a motor with its gear) and their motor operating regions (``MotorOperatingRegion.hpp``): ``DcMotorParameters``, ``ActuatorDefinition`` (gear ratio, couplings to other joints, output damping and friction), ``ActuatorState``; actuator torques clipped each step by voltage, back-EMF, peak torque and braking quadrants (torque only, not speed). See :doc:`../Actuators`.
+* ``ArticulatedSystem``: ``setActuators``/``getActuators``, ``getNumberOfActuators``, ``getActuatorNames``, ``getActuatorIndex``, ``setActuatorTorque(s)``/``getActuatorTorques``, ``getActuatorTorqueBounds``, ``setBusVoltage``, ``getActuatorStates``, ``setMotorOperatingRegionEnforced`` (monitor-only mode). Actuator torques add on top of ``setGeneralizedForce`` and PD.
+* URDF ``<actuator joint=... file=...>`` with an ``<actuator_model>`` (inline or from ``actuator(s)/``) and optional ``<coupling>`` children.
+* ``exportToXml`` and world checkpoints save actuators, run-time changes and bus voltages.
+* **Behaviour change:** Joint damping is applied after the feedforward + PD effort clamp, so saturated damped joints retain their damping loss. Actuator and external forces are added separately. Actuator states are materialized at integration completion and survive an intervening ``setState()`` reset.
+* **Behaviour change:** URDF ``<dynamics friction>`` on revolute/prismatic joints is now simulated (Coulomb with stiction, one solver row per system); it used to be ignored. See :doc:`../articulated_system/JointDampingAndFriction`.
+
+**Closed loops and mimic joints**
+
+* Loop constraints and mimic joints are eliminated exactly in every step, before the contacts are solved: contacts, joint limits, joint friction and tendons act on the closed mechanism, and no impulse can open a loop, whatever the solver's iteration limit. The position error is fed back at 30% per step. See :doc:`../articulated_system/ClosedLoopSystems` and the derivation in :ref:`Kinematic loops <kinematic_loops>`.
+* Equality constraints: URDF ``<equality body1 body2 anchor>`` with one or two ``<axis>`` children holds ``body2``'s anchor on a plane or a line fixed in ``body1``; the points slide freely along the other directions.
+* Mimic constraints from URDF ``<mimic>`` and ``addMimicConstraint()`` are exact two-way couplings (action equals reaction); contradictory offsets are rejected, and run-time mimics are exported to XML and saved in checkpoints. See :doc:`../articulated_system/MimicJoints`.
+* OpenUSD joints excluded from the articulation, and extra joints into a body that already has its tree joint, close loops (a revolute joint as two pins on its axis, a spherical one as a pin, a fixed one as three pins). MJCF ``<connect>`` equalities become pins; inactive ones are skipped with a warning.
+* Redundant constraints are found when the model is loaded (from its geometry at several poses) and in every step; the motion is the same as without them. A constraint whose directions its joints already hold is ignored with a warning.
+* **Behaviour change:** ``RUNGE_KUTTA_4`` integrates as ``TRAPEZOID`` while a system has loop or mimic constraints, and ``TRAPEZOID`` and ``EULER`` integrate positions with the admissible part of a velocity set by hand.
+* The OpenUSD Strandbeest (79 DoF, 84 pins) steps in 78 µs, 2.1× faster than MuJoCo at the same loop accuracy. Chains of spherical joints step 13–16% faster (``chain20_speed`` 0.667 s → 0.569 s). The Linux libraries are linked with ``-Bsymbolic-functions``, so their internal calls skip the PLT (2–3% on the articulated benchmarks).
+* :doc:`../Benchmark` re-measured on an AMD Ryzen 9 3950X, with scene images and the Strandbeest against MuJoCo.
+
+**World loading**
+
+* ``World(path)`` loads ``.rscene`` files (solver/contact settings, contact materials, materials, painted terrain, primitive, mesh and static ``.rasset`` bodies, wires); ``World::getRscene()``; ``rscene::load``/``applyPhysics``/``addToWorld``. Omitted keys take RaiSim Engine 2's defaults, folders carry no transform, and format version 2 stores ``asset_root`` relative to the scene file. Unsupported records are fatal errors naming the line. Every repository scene loads; the forest scene (2,425 objects) loads in ~266 ms. See :doc:`../WorldSystem` and the format reference :doc:`../RsceneFile`.
+* rayrai ``raisin::applyRscene``/``rsceneRenderSettings`` show a scene as Engine 2's viewport does: render settings, sky, every light, local fog, reflection probes, visual-only objects with their materials, instanced visuals, terrain foliage and texture splatting, and the camera.
+* Faster object insertion (no redundant contact-body re-sort or per-body ``dynamic_cast``). Adding or removing an object now only marks the contact bodies stale; they are rebuilt once, before the next step, ray query or checkpoint, so building a world is linear instead of quadratic in its object count (adding 2,000 boxes: 42 ms → 5.7 ms; the forest scene's physics build and first step: 121 ms → 48 ms). Object indices and simulation results are unchanged.
+* ``World::addMesh()`` reads a mesh file once per world while the file keeps its size and modification time (``Mesh::FileCache``), so every ``.rasset`` instance placed from it shares one read. Vertices are bit-identical to reading the file directly.
+
+**rayrai**
+
+* Large-world streaming: ``WorldCells``, ``StreamedTerrain``/``TerrainPatch``, ``StreamedFoliage``, ``FoliageMeshLodBaker``, coverage-preserving foliage LODs, alpha mipmaps; new ``rayrai_large_forest`` example (5 km × 5 km).
+* Reprojected TAA (``TemporalAaMethod::Reprojected``, ``temporalAaCurrentWeight``, ``temporalAaSharpness``).
+* ``InstancedVisuals``: ``setFoliageDistanceFade``, ``setFoliageMeshLodPixelError``, ``setPreparedMeshLods``, ``cloneWithoutInstances``, pointer+count ``addInstances``.
+* ``RayraiWindow``: ``addInstancedVisuals``, ``addVisualCustomMesh(..., automaticMeshLodEnabled)``, ``findVisualObject``, ``setObjectHidden``, ``setPbrDebugOutputMode``.
+* ``Material::foliageDepthLodViewCount``/``foliageDepthLodBlendWidth``; instanced draws honour ``unlit`` and coverage alpha AA.
+* Prepared-foliage cache (warm forest load 22.7 s → 17.5 s), third shadow cascade, deterministic instanced draw order; hidden meshes build geometry lazily.
+* Fixes: distance fade discarding primitive batches; Windows hardware glass handle lifetime (black frames, ``GL_OUT_OF_MEMORY``) and exit hang.
+* The full post-process program now runs on GPUs with 32 fragment texture units, which every NVIDIA, AMD and Intel OpenGL driver reports. It needed 39, so these GPUs silently skipped SSR, projected decals, colour grading, local fog volumes, volumetric fog and light, light shafts, lens effects and heat haze. Projected-decal maps now share a pool of texture units (25 maps per frame with 32 units).
+* The ``RAYRAI_DISABLE_*`` environment variables were removed; the optimizations they turned off always run.
+* Model import decodes the texture files a model's materials use on background threads while the rest of the model is read; textures are identical. Mesh LOD cache files are read and written in one piece. Foliage partitioning and tangent generation do less work for the same output (verified bit-identical). ``RayraiWindow::modelHandle()`` and ``RayraiGlobalAsset::findLoadedMeshes()`` return a loaded model without reading it.
+* ``RayraiWindow::swapWorld()`` keeps the previous scene's visuals until the end of the next ``update()`` or ``renderWithExternalCamera()``, so a scene applied again in between reuses its models, mesh LODs and foliage partitions instead of importing and processing them again. A model whose files changed (the model and every file its import read) is read again (``RayraiGlobalAsset::forgetChangedModelFiles()``). Models read during a frame are shared by every visual created in it (``RayraiGlobalAsset::releaseRecentlyReadModels()``), so a terrain foliage layer no longer imports its model once per chunk. Rendered images are unchanged.
+* **Behaviour change:** ``Light::setRange`` no longer sets ``radius`` (the source size) to the range. It did, and because the attenuation distance is at least ``radius``, every surface within the range got the same ~1.2% of the light; the light now falls off from full intensity at the source to ~1.2% at the range. The compact PBR shader used by mesh rendering now also treats ``radius`` as the minimum attenuation distance, like the other shaders.
+
+**RaiSim Engine 2**
+
+* Viewport rebuilds after an edit: desert 19.1 s → 0.23 s, dense forest 12.6 s → 0.27 s, forest 14.0 s → 0.20 s; the first build of a foliage scene is 3–6× faster (``raisim_engine2_viewport_rebuild_benchmark``). ``RayraiApplyReport::modelHandles`` keeps the models a scene was built from alive until it is applied again, so a rebuild reuses them instead of importing them again (forest rebuild 3.35 s → 0.20 s).
+* Editor start-up to the first frames: desert scene 5.6 s → 2.1 s, dense forest 4.1 s → 2.4 s.
+* ``.rscene`` loading is 30–45% faster and saving 12–20% faster, with identical text. Undo history serializes an edited frame 3–4× faster (``RsceneSaveCache`` reuses the text of number lists that did not change).
+* Faster clipboard copy of deep hierarchies (512 levels: 23.5 ms → 0.5 ms), deleting a large selection (2,048 of 4,096 nodes: 1.1 s → 4 ms; ``Document::removeNodes()``), scene-tree selection lookups (``Document::isSelected()``), world transforms in the render bridge (``WorldTransformIndex``) and number parsing in ``.re2`` scripts. Results are unchanged.
+* The script benchmark timed an error (its script no longer parsed), and the forest benchmarks expected the forest's object count from before it grew.
+* Level-editing tools (Tools dock, ``.re2`` commands, C++): drop to surface with optional normal alignment and stacking, settle by simulation (overlaps separated, no bounce), keep simulation pose, overlap check, align and distribute, linear/grid/radial arrays, straight/floating/spiral stairs, scatter on terrain or collision surfaces with spacing, slope, height and overlap filters, select similar, replace with asset, and terrain ramp, noise, thermal and hydraulic erosion, terraces and mirroring.
+* Undo history no longer serializes the scene on every frame of a drag, brush stroke or typed edit, only when the gesture ends (50-frame drag of one of 2,048 objects: 219 ms → 18 ms). Recorded undo entries are unchanged.
+* ``pasteSceneNodeCopies()`` pastes a clipboard many times with one name index (1,000 copies in a 2,000-node scene: 612 ms → 5 ms), with the names separate pastes give.
+* Foliage mode (Foliage dock, ``FoliageTools.hpp``, ``foliage_type``/``foliage_paint``/``foliage_erase``/``foliage_fill``), modelled on Unreal Engine's: paint, erase, reapply, single, fill, brush select, select all and invalid instances, delete, snap to surface, and the transform gizmo on selected instances. Foliage types are instanced visual nodes with density, radius, scaling, Z offset, align-to-normal, random yaw/pitch, slope and height rules (saved in ``.rscene`` only when set); painting fills the brush to the density and lands on terrain, static or dynamic bodies as filtered (``worldSurfaceRayQuery``). Strokes update the viewport in place (``updateInstancedVisualInstances``) and are one undo step each; a 200-stamp stroke takes 14 ms.
+* The Tools dock and the terrain brushes use icons for their actions and choices.
+* Fix: Drop to Surface from the **End** key was not recorded as its own undo step; undoing the next edit also undid the drop.
+* A startup script that ends with ``select`` opens the selected node in the inspector.
+
+**TCP viewer and server**
+
+* ``PROTOCOL_FEATURE_ACTUATOR_STATE``; new **Actuators** tab plotting each actuator's motor torque–speed region, Box-MOR outline and operating-point trail.
+* ``--wait-for-server`` exits with status 1 when no server connects in time; the Help tab lists the camera controls that exist.
+* The server keeps only the latest queued force, torque and pose per body, so a dragging viewer cannot grow its queues when the application integrates the world itself.
+* Logo in the collapsed side panel; internal settings/CLI refactor.
+
+**Removed experiment code**
+
+Switches, code paths, benchmark cases, scripts and result files that only existed to compare an optimization against its alternative were removed once the comparison was decided.
+
+* rayrai: the opt-in experimental paths and their environment variables (GPU foliage cluster culling and its auto-tune, the scene-wide instanced draw list, packed foliage vertices, the instanced sun-shader prototypes, individual foliage sorting, legacy capture mips, the legacy shadow motion threshold, the legacy foliage batch modes) and unused ``RAYRAI_DEBUG_*`` switches. Default rendering is unchanged.
+* **API change:** ``InstancedVisuals::draw``/``drawShadow`` no longer take a cluster-culling compute shader; the Hi-Z overload is ``draw(shader, cullingShader, gpuHizOcclusion, viewProjection, viewPos, fov, viewportHeight)``. The GPU-cluster and draw-list diagnostics fields and their JSON keys were removed.
+* **API change:** the no-op profiling stubs ``GjkEpaStats``, ``resetGjkEpaStats``, ``getGjkEpaStats``, ``gjkEpaProfilingEnabled`` and ``setGjkEpaProfileEnabled`` were removed from ``contact_engine/gjk_epa.h``.
+* The ``RAISIM_PROFILE_INTEGRATE1`` and ``RAISIM_PROFILE_DEFORMABLE_STEP`` profilers were removed (``World::integrate1()`` is one function; results are unchanged), as was RaiSim Engine 2's ``RAYRAI_ENABLE_LARGE_FOLIAGE_BATCHES`` (terrain foliage always uses 16 m chunks).
+* Examples and benchmarks no longer take comparison options: the dense forest viewer's ``--color-pipeline``, ``--focus``, ``--bounce``, ``--sky-visibility``, ``--atmosphere``, ``--ground-relief``, ``--texture-storage`` and ``--lighting``; ``rayrai_glass --opaque``/``--no-refraction``; ``rayrai_nested_glass`` ``--legacy``, ``--converge``, ``--seconds``, ``--qmc``, ``--adaptive``, ``--rare-light``, ``--raw``, the sample and error bounds and ``--seed``; RaiSim Engine 2's foliage render benchmark ``--foliage-prepass``, ``--opaque-prepass``, ``--disable-*`` and ``--legacy-light-reset``; ``rayrai_complete_showcase_benchmark --legacy-*``; ``rayrai_dielectric_scene_benchmark --reuse-packing``; ``--contact-profile``; ``--disable-warmstart``.
+* Benchmark cases removed: the legacy ``speed_test`` (use ``anymal_standing``, ``atlas_ground``, ``chain10_speed``, ``chain20_speed`` and ``primitive_speed``), ``contact_broadphase_threshold_36`` and ``_36_all``, the 20 ``rayrai_benchmark`` on/off cases of always-on optimizations, ``raisim_engine2_reset_benchmark``, and the ``minitaur_mouse_force`` and ``render_cassie_nominal`` programs. Experiment scripts, result files, trial scenes and trial assets were deleted.
+* The rayrai tests lost their hidden benchmark, dump and reference modes; their default runs perform the same checks.
+
+**Fixes and build**
+
+* OpenUSD plugins registered only from the loaded copy (fixes ``TF_DEBUG_ENVIRONMENT_SYMBOL`` abort).
+* ``Ground`` and ``HeightMap`` report a zero mass; ``getMass()`` returned uninitialized memory.
+* RaiSim Engine 2 built with GCC crashed when exporting assets: its two libraries were compiled against different rapidjson copies (a system one and assimp's). Both use assimp's now, so a system rapidjson is no longer needed either. RaiSim Engine 2 also configures without the visualizer again.
+* Linux ``std::bad_alloc`` in ``InstancedVisuals::addInstances`` with newer libstdc++.
+* ``Path::setFromArgv`` handles relative ``argv[0]``; ``GranularSystem`` builds on Ubuntu 20.04.
+* Optional Vulkan ray-query backend on Linux/Windows, with checked-in SPIR-V and source-manifest validation in CMake without Python. A shader compiler is needed only when regenerating shaders. Windows MSBuild regeneration race fixed.
+* ``./run_tests.sh <group>`` test groups.
+* **Behaviour change:** invalid ``GranularSystem`` and ``DeformableObject`` input (materials, meshes, emitters, files, checkpoints, and particle indices passed to their own setters such as ``setParticleFixed`` and ``pinVertex``) is a fatal error in every build type; it was checked only in debug builds. The generic ``Object`` accessors the contact pipeline calls for every candidate still check indices only in debug builds, like those of other objects.
+* World XML height maps: ``-1`` is a valid ``z_offset``, ``z_scale`` and ``step_size``; ``terrain_properties`` maps keep their collision group and mask; ``<time_step>`` is read like ``<timeStep>``. **Behaviour change:** a height map without ``collision_group`` is static, like one from ``World::addHeightMap()`` (it was group 1).
+* A spring added with ``addSpring()``, or changed or removed through ``getSprings()``, after the first step was integrated without (or kept) its implicit stiffness term on the mass-matrix diagonal.
+* **API change:** sensor, chart and point-cloud serializers (``Sensor::serializeProp``/``serializeMeasurements``, ``Chart::initialize``/``serialize``, ``PointCloud::serialize``) take and return ``server::BoundedWriter`` instead of ``char*``. Every write into the server's send buffer is bounds-checked (``SerializationError`` on overflow); ``server::WriteBounds`` and ``ScopedWriteBounds`` were removed. The wire format is unchanged.
+* RaiSim no longer keeps ``thread_local`` state. A per-thread fatal callback (``RaiSimMsg::setThreadFatalCallback``, ``ScopedRaiSimFatalCallback``) must be reset before its thread exits; it is no longer cleared automatically.
+* **API change:** ``ArticulatedSystem::dumpCollisionBodyPairInfo()`` and its raisimPy binding were removed; use ``getCollisionBodies()`` and ``getIgnoredCollisionPairs()``.
+* Tests and benchmarks no longer use ``<bit>``; they build with Ubuntu 20.04's libstdc++.
+* Docs: Doxygen for all public headers; Actuators, joint friction, ``.rscene`` and granular pool sleep pages; the exact joint torque of a simulation step; ``ArticulatedSystem`` split into subpages; examples grouped by category.
+
+v2.7.0 (2026-09-28)
+-------------------
+
+**Pin joints and closed loops**
+
+* Much faster closed-loop solves: Minitaur step 16.7 µs → 8.0 µs, solver sweeps 31 → 2.1 per step; pin rows warm-started.
+* Exact pin/self-contact inverse mass (sparse J·M⁻¹·Jᵀ).
+* Correct pin Jacobians (own anchor per body, fixed world basis, floating-base rotation columns kept); robust 3×3 effective mass for planar/redundant pins; 30% per-step position correction.
+* Sleeping objects no longer apply stale constraints; pins stay closed under mouse-drag and wire forces.
+* New Cassie closed-loop URDF (``res/cassie/cassie_v4_raisim.urdf``).
+
+**Granular and deformable**
+
+* Faster granular contacts (contact-history index, incremental grid, cheaper pair rejection): 1,536-grain pool 0.71 s → 0.55 s.
+* Opt-in ``GranularPoolSleepController`` (1.09–1.34× faster settled pools).
+* Removing particles remaps/drops tendons attached to them (fixed out-of-bounds write).
+* Deformable particle pairs use a sparse grid.
+
+**Assets**
+
+* ``.rasset`` descriptor (``raisim::Rasset::load``/``save``/``instantiate``/``addStaticColliders``); the TCP viewer resolves ``.rasset`` visuals.
+
+**Contacts**
+
+* Fixed: primitives falling through rotated meshes, box–cylinder rim contacts, parallel capsules, tilted cylinder on plane, plane–mesh normal flip, NaN AABBs in SAP, heightmap depth 5–300× too deep, frictionless contacts, static–static problems, pinned deformable normals, swept CCD stopping mid-air.
+* ``Contact::getSolverPosition()``.
+
+**ArticulatedSystem**
+
+* Fixed: sensors on movable links aborting, ``Child`` constructor options and root pose, ``getAngularMomentum``, ``SparseJacobian`` resize, 0-DOF ``getInverseMassMatrix``, fixed-base ``setBasePos`` COM, ``getNonlinearities`` overwriting frame accelerations, RNE constraint-force lever arm, spherical effort limit, prismatic ``ref``.
+* ``setJointLimits``/``setJointVelocityLimits`` validate sizes; ``getFrameAcceleration`` documented as specific force.
+
+**Loaders**
+
+* MJCF: ``<freejoint/>``, multi-joint bodies, rotated joint frames, quaternion/``xyaxes``/``zaxis`` validation, extrinsic uppercase Euler.
+* XML: ``collision_group`` hang, templated robots survive save/reload, duplicate names on export.
+* USD: collision meshes through symlinked directories.
+
+**RaisimServer**
+
+* Fixed: send-buffer overflow on large scenes, SIGPIPE on viewer close, short polylines exiting, dangling ``focusOn``, tag 0 matching, sensor exchange dropping clients, invalid wires; mouse force stays on the same body point.
+* License activation is thread-safe (one ``World`` per thread).
+
+**rayrai**
+
+* **Breaking:** ``glm::vec4`` orientations are (w, x, y, z) everywhere.
+* Glass: ``Material::glass()``, progressive path-traced geometry refraction, optional Vulkan ray-query backend; ``rayrai_glass``, ``rayrai_nested_glass``, ``rayrai_multiple_lights`` examples.
+* Foliage: automatic mesh LOD, async preparation, GPU/Hi-Z occlusion, batching, depth prepasses, wind, BC7; dense-forest examples.
+* Lighting: baked irradiance and sky-visibility grids, soft directional shadows, deep parallax, linear HDR; range-culled local lights.
+* Multithreaded/multi-window rendering; lower frame overhead.
+* Fixes: batch upload cache, upscale blit, camera frame cache, additional-light shadows on ≤32 texture units, sampler/cascade unit clash, foliage submesh offsets, LOD on line/point meshes, point size, weather resets, lidar angle grid, depth linearization.
+
+**TCP viewer**
+
+* Filmic and AgX tone mapping; auto-connect to a local server.
+* Fixes: crash on disconnect with frustum shown, use-after-free on removal, unique recording names, atomic settings, live resource-dir edits, stale replay geometry.
+
+**Build**
+
+* Windows short build dirs and ``raisim-imported-config.cmake``; Linux shader-manifest check; Vulkan headers and SPIR-V are vendored; CMake verifies the source manifest without Python.

@@ -1,13 +1,19 @@
 // Actuators and the motor operating region (EM-MOR) of their geared DC motors, defined in the URDF.
 //
 // A fixed-base quadruped rig is actuated randomly. rsc/motorOperatingRegion/quadruped_rig.urdf
-// attaches two actuators to every leg with <actuator> elements that link actuator files: a geared
-// hip abduction motor, and the hip and knee motors coupled like KAIST Hound. For each of the twelve
-// motors, the plots show the operating region in the motor's torque-speed plane (green), the
+// puts an actuator on every joint with <actuator> elements that link actuator files: a geared hip
+// abduction actuator, and hip and knee actuators whose knee motor also turns with the hip, like
+// KAIST Hound. For the motor of each of the twelve actuators, the plots show the operating region
+// in the motor's torque-speed plane (green), the
 // Box-MOR rectangle of peak torque and no-load speed (dashed), and the operating points of the last
-// second. Points outside the region by more than 1% of the peak torque are red and counted, so you
-// can check that RaiSim keeps every motor inside its region. Untick "Enforce EM-MOR" to see what
-// the URDF effort limits (Box-MOR) alone would do.
+// second. The actuators are commanded with actuator torques from an explicit PD controller, and
+// RaiSim clips them to the operating regions. Points outside the region by more than 1% of the peak
+// torque are red and counted, so you can check that RaiSim keeps every motor inside its region.
+// The controller knows nothing about these limits: it often commands more torque than the motors
+// can produce, and RaiSim has to clip it. Untick "Enforce EM-MOR" to see where the same commands
+// would go unclipped; the joint velocity limits of the rig (1.5x the no-load speed) keep that run
+// bounded. Joint effort limits clip only setGeneralizedForce() and the built-in PD controller, which
+// the example does not use.
 
 #include <algorithm>
 #include <chrono>
@@ -22,68 +28,73 @@
 
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-#include "rayrai_example_resources.hpp"
+#include "example_resources.hpp"
 #include "raisim/World.hpp"
 
 namespace {
 
 constexpr double kTolerance = 0.01;    // operating points outside by more than this x peak torque
-constexpr double kTrailSeconds = 1.;
 
 // Random commands: position targets, velocity sweeps beyond the no-load speed, or raw torques.
 enum class Mode : int { MIXED = 0, POSITION = 1, VELOCITY = 2, TORQUE = 3 };
 
+// The actuators are commanded with actuator torques from an explicit PD controller: the motor
+// operating region clips exactly these torques. Actuator i drives joint i of the rig.
 class RandomActuator {
  public:
   explicit RandomActuator(raisim::ArticulatedSystem* robot)
-      : robot_(robot), effort_(robot->getActuationUpperLimits().e()) {
-    robot_->setControlMode(raisim::ControlMode::PD_PLUS_FEEDFORWARD_TORQUE);
-  }
+      : robot_(robot), kp_(Eigen::VectorXd::Zero(robot->getDOF())), kd_(kp_), q_(kp_), u_(kp_), tau_(kp_) {}
 
   Mode mode = Mode::MIXED;
   float period = 0.4f;
   float scale = 1.f;
 
+  // new random targets every period
   void update(double time) {
     if (time < nextChange_) return;
     std::uniform_real_distribution<double> unit(-1., 1.), jitter(0.5, 1.5);
     nextChange_ = time + period * jitter(rng_);
     const Mode active = mode == Mode::MIXED ? static_cast<Mode>(1 + int(rng_() % 3)) : mode;
-
-    const int dof = int(robot_->getDOF());
-    Eigen::VectorXd kp = Eigen::VectorXd::Zero(dof), kd = Eigen::VectorXd::Zero(dof);
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(dof), u = Eigen::VectorXd::Zero(dof);
-    Eigen::VectorXd tau = Eigen::VectorXd::Zero(dof);
-    for (int i = 0; i < dof; ++i) {
+    kp_.setZero();
+    kd_.setZero();
+    q_.setZero();
+    u_.setZero();
+    tau_.setZero();
+    for (int i = 0; i < int(robot_->getDOF()); ++i) {
       const bool abduction = i % 3 == 0;  // has position limits, so it gets no velocity sweeps
       const Mode jointMode = abduction && active == Mode::VELOCITY ? Mode::POSITION : active;
       if (jointMode == Mode::POSITION) {
-        kp[i] = abduction ? 40. : 60.;
-        kd[i] = 1.;
-        q[i] = scale * unit(rng_) * (abduction ? 0.5 : 2.5);
+        kp_[i] = abduction ? 40. : 60.;
+        kd_[i] = 1.;
+        q_[i] = scale * unit(rng_) * (abduction ? 0.5 : 2.5);
       } else if (jointMode == Mode::VELOCITY) {
         // up to 1.5x the no-load speed: the voltage limit and, on reversal, regenerative braking
-        kd[i] = 3.;
-        u[i] = scale * unit(rng_) * 36.;
+        kd_[i] = 3.;
+        u_[i] = scale * unit(rng_) * 36.;
       } else {
-        tau[i] = scale * unit(rng_) * 1.5 * effort_[i];
+        // up to 1.5x the peak torque at the joint
+        tau_[i] = scale * unit(rng_) * 1.5 * 3. * (abduction ? 6. : 10.);
       }
     }
-    robot_->setPdGains(kp, kd);
-    robot_->setPdTarget(q, u);
-    robot_->setGeneralizedForce(tau);
+  }
+
+  // the actuator torques of this step
+  void apply() {
+    const Eigen::VectorXd q = robot_->getGeneralizedCoordinate().e(), u = robot_->getGeneralizedVelocity().e();
+    robot_->setActuatorTorques(tau_ + kp_.cwiseProduct(q_ - q) + kd_.cwiseProduct(u_ - u));
   }
 
   void restart() { nextChange_ = 0.; }
 
  private:
   raisim::ArticulatedSystem* robot_;
-  Eigen::VectorXd effort_;
+  Eigen::VectorXd kp_, kd_, q_, u_, tau_;
   std::mt19937 rng_{42};
   double nextChange_ = 0.;
 };
 
-// Operating points of one motor: the step-averaged motor speed and the applied motor torque.
+// Operating points of one motor: the motor speed at the beginning of the step, at which RaiSim
+// evaluates the region, and the applied motor torque.
 struct Sample {
   float speed = 0.f, torque = 0.f;
   raisim::MotorSaturation saturation = raisim::MotorSaturation::NONE;
@@ -95,14 +106,11 @@ struct MotorTrace {
   size_t head = 0, count = 0, samples = 0, saturated = 0, outside = 0;
   double maxOutside = 0.;  // [Nm]
 
-  void add(const raisim::MotorState& state, const raisim::DcMotorParameters& motor) {
-    // The torque is constant over a step while the speed changes, so compare it with the region at
-    // the step-averaged speed.
-    const double violation =
-        raisim::motorOperatingRegionViolation(motor, state.averageSpeed, state.torque);
+  void add(const raisim::ActuatorState& state, const raisim::DcMotorParameters& motor) {
+    const double violation = raisim::motorOperatingRegionViolation(motor, state.motorSpeed, state.motorTorque);
     Sample& sample = ring[head];
-    sample.speed = float(state.averageSpeed);
-    sample.torque = float(state.torque);
+    sample.speed = float(state.motorSpeed);
+    sample.torque = float(state.motorTorque);
     sample.saturation = state.saturation;
     sample.outside = violation > kTolerance * motor.peakTorque;
     head = (head + 1) % ring.size();
@@ -115,6 +123,121 @@ struct MotorTrace {
 
   void reset() { *this = MotorTrace(); }
 };
+
+struct SimulationSettings {
+  Mode mode = Mode::MIXED;
+  float period = 0.4f;
+  float scale = 1.f;
+  double timeStep = 0.001;
+  float busVoltage = 0.f;
+  bool enforce = true;
+  bool paused = false;
+};
+
+// Read-only motor data shared with the visualization.
+struct MotorTelemetry {
+  std::string name;
+  raisim::DcMotorParameters motor;
+  double fileVoltage = 0.;
+  MotorTrace trace;
+};
+
+struct MotorStatistics {
+  double worst = 0.;  // fraction of peak torque
+  size_t outside = 0, samples = 0;
+};
+
+// RaiSim setup, actuator commands, integration, and measurement. No viewer or ImGui calls.
+class MotorOperatingRegionSimulation {
+ public:
+  explicit MotorOperatingRegionSimulation(const std::string& modelPath)
+      : world_(createWorld()), robot_(world_->addArticulatedSystem(modelPath)), actuator_(robot_) {
+    const auto& names = robot_->getActuatorNames();
+    const auto& actuators = robot_->getActuators();
+    motors_.reserve(actuators.size());
+    for (size_t m = 0; m < actuators.size(); ++m)
+      motors_.push_back({names[m], actuators[m].motor, actuators[m].motor.busVoltage, {}});
+    settings_.busVoltage = float(actuators[0].motor.busVoltage);
+  }
+
+  const std::shared_ptr<raisim::World>& world() const { return world_; }
+  const SimulationSettings& settings() const { return settings_; }
+  const std::vector<MotorTelemetry>& motors() const { return motors_; }
+
+  void applySettings(const SimulationSettings& settings, bool resetStatistics) {
+    if (settings.mode != settings_.mode) {
+      actuator_.mode = settings.mode;
+      actuator_.restart();
+    }
+    actuator_.period = settings.period;
+    actuator_.scale = settings.scale;
+    if (settings.timeStep != settings_.timeStep) {
+      world_->setTimeStep(settings.timeStep);
+      resetStatistics = true;
+    }
+    if (settings.busVoltage != settings_.busVoltage) {
+      robot_->setBusVoltage(settings.busVoltage);  // all actuators at once
+      const auto& actuators = robot_->getActuators();
+      for (size_t m = 0; m < motors_.size(); ++m) motors_[m].motor = actuators[m].motor;
+      resetStatistics = true;
+    }
+    if (settings.enforce != settings_.enforce) {
+      robot_->setMotorOperatingRegionEnforced(settings.enforce);
+      resetStatistics = true;
+    }
+    settings_ = settings;
+    if (resetStatistics) resetTraces();
+  }
+
+  // Simulate in real time, with a cap on catch-up after a slow frame.
+  void advance(double elapsed) {
+    if (!settings_.paused) accumulator_ += std::min(0.05, elapsed);
+    while (accumulator_ >= world_->getTimeStep()) {
+      step();
+      accumulator_ -= world_->getTimeStep();
+    }
+  }
+
+  MotorStatistics statistics() const {
+    MotorStatistics statistics;
+    for (const auto& motor : motors_) {
+      statistics.worst = std::max(statistics.worst, motor.trace.maxOutside / motor.motor.peakTorque);
+      statistics.outside += motor.trace.outside;
+      statistics.samples += motor.trace.samples;
+    }
+    return statistics;
+  }
+
+ private:
+  static std::shared_ptr<raisim::World> createWorld() {
+    auto world = std::make_shared<raisim::World>();
+    world->setTimeStep(0.001);
+    world->addGround(0., "ground");
+    return world;
+  }
+
+  void step() {
+    actuator_.update(world_->getWorldTime());
+    actuator_.apply();
+    world_->integrate();
+    const auto& states = robot_->getActuatorStates();
+    for (size_t m = 0; m < states.size(); ++m) motors_[m].trace.add(states[m], motors_[m].motor);
+  }
+
+  void resetTraces() {
+    for (auto& motor : motors_) motor.trace.reset();
+  }
+
+  std::shared_ptr<raisim::World> world_;
+  raisim::ArticulatedSystem* robot_;
+  RandomActuator actuator_;
+  SimulationSettings settings_;
+  std::vector<MotorTelemetry> motors_;
+  double accumulator_ = 0.;
+};
+
+// Rayrai scene and ImGui presentation.
+constexpr double kTrailSeconds = 1.;
 
 ImU32 sampleColor(const Sample& sample) {
   if (sample.outside) return IM_COL32(255, 70, 70, 255);
@@ -154,6 +277,10 @@ void drawMotorPlot(const std::string& name, const raisim::DcMotorParameters& mot
       toScreen(kv * (volt + margin), -peak), toScreen(kv * (-volt + margin), -peak)};
   draw->AddConvexPolyFilled(region, 4, IM_COL32(70, 190, 105, 55));
   draw->AddPolyline(region, 4, IM_COL32(95, 215, 125, 255), ImDrawFlags_Closed, 1.5f);
+  // Beyond the overspeed limit, where even full reverse voltage drives more than the peak current,
+  // only the peak braking torque is left: the region continues as a line at -/+ peak torque.
+  draw->AddLine(region[2], toScreen(xRange, -peak), IM_COL32(95, 215, 125, 255), 2.f);
+  draw->AddLine(region[0], toScreen(-xRange, peak), IM_COL32(95, 215, 125, 255), 2.f);
 
   // Box-MOR: peak torque and no-load speed, dashed.
   const double noLoad = motor.noLoadSpeed();
@@ -206,103 +333,81 @@ void positionCamera(raisin::RayraiWindow& viewer) {
   camera.update(false);
 }
 
-}  // namespace
+class MotorOperatingRegionVisualization {
+ public:
+  ~MotorOperatingRegionVisualization() {
+    // Rayrai resources must be released while the OpenGL context is still alive.
+    viewer_.reset();
+    if (initialized_) app_.shutdown();
+  }
 
-int main(int, char** argv) {
-  auto world = std::make_shared<raisim::World>();
-  world->setTimeStep(0.001);
-  world->addGround(0., "ground")->setAppearance("checkerboard");
-  auto* robot = world->addArticulatedSystem(
-      rayraiRscPath(argv[0], "motorOperatingRegion/quadruped_rig.urdf"));
-  RandomActuator actuator(robot);
+  bool init(const std::shared_ptr<raisim::World>& world) {
+    if (!app_.init("RaiSim motor operating region", 1600, 900)) return false;
+    initialized_ = true;
+    ImGui::GetIO().IniFilename = nullptr;  // keep ImGui scratch files out of the source tree
+    for (auto* object : world->getObjList())
+      if (object->getObjectType() == raisim::ObjectType::HALFSPACE)
+        static_cast<raisim::Ground*>(object)->setAppearance("checkerboard");
+    viewer_ = std::make_shared<raisin::RayraiWindow>(world, 1600, 900);
+    viewer_->setRenderQualitySettings(raisin::RayraiWindow::defaultRenderQualitySettings(
+        raisin::RayraiWindow::RenderQualityPreset::Balanced));
+    raisim_examples::setRayraiBackgroundColorRgb255(*viewer_, {30, 34, 42, 255});
+    raisim_examples::addRayraiBasicSceneLights(*viewer_);
+    positionCamera(*viewer_);
+    return true;
+  }
 
-  const auto& names = robot->getMotorNames();
-  const auto& motors = robot->getMotorParameters();
-  std::vector<double> fileVoltages;
-  for (const auto& motor : motors) fileVoltages.push_back(motor.busVoltage);
-  std::vector<MotorTrace> traces(motors.size());
-  const auto resetTraces = [&] { for (auto& trace : traces) trace.reset(); };
+  bool processEvents() {
+    app_.processEvents();
+    return !app_.quit;
+  }
 
-  ExampleApp app;
-  if (!app.init("RaiSim motor operating region", 1600, 900)) return -1;
-  ImGui::GetIO().IniFilename = nullptr;  // keep ImGui scratch files out of the source tree
+  void render(MotorOperatingRegionSimulation& simulation) {
+    app_.beginFrame();
+    app_.renderViewer(*viewer_);
+    drawControlPanel(simulation);
+    drawPlots(simulation);
+    app_.endFrame();
+  }
 
-  auto viewer = std::make_shared<raisin::RayraiWindow>(world, 1600, 900);
-  viewer->setRenderQualitySettings(raisin::RayraiWindow::defaultRenderQualitySettings(
-      raisin::RayraiWindow::RenderQualityPreset::Balanced));
-  raisim_examples::setRayraiBackgroundColorRgb255(*viewer, {30, 34, 42, 255});
-  raisim_examples::addRayraiBasicSceneLights(*viewer);
-  positionCamera(*viewer);
-
-  bool paused = false, enforce = true;
-  int mode = int(actuator.mode), timeStep = 0;
-  float busVoltage = float(motors[0].busVoltage);
-  double accumulator = 0.;
-  auto previous = std::chrono::steady_clock::now();
-
-  while (!app.quit) {
-    app.processEvents();
-    if (app.quit) break;
-
-    // Simulate in real time.
-    const auto now = std::chrono::steady_clock::now();
-    const double elapsed = std::chrono::duration<double>(now - previous).count();
-    if (!paused) accumulator += std::min(0.05, elapsed);
-    previous = now;
-    while (accumulator >= world->getTimeStep()) {
-      actuator.update(world->getWorldTime());
-      world->integrate();
-      const auto& states = robot->getMotorStates();
-      for (size_t m = 0; m < states.size(); ++m) traces[m].add(states[m], motors[m]);
-      accumulator -= world->getTimeStep();
-    }
-
-    app.beginFrame();
-    app.renderViewer(*viewer);
-
+ private:
+  void drawControlPanel(MotorOperatingRegionSimulation& simulation) {
+    SimulationSettings settings = simulation.settings();
+    int mode = int(settings.mode);
+    int timeStep = settings.timeStep == 0.001 ? 0 : settings.timeStep == 0.0025 ? 1 : 2;
     ImGui::SetNextWindowPos(ImVec2(12, 12), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.88f);
     ImGui::Begin("Motor operating region", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     if (ImGui::Combo("Actuation", &mode,
                      "Mixed\0Random position targets\0Random velocity sweeps\0Random torques\0")) {
-      actuator.mode = static_cast<Mode>(mode);
-      actuator.restart();
+      settings.mode = static_cast<Mode>(mode);
     }
-    ImGui::SliderFloat("Command period [s]", &actuator.period, 0.05f, 2.f, "%.2f");
-    ImGui::SliderFloat("Command scale", &actuator.scale, 0.1f, 2.f, "%.2f");
+    ImGui::SliderFloat("Command period [s]", &settings.period, 0.05f, 2.f, "%.2f");
+    ImGui::SliderFloat("Command scale", &settings.scale, 0.1f, 2.f, "%.2f");
     if (ImGui::Combo("Time step", &timeStep, "1 ms\0002.5 ms\0005 ms\0")) {
-      world->setTimeStep(timeStep == 0 ? 0.001 : timeStep == 1 ? 0.0025 : 0.005);
-      resetTraces();
+      settings.timeStep = timeStep == 0 ? 0.001 : timeStep == 1 ? 0.0025 : 0.005;
     }
-    if (ImGui::SliderFloat("Bus voltage [V]", &busVoltage, 6.f, 36.f, "%.1f")) {
-      robot->setBusVoltage(busVoltage);  // all motors at once; the regions scale with it
-      resetTraces();
-    }
-    if (ImGui::Checkbox("Enforce EM-MOR", &enforce)) {
-      robot->setMotorOperatingRegionEnforced(enforce);
-      resetTraces();
-    }
+    ImGui::SliderFloat("Bus voltage [V]", &settings.busVoltage, 6.f, 36.f, "%.1f");
+    ImGui::Checkbox("Enforce EM-MOR", &settings.enforce);
     ImGui::SameLine();
-    ImGui::Checkbox("Paused", &paused);
-    if (ImGui::Button("Reset statistics")) resetTraces();
+    ImGui::Checkbox("Paused", &settings.paused);
+    const bool resetStatistics = ImGui::Button("Reset statistics");
+    simulation.applySettings(settings, resetStatistics);
     ImGui::Separator();
-    double worst = 0.;
-    size_t outside = 0, samples = 0;
-    for (size_t m = 0; m < traces.size(); ++m) {
-      worst = std::max(worst, traces[m].maxOutside / motors[m].peakTorque);
-      outside += traces[m].outside;
-      samples += traces[m].samples;
-    }
-    ImGui::Text("%s: worst point %.2f%% of peak torque outside", enforce ? "EM-MOR" : "Box-MOR",
-                100. * worst);
-    ImGui::TextColored(outside ? ImVec4(1.f, 0.45f, 0.45f, 1.f) : ImVec4(0.55f, 0.9f, 0.6f, 1.f),
-                       "%zu of %zu samples outside by > %.0f%%", outside, samples,
+    const MotorStatistics statistics = simulation.statistics();
+    ImGui::Text("%s: worst point %.2f%% of peak torque outside", settings.enforce ? "EM-MOR" : "unclipped",
+                100. * statistics.worst);
+    ImGui::TextColored(statistics.outside ? ImVec4(1.f, 0.45f, 0.45f, 1.f) : ImVec4(0.55f, 0.9f, 0.6f, 1.f),
+                       "%zu of %zu samples outside by > %.0f%%", statistics.outside, statistics.samples,
                        100. * kTolerance);
     ImGui::TextDisabled("Green: EM-MOR. Dashed: Box-MOR (peak torque, no-load speed).\n"
                         "Points: blue inside, orange at the peak torque,\n"
                         "purple at the voltage limit, red outside.");
     ImGui::End();
+  }
 
+  void drawPlots(const MotorOperatingRegionSimulation& simulation) {
+    const auto& motors = simulation.motors();
     const ImVec2 display = ImGui::GetIO().DisplaySize;
     const float plotWidth = std::min(980.f, display.x * 0.62f);
     ImGui::SetNextWindowPos(ImVec2(display.x - plotWidth - 10.f, 10.f), ImGuiCond_Always);
@@ -310,20 +415,38 @@ int main(int, char** argv) {
     ImGui::SetNextWindowBgAlpha(0.82f);
     ImGui::Begin("Motor torque [Nm] vs. motor speed [rad/s]", nullptr,
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-    const int columns = 3, rows = int((names.size() + columns - 1) / columns);
+    const int columns = 3, rows = int((motors.size() + columns - 1) / columns);
     const ImVec2 available = ImGui::GetContentRegionAvail();
     const ImVec2 cell((available.x - (columns - 1) * ImGui::GetStyle().ItemSpacing.x) / columns,
                       (available.y - (rows - 1) * ImGui::GetStyle().ItemSpacing.y) / rows);
-    const size_t trail = size_t(kTrailSeconds / world->getTimeStep());
-    for (size_t m = 0; m < names.size(); ++m) {
+    const size_t trail = size_t(kTrailSeconds / simulation.settings().timeStep);
+    for (size_t m = 0; m < motors.size(); ++m) {
       if (m % columns != 0) ImGui::SameLine();
-      drawMotorPlot(names[m], motors[m], fileVoltages[m], traces[m], trail, cell);
+      drawMotorPlot(motors[m].name, motors[m].motor, motors[m].fileVoltage, motors[m].trace, trail, cell);
     }
     ImGui::End();
-    app.endFrame();
   }
 
-  viewer.reset();
-  app.shutdown();
+  ExampleApp app_;
+  std::shared_ptr<raisin::RayraiWindow> viewer_;
+  bool initialized_ = false;
+};
+
+}  // namespace
+
+int main(int, char** argv) {
+  MotorOperatingRegionSimulation simulation(
+      exampleRscPath(argv[0], "motorOperatingRegion/quadruped_rig.urdf"));
+  MotorOperatingRegionVisualization visualization;
+  if (!visualization.init(simulation.world())) return -1;
+
+  auto previous = std::chrono::steady_clock::now();
+  while (visualization.processEvents()) {
+    const auto now = std::chrono::steady_clock::now();
+    simulation.advance(std::chrono::duration<double>(now - previous).count());
+    previous = now;
+    visualization.render(simulation);
+  }
+
   return 0;
 }

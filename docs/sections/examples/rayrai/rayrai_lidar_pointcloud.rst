@@ -4,7 +4,8 @@ Rayrai Example: LiDAR Pointcloud
 
 Overview
 ========
-Attaches a Livox LiDAR module to Go1 and visualizes the scan as a point cloud every frame, with nearby primitives and a static mesh to generate richer returns.
+Attaches a Livox LiDAR module to Go1 and visualizes the scan as a point cloud
+every frame. Nearby primitives and a static mesh generate richer returns.
 
 Screenshot
 ==========
@@ -25,12 +26,13 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_lidar_pointcloud
 
 On Windows, run ``rayrai_lidar_pointcloud.exe`` instead.
-This example uses the in-process rayrai renderer (no external client required).
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 
 Details
 =======
-- Loads Go1 with a Livox LiDAR module and updates scans each frame.
-- Transforms LiDAR points from sensor to world frame.
-- Visualizes the scan as a point cloud with adjustable point size.
+- Loads Go1 with the ``livox_lidar`` module and updates the scan each frame.
+- Transforms LiDAR points from the sensor frame to the world frame.
+- Visualizes the scan as a ``raisin::PointCloud``; the point size is set through
+  ``PointCloud::pointSize``.
 

@@ -4,17 +4,25 @@ Examples
 
 Overview
 ========
-The ``raisim2Lib`` distribution ships C++ example sources and prebuilt RaiSim
-and rayrai libraries. Build the examples with CMake; the install target does not
-copy those source-built executables or provide a prebuilt TCP viewer. The
-``rayrai_tcp_viewer`` target builds the viewer from this repository's sources.
-Use server examples such as ``primitive_grid``, rayrai examples such as
-``rayrai_pbr_material_grid``, and non-visual tools such as
-``model_asset_pipeline`` to exercise RaiSim physics APIs, mesh import/export,
-OpenUSD mesh loading, and rayrai asset inspection. Use ``rayrai_tcp_viewer`` to
-inspect applications that publish a
-``raisim::World`` through ``raisim::RaisimServer``. RaisimUnity and RaisimUnreal
-are no longer supported.
+The ``raisim2Lib`` distribution ships prebuilt RaiSim and rayrai libraries
+together with C++ example sources. Build the examples with CMake. The install
+target does not copy the example executables, and the package does not include
+a prebuilt TCP viewer: the ``rayrai_tcp_viewer`` target builds it from the
+example sources.
+
+The examples fall into three kinds:
+
+* **Server examples**, such as ``primitive_grid``, build a ``raisim::World``
+  and publish it through ``raisim::RaisimServer``. View them with
+  ``rayrai_tcp_viewer``.
+* **Rayrai examples**, such as ``rayrai_pbr_material_grid``, render in process
+  with ``raisin::RayraiWindow``.
+* **Non-visual tools and benchmarks**, such as ``model_asset_pipeline`` and
+  ``articulated_system_benchmark``, print results or write files.
+
+Together they cover the RaiSim physics APIs, mesh import and export, OpenUSD
+loading, and rayrai rendering and asset inspection. RaisimUnity and RaisimUnreal
+are no longer supported; see :doc:`LegacyIntegrations`.
 
 .. image:: ../../rsc/docs/image/examples_overview.png
    :alt: Overview of RaiSim and rayrai examples
@@ -24,7 +32,6 @@ are no longer supported.
    :hidden:
 
    examples/overview
-   examples/current/rayrai_coacd_mesh_approximation
 
 Run
 ===
@@ -36,20 +43,23 @@ tree:
     ./build-examples/examples/primitive_grid
     ./build-examples/examples/rayrai_pbr_material_grid
 
-On Windows, use the ``.exe`` executable from ``build-examples\\bin``:
+On Windows, the executables are in ``build-examples\bin``:
 
 .. code-block:: powershell
 
     .\build-examples\bin\primitive_grid.exe
 
-If the runtime loader cannot find shared libraries, use the platform-specific
-environment setup before running examples:
+If the runtime loader cannot find the shared libraries, set up the environment
+before running examples. On Linux and macOS, ``raisim_env.sh`` sets
+``LD_LIBRARY_PATH`` or ``DYLD_LIBRARY_PATH``:
 
 .. code-block:: bash
 
     source /path/to/raisim2Lib/raisim_env.sh
 
-This script sets ``LD_LIBRARY_PATH`` on Linux and ``DYLD_LIBRARY_PATH`` on macOS.
+On Windows, CMake copies the runtime DLLs next to the executables. If a DLL is
+still missing, add the package directories to ``PATH`` from PowerShell or from
+the Command Prompt:
 
 .. code-block:: powershell
 
@@ -99,9 +109,11 @@ visual meshes can also be loaded through ``RayraiWindow::addVisualMesh``; see
 
 Non-visual examples
 -------------------
-Some examples are intended to print output or create files rather than show a
-window. ``model_asset_pipeline`` writes preprocessed and exported OBJ files to
-``/tmp/raisim_model_asset_pipeline_example``.
+Some examples print output or create files instead of showing a window.
+``model_asset_pipeline`` writes preprocessed and exported OBJ files to
+``raisim_model_asset_pipeline_example`` in the system temporary directory
+(``/tmp`` on Linux). ``articulated_system_benchmark`` and
+``anymal_standing_benchmark`` print timing results.
 
 Example layout
 ==============
@@ -114,10 +126,13 @@ The examples project groups targets by executable behavior:
    * - Group
      - Purpose
    * - Server examples
-     - Build targets for RaiSim physics, contact, terrain, sensor, robot,
-       XML/MJCF, and OpenUSD scene workflows.
+     - RaiSim physics, contact, terrain, sensor, robot, XML/MJCF, and OpenUSD
+       scene workflows published through ``RaisimServer``.
    * - ``rayrai_*``
-     - rayrai tools and standalone renderer examples.
+     - In-process rayrai renderer examples and the ``rayrai_tcp_viewer`` tool.
+   * - Benchmark examples
+     - Timing runs for articulated-system, contact, and sleeping-island
+       workloads.
 
 Choosing an example
 ===================
@@ -135,11 +150,13 @@ Start with these targets when learning a specific feature:
      - Mesh preprocessing, content-hash cache reuse, ``addMesh`` with processed
        assets, and OBJ export from a world.
    * - ``shadow_hand_usd_cube``
-     - Loading an OpenUSD ShadowHand scene through ``World(shadow_hand.usd)``
-       with a textured cube visual and publishing it through ``RaisimServer``.
+     - Loading an OpenUSD ShadowHand scene through ``World(shadow_hand.usd)``,
+       adding a native RaiSim cube, and publishing both through
+       ``RaisimServer``.
    * - ``nvidia_usd_robots``
-     - Loading vetted NVIDIA Isaac Sim robot USD scenes through the ``World``
-       constructor and publishing them through ``RaisimServer``.
+     - Loading vetted NVIDIA Isaac Sim robot USD files with
+       ``World::addUsdArticulatedSystem`` and publishing them through
+       ``RaisimServer``.
    * - ``rayrai_pbr_material_grid``
      - Inspecting metallic-roughness PBR material behavior under rayrai.
    * - ``rayrai_visual_asset_support``
@@ -151,7 +168,6 @@ Start with these targets when learning a specific feature:
        few minutes while CoACD generates and caches the parts.
    * - ``rayrai_tcp_viewer``
      - The TCP visualizer used by RaisimServer examples.
-
    * - ``tendon_elastic``, ``tendon_pulleys``, ``tendon_coupling``
      - Elastic suspensions, routed guides/pulley branches, and joint
        transmissions. See :doc:`tendons/Examples`.
@@ -160,16 +176,48 @@ Start with these targets when learning a specific feature:
        and live transmission values. See :doc:`Tendons`.
    * - ``rayrai_motor_operating_region``
      - Actuators with motor operating regions (EM-MOR), linked from the URDF
-       as actuator files, with live torque-speed plots of twelve randomly
-       actuated motors. See :doc:`examples/rayrai/rayrai_motor_operating_region`.
+       as actuator files, with live torque-speed plots for the twelve motors
+       of a randomly actuated quadruped rig. See
+       :doc:`examples/rayrai/rayrai_motor_operating_region`.
    * - ``rayrai_forest``
      - Dense instanced vegetation on a heightmap with automatic mesh LOD,
-       foliage wind and shadows, and asynchronous loading. Requires the
-       upcoming rayrai release; see :doc:`examples/rayrai/rayrai_forest`.
+       foliage wind and shadows, and asynchronous loading. See
+       :doc:`examples/rayrai/rayrai_forest` for the required rayrai version.
    * - ``rayrai_forest_from_rscene``
      - The same forest built from its saved RaiSim Engine ``.rscene`` file
-       with ``raisim::World(path)`` and ``raisin::applyRscene``; see
-       :doc:`examples/rayrai/rayrai_forest_from_rscene`.
+       with ``raisim::World(path)`` and ``raisin::applyRscene``. Requires
+       RaiSim and rayrai v2.7.1 (not yet released); see
+       :doc:`examples/rayrai/rayrai_forest_from_rscene` and :doc:`RsceneFile`.
+
+Targets without a dedicated page
+--------------------------------
+These targets are built with the others but are documented only here or on a
+feature page:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Target
+     - Demonstrates
+   * - ``heightmap_primitive_drop``
+     - 432 boxes, spheres, capsules, and cylinders dropped onto a fractal
+       heightmap.
+   * - ``heightmap_mesh_drop``
+     - Twenty monkey meshes with triangle-mesh collision dropped one at a time
+       onto a colored procedural heightmap.
+   * - ``blocky_heightmap_drop``
+     - 900 primitives and convex-hull meshes dropped onto a heightmap made of
+       flat 0.4 m tiles.
+   * - ``large_scale_ray_test``
+     - Repeated ray queries against walls and pillars; see :doc:`RayTest`.
+   * - ``rayrai_blue_wall_scene``
+     - An authored glTF interior with its light sidecar and HDR environment,
+       described by ``rsc/rayrai/blue_wall/blue_wall.rscene``. The example
+       reads that file with its own parser; ``raisim::World(path)`` and
+       ``raisin::applyRscene`` load it as well (see :doc:`RsceneFile`).
+       ``--screenshot PNG`` renders in a hidden window, saves the image, and
+       exits.
 
 Runtime assets
 ==============
@@ -204,14 +252,6 @@ Windows builds place them under ``bin``:
 .. code-block:: powershell
 
     Get-ChildItem .\build-examples\bin\*.exe
-
-Current Package Examples
-========================
-
-.. toctree::
-   :maxdepth: 1
-
-   examples/current/granular_media
 
 Benchmark Examples
 ==================
@@ -284,12 +324,15 @@ Server Examples
    examples/server/procedural_heightmap
    examples/server/ray_casting
    examples/server/ray_scan_lidar
+   examples/server/robotiq_gripper_mimic
+   examples/server/rscene_server
    examples/server/sensor_suite
+   examples/server/shadow_hand_usd_cube
    examples/server/sim_control_demo
    examples/server/sphere_drop
    examples/server/spring_damper_joints
+   examples/server/strandbeest_closed_loops
    examples/server/synchronous_server_update
-   examples/server/shadow_hand_usd_cube
    examples/server/templated_tracked_robot
    examples/server/visual_objects_showcase
    examples/server/wheeled_robot_force_control

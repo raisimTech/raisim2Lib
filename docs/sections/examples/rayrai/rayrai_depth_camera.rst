@@ -6,9 +6,9 @@ Overview
 ========
 Renders a linear depth texture from the Go1 depth camera and shows it in ImGui
 with a frustum overlay. This is the recommended RGB/depth sensor path when
-rayrai is available. The runnable path reads rendered depth from rayrai; the
-commented ``World::captureDepthCamera`` block is kept only as a deterministic
-CPU fallback for headless ray-query use.
+rayrai is available. The active code path reads rendered depth from rayrai.
+The source also keeps a disabled (``#if 0``) ``World::captureDepthCamera``
+block as a deterministic CPU fallback for headless ray-query use.
 
 Screenshot
 ==========
@@ -29,7 +29,7 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_depth_camera
 
 On Windows, run ``rayrai_depth_camera.exe`` instead.
-This example uses the in-process rayrai renderer (no external client required).
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 
 Details
@@ -37,8 +37,9 @@ Details
 - Loads Go1 with the D455 module and fetches the depth sensor.
 - Renders a linear depth texture and shows it in an ImGui window.
 - Reads the rayrai depth buffer with ``raisin::Camera::getRawImage``.
-- Keeps a commented CPU ``World::captureDepthCamera`` fallback for depth,
-  segmentation object id, optional hit point per pixel, timestamp, and
-  deterministic depth noise when rayrai rendering is not available.
-- Places a sphere and box in front of the camera using its pose.
+- Keeps a disabled CPU ``World::captureDepthCamera`` fallback that returns
+  depth, a segmentation object id and an optional hit point per pixel, a
+  timestamp, and deterministic depth noise when rayrai rendering is not
+  available.
+- Places a sphere and a box in front of the camera using its pose.
 

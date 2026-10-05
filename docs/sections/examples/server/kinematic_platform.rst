@@ -4,7 +4,9 @@ Server Example: Kinematic Platform
 
 Overview
 ========
-Creates a kinematic ground platform that moves sinusoidally under an ANYmal. It demonstrates kinematic bodies and their interaction with dynamic robots.
+Creates a kinematic platform that moves up and down sinusoidally under an
+ANYmal. It demonstrates kinematic bodies and their interaction with dynamic
+robots.
 
 Screenshot
 ==========
@@ -30,7 +32,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Creates a kinematic ground platform (infinite mass) and moves it sinusoidally.
-- Places ANYmal on top with PD posture control.
+- Creates a 10 m × 10 m kinematic box (infinite mass) as the ground and sets
+  a sinusoidal vertical velocity on it every step.
+- Places an ANYmal on top with PD posture control.
 - Demonstrates ``BodyType::KINEMATIC`` and prescribed motion.
 

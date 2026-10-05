@@ -1,28 +1,39 @@
-mjcf_gymnasium_hopper
-=====================
+#####################################
+Server Example: MJCF Gymnasium Hopper
+#####################################
 
 .. image:: ../../../../rsc/docs/image/mjcf_gymnasium_hopper.png
    :alt: mjcf_gymnasium_hopper example
    :width: 100%
 
-
+Overview
+========
 Loads the Gymnasium Hopper MuJoCo XML asset through ``raisim::World`` and
-publishes it through ``raisim::RaisimServer``. This example replaces the former
-minimal hinge example with a floating-base model that has slide, hinge, capsule,
-plane, default, material, and actuator sections in the source MJCF.
+publishes it through ``raisim::RaisimServer``. The planar model's root moves
+on two slide joints and one hinge, and the source MJCF uses capsule geoms, a
+plane, defaults, materials, and actuators.
 
-Run:
+Target
+======
+CMake target: ``mjcf_gymnasium_hopper``.
+
+Run
+===
+Run the build-tree executable:
 
 .. code-block:: bash
 
    ./build-examples/examples/mjcf_gymnasium_hopper
 
-Start ``rayrai_tcp_viewer`` in another terminal to visualize the server
-scene.
+On Windows, run ``mjcf_gymnasium_hopper.exe`` instead.
+This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
 
-What it demonstrates:
-
-- Loading ``rsc/mjcf/gymnasium/hopper.xml`` with ``raisim::World``.
-- Retrieving the loaded articulated system by its MJCF root body name.
-- Applying a small procedural torque pattern through the normal RaiSim control
-  path.
+Details
+=======
+- Loads ``rsc/mjcf/gymnasium/hopper.xml`` with the ``raisim::World``
+  constructor and prints the DOF, generalized-coordinate dimension, and
+  collision-body count.
+- Retrieves the loaded articulated system by its MJCF root body name
+  (``torso``).
+- Applies a small sinusoidal torque pattern to the leg joints in
+  ``FORCE_AND_TORQUE`` control mode.

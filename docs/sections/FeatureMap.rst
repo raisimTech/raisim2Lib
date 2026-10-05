@@ -26,10 +26,16 @@ World and bodies
    * - Add a robot from URDF or MJCF
      - ``World::addArticulatedSystem``
      - :doc:`ArticulatedSystem`
-   * - Limit robot joint torques to motor operating regions, add joint friction and damping
-     - URDF ``<actuator>`` and ``<dynamics damping friction>``,
-       ``ArticulatedSystem::setBusVoltage``
-     - :doc:`Actuators`, :doc:`articulated_system/JointDampingAndFriction`
+   * - Model geared or coupled actuators whose torques are limited to their motor operating regions
+     - URDF ``<actuator>``, ``ArticulatedSystem::setActuatorTorques``,
+       ``getActuatorTorqueBounds``, ``getActuatorStates``, ``setBusVoltage``
+     - :doc:`Actuators`
+   * - Add joint friction and damping
+     - URDF ``<dynamics damping friction>``, ``ArticulatedSystem::setJointDamping``
+     - :doc:`articulated_system/JointDampingAndFriction`
+   * - Control joints with the built-in PD controller or a generalized force
+     - ``ArticulatedSystem::setPdGains``, ``setPdTarget``, ``setGeneralizedForce``
+     - :doc:`articulated_system/DynamicsAndControl`
    * - Add mesh collision geometry
      - ``World::addMesh``, mesh preprocessing options, mesh collision modes
      - :doc:`SingleBodyObjects`, :doc:`Examples`
@@ -43,12 +49,15 @@ World and bodies
      - ``World::addGranularBox``, ``World::addGranularParticles``,
        ``raisim::GranularSystem``
      - :doc:`GranularMedia`
-   * - Add length constraints, tendons, or pins
+   * - Add length constraints, tendons, or loop constraints
      - ``addSpatialTendon``, ``addFixedTendon``, ``addTendonCoupling``,
-       articulated-system pin constraints
+       articulated-system pin and equality constraints
      - :doc:`Constraints`, :doc:`articulated_system/ClosedLoopSystems`
-
-   * - Route cables or couple joint transmissions
+   * - Make one joint follow another (mimic)
+     - URDF ``<mimic>``, MJCF ``<equality><joint>``,
+       ``ArticulatedSystem::addMimicConstraint``
+     - :doc:`articulated_system/MimicJoints`
+   * - Route cables or couple joints with tendons
      - ``World::addSpatialTendon``, ``addFixedTendon``, ``addTendonCoupling``
      - :doc:`Tendons`, :doc:`tendons/Physics`, :doc:`tendons/Examples`
 
@@ -128,10 +137,11 @@ Visualization and tools
      - ``InstancedVisuals`` automatic mesh LOD, foliage wind, and shadow LOD;
        ``rayrai_forest``
      - :doc:`rayrai/Visuals`, :doc:`examples/rayrai/rayrai_forest`
-   * - Load a RaiSim Engine ``.rscene`` scene
+   * - Load a RaiSim Engine ``.rscene`` scene (from v2.7.1, not yet released)
      - ``raisim::World(path)``, ``raisin::applyRscene``,
        ``raisin::rsceneRenderSettings``; ``rayrai_forest_from_rscene``
-     - :doc:`WorldSystem`, :doc:`examples/rayrai/rayrai_forest_from_rscene`
+     - :doc:`RsceneFile`, :doc:`WorldSystem`,
+       :doc:`examples/rayrai/rayrai_forest_from_rscene`
    * - Render glass
      - ``Material::glass``, ``RenderQualitySettings::screenSpaceRefraction``,
        ``RenderQualitySettings::geometryRefraction``

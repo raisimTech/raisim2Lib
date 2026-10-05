@@ -20,16 +20,26 @@ Common CMake options
    * - ``RAISIM_EXAMPLE``
      - Build C++ examples. Enabled by default.
    * - ``RAISIM_PY``
-     - Build the Python wrapper.
+     - Build the Python wrapper (``raisimPy``). Disabled by default.
+   * - ``RAISIM_DOC``
+     - Build documentation through CMake. Disabled by default.
+   * - ``RAISIM_ALL``
+     - Shortcut that enables ``RAISIM_EXAMPLE``, ``RAISIM_PY``, and
+       ``RAISIM_DOC``.
    * - ``RAISIM_MATLAB``
      - Reserved compatibility option. The current public workspace does not
        add a MATLAB wrapper subdirectory or build target.
-   * - ``RAISIM_DOC``
-     - Build documentation through CMake.
    * - ``RAISIM_EXAMPLE_DESKTOP_LAUNCHER``
      - Linux only. After each Release build of ``rayrai_tcp_viewer``, install a
        desktop launcher for it and pin it to the GNOME / Ubuntu dock. Disabled
        by default; see :doc:`RayraiTcpViewer`.
+   * - ``RAISIM_FOREST_COLLISION_BENCHMARK``
+     - Also build the ``forest_collision_benchmark`` example tool. Disabled by
+       default.
+
+The RaiSim version is pinned by the checkout (``RAISIM_VERSION`` in the
+top-level ``CMakeLists.txt``). Configuring with a different
+``-DRAISIM_VERSION`` is an error; update the checkout instead.
 
 Build examples
 ==============
@@ -42,7 +52,7 @@ Build the package workspace with examples enabled:
     cmake -S . -B build-examples \
       -DCMAKE_BUILD_TYPE=Release \
       -DRAISIM_EXAMPLE=ON
-    cmake --build build-examples -j12
+    cmake --build build-examples --parallel 12
 
 You can also build only the example CMake project against an installed RaiSim
 and rayrai package:
@@ -53,10 +63,12 @@ and rayrai package:
       -DCMAKE_BUILD_TYPE=Release \
       -DRAISIM_PREFIX=/path/to/raisim \
       -DRAYRAI_PREFIX=/path/to/rayrai
-    cmake --build /tmp/raisim2lib-examples -j12
+    cmake --build /tmp/raisim2lib-examples --parallel 12
 
 Run source-built examples from the build directory. They are not installed by
-the ``raisim2Lib`` install target:
+the ``raisim2Lib`` install target. A top-level build places them under
+``<build-dir>/examples``; a standalone build of ``examples`` places them
+directly in its build directory:
 
 .. code-block:: bash
 
@@ -92,7 +104,7 @@ scene changes:
 .. code-block:: bash
 
     cmake --build build-examples \
-      --target anymal_standing_benchmark articulated_system_benchmark -j12
+      --target anymal_standing_benchmark articulated_system_benchmark --parallel 12
     OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
       ./build-examples/examples/anymal_standing_benchmark --fast
     OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
@@ -101,6 +113,20 @@ scene changes:
 Use :doc:`Performance` for scene-level tuning guidance and for choosing a
 representative package example before changing solver settings or sensor
 workloads in a downstream application.
+
+Tests
+=====
+
+The public workspace has no CTest suite; the engine's own test suite is not
+shipped. The examples double as smoke tests, and ``raisimPy`` includes a
+``unittest`` module for its tendon bindings. Run it after building with
+``-DRAISIM_PY=ON``, with ``PYTHONPATH`` pointing to the directory that contains
+the built ``raisimpy`` module:
+
+.. code-block:: bash
+
+    PYTHONPATH=build/raisimPy RAISIM_ACTIVATION_KEY=$HOME/.raisim/activation.raisim \
+      python3 -m unittest raisimPy/tests/test_tendons.py
 
 Build the documentation
 =======================
@@ -116,14 +142,17 @@ Sphinx:
       -DRAISIM_DOCS_BUILD_RAYRAI_IMAGES=OFF \
       -DRAISIM_DOCS_RAISIM_INCLUDE_DIR=/path/to/raisim2Lib/raisim/include/raisim \
       -DRAISIM_DOCS_RAYRAI_INCLUDE_DIR=/path/to/raisim2Lib/rayrai/include/rayrai
-    cmake --build /tmp/raisim2lib-docs -j12
+    cmake --build /tmp/raisim2lib-docs --parallel 12
 
 This generates API references from the distributed headers and reuses the
 checked-in documentation images. Enable ``RAISIM_DOCS_BUILD_RAYRAI_IMAGES``
 when you have a working OpenGL context and want to regenerate those images.
 
 For prose and link checks, the documentation can also be built directly with
-Sphinx:
+Sphinx. When it cannot find Sphinx, the CMake docs configure creates
+``docs/.venv`` with the packages from ``docs/requirements.txt``
+(``RAISIM_DOCS_BOOTSTRAP_VENV``, on by default); any Python environment with
+those packages works as well:
 
 .. code-block:: bash
 

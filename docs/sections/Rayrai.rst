@@ -23,7 +23,7 @@ Key characteristics:
 * Automatic spatial tendon rendering with wrapped routes and independent pulley branches; see :doc:`tendons/Examples`
 * Direct ImGui/SDL2 integration patterns and headless/offscreen workflows
 
-The public API lives in the `raisin` namespace (note the spelling). The primary entry
+The public API lives in the ``raisin`` namespace (note the spelling). The primary entry
 point is ``raisin::RayraiWindow``.
 
 .. toctree::
@@ -52,8 +52,7 @@ system package manager, or from vcpkg on Windows.
 
 Vulkan is optional. A rayrai build with Vulkan support (Linux and Windows only)
 loads the Vulkan runtime the first time geometry-traced glass renders and falls
-back to OpenGL tracing when hardware ray queries are unavailable. Set
-``RAYRAI_DISABLE_VULKAN_RAY_QUERY=1`` to force the OpenGL path.
+back to OpenGL tracing when hardware ray queries are unavailable.
 For source-build prerequisites and driver checks, see
 :ref:`rayrai-vulkan-ray-query-troubleshooting`.
 
@@ -78,13 +77,13 @@ the base context fall back automatically:
 macOS provides OpenGL 4.1 with 16 fragment texture units, so rayrai uses its
 limited material tier and the common post-process program there (see the GPU
 capability tiers in :doc:`rayrai/Materials`). The same applies to any GPU that
-reports 16 or fewer fragment texture units. The common
-program applies depth of field, FXAA, bloom, SSAO, and TAA. Effects that need
-the full post-process program have no effect on these platforms: screen-space
-reflections, screen-space indirect lighting, volumetric fog and lighting, local
-fog volumes, projected decals, light shafts, lens flares, contact shadows,
-motion and zoom blur, aerial perspective, color grading, saturation, white
-balance, vignette, chromatic aberration, film grain, and the stylized filters.
+reports 16 or fewer fragment texture units. The common program applies depth
+of field, FXAA, bloom, SSAO, TAA, white balance, and saturation. Effects that
+need the full post-process program have no effect on these platforms:
+screen-space reflections, screen-space indirect lighting, volumetric fog and
+lighting, local fog volumes, projected decals, light shafts, lens flares,
+contact shadows, motion and zoom blur, aerial perspective, color grading,
+vignette, chromatic aberration, film grain, and the stylized filters.
 Vulkan ray queries are not available on macOS.
 
 Source-built TCP viewer (recommended)
@@ -122,9 +121,11 @@ Minimal usage
 =============
 The typical workflow is:
 
-1. Create a RaiSim world.
-2. Construct a ``raisin::RayraiWindow`` for that world.
-3. Update the renderer each frame and consume the output texture.
+1. Make an OpenGL context current (your UI's, or a hidden one from
+   ``RayraiWindow::createOffscreenGlContext``).
+2. Create a RaiSim world.
+3. Construct a ``raisin::RayraiWindow`` for that world.
+4. Update the renderer each frame and consume the output texture.
 
 .. code-block:: cpp
 
@@ -134,7 +135,13 @@ The typical workflow is:
     #include <rayrai/RayraiWindow.hpp>
 
     int main() {
+      // rayrai issues OpenGL calls, so a context must be current first.
+      SDL_Window* window = nullptr;
+      SDL_GLContext context = nullptr;
+      raisin::RayraiWindow::createOffscreenGlContext(window, context);
+
       auto world = std::make_shared<raisim::World>();
+      world->addGround();
       raisin::RayraiWindow viewer(world, 1280, 720);
 
       // glm::vec4 colour overload (preferred in new code).
@@ -194,24 +201,30 @@ the world stays alive at least as long as the window. The ``raisim::World&``
 overload does not own the world; that world must outlive the window.
 ``swapWorld`` switches the renderer to another shared world.
 
-Mutation methods that target an entity by name — for example,
-``removeVisualObject``, ``clearAdditionalLights``, ``clearLocalFogVolumes`` —
-are silent no-ops when the target does not exist. They never throw and never
-return a failure code, so callers can invoke them unconditionally without an
-existence check.
+Named entities are strict. ``addVisual*``, ``importVisualScene``,
+``addInstancedVisuals``, ``addPointCloud``, and ``addCoordinateFrame`` abort
+through RaiSim's fatal handler (``RSFATAL``) when the name is already in use,
+and ``getVisualObject``, ``getInstancedVisuals``, ``removeVisualObject``,
+``removeInstancedVisuals``, ``removePointCloud``, and ``removeCoordinateFrame``
+abort when it does not exist. Use ``findVisualObject`` or
+``findInstancedVisuals`` for a lookup that returns ``nullptr`` instead.
+Clear-all calls such as ``clearAdditionalLights`` and ``clearLocalFogVolumes``
+are safe to call when there is nothing to clear.
 
-Resource-creation methods signal failure with a zero GL handle, a null
-``shared_ptr``, or an ``isComplete() == false`` ``PbrEnvironment`` and log an
-error to stderr. The list includes ``loadColorTextureWithTiling``,
-``loadDataTextureWithTiling``, ``loadHdrEquirectangularCubemap``,
-``createHdrIrradianceCubemap``, ``createHdrPrefilteredEnvironmentCubemap``,
-``createSplitSumBrdfLut``, ``PbrEnvironment::loadFromHdrFile``,
-``addVisualMesh``, ``addVisualCustomMesh``, and ``importVisualScene``.
+Texture and environment creators signal failure with a zero GL handle or an
+``isComplete() == false`` ``PbrEnvironment`` and log an error to stderr:
+``loadColorTextureWithTiling``, ``loadDataTextureWithTiling``,
+``loadHdrEquirectangularCubemap``, ``createHdrIrradianceCubemap``,
+``createHdrPrefilteredEnvironmentCubemap``, ``createSplitSumBrdfLut``, and
+``PbrEnvironment::loadFromHdrFile``. ``addVisualMesh`` and
+``importVisualScene`` always return a visual; when the file cannot be imported
+they log an error to stderr and the visual draws nothing.
 
 Newer APIs report invalid input with exceptions. ``setSkyVisibilityGrid`` and
 ``setBakedIrradianceGrid`` throw ``std::invalid_argument`` for an invalid grid,
-strength, or edge fade, and ``std::runtime_error`` when no GL context is
-current. With ``RenderQualitySettings::geometryRefraction`` enabled, render
+strength, or edge fade, or a grid larger than the GPU texture limit, and
+``std::runtime_error`` when no GL context is current or no texture unit is
+free. With ``RenderQualitySettings::geometryRefraction`` enabled, render
 calls throw ``std::runtime_error`` when the scene cannot be traced: a fisheye
 camera, glass with a visibility-range fade, unsupported glass material settings
 such as overlays, deformable boundaries, or inconsistent IOR within one volume,
@@ -231,7 +244,11 @@ Example: custom visuals + background color
 ==========================================
 This example adds a custom box, renders an RGB texture each frame, and reads the
 image texture handle for UI integration. New code should prefer explicit color-range
-APIs such as ``setBackgroundColorRgb255`` or ``setBackgroundColorLinear``.
+APIs such as ``setBackgroundColorRgb255`` or ``setBackgroundColorLinear``. The
+background colour shows only where no sky is drawn, so the example turns off the
+procedural sky, which is on by default. ``setRenderQualitySettings`` also
+replaces the background colour with ``backgroundColorRgb255``, so set the
+colour after it.
 
 .. code-block:: cpp
 
@@ -241,10 +258,17 @@ APIs such as ``setBackgroundColorRgb255`` or ``setBackgroundColorLinear``.
     #include <rayrai/RayraiWindow.hpp>
 
     int main() {
+      SDL_Window* window = nullptr;
+      SDL_GLContext context = nullptr;
+      raisin::RayraiWindow::createOffscreenGlContext(window, context);
+
       auto world = std::make_shared<raisim::World>();
       world->addGround();
 
       raisin::RayraiWindow viewer(world, 1280, 720);
+      auto quality = viewer.getRenderQualitySettings();
+      quality.proceduralSkyBackgroundEnabled = false;  // show the clear colour
+      viewer.setRenderQualitySettings(quality);
       viewer.setBackgroundColorRgb255({40, 45, 55, 255});
 
       auto box = viewer.addVisualBox("marker", 0.4, 0.2, 0.1,

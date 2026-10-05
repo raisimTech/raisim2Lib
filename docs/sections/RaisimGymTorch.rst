@@ -8,11 +8,12 @@ What is RaisimGymTorch?
 
 .. image:: ../../rsc/docs/image/raisimGymTorch.png
   :width: 600
-  :alt: RaiSimPy demo (robots.py)
+  :alt: RaisimGymTorch overview
 
-RaisimGymTorch is a gym environment example for RaiSim.
-A lightweight PyTorch-based RL framework is provided, but it should work with other RL frameworks.
-Instead of using RaisimPy, nanobind wraps a vectorized environment in C++ so that the parallelization happens in C++.
+RaisimGymTorch is a gym environment example for RaiSim. It comes with a
+lightweight PyTorch-based RL framework, but the environments also work with
+other RL frameworks. Instead of going through RaisimPy, nanobind wraps a
+vectorized environment written in C++, so the parallelization happens in C++.
 This improves performance significantly.
 
 Why RaisimGymTorch?
@@ -28,18 +29,20 @@ Such a number of state transitions can be necessary for challenging tasks. An ex
   :alt: trained policy 2
 
 Approximately **160 billion time steps** were used to train the above controller.
-RaisimGymTorch can process about 500k time steps per second in the above environment (with 3950x) with an actuator network whose cost matches the physics simulation.
+RaisimGymTorch can process about 500k time steps per second in the above environment (on a Ryzen 9 3950X) with an actuator network whose cost matches that of the physics simulation.
 
 Dependencies
 ============
-Assuming that you have installed RaiSim:
+RaiSim, rayrai, Eigen, and nanobind come with ``raisim2Lib``. In addition, you need:
 
-* Anaconda
-* PyTorch (https://pytorch.org/)
-* To use the GPU, install CUDA as well. Use the version recommended by PyTorch.
-* OpenMP on Linux/Windows. On macOS, OpenMP is used when available; otherwise
-  RaisimGymTorch builds with a serial fallback.
-* Other dependencies are installed when you build a RaisimGymTorch environment for the first time.
+* Python 3.9 or newer in a conda or venv environment, CMake 3.10 or newer, and
+  a C++20 compiler.
+* PyTorch (https://pytorch.org/). To use the GPU, also install the CUDA version
+  recommended by PyTorch.
+* OpenMP on Linux and Windows. On macOS, OpenMP is used when available;
+  otherwise RaisimGymTorch builds without it and runs the environments
+  serially.
+* The Python packages in ``raisimGymTorch/requirements.txt``.
 
 How to run the example
 =============================
@@ -48,9 +51,13 @@ From the ``raisimGymTorch`` directory:
 
 .. code-block:: bash
 
-    pip install numpy tensorboard ruamel.yaml
+    pip install -r requirements.txt
     python setup.py develop
     python raisimGymTorch/env/envs/rsg_anymal/runner.py
+
+``runner.py`` trains by default. Resume from a checkpoint with
+``--mode retrain --weight /path/to/full_N.pt``, and replay a checkpoint with
+``raisimGymTorch/env/envs/rsg_anymal/tester.py --weight /path/to/full_N.pt``.
 
 On macOS, source the package environment before building so Python can load the
 RaiSim and rayrai dynamic libraries:
@@ -63,31 +70,34 @@ RaiSim and rayrai dynamic libraries:
     python setup.py develop
 
 If ``../raisim`` or ``../rayrai`` is missing, CMake downloads the matching
-macOS package automatically: ``macos-arm64`` on Apple Silicon, including
-Rosetta shells, and ``macos-x86_64`` on Intel when that asset is available.
-Install ``libomp`` if you want OpenMP parallelism on macOS; without it, the C++
-vectorized environment compiles with a serial fallback.
+release package automatically, for example ``macos-arm64`` on Apple Silicon
+(including Rosetta shells) and ``macos-x86_64`` on Intel when that asset is
+available. Install ``libomp`` if you want OpenMP parallelism on macOS.
 
-To visualize the policy, use ``rayrai_tcp_viewer`` as described in
-:doc:`Visualization`. The training script records policy performance every 200
-iterations. Older RaisimUnity/Unreal visualization workflows have been replaced;
-see :doc:`LegacyIntegrations` for migration notes.
+With ``render: True`` in ``cfg.yaml``, the first environment runs a
+``RaisimServer``; connect ``rayrai_tcp_viewer`` as described in
+:doc:`Visualization` to watch it. Every ``eval_every_n`` updates (200 in the
+shipped ``cfg.yaml``), the runner saves a checkpoint, runs one visualized
+evaluation rollout, and asks the connected viewer to record it as a video.
+Older RaisimUnity/Unreal visualization workflows have been replaced; see
+:doc:`LegacyIntegrations` for migration notes.
 
 How to debug
 =============================
-A nanobind package (e.g., your environment) can be difficult to debug because it is written in C++ but not run as a normal executable.
-We provide a debug app that wraps your environment and creates an executable.
-To build the debug app, build your environment with
+A nanobind package, such as your environment, can be difficult to debug
+because it is written in C++ but does not run as a normal executable. We
+provide a debug app that wraps your environment in an executable. To build the
+debug app, build your environment in the Debug configuration:
 
 .. code-block:: bash
 
-    python setup.py develop --Debug
+    python setup.py build_ext --inplace --Debug
 
-Then, the debug executable is created next to your nanobind package
+The debug executable is created next to your nanobind package
 (``raisimGymTorch/raisimGymTorch/env/bin``).
 If you use CLion (recommended), open the raisimGymTorch directory in CLion.
-It will automatically add the debug app executable.
-It provides a convenient GUI for debugging.
+CLion adds the debug app executable automatically and provides a convenient
+GUI for debugging.
 
 You can run the debug app as:
 
@@ -97,8 +107,9 @@ You can run the debug app as:
 
 or add the arguments to the CLion run configuration.
 
-**On Windows**, make sure that you are linking against the debug-build raisim.
-Visual Studio compiled executables will not work if it links against a library built with different compile flags.
+**On Windows**, make sure that you link against the Debug build of RaiSim.
+Executables built with Visual Studio do not work when they link against a
+library built with different runtime flags.
 
 How does it work?
 =============================
@@ -125,16 +136,27 @@ those sibling prefixes directly. After adding or copying an environment under
     cd /path/to/raisim2Lib/raisimGymTorch
     python setup.py develop
 
-Delete generated ``build`` and ``raisim_gym_torch.egg-info`` directories before
-a clean rebuild when changing Python interpreters or build configurations.
-However, if you want to keep multiple environments, you may want to rename a few items.
+Delete the generated ``build`` and ``raisim_gym_torch.egg-info`` directories
+before a clean rebuild when you change Python interpreters or build
+configurations. If you want to keep several environments side by side, you may
+want to rename a few items:
 
- * Package name: You can find it in ``setup.py`` (``name='raisim_gym_torch'``). This is the name you will find in ``site_packages`` directory of your anaconda environment.
- * Directory name: This is the directory name that you will find in the top ``raisimGymTorch`` directory. The default name is ``raisimGymTorch``. Modify it if necessary, and update the directories in the header of ``runner.py`` and the ``CMakeLists.txt``.
- * Binary name: This is the name of the directory of your environment. The default name is ``rsg_anymal``. If you change the directory name, update ``rsg_anymal`` in ``runner.py``.
- * Environment name: This is the name of the binary that will be built from your ``Environment.hpp`` file. The default name is ``RaisimGymVecEnv``. You can find it in ``raisim_gym.cpp``. If you change it, update the name in ``runner.py``.
+* Package name: set in ``setup.py`` (``name='raisim_gym_torch'``). This is the
+  name you will find in the ``site-packages`` directory of your Python
+  environment.
+* Directory name: the name of the Python package directory inside the
+  top-level ``raisimGymTorch`` directory. The default name is
+  ``raisimGymTorch``. If you change it, update the paths in the header of
+  ``runner.py`` and in ``CMakeLists.txt``.
+* Module name: each directory under ``raisimGymTorch/env/envs`` is built into a
+  nanobind module with the same name. The default is ``rsg_anymal``. If you
+  rename the directory, update ``rsg_anymal`` in ``runner.py``.
+* Environment class name: the Python class that the module exports for your
+  ``Environment.hpp``. It is set by the ``ENVIRONMENT_NAME`` macro in
+  ``raisim_gym.cpp`` and defaults to ``RaisimGymEnv``. If you change it, update
+  the name in ``runner.py``.
 
- You can also create another conda environment to avoid name conflicts.
+You can also create another conda or venv environment to avoid name conflicts.
 
 Code structure (if you are curious)
 ======================================
@@ -152,4 +174,7 @@ Finally, ``RaisimGymVecEnv`` is a Python class that wraps a Python library creat
 
 Common issues and solutions
 ================================
-* If Python scripts complain about missing "libcudnn.so": conda install -c nvidia cudnn
+* If Python scripts complain about a missing ``libcudnn.so``, install cuDNN,
+  for example with ``conda install -c nvidia cudnn``.
+* Video recording in ``rayrai_tcp_viewer`` uses ``ffmpeg`` from ``PATH``
+  (or ``$RAYRAI_FFMPEG``); without it, the viewer writes a PNG sequence.

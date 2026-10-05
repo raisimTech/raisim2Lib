@@ -31,7 +31,9 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Creates a heightmap grid and updates heights and colors every frame.
-- Uses visualization mutex locking while updating the heightmap.
-- Intended for dynamic heightmap rendering in the supported rayrai TCP viewer.
+- Creates a 100 × 100 heightmap and updates its heights and colors every step.
+- Calls ``HeightMap::update`` and ``HeightMap::setColor`` inside the
+  ``integrateWorldThreadSafe`` callback, which runs under the server's world
+  mutex; the viewer can still pause and step the loop.
+- Intended for dynamic heightmap rendering in ``rayrai_tcp_viewer``.
 

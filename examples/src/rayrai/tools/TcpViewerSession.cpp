@@ -125,6 +125,11 @@ bool loadSessionFile(const std::filesystem::path& path, std::vector<RecordedFram
     status = "replay failed: unsupported session file";
     return false;
   }
+  const auto fail = [&](const char* message) {
+    status = message;
+    frames.clear();
+    return false;
+  };
   while (true) {
     RecordedFrame frame;
     uint32_t size = 0;
@@ -133,28 +138,20 @@ bool loadSessionFile(const std::filesystem::path& path, std::vector<RecordedFram
       if (input.gcount() == 0 && input.eof()) {
         break;
       }
-      status = "replay failed: truncated frame header";
-      frames.clear();
-      return false;
+      return fail("replay failed: truncated frame header");
     }
     input.read(reinterpret_cast<char*>(&size), sizeof(size));
     if (!input) {
-      status = "replay failed: truncated frame header";
-      frames.clear();
-      return false;
+      return fail("replay failed: truncated frame header");
     }
     if (size > static_cast<uint32_t>(kMaxMessageBytes)) {
-      status = "replay failed: frame exceeds max message size";
-      frames.clear();
-      return false;
+      return fail("replay failed: frame exceeds max message size");
     }
     frame.payload.resize(size);
     if (size > 0) {
       input.read(frame.payload.data(), size);
       if (!input) {
-        status = "replay failed: truncated frame";
-        frames.clear();
-        return false;
+        return fail("replay failed: truncated frame");
       }
     }
     frames.push_back(std::move(frame));

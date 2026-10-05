@@ -4,13 +4,14 @@ Server Example: Deformable Objects
 
 Overview
 ========
-Creates a raised soft cloth over a static sphere and also constructs a
-randomly oriented mesh-based deformable cube stack to the side. The cubes use
-resampled OBJ surface particles with automatically generated internal struts
-so they share the same volumetric behavior.
+Drapes a soft cloth over a raised static sphere and, to the side, builds a
+stack of randomly oriented deformable cubes from OBJ meshes. All cubes use
+resampled surface particles with automatically generated internal struts, so
+they share the same volumetric behavior.
 
 Use this example as the starting point for soft-body setup. It shows explicit
-cloth topology and deformable mesh construction from closed OBJ meshes.
+cloth topology and deformable-object construction from closed OBJ meshes. See
+:doc:`../../DeformableObject`.
 
 .. image:: ../../../../rsc/docs/image/deformable_objects.png
    :alt: deformable_objects example
@@ -19,9 +20,6 @@ cloth topology and deformable mesh construction from closed OBJ meshes.
 Target
 ======
 CMake target: ``deformable_objects``.
-
-This example is only built when the installed RaiSim package exposes
-``raisim::DeformableObject``.
 
 Run
 ====
@@ -32,7 +30,9 @@ Run the build-tree executable:
    ./build-examples/examples/deformable_objects
 
 On Windows, run ``deformable_objects.exe`` instead.
-This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 8080.
+This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port
+8080. The simulation starts once a viewer connects and the example exits when
+the viewer disconnects.
 
 Details
 =======
@@ -50,11 +50,12 @@ Details
   ``distanceCompliance`` plus internal struts for the mesh objects.
 - Tunes the cloth to be highly deformable, with high bend and stretch
   compliance so it visibly sags and wraps around the sphere.
-- Uses identical mesh settings for every cube and low-restitution
-  contact material pairs so impacts settle without bouncing.
+- Uses identical mesh settings for every cube and dedicated
+  ``ground``/``deformable_cube`` and ``deformable_cube``/``deformable_cube``
+  material pairs.
 - Keeps the generated cloth and cube particle counts moderate so the example
   remains interactive while still showing visible deformation.
-- Writes temporary closed cube OBJ files in the current working directory at
+- Writes temporary closed cube OBJ files to the system temporary directory at
   startup and removes them on exit, so no extra mesh asset is required.
 
 Construction modes
@@ -76,19 +77,17 @@ The material controls the XPBD/PBD response:
 - ``distanceCompliance`` also controls the elastic response of the mesh-based
   cubes in this example.
 
-Lower compliance means stiffer constraints. Use lower-resolution settings for
-performance comparisons when increasing particle count or decreasing
-compliance.
+Lower compliance means stiffer constraints. More particles or lower compliance
+make each step more expensive, so start performance comparisons at a lower
+resolution.
 
 The cloth in this example uses deliberately soft values so it visibly sags and
 wraps over the raised sphere. The mesh-based deformable cubes are stacked to
-the side without obscuring the cloth-sphere interaction. The cube material uses
-mesh internal struts, damping, and low-restitution contact material pairs so
-the dropped cubes deform, settle, and recover without excessive bouncing. The
-example sets the cube ``collisionRadius`` from the requested particle spacing.
-For a stiffer fabric, reduce
-``distanceCompliance`` and ``bendCompliance`` or increase the solver iteration
-count.
+the side so they do not hide the cloth-sphere interaction. The cube material
+uses internal struts and damping so the dropped cubes deform, settle, and
+recover. The example sets the cube ``collisionRadius`` from the requested
+particle spacing. For a stiffer fabric, reduce ``distanceCompliance`` and
+``bendCompliance`` or increase the solver iteration count.
 
 Visualization
 =============
@@ -96,10 +95,12 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` before running it:
 
 .. code-block:: bash
 
-
+   # Terminal 1
    ./build-examples/examples/rayrai_tcp_viewer
+
+   # Terminal 2
    ./build-examples/examples/deformable_objects
 
-The visualizer receives dynamic deformable topology and vertex updates through
-the server stream.
+The viewer receives the deformable topology and vertex updates through the
+server stream.
 

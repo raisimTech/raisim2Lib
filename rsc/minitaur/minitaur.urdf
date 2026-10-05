@@ -932,10 +932,27 @@
     </joint>
 
     <constraints nominal_config="0 0 0.35 0 0 1 0 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2 -1.5708 -2.2">
-        <pin body1="lower_leg_front_rightR_link" body2="lower_leg_front_rightL_link" anchor="0.0 0.0 0.2"/>
-        <pin body1="lower_leg_front_leftR_link" body2="lower_leg_front_leftL_link" anchor="0.0 0.0 0.2"/>
-        <pin body1="lower_leg_back_rightR_link" body2="lower_leg_back_rightL_link" anchor="0.0 0.0 0.2"/>
-        <pin body1="lower_leg_back_leftR_link" body2="lower_leg_back_leftL_link" anchor="0.0 0.0 0.2"/>
+        <!-- Each leg is a planar five-bar linkage: its two lower legs meet at the toe. The knee
+             hinges already hold the toes together across the leg plane (the lower legs' y axis),
+             so the equality constraints act only along the two in-plane axes, x and z of the
+             R lower leg. A pin would also constrain y, which the slightly non-parallel motor
+             and knee axes make a nearly dependent direction. -->
+        <equality body1="lower_leg_front_rightR_link" body2="lower_leg_front_rightL_link" anchor="0.0 0.0 0.2">
+            <axis xyz="1 0 0"/>
+            <axis xyz="0 0 1"/>
+        </equality>
+        <equality body1="lower_leg_front_leftR_link" body2="lower_leg_front_leftL_link" anchor="0.0 0.0 0.2">
+            <axis xyz="1 0 0"/>
+            <axis xyz="0 0 1"/>
+        </equality>
+        <equality body1="lower_leg_back_rightR_link" body2="lower_leg_back_rightL_link" anchor="0.0 0.0 0.2">
+            <axis xyz="1 0 0"/>
+            <axis xyz="0 0 1"/>
+        </equality>
+        <equality body1="lower_leg_back_leftR_link" body2="lower_leg_back_leftL_link" anchor="0.0 0.0 0.2">
+            <axis xyz="1 0 0"/>
+            <axis xyz="0 0 1"/>
+        </equality>
     </constraints>
 
 </robot>

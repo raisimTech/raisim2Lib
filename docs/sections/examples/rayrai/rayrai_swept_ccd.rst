@@ -28,7 +28,7 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_swept_ccd
 
 On Windows, run ``rayrai_swept_ccd.exe`` instead.
-This example uses the in-process rayrai renderer.
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 Details
 =======
@@ -36,19 +36,21 @@ Details
 - Uses ``sweptCcdMinSpeed`` so only fast bodies trigger the swept path.
 - Uses ``sweptCcdSpeculativeMargin`` to keep the contact generation margin
   explicit.
-- Resets the sphere periodically so the CCD event is easy to inspect.
+- Resets the sphere every 120 steps so the CCD event is easy to inspect.
 
 What to look for
 ================
-The sphere is reset above the ground and assigned a large downward velocity.
-With swept CCD enabled, the contact is generated along the swept path rather
-than relying only on the final pose at the end of the time step.
+The world uses a 20 ms time step. Every reset places a sphere of radius 8 cm
+3 m above the ground and gives it a downward velocity of 35 m/s, so it moves
+0.7 m per step. With swept CCD enabled, the contact is generated along the
+swept path rather than relying only on the final pose at the end of the time
+step. If the sphere's center ever drops below its radius, the sphere turns
+bright red.
 
 API pattern
 ===========
 
 .. code-block:: cpp
-
 
    auto settings = world->getContactSettings();
    settings.sweptCcdEnabled = true;

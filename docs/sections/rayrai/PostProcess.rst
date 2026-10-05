@@ -14,8 +14,9 @@ macOS; see `Platform notes`_ below.
 Cinematic post-process effects
 ==============================
 ``RenderQualitySettings`` exposes a large set of optional screen-space effects.
-Each one is gated by an ``*Enabled`` flag so the fast frame path stays cheap;
-turn them on per-shot for screenshots, asset inspection, or demo captures.
+Each one is off by default, behind an ``*Enabled`` flag or a zero strength, so
+the fast frame path stays cheap; turn them on per shot for screenshots, asset
+inspection, or demo captures.
 
 Cinematic lens and image effects:
 
@@ -23,14 +24,14 @@ Cinematic lens and image effects:
 * ``viewerChromaticAberrationStrength`` — RGB channel offset.
 * ``viewerFilmGrainStrength`` — luma-noise overlay.
 * ``lensFlareGhostStrength``, ``lensFlareStreakStrength``, ``lensFlareTint`` —
-  cinematic lens flares around bright lights.
+  lens-flare ghosts and a horizontal streak from bright pixels.
 * ``lensDistortionEnabled`` / ``lensDistortionStrength`` /
   ``lensDistortionCenter`` — signed barrel or pincushion distortion.
 * ``letterboxEnabled`` / ``letterboxAspect`` / ``letterboxColor`` —
   cinematic letterboxing.
 * ``starburstEnabled`` / ``starburstStrength`` / ``starburstSpikes`` /
   ``starburstAngleOffset`` / ``starburstRadius`` / ``starburstTint`` —
-  aperture-shaped highlights.
+  diffraction spikes around the sun's screen position.
 * ``zoomBlurEnabled`` / ``zoomBlurStrength`` / ``zoomBlurCenter`` /
   ``zoomBlurInnerRadius`` — radial focus blur for sprint and dash effects.
 * ``motionBlurEnabled`` / ``motionBlurDirection`` / ``motionBlurStrength`` —
@@ -183,19 +184,20 @@ pass on top of SSAO for surfaces that touch.
 
 With the denoiser on and temporal AA off (as in the High preset), AO is
 computed once per pixel in a prepass and the denoiser reuses it; results can
-differ from per-tap evaluation by a few 8-bit levels. With temporal AA on
-(Ultra) each denoise tap evaluates AO again, which costs noticeably more. Set
-``RAYRAI_DISABLE_CACHED_AO=1`` to force the per-tap path. AO is stable from
-frame to frame at sky silhouettes, including on Apple GPUs.
+differ from per-tap evaluation by a few 8-bit levels. With legacy temporal AA
+on (Ultra) each denoise tap evaluates AO again, which costs noticeably more. AO
+is stable from frame to frame at sky silhouettes, including on Apple GPUs.
 
 Screen-space indirect lighting (``screenSpaceIndirectLightingEnabled``)
-bounces one indirect ray per pixel against the colour buffer to add coloured
-fill light from nearby diffuse surfaces; ``Radius``, ``Strength``, ``Samples``,
-``Falloff``, ``NormalRejection``, and ``Saturation`` control quality and bias.
+gathers one bounce of light from the colour buffer around each pixel to add
+coloured fill light from nearby diffuse surfaces; ``Radius``, ``Strength``,
+``Samples``, ``Falloff``, ``NormalRejection``, and ``Saturation`` control
+quality and bias.
 
-Contact shadows (``contactShadowsEnabled``) ray-march short shadow rays in
-screen space to recover fine occlusion near grazing geometry that a shadow
-map misses; ``Length``, ``Strength``, and ``Thickness`` are in metres.
+Contact shadows (``contactShadowsEnabled``) ray-march short shadow rays toward
+the main light in screen space to recover fine occlusion near grazing geometry
+that a shadow map misses. ``Length`` (at most 0.5) and ``Thickness`` are in
+metres; ``Strength`` is the darkening, 0–1.
 
 .. code-block:: cpp
 
@@ -261,13 +263,15 @@ Depth of field, lens flares, and lens character
 Depth of field (``depthOfFieldEnabled``, ``depthOfFieldFocusDistance``,
 ``depthOfFieldFocusRange``, ``depthOfFieldMaxRadius``) uses a hex-bokeh disk
 and a depth-driven circle-of-confusion sample. The hex shape is intentionally
-cinematic; ``starburstEnabled`` adds an aperture-shaped highlight starburst
-for in-focus bright sources.
+cinematic. Pixels inside ``depthOfFieldFocusRange`` around the focus distance
+stay sharp; the blur grows with distance from that band up to
+``depthOfFieldMaxRadius`` pixels. ``starburstEnabled`` adds aperture-style
+diffraction spikes around the sun's screen position.
 
 Lens flare uses two layers: ghost reflections projected toward the screen
-centre (``lensFlareGhostStrength``) and an axial streak from very bright
-sources (``lensFlareStreakStrength``). Both share ``lensFlareTint`` (a cool
-cinematic blue by default).
+centre (``lensFlareGhostStrength``) and a horizontal (anamorphic) streak through
+very bright pixels (``lensFlareStreakStrength``). Both share ``lensFlareTint``
+(a cool cinematic blue by default).
 
 ``viewerVignetteStrength``, ``viewerChromaticAberrationStrength``, and
 ``viewerFilmGrainStrength`` add the rest of the standard photographic camera
@@ -284,7 +288,7 @@ distortion centred at ``lensDistortionCenter``.
     quality.depthOfFieldFocusRange = 1.8f;      // metres of in-focus band
     quality.depthOfFieldMaxRadius = 1.6f;       // pixels at far blur
 
-    // Aperture-shaped highlight starburst.
+    // Diffraction spikes around the sun.
     quality.starburstEnabled = true;
     quality.starburstStrength = 0.6f;
     quality.starburstSpikes = 6;
@@ -326,10 +330,14 @@ Motion blur and atmospheric effects
 ***********************************
 Directional motion blur (``motionBlurEnabled``, ``motionBlurDirection``,
 ``motionBlurStrength``) smears the colour buffer along a constant screen-space
-vector. Useful for shutter-style captures and stylized motion frames.
+vector: ``motionBlurDirection`` is the blur vector in screen-UV units, scaled by
+``motionBlurStrength`` (0–1). It models camera motion only; there is no
+per-object velocity buffer. Useful for shutter-style captures and stylized
+motion frames.
 
-Heat haze (``heatHazeEnabled``) perturbs UVs with a noise field above
-``heatHazeMaxY`` in screen space, simulating hot air shimmer. Underwater
+Heat haze (``heatHazeEnabled``) perturbs UVs with a sinusoidal ripple below
+``heatHazeMaxY`` (a screen-UV height, 0 = bottom), fading out toward that line
+so the sky above stays sharp, simulating hot-air shimmer. Underwater
 (``underwaterEnabled``, ``underwaterTint``, ``underwaterCausticStrength``,
 ``underwaterCausticScale``, ``underwaterDepthExtinction``) tints the image,
 adds animated caustic patterns, and attenuates by depth.
@@ -340,10 +348,10 @@ adds animated caustic patterns, and attenuates by depth.
 
     // Directional motion blur — typical "running camera" look.
     q.motionBlurEnabled = true;
-    q.motionBlurDirection = glm::vec2(1.0f, 0.0f);  // horizontal sweep
-    q.motionBlurStrength = 0.45f;
+    q.motionBlurDirection = glm::vec2(0.18f, 0.0f);  // horizontal pan, screen UV
+    q.motionBlurStrength = 1.0f;
 
-    // Hot tarmac shimmer above the horizon line.
+    // Hot tarmac shimmer in the lower 60 % of the frame.
     q.heatHazeEnabled = true;
     q.heatHazeStrength = 0.30f;
     q.heatHazeFrequency = 5.0f;
@@ -464,31 +472,52 @@ exposure and goes through the same tone curve. Bloom thresholds tuned for the
 default pipeline need to be raised. Frames rendered with a
 ``RAYRAI_PBR_DEBUG_OUTPUT`` view keep the previous output, and
 :doc:`Capture` describes how the mode affects captures and RGB sensor images.
-Changing the exposure, tone curve, or gamma resets temporal-AA history, which
-also happens while auto exposure adapts.
+Changing the exposure, tone curve, or gamma resets the legacy temporal-AA
+history, which also happens while auto exposure adapts; the reprojected method
+keeps its scene-linear history.
 
 Temporal anti-aliasing
 **********************
-``temporalAaEnabled`` blends each frame with the previous result, sampled at
-the same screen position and clamped to the current pixel neighbourhood;
-``temporalAaBlend`` (default 0.08, at most 0.95) is the history weight. There
-are no motion vectors, so moving content relies on that clamp. Ultra enables
-temporal AA with ``temporalAaJitterScale = 0``. Keep the jitter at zero: the
-resolve does not compensate for it, so a non-zero jitter shifts static images
-every frame. ``RenderOverrides::allowTemporalAa`` turns it off for an
-individual external render.
+``temporalAaEnabled`` turns temporal AA on, and ``temporalAaMethod`` selects
+the algorithm:
+
+* ``TemporalAaMethod::Legacy`` (the default) blends each frame with the
+  previous display-encoded result, sampled at the same screen position and
+  clamped to the current pixel neighbourhood; ``temporalAaBlend`` (default
+  0.08, at most 0.95) is the history weight. There are no motion vectors, so
+  moving content relies on that clamp. Ultra uses this method with
+  ``temporalAaJitterScale = 0``. Keep the jitter at zero here: the legacy
+  resolve does not compensate for it, so a non-zero jitter (the struct default
+  is 1) shifts static images every frame.
+* ``TemporalAaMethod::Reprojected`` accumulates jittered scene-linear colour
+  and reprojects it with the camera motion and foliage wind, with depth
+  rejection and variance clipping. ``temporalAaCurrentWeight`` (0.02–1, default
+  0.1) is the weight of the new frame, and ``temporalAaSharpness`` (0–1, default
+  0.3) sharpens the output only. ``setRenderQualitySettings`` throws
+  ``std::invalid_argument`` for values outside these ranges, and forces
+  ``viewerMsaaSamples`` to 1 while this method is on. It always uses the
+  `Linear HDR rendering`_ output path, and an external render with a custom
+  ``post`` shader throws ``std::invalid_argument`` unless its
+  ``RenderOverrides::allowTemporalAa`` is false.
+
+``RenderOverrides::allowTemporalAa`` turns temporal AA off for an individual
+external render.
 
 Platform notes
 **************
 On macOS, and on other GPUs that expose 16 or fewer fragment texture units,
 rayrai uses a reduced post-process program (see the GPU capability tiers in
 :doc:`Materials`). FXAA, additive bloom, SSAO and contact AO with denoising,
-temporal AA, depth of field, and linear HDR output work. The rest of this page
-is not rendered there: white balance, saturation, colour grading, vignette,
+temporal AA, depth of field, white balance, saturation, and linear HDR output
+work. The rest of this page is not rendered there: colour grading, vignette,
 chromatic aberration, film grain, lens flare, starburst, lens distortion,
 letterbox, motion and zoom blur, SSR, SSIL, contact shadows, aerial
 perspective, volumetric fog and lighting, light shafts, local fog volumes,
 projected decals, heat haze, underwater, the stylized looks, non-``Additive``
 bloom blend modes, and every ``postProcessDebugMode`` except ``Final``. Lens
 droplets and precipitation are separate passes and still render.
+
+Every other GPU runs the full program. With 32 fragment texture units, which
+the NVIDIA, AMD and Intel OpenGL drivers report, a frame can use 25
+projected-decal maps instead of 32 (see :doc:`Lighting`).
 

@@ -1,6 +1,6 @@
-#########################
-Kinova Arm
-#########################
+##########################
+Server Example: Kinova Arm
+##########################
 
 .. image:: ../../../../rsc/docs/image/kinova_arm.png
    :alt: kinova_arm example

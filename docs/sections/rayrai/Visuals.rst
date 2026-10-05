@@ -10,53 +10,44 @@ shadow casting modes. CoACD mesh approximation is also covered here.
 
 CoACD mesh approximation visualization
 ======================================
-The ``rayrai_coacd_mesh_approximation`` example visualizes CoACD collision
-mesh approximation. It shows the source mesh and generated convex parts side by
-side. The decomposition side uses per-part colors so individual convex bodies
-can be inspected. The example is registered as the
-``rayrai_coacd_mesh_approximation`` target. Package examples keep its source
-under ``rsc/rayrai/flaticon``.
-
-This example uses real meshes from ``rsc`` such as YCB and Minitaur assets. Some robot
-visual meshes are intentionally not used because they are non-manifold visual shells and
-are rejected by the minimal CoACD integration.
-
-The typical pattern is to load the source mesh as a viewer-only ``Visual``
-and the CoACD decomposition output as a second ``Visual`` rendered with a
-per-part palette:
+The ``rayrai_coacd_mesh_approximation`` example
+(:doc:`../examples/rayrai/rayrai_coacd_mesh_approximation`) visualizes CoACD
+collision-mesh approximation for five YCB meshes. Each row shows the original
+triangle mesh next to its CoACD convex parts. Both are RaiSim mesh objects
+created with ``World::addMesh``, not rayrai visuals: the parts form one object
+drawn in a single translucent colour, and rayrai renders them like any other
+world object.
 
 .. code-block:: cpp
 
-    // Source mesh (left-side view).
-    auto sourceMesh = viewer.addVisualMesh("coacd_source", "/path/asset.obj",
-                                           glm::dvec3(1.0),
-                                           glm::vec4(0.85f, 0.85f, 0.85f, 1.0f));
-    sourceMesh->setPosition(-0.6, 0.0, 0.0);
+    raisim::CoacdOptions options;
+    options.threshold = 0.04;
+    options.maxConvexHull = 12;
 
-    // CoACD decomposition output (right-side view), one Visual per part with
-    // distinct colours from a small palette.
-    const std::vector<glm::vec4> palette = {
-      {0.95f, 0.30f, 0.30f, 1.0f}, {0.30f, 0.85f, 0.55f, 1.0f},
-      {0.30f, 0.60f, 0.95f, 1.0f}, {0.95f, 0.85f, 0.30f, 1.0f},
-    };
-    for (size_t i = 0; i < parts.size(); ++i) {
-      auto p = viewer.addVisualCustomMesh("coacd_part_" + std::to_string(i),
-                                          parts[i].meshes,
-                                          palette[i % palette.size()]);
-      p->setPosition(0.6, 0.0, 0.0);
-    }
+    // Original mesh (left).
+    auto* original = world->addMesh(path, /*mass=*/1.0, /*scale=*/3.0, "",
+                                    raisim::MeshCollisionMode::ORIGINAL_MESH, 1, 0);
+    original->setPosition(-0.45, 0.0, 0.8);
+    original->setBodyType(raisim::BodyType::STATIC);
+
+    // CoACD convex parts (right), drawn translucent.
+    auto* coacd = world->addMesh(path, 1.0, 3.0, "",
+                                 raisim::MeshCollisionMode::CONVEXIFY, 1, 0, options);
+    coacd->setPosition(0.45, 0.0, 0.8);
+    coacd->setBodyType(raisim::BodyType::STATIC);
+    coacd->setAppearance("0.95,0.52,0.24,0.78");
 
 Examples
 ========
 Rayrai examples are documented in :doc:`Examples <Examples>`. Each example
 page includes a short explanation, CMake target, and build-tree usage.
 
-Quick map to the current rayrai-related targets:
+Quick map to selected rayrai targets:
 
 * ``rayrai_tcp_viewer``: source-built viewer for ``raisim::RaisimServer``
   scenes.
-* ``rayrai_basic_scene``: minimal ImGui + SDL2 app showing the standard update
-  loop, custom visuals, and the offscreen render texture.
+* ``rayrai_basic_scene``: minimal ImGui + SDL2 app with a robot on a ground
+  plane, showing the standard update loop and the offscreen render texture.
 * ``rayrai_complete_showcase``: broad in-process scene that combines RGB/depth
   cameras, raw buffer readback, LiDAR visualization, camera frustums, and
   custom visuals.
@@ -69,20 +60,21 @@ Quick map to the current rayrai-related targets:
 * ``rayrai_pbr_material_grid`` / ``rayrai_pbr_texture_maps`` /
   ``rayrai_quality_lighting``: PBR materials, bundled glTF PBR sample assets,
   texture slots, quality presets, and additional-light configurations.
-* ``rayrai_visual_asset_support``: authored glTF/GLB scene import with PBR
-  materials, imported lights, HDR IBL, optional reflection-probe sidecars, and
-  screenshots.
+* ``rayrai_visual_asset_support``: textured URDF visual assets (ANYmal C and
+  YCB objects with OBJ/DAE meshes) whose visual and collision geometry stay
+  separate.
 * ``rayrai_coacd_mesh_approximation``: in-process comparison of source meshes
   and CoACD convex approximation parts generated through ``World::addMesh``.
-* ``rayrai_runtime_scene_editing``: runtime add/remove of RaiSim objects and
-  rayrai visuals with stable ids, snapshots, collision filters, and cloning.
+* ``rayrai_runtime_scene_editing``: runtime add/remove of RaiSim objects with
+  stable ids, snapshots, collision filters, and cloning.
 * ``rayrai_rolling_spinning_friction`` / ``rayrai_swept_ccd``: physics-focused
   scenes that visualize rolling/spinning friction and swept CCD.
 * ``rayrai_forest``: a physics heightmap covered with instanced plants and
   rocks, loaded asynchronously behind a progress overlay; see
   :doc:`../examples/rayrai/rayrai_forest` and `Dense foliage`_ below.
   :doc:`../examples/rayrai/rayrai_forest_from_rscene` loads the same world
-  from its ``.rscene`` file.
+  from its ``.rscene`` file with ``raisin::applyRscene`` (new in v2.7.1, not
+  yet released; see :doc:`../RsceneFile`).
 * OpenUSD visual meshes can be loaded through ``RayraiWindow::addVisualMesh``;
   see :doc:`../OpenUSD` for importer scope and runtime layout.
 
@@ -159,9 +151,9 @@ Prefer ``MeshList`` over the long nested type in new code.
 ``Visuals::approximateBounds(center, radius)`` and
 ``InstancedVisuals::approximateBounds(center, radius)`` expose the conservative
 world-space bounds that the renderer uses for culling, picking, shadow planning,
-and camera framing. Unlike ``approximateRadius()``, the center can differ from
-``getPosition()`` for offset meshes, generated heightmaps, articulated links,
-and deformables. Use ``setCustomBounds(localCenter, localRadius)`` when a
+and camera framing. ``approximateRadius()`` returns only the radius; the center
+can differ from ``getPosition()`` for offset meshes, generated heightmaps,
+articulated links, and deformables. Use ``setCustomBounds(localCenter, localRadius)`` when a
 programmatically deformed visual needs a tighter or more stable bound than its
 source mesh provides.
 
@@ -203,8 +195,8 @@ Draws can be thinned without changing the authored instances:
   radius. It is off by default, and the explicit stride stays a lower bound.
 * Automatic mesh LOD (``setAutomaticMeshLodEnabled``, on by default, or the
   ``automaticMeshLodEnabled`` argument of ``addInstancedVisuals``) generates
-  simplified meshes for file-backed batches and picks a level from the
-  projected size when drawing.
+  simplified meshes for triangle-mesh batches (cached for file-backed ones)
+  and picks a level from the projected size when drawing.
 * ``setDoubleBufferedInstanceUploads(true)`` helps when full instance-buffer
   rebuilds are frequent, and ``setSortTransparentInstances(true)`` sorts
   transparent instances back to front. Both are off by default.
@@ -225,21 +217,26 @@ run on a worker thread. Call ``uploadPreparedGeometry()`` later on the thread
 that owns the GL context, then add the mesh to a ``MeshList`` for
 ``addVisualCustomMesh`` or ``addInstancedVisuals``.
 
-Prepared uploads, ``OpenGLMesh::createWithCompactIndices``, and generated
-foliage LODs store 16-bit indices when every index fits. Code that draws an
-``OpenGLMesh`` VAO directly must use ``indexElementBytes()`` (2 or 4) to choose
-``GL_UNSIGNED_SHORT`` or ``GL_UNSIGNED_INT``. Set
-``RAYRAI_DISABLE_16BIT_MESH_INDICES=1`` to keep 32-bit indices.
+``uploadPreparedGeometry()`` (with its default ``compactIndices = true``),
+``OpenGLMesh::createWithCompactIndices``, and generated foliage LODs store
+16-bit indices for triangle meshes whose largest index is below 65535 (0xFFFF
+is reserved for primitive restart). Asynchronous file imports keep 32-bit
+indices. Code that draws an ``OpenGLMesh`` VAO directly must use
+``indexElementBytes()`` (2 or 4) to choose ``GL_UNSIGNED_SHORT`` or
+``GL_UNSIGNED_INT``.
 
 Dense foliage
 =============
 An instanced mesh visual is treated as foliage when one of its materials is
-alpha-masked, blended, or has a ``FoliageType``, or when its mesh path contains
-one of the words ``foliage``, ``grass``, ``leaf``, ``leaves``, ``bush``,
-``shrub``, ``plant``, ``flower``, ``fern``, ``pine``, ``sapling``, ``twig``, or
-``vegetation``. The path test is a plain substring match on the full path, and
-with asynchronous loading only the path is known when the batch is created, so
-set the policies below explicitly when the path does not identify the asset.
+not opaque (masked, hashed, or blended) or has a ``FoliageType``, or when its
+mesh path contains one of the words ``foliage``, ``grass``, ``leaf``,
+``leaves``, ``bush``, ``shrub``, ``plant``, ``flower``, ``fern``, ``pine``,
+``sapling``, ``twig``, or ``vegetation``. The path test is a case-insensitive
+substring match on the full path; batches created from a ``MeshList`` are
+classified by their materials only. With asynchronous loading only the path is
+known when the batch is created, so set the policies below explicitly when the
+path does not identify the asset. :doc:`Foliage` covers dense vegetation in
+more depth.
 
 For foliage batches rayrai:
 
@@ -280,17 +277,18 @@ The policies can also be set explicitly:
 ``RAYRAI_FOLIAGE_LOD_PIXEL_ERROR`` (default ``2.25``, valid range ``(0, 8]``)
 sets the projected error budget in pixels for camera LODs, and
 ``RAYRAI_FOLIAGE_SHADOW_LOD_PIXEL_ERROR`` (default ``2.5``; it follows the
-camera value when only that one is set) the budget for shadow maps. Both are
-read once per process.
+camera value when only that one is set) the budget for shadow maps. Invalid
+values fall back to ``2.25``. Both are read once per process.
 
-GPU instance culling, GPU cluster culling, and indirect multi-draws need
-OpenGL 4.3. On older contexts, such as OpenGL 4.1 on macOS, rayrai uses its
-CPU paths and prints a one-time fallback warning.
+GPU instance culling and indirect multi-draws need OpenGL 4.3. On older
+contexts, such as OpenGL 4.1 on macOS, rayrai uses its CPU paths and prints a
+one-time fallback warning. Hierarchical cluster culling always runs on the CPU.
 
-Per-batch diagnostics (``shadowFoliageLodDiagnostics()``,
-``foliageImpostorDiagnostics()``, ``hierarchicalFoliageClusterDiagnostics()``,
-``grassPatchDiagnostics()``) and ``RayraiWindow::foliageRenderDiagnostics()``
-describe the last rendered frame; see :doc:`Capture`. The wind clock can follow
+The per-batch diagnostics ``shadowFoliageLodDiagnostics()``,
+``foliageImpostorDiagnostics()``, and ``hierarchicalFoliageClusterDiagnostics()``
+and ``RayraiWindow::foliageRenderDiagnostics()`` describe the last rendered
+frame; ``grassPatchDiagnostics()`` reports the settings passed to
+``configureGrassPatch``. See :doc:`Capture`. The wind clock can follow
 simulation time with ``viewer.setFoliageWindTimeSeconds(t)``; the global wind
 field is described in :doc:`Weather`.
 
@@ -316,8 +314,8 @@ so custom helper geometry that should appear there must also be marked
 detectable.
 
 The RaiSim ``RGBCamera`` and ``DepthCamera`` overloads intentionally disable
-rayrai custom visualization objects and point clouds, regardless of
-detectability. Use detectability for external-camera/capture paths where
+rayrai custom visualization objects, point clouds, and coordinate frames,
+regardless of detectability. Use detectability for external-camera/capture paths where
 ``RenderOverrides::drawVisualizationObjects`` or
 ``RenderOverrides::drawPointClouds`` is enabled.
 
@@ -341,7 +339,7 @@ Use this rule of thumb:
 .. code-block:: cpp
 
     auto target = viewer.addVisualSphere("camera_target", 0.08,
-                                         1.0f, 0.2f, 0.1f, 1.0f);
+                                         glm::vec4(1.0f, 0.2f, 0.1f, 1.0f));
     target->setDetectable(true);   // Included in external-camera captures.
 
     auto axisHelper = viewer.addVisualBox("debug_axis",
@@ -381,9 +379,11 @@ and are useful for authoring polished scenes:
   detectable-only external-camera, reflection-probe, documentation-capture, and
   point-cloud render filters. It is render metadata only, not physics or
   collision state.
-* ``setPbrEnvironment(envMap, brdfLut)`` / ``setPbrEnvironment(envMap,
-  irradianceMap, prefilteredMap, brdfLut, intensity)`` — attach an HDR
-  environment to a single visual when global IBL is not appropriate.
+* ``setPbrEnvironment(pbrEnvironment)`` / ``setPbrEnvironment(envMap,
+  brdfLut, strength)`` / ``setPbrEnvironment(envMap, irradianceMap,
+  prefilteredMap, brdfLut, strength, boxProjection, probePosition, boxMin,
+  boxMax)`` — attach an HDR environment to a single visual when global IBL is
+  not appropriate; see :doc:`Lighting`.
 * ``setTransparency``, ``setTransparentSortOffset``,
   ``setTransparentSortUsesBoundsCenter`` — fine control of transparent draw
   order without enabling full OIT.
@@ -461,11 +461,11 @@ Call ``updatePointBuffer()`` after changing point cloud data.
 
 
 Per-visual and per-light gallery
-********************************
+================================
 Each additional light exposes optional projector cookies, colour temperature,
 distance fade for both lighting and shadows, and a per-light shadow toggle.
 The renderer also supports *negative* lights that subtract instead of add —
-useful for cooling shadowed regions or carving artistic dark spots — and
+useful for darkening or tinting a region, or carving artistic dark spots — and
 arbitrary projector textures (gobos) that mask a spotlight's contribution.
 See :doc:`Lighting` for the full ``AdditionalLight`` API; this gallery
 focuses on the per-visual treatment side.
@@ -491,19 +491,21 @@ geometry without rendering colour.
     gobo.projectorMap = goboTextureId;       // RGBA8 cookie
     gobo.projectorStrength = 1.0f;
     gobo.distanceFadeEnabled = true;
-    gobo.distanceFadeBegin = 12.0f;
+    gobo.distanceFadeBegin = 12.0f;   // camera 12-16 m away: light fades out
     gobo.distanceFadeLength = 4.0f;
+    gobo.distanceFadeShadow = 10.0f;  // camera 10-14 m away: shadow fades out
     gobo.castsShadows = true;
     viewer.addAdditionalLight(gobo);
 
-    // A subtractive (negative) fill light to cool down a shadowed region.
-    raisin::RayraiWindow::AdditionalLight cool;
-    cool.type = raisin::LightType::POINT;
-    cool.position = glm::vec3(-2.0f, 0.0f, 1.8f);
-    cool.diffuse = glm::vec3(0.10f, 0.16f, 0.32f);
-    cool.negative = true;
-    cool.constant = 1.0f; cool.linear = 0.5f; cool.quadratic = 0.20f;
-    viewer.addAdditionalLight(cool);
+    // A subtractive (negative) light that darkens a region; it removes more
+    // blue than red, so the region also turns warmer.
+    raisin::RayraiWindow::AdditionalLight dark;
+    dark.type = raisin::LightType::POINT;
+    dark.position = glm::vec3(-2.0f, 0.0f, 1.8f);
+    dark.diffuse = glm::vec3(0.10f, 0.16f, 0.32f);
+    dark.negative = true;
+    dark.constant = 1.0f; dark.linear = 0.5f; dark.quadratic = 0.20f;
+    viewer.addAdditionalLight(dark);
 
 .. list-table::
    :header-rows: 1

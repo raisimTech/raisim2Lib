@@ -31,6 +31,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 Details
 =======
 - Adds visual-only primitives, meshes, arrows, polylines, and a visual heightmap.
-- Updates colors/sizes and dynamic mesh data every frame.
+- Updates colors, sizes, dynamic mesh data, and the visual heightmap every
+  loop while holding ``lockVisualizationServerMutex()``.
 - Shows visual articulated systems and custom mesh streaming.
+- Does not integrate the world; only the visual objects change.
 

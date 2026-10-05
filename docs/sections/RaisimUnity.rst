@@ -1,7 +1,7 @@
 :orphan:
 
 #############################
-RaiSimUnity
+RaisimUnity
 #############################
 
 .. warning::

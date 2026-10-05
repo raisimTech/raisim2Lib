@@ -4,7 +4,9 @@ Server Example: Material Restitution
 
 Overview
 ========
-Drops spheres with different material labels (steel, rubber, copper) and configures material pair properties. It highlights restitution and friction differences.
+Drops spheres with different material labels (steel, rubber, copper) onto a
+steel ground and configures the material pair properties. All pairs use the
+same friction coefficient, so the spheres differ only in how much they bounce.
 
 Screenshot
 ==========
@@ -31,6 +33,8 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 Details
 =======
 - Drops three spheres with different materials onto a steel ground.
-- Sets per-material restitution to compare bounce behavior.
-- Reference for ``World::setMaterialPairProp`` restitution settings.
+- Sets the restitution of each pair with the ground (steel 0.95, copper 0.65,
+  rubber 0.15) to compare bounce behavior.
+- Reference for ``World::setMaterialPairProp`` restitution settings; see
+  :doc:`../../MaterialSystem`.
 

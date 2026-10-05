@@ -15,7 +15,11 @@ through the world configuration constructor in your application:
 
     raisim::World world("/path/to/raisim2Lib/rsc/xmlScripts/heightMaps/heightMapUsingTerrainGenerator.xml");
 
-The XML file is constructed as follows:
+The XML file is equivalent to the following (the asset uses the snake_case
+spellings ``x_sample``, ``z_scale``, ``fractal_octaves``, ...; the reader
+accepts both). In ``terrainProperties``, ``frequency``, ``zScale``,
+``fractalOctaves``, ``fractalLacunarity``, ``fractalGain``, ``stepSize``, and
+``seed`` are required; ``heightOffset`` is optional.
 
 .. code-block:: xml
 
@@ -44,11 +48,19 @@ The XML file is constructed as follows:
         </objects>
     </raisim>
 
-Perlin parameters can be nontrivial to tune. Adjust them to achieve the shape you want.
+The terrain is fractal Perlin noise. ``frequency`` sets the base noise
+frequency (cycles per meter), ``zScale`` the height range in meters, and each of
+the ``fractalOctaves`` octaves multiplies the frequency by
+``fractalLacunarity`` and the amplitude by ``fractalGain``. A positive
+``stepSize`` quantizes heights into steps. These parameters interact, so expect
+to adjust them until the terrain has the shape you want.
 
 
 C++ approach
 -----------------------------
+
+The same terrain in C++. ``seed`` is set explicitly because its C++ default
+differs from the ``seed="0"`` used in the XML file:
 
 .. code-block:: cpp
 
@@ -62,6 +74,7 @@ C++ approach
   terrainProperties.fractalOctaves = 3;
   terrainProperties.fractalLacunarity = 2.0;
   terrainProperties.fractalGain = 0.25;
+  terrainProperties.seed = 0;
 
   auto hm = world.addHeightMap(0.0, 0.0, terrainProperties);
 

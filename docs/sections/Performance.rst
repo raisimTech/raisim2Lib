@@ -33,7 +33,7 @@ What Usually Costs Time
        candidate contacts.
      - Use primitives, height maps, simplified convex collision assets, or cached
        mesh preprocessing where possible. See :doc:`SingleBodyObjects`.
-   * - Contact properties
+   * - Contact count
      - Many articulated bodies touching many other bodies.
      - Remove unnecessary collision shapes and split non-interacting objects with
        collision masks.
@@ -64,12 +64,16 @@ not automatically become collision meshes. Prefer this order:
 3. preprocessed convex collision assets for irregular objects;
 4. mesh collision only when the task really needs mesh-level contact.
 
-Use ``World::addMesh`` preprocessing and cache reuse when a mesh collision asset
-is needed repeatedly. For broadphase-heavy scenes, configure
-``contact::BroadphaseType::MultiBoxPrune`` with bounds and cell sizes that match
-the active world volume. For very small scenes or debugging, brute-force
-broadphase can be useful, but it should not be the default assumption for large
-worlds.
+When a mesh collision asset is needed repeatedly, reuse the CoACD decomposition
+cache that ``World::addMesh`` writes and the normalized OBJ cache produced by
+``Mesh::preprocessMesh`` (see :doc:`SingleBodyObjects`). The default broadphase
+is ``contact::BroadphaseType::Sap3Axis``. For broadphase-heavy scenes, try
+``contact::BroadphaseType::MultiBoxPrune`` through
+``World::setBroadphaseSettings``, with grid bounds and cell sizes
+(``mbpWorldMin``, ``mbpWorldMax``, ``mbpCellSize``) that match the active world
+volume, and measure both. Scenes with fewer than 35 collision bodies already use
+an all-pairs AABB test regardless of the setting. ``BroadphaseType::None``
+skips AABB culling entirely and is only meant for debugging.
 
 Contacts and Solver Work
 ========================
@@ -86,23 +90,26 @@ not matter for the task:
 * keep timesteps and material parameters within the stability range required by
   the task.
 
-``World::setContactSolverParam`` exposes solver parameters for advanced users,
+``World::setContactSolverParam`` exposes solver parameters for advanced users
+(only the maximum iteration count and the termination threshold take effect),
 but it is usually a later step. Reducing redundant contacts tends to be more
-robust than asking the solver to process a harder problem faster.
+robust than asking the solver to process a harder problem faster. See
+:doc:`Contact` for the solver notes.
 
 Sleeping Islands
 ================
 
-Sleeping is enabled by default. RaiSim can skip simulation work for dynamic
-islands whose velocities remain below the configured thresholds for 5 consecutive
-steps by default.
+Sleeping is enabled by default. RaiSim skips simulation work for a dynamic
+island once every body in it stays below the linear (0.002 m/s) and angular
+(0.01 rad/s) speed thresholds for 5 consecutive steps; these are the defaults.
 This helps scenes with piles, props, or objects that settle and then stay quiet.
+Disabling sleeping wakes every sleeping object.
 
 .. code-block:: cpp
 
   world.setSleepingEnabled(true);
-  world.setSleepingParameters(/*linear*/ 0.002, /*angular*/ 0.01, /*quietSteps*/ 5);
-  world.wakeAll();
+  world.setSleepingParameters(/*linear*/ 0.002, /*angular*/ 0.01, /*quietSteps*/ 5);  // defaults
+  world.wakeAll();  // wake every object on the next step
 
 Disable sleeping when every object must remain numerically active every step, or
 when a benchmark is intended to measure the awake dynamics path. The public
@@ -125,14 +132,16 @@ mode and run timing commands on one thread:
       -DCMAKE_BUILD_TYPE=Release \
       -DRAISIM_EXAMPLE=ON
   cmake --build build-examples \
-      --target anymal_standing_benchmark articulated_system_benchmark -j12
+      --target anymal_standing_benchmark articulated_system_benchmark --parallel 12
   OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
       ./build-examples/examples/anymal_standing_benchmark --fast
   OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 \
       ./build-examples/examples/articulated_system_benchmark
 
 The public workspace does not install these example executables; run them from
-the build tree shown above.
+the build tree shown above (``build-examples\bin`` on Windows).
+``--fast`` caps ``anymal_standing_benchmark`` at 20,000 steps; ``--steps=N``
+sets the step count explicitly.
 
 Public timing and visualization examples include:
 
@@ -166,7 +175,7 @@ deterministic stepping behavior of one ``raisim::World``.
 
 ``World::setContactSolverIterationOrder(order)`` sets the starting sweep
 direction for the next contact solve. The solver flips the stored direction
-after each solve, so reset it before each measured step only if the experiment
+after each solve, so call it before each measured step only if the experiment
 requires the same starting sweep every time. For reproducible benchmark numbers,
 also control random seeds in the benchmark or application, keep visualization
 disabled unless measured, and pin the same benchmark arguments.

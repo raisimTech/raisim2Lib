@@ -141,6 +141,8 @@ create_executable(sensor_suite src/server/sensor_suite.cpp)
 create_executable(wheeled_robot_force_control src/server/robots/wheeled_robot_force_control.cpp)
 create_executable(templated_tracked_robot src/server/robots/templated_tracked_robot.cpp)
 create_executable(minitaur_pd src/server/robots/minitaur_pd.cpp)
+create_executable(robotiq_gripper_mimic src/server/robots/robotiq_gripper_mimic.cpp)
+create_executable(strandbeest_closed_loops src/server/robots/strandbeest_closed_loops.cpp)
 create_executable(inverse_dynamics src/server/robots/inverse_dynamics.cpp)
 create_executable(shadow_hand_usd_cube src/server/robots/shadow_hand_usd_cube.cpp)
 create_executable(nvidia_usd_robots src/server/robots/nvidia_usd_robots.cpp)
@@ -164,6 +166,20 @@ set_target_properties(tendon_elastic tendon_pulleys tendon_coupling PROPERTIES
 create_executable(visual_objects_showcase src/server/visualization/visual_objects_showcase.cpp)
 create_executable(synchronous_server_update src/server/synchronous_server_update.cpp)
 create_executable(sim_control_demo src/server/sim_control_demo.cpp)
+# Serving a .rscene scene, with its files shared to remote viewers, is new in v2.7.1.
+get_target_property(_raisim_include_dirs raisim::raisim INTERFACE_INCLUDE_DIRECTORIES)
+set(_raisim_shares_scene_files OFF)
+foreach(_raisim_include_dir IN LISTS _raisim_include_dirs)
+    if(EXISTS "${_raisim_include_dir}/raisim/server/SceneFileServer.hpp")
+        set(_raisim_shares_scene_files ON)
+    endif()
+endforeach()
+if(_raisim_shares_scene_files)
+    create_executable(rscene_server src/server/visualization/rscene_server.cpp)
+else()
+    message(STATUS "Skipping rscene_server: the installed raisim cannot share .rscene files "
+                   "with the TCP viewer (raisim/server/SceneFileServer.hpp, new in v2.7.1)")
+endif()
 
 # Performance and optional deformables.
 create_executable(object_lifecycle_stress src/server/performance/object_lifecycle_stress.cpp)
@@ -229,6 +245,8 @@ create_rayrai_executable(rayrai_swept_ccd src/rayrai/collision/rayrai_swept_ccd.
 # Tools.
 create_rayrai_executable(rayrai_tcp_viewer src/rayrai/tools/rayrai_tcp_viewer.cpp)
 target_sources(rayrai_tcp_viewer PRIVATE
+    src/rayrai/tools/TcpViewerSceneFiles.cpp
+    src/rayrai/tools/TcpViewerActuators.cpp
     src/rayrai/tools/TcpViewerVideo.cpp
     src/rayrai/tools/TcpViewerSignals.cpp
     src/rayrai/tools/TcpViewerPaneLayout.cpp
@@ -277,9 +295,22 @@ create_rayrai_executable(rayrai_forest src/rayrai/worlds/rayrai_forest.cpp)
 target_compile_features(rayrai_forest PRIVATE cxx_std_20)
 target_compile_definitions(rayrai_forest PRIVATE
     FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
-# The same forest built by raisim::World from its .rscene file.
-create_rayrai_executable(rayrai_forest_from_rscene src/rayrai/worlds/rayrai_forest_from_rscene.cpp)
-target_compile_features(rayrai_forest_from_rscene PRIVATE cxx_std_20)
+# The same forest built by raisim::World from its .rscene file. The .rscene reader is new in
+# v2.7.1, so a package without its rayrai half (RsceneVisuals.hpp) skips this example.
+get_target_property(_rayrai_include_dirs rayrai INTERFACE_INCLUDE_DIRECTORIES)
+set(_rayrai_has_rscene OFF)
+foreach(_rayrai_include_dir IN LISTS _rayrai_include_dirs)
+    if(EXISTS "${_rayrai_include_dir}/rayrai/RsceneVisuals.hpp")
+        set(_rayrai_has_rscene ON)
+    endif()
+endforeach()
+if(_rayrai_has_rscene)
+    create_rayrai_executable(rayrai_forest_from_rscene src/rayrai/worlds/rayrai_forest_from_rscene.cpp)
+    target_compile_features(rayrai_forest_from_rscene PRIVATE cxx_std_20)
+else()
+    message(STATUS "Skipping rayrai_forest_from_rscene: the installed rayrai has no .rscene "
+                   "support (rayrai/RsceneVisuals.hpp, new in v2.7.1)")
+endif()
 option(RAISIM_FOREST_COLLISION_BENCHMARK "Build the forest collision benchmark" OFF)
 if(RAISIM_FOREST_COLLISION_BENCHMARK)
     create_executable(forest_collision_benchmark tools/benchmark_forest_collision.cpp)

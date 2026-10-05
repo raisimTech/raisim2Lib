@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
   <title id="title">RaiSim speedup over MuJoCo</title>
-  <desc id="desc">Horizontal bar chart showing MuJoCo median time divided by RaiSim median time for six benchmarks, based on three single-threaded runs. Higher values mean RaiSim is faster.</desc>
+  <desc id="desc">Horizontal bar chart showing MuJoCo median time divided by RaiSim median time for 7 benchmarks, based on three single-threaded runs. Higher values mean RaiSim is faster.</desc>
   <style>
     text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
     .title { font-size: 24px; font-weight: 700; }
@@ -12,37 +12,40 @@
     .value { font-size: 13px; font-weight: 700; fill: #24313d; }
     .bar { fill: #2f6fb7; }
   </style>
-  <rect width="960" height="470" fill="#ffffff"/>
+  <rect width="960" height="520" fill="#ffffff"/>
   <text x="30" y="36" class="title">RaiSim speedup over MuJoCo</text>
-  <text x="30" y="60" class="subtitle">MuJoCo median / RaiSim median across three single-threaded runs. Higher is better.</text>
-  <line x1="230" y1="82" x2="230" y2="390" class="grid"/>
-  <line x1="382" y1="82" x2="382" y2="390" class="grid"/>
-  <line x1="535" y1="82" x2="535" y2="390" class="grid"/>
-  <line x1="687" y1="82" x2="687" y2="390" class="grid"/>
-  <line x1="839" y1="82" x2="839" y2="390" class="grid"/>
-  <line x1="230" y1="390" x2="900" y2="390" class="axis"/>
-  <text x="230" y="412" text-anchor="middle" class="tick">0x</text>
-  <text x="382" y="412" text-anchor="middle" class="tick">1.5x</text>
-  <text x="535" y="412" text-anchor="middle" class="tick">3.0x</text>
-  <text x="687" y="412" text-anchor="middle" class="tick">4.5x</text>
-  <text x="839" y="412" text-anchor="middle" class="tick">6.0x</text>
-  <text x="565" y="446" text-anchor="middle" class="subtitle">MuJoCo time / RaiSim time</text>
+  <text x="30" y="60" class="subtitle">MuJoCo median / RaiSim median across three single-threaded runs, AMD Ryzen 9 3950X. Higher is better.</text>
+  <line x1="230" y1="82" x2="230" y2="440" class="grid"/>
+  <line x1="382" y1="82" x2="382" y2="440" class="grid"/>
+  <line x1="534" y1="82" x2="534" y2="440" class="grid"/>
+  <line x1="686" y1="82" x2="686" y2="440" class="grid"/>
+  <line x1="839" y1="82" x2="839" y2="440" class="grid"/>
+  <line x1="230" y1="440" x2="900" y2="440" class="axis"/>
+  <text x="230" y="462" text-anchor="middle" class="tick">0x</text>
+  <text x="382" y="462" text-anchor="middle" class="tick">2x</text>
+  <text x="534" y="462" text-anchor="middle" class="tick">4x</text>
+  <text x="686" y="462" text-anchor="middle" class="tick">6x</text>
+  <text x="839" y="462" text-anchor="middle" class="tick">8x</text>
+  <text x="565" y="496" text-anchor="middle" class="subtitle">MuJoCo time / RaiSim time</text>
   <text x="30" y="112" class="label">Chain20 speed</text>
-  <rect x="230" y="94" width="632" height="24" rx="4" class="bar"/>
-  <text x="874" y="111" class="value">6.23x</text>
+  <rect x="230" y="94" width="473" height="24" rx="4" class="bar"/>
+  <text x="715" y="111" class="value">6.21x</text>
   <text x="30" y="162" class="label">Heightmap ANYmal speed</text>
-  <rect x="230" y="144" width="482" height="24" rx="4" class="bar"/>
-  <text x="724" y="161" class="value">4.75x</text>
-  <text x="30" y="212" class="label">Primitive speed</text>
-  <rect x="230" y="194" width="406" height="24" rx="4" class="bar"/>
-  <text x="648" y="211" class="value">4.00x</text>
-  <text x="30" y="262" class="label">Chain10 speed</text>
-  <rect x="230" y="244" width="351" height="24" rx="4" class="bar"/>
-  <text x="593" y="261" class="value">3.46x</text>
-  <text x="30" y="312" class="label">ANYmal standing</text>
-  <rect x="230" y="294" width="316" height="24" rx="4" class="bar"/>
-  <text x="558" y="311" class="value">3.11x</text>
-  <text x="30" y="362" class="label">ANYmal falling</text>
-  <rect x="230" y="344" width="263" height="24" rx="4" class="bar"/>
-  <text x="505" y="361" class="value">2.59x</text>
+  <rect x="230" y="144" width="365" height="24" rx="4" class="bar"/>
+  <text x="607" y="161" class="value">4.79x</text>
+  <text x="30" y="212" class="label">Chain10 speed</text>
+  <rect x="230" y="194" width="294" height="24" rx="4" class="bar"/>
+  <text x="536" y="211" class="value">3.86x</text>
+  <text x="30" y="262" class="label">Primitive speed</text>
+  <rect x="230" y="244" width="199" height="24" rx="4" class="bar"/>
+  <text x="441" y="261" class="value">2.61x</text>
+  <text x="30" y="312" class="label">ANYmal falling</text>
+  <rect x="230" y="294" width="197" height="24" rx="4" class="bar"/>
+  <text x="439" y="311" class="value">2.59x</text>
+  <text x="30" y="362" class="label">ANYmal standing</text>
+  <rect x="230" y="344" width="191" height="24" rx="4" class="bar"/>
+  <text x="433" y="361" class="value">2.50x</text>
+  <text x="30" y="412" class="label">Strandbeest</text>
+  <rect x="230" y="394" width="145" height="24" rx="4" class="bar"/>
+  <text x="387" y="411" class="value">1.91x</text>
 </svg>

@@ -4,12 +4,12 @@ Rayrai Example: TCP Viewer
 
 Overview
 ========
-Standalone TCP viewer for ``raisim::RaisimServer`` scenes. It
-connects to a running server, downloads the remote scene, and renders it with
-rayrai and ImGui controls. Build the ``rayrai_tcp_viewer`` target from this
-repository for interactive viewing. The target also exposes batch and
-diagnostics command-line options. :doc:`../../RayraiTcpViewer` is the full
-reference for its panels, options and wire format.
+Standalone TCP viewer for ``raisim::RaisimServer`` scenes. It connects to a
+running server, receives the scene, and renders it with rayrai and ImGui
+controls. Build the ``rayrai_tcp_viewer`` target from this repository; it also
+has command-line options for batch runs and diagnostics.
+:doc:`../../RayraiTcpViewer` is the full reference for its panels, options and
+wire format.
 
 Target
 ======
@@ -17,10 +17,11 @@ CMake target: ``rayrai_tcp_viewer``.
 
 Source
 ======
-The public example entry point is ``examples/src/rayrai/tools/rayrai_tcp_viewer.cpp``.
-It is a compatibility wrapper for older local build scripts; the maintained
-implementation lives in ``examples/src/rayrai/tools/rayrai_tcp_viewer.cpp`` and
-is the file used by ``examples/CMakeLists.txt``.
+``examples/src/rayrai/tools/rayrai_tcp_viewer.cpp`` is the viewer's main
+source file; the ``TcpViewer*`` files next to it hold the rest of the
+implementation. ``examples/CMakeLists.txt`` builds the target from these files.
+The platform install scripts refresh them to match the installed rayrai
+library.
 
 Run
 ====
@@ -30,10 +31,9 @@ Run the build-tree executable while a ``RaisimServer`` application is running:
 
    ./build-examples/examples/rayrai_tcp_viewer
 
-On Windows, the source-built executable is
-``.\build-examples\bin\rayrai_tcp_viewer.exe``. This viewer is a separate
-rayrai client process; in-process rayrai examples open their own renderer
-window and do not need it.
+On Windows, the executable is ``.\build-examples\bin\rayrai_tcp_viewer.exe``.
+The viewer is a separate process; in-process rayrai examples open their own
+renderer window and do not need it.
 
 Useful options
 ==============
@@ -64,11 +64,11 @@ Run ``rayrai_tcp_viewer --help`` for the full option list.
 
 Details
 =======
-- Connects to a running RaisimServer over TCP and downloads the remote scene.
+- Connects to a running ``RaisimServer`` over TCP and receives the scene.
 - Renders the streamed scene with rayrai and exposes an ImGui control panel
   with Connection, Options, Record, Render, Objects, Diagnostics and Help tabs.
-- Supports explicit host/port selection, ``--connect`` endpoint shortcuts, and
-  LAN RaisimServer beacon discovery.
+- Supports explicit host/port selection, the ``--connect`` endpoint shortcut,
+  and discovery of ``RaisimServer`` instances through UDP beacons.
 - Splits its window into independent panes, each with its own connection, and
   restores the layout and endpoints on the next launch.
 - Runs a dropped RaiSim world XML (or ``--simulate FILE``) in a child
@@ -77,19 +77,21 @@ Details
 - Supports repeatable ``--resource-dir`` entries for resolving streamed mesh and
   texture resources.
 - Provides camera framing, orthographic view snaps, fullscreen startup, panel
-  minimization, screenshots, MP4 video recording through ``ffmpeg``, PNG
-  sequence output, raw TCP session recording, offline replay with a timeline,
-  trajectory CSV logging, target update-rate control, and scene/object JSON
-  diagnostics.
-- Interactive tools include Shift+left-drag force application, Ctrl+left-drag
-  (Cmd on macOS) interaction-wire pulling, a 2-point ruler, 3-point angle
-  measurement, pose grabber axes, body frames, COM markers, scene editing
-  (spawn, delete, world export), live signal plots with CSV export, and a Help
-  tab listing the keyboard and mouse shortcuts.
-- Rebuild the ``rayrai_tcp_viewer`` target after changing its checked-in source
-  or the packaged rayrai library.
-- Services manual RGB/depth camera requests from ``RaisimServer``, returns
-  completed BGRA/metric-depth buffers, and shows previews, camera frustums and
-  camera frames in the selected-object Sensors tab.
+  minimization, screenshots, MP4/MOV/MKV video recording through ``ffmpeg``,
+  PNG sequence output, raw TCP session recording, offline replay with a
+  timeline, trajectory CSV logging, target update-rate control, and
+  scene/object JSON diagnostics.
+- Interactive tools include simulation pause and step, Shift+left-drag force
+  application, Ctrl+left-drag (Cmd on macOS) interaction-wire pulling, a
+  2-point ruler, 3-point angle measurement, pose grabber axes, body frames, COM
+  markers, scene editing (spawn, delete, world export), live signal plots with
+  CSV export, and a Help tab listing the keyboard shortcuts.
+- Rebuild the ``rayrai_tcp_viewer`` target after changing its source or the
+  installed rayrai library.
+- Renders manual RGB/depth cameras on request from ``RaisimServer``, returns
+  the BGRA/metric-depth images, and shows previews, camera frustums and camera
+  frames in the selected-object Sensors tab.
+- Shows the actuators of a selected articulated system, with motor operating
+  region plots, in the selected-object Actuators tab.
 - Prefer in-process rayrai when the application must own the render context or
   access textures without a viewer process and TCP round trip.

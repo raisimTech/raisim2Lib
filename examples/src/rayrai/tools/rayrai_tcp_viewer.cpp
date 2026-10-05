@@ -45,6 +45,7 @@
 #include <sstream>
 #include <string>
 #include <system_error>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -59,8 +60,10 @@
 #include "TcpViewerPaneChrome.hpp"
 #include "TcpViewerScreenshot.hpp"
 #include "TcpViewerSession.hpp"
+#include "TcpViewerActuators.hpp"
 #include "TcpViewerSensors.hpp"
 #include "TcpViewerSettings.hpp"
+#include "TcpViewerSceneFiles.hpp"
 #include "TcpViewerSignals.hpp"
 #include "TcpViewerVideo.hpp"
 #include "TcpViewerSimulation.hpp"
@@ -145,6 +148,9 @@ constexpr const char* kWireDragGestureLabel = "Cmd-drag wire";
 #else
 constexpr const char* kWireDragGestureLabel = "Ctrl-drag wire";
 #endif
+
+// Sentinel for "no queued request" in the gestures' pendingRequestIndex.
+constexpr size_t kNoPendingRequest = std::numeric_limits<size_t>::max();
 
 float resolveUiScaleForDisplay(float configuredScale, float automaticScale,
                                bool userSet, bool initialized,
@@ -232,7 +238,7 @@ struct MouseForceGesture {
   glm::vec3 force{0.0f};
   ImVec2 pressMouse{0.0f, 0.0f};
   ImVec2 currentMouse{0.0f, 0.0f};
-  size_t pendingRequestIndex = std::numeric_limits<size_t>::max();
+  size_t pendingRequestIndex = kNoPendingRequest;
 };
 
 // Interaction wire (CR_ATTACH_WIRE + CR_DRAG_OBJECT). Unlike the pose grabber,
@@ -250,7 +256,7 @@ struct WireDragGesture {
   glm::vec3 localAttachPoint{0.0f};  // grab point in the body frame
   glm::vec3 attachPoint{0.0f};       // grab point in world coordinates, this frame
   glm::vec3 target{0.0f};            // where the wire pulls, in world coordinates
-  size_t pendingRequestIndex = std::numeric_limits<size_t>::max();
+  size_t pendingRequestIndex = kNoPendingRequest;
 };
 
 // One recorded object in the signal workbench. The weak visual pointer is how a
@@ -416,9 +422,6 @@ struct InspectorState {
   bool dragging = false;
 };
 
-// Sniff the first KiB of a file for the `<mujoco` root marker so we know whether to use
-// raisim's URDF path or the MJCF world loader. Tolerates leading XML declarations and
-// whitespace; falls back to false on any I/O error.
 // Identify MJCF vs URDF by scanning the file for the first non-comment, non-declaration
 // root element. The 1 KB short-read used to misclassify files like
 // half_cheetah.xml whose <mujoco> tag lives after a long license/header comment
@@ -648,7 +651,11 @@ std::string shortenPathLabel(const std::string& value, size_t maxLen) {
   return shortenPlainLabel(value, maxLen);
 }
 
-bool parseLongStrict(const char* value, int base, long& out) {
+// Shared body of the strict number parsers: reject null/blank input, a partial
+// parse, ERANGE, non-finite floating-point results and trailing garbage.
+// `parse` wraps a single strto* call.
+template <typename T, typename Parse>
+bool parseNumberStrict(const char* value, T& out, Parse parse) {
   if (!value) {
     return false;
   }
@@ -660,58 +667,34 @@ bool parseLongStrict(const char* value, int base, long& out) {
   }
   errno = 0;
   char* end = nullptr;
-  out = std::strtol(value, &end, base);
+  out = parse(value, &end);
   if (end == value || errno == ERANGE) {
     return false;
   }
+  if constexpr (std::is_floating_point_v<T>) {
+    if (!std::isfinite(out)) {
+      return false;
+    }
+  }
   while (std::isspace(static_cast<unsigned char>(*end))) {
     ++end;
   }
   return *end == '\0';
+}
+
+bool parseLongStrict(const char* value, int base, long& out) {
+  return parseNumberStrict(value, out,
+    [base](const char* text, char** end) { return std::strtol(text, end, base); });
 }
 
 bool parseFloatStrict(const char* value, float& out) {
-  if (!value) {
-    return false;
-  }
-  while (std::isspace(static_cast<unsigned char>(*value))) {
-    ++value;
-  }
-  if (*value == '\0') {
-    return false;
-  }
-  errno = 0;
-  char* end = nullptr;
-  out = std::strtof(value, &end);
-  if (end == value || errno == ERANGE || !std::isfinite(out)) {
-    return false;
-  }
-  while (std::isspace(static_cast<unsigned char>(*end))) {
-    ++end;
-  }
-  return *end == '\0';
+  return parseNumberStrict(value, out,
+    [](const char* text, char** end) { return std::strtof(text, end); });
 }
 
 bool parseDoubleStrict(const char* value, double& out) {
-  if (!value) {
-    return false;
-  }
-  while (std::isspace(static_cast<unsigned char>(*value))) {
-    ++value;
-  }
-  if (*value == '\0') {
-    return false;
-  }
-  errno = 0;
-  char* end = nullptr;
-  out = std::strtod(value, &end);
-  if (end == value || errno == ERANGE || !std::isfinite(out)) {
-    return false;
-  }
-  while (std::isspace(static_cast<unsigned char>(*end))) {
-    ++end;
-  }
-  return *end == '\0';
+  return parseNumberStrict(value, out,
+    [](const char* text, char** end) { return std::strtod(text, end); });
 }
 
 bool parseFloatListStrict(const char* value, float* values, size_t count) {
@@ -789,15 +772,6 @@ bool parseVec3Text(const std::string& value, glm::vec3& out) {
   return true;
 }
 
-bool parseVec4Text(const std::string& value, glm::vec4& out) {
-  float values[4]{};
-  if (!parseFloatListStrict(value.c_str(), values, 4)) {
-    return false;
-  }
-  out = glm::vec4(values[0], values[1], values[2], values[3]);
-  return true;
-}
-
 bool parseCameraLookAtText(const std::string& value, glm::vec3& pos, glm::vec3& target) {
   float values[6]{};
   if (!parseFloatListStrict(value.c_str(), values, 6)) {
@@ -843,7 +817,8 @@ void printUsage(const char* argv0) {
     << "  --export-scene PATH         Export current scene/object diagnostics as JSON\n"
     << "  --trajectory-csv PATH       Log object poses to CSV while updates arrive\n"
     << "  --server-list PATH          Load extra host:port endpoints from a text file\n"
-    << "  --wait-for-server SECONDS   Batch wait limit for initial connection\n"
+    << "  --wait-for-server SECONDS   Batch wait limit for initial connection; exits with\n"
+    << "                              status 1 if no server connected in time\n"
     << "  --exit-after SECONDS        Exit after the given wall-clock duration\n"
     << "  --help                      Show this help\n"
     << "\nDiscovery:\n"
@@ -860,8 +835,24 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       }
       return argv[++i];
     };
+    // Options whose value is stored verbatim as a path.
+    const std::pair<const char*, std::filesystem::path*> pathOptions[] = {
+      {"--screenshot-dir", &options.screenshotDir},
+      {"--record-session", &options.recordSessionPath},
+      {"--export-scene", &options.exportScenePath},
+      {"--trajectory-csv", &options.trajectoryCsvPath},
+      {"--server-list", &options.endpointListPath},
+      {"--inspect-reload", &options.inspectReloadPath}};
+    std::filesystem::path* pathOption = nullptr;
+    for (const auto& [name, target] : pathOptions) {
+      if (arg == name) pathOption = target;
+    }
 
-    if (arg == "--help" || arg == "-h") {
+    if (pathOption) {
+      const char* value = requireValue(arg.c_str());
+      if (!value) return false;
+      *pathOption = value;
+    } else if (arg == "--help" || arg == "-h") {
       options.printHelp = true;
       return true;
     } else if (arg == "--no-save-settings") {
@@ -945,14 +936,6 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       if (!value) return false;
       options.screenshotPath = value;
       options.exitAfterScreenshot = true;
-    } else if (arg == "--screenshot-dir") {
-      const char* value = requireValue("--screenshot-dir");
-      if (!value) return false;
-      options.screenshotDir = value;
-    } else if (arg == "--record-session") {
-      const char* value = requireValue("--record-session");
-      if (!value) return false;
-      options.recordSessionPath = value;
     } else if (arg == "--update-rate") {
       const char* value = requireValue("--update-rate");
       if (!value) return false;
@@ -982,18 +965,6 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       options.replaySpeed = speed;
     } else if (arg == "--replay-loop") {
       options.replayLoop = true;
-    } else if (arg == "--export-scene") {
-      const char* value = requireValue("--export-scene");
-      if (!value) return false;
-      options.exportScenePath = value;
-    } else if (arg == "--trajectory-csv") {
-      const char* value = requireValue("--trajectory-csv");
-      if (!value) return false;
-      options.trajectoryCsvPath = value;
-    } else if (arg == "--server-list") {
-      const char* value = requireValue("--server-list");
-      if (!value) return false;
-      options.endpointListPath = value;
     } else if (arg == "--no-pre-warm") {
       options.preWarmShaders = false;
     } else if (arg == "--warm-at-startup") {
@@ -1004,37 +975,21 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       options.inspectorPath = value;
       options.autoConnect = false;
       options.autoConnectSet = true;
-    } else if (arg == "--inspect-after-frames") {
-      const char* value = requireValue("--inspect-after-frames");
+    } else if (arg == "--inspect-after-frames" || arg == "--inspect-close-after-frames") {
+      const char* value = requireValue(arg.c_str());
       if (!value) return false;
       int n = 0;
       try { n = std::stoi(value); }
-      catch (...) { std::cerr << "ERROR: invalid --inspect-after-frames\n"; return false; }
-      options.inspectAfterFrames = std::max(0, n);
-    } else if (arg == "--inspect-close-after-frames") {
-      const char* value = requireValue("--inspect-close-after-frames");
+      catch (...) { std::cerr << "ERROR: invalid " << arg << "\n"; return false; }
+      (arg == "--inspect-after-frames" ? options.inspectAfterFrames
+                                       : options.inspectCloseAfterFrames) = std::max(0, n);
+    } else if (arg == "--wait-for-server" || arg == "--exit-after") {
+      double& seconds = arg == "--wait-for-server" ? options.waitForServerSeconds
+                                                   : options.exitAfterSeconds;
+      const char* value = requireValue(arg.c_str());
       if (!value) return false;
-      int n = 0;
-      try { n = std::stoi(value); }
-      catch (...) { std::cerr << "ERROR: invalid --inspect-close-after-frames\n"; return false; }
-      options.inspectCloseAfterFrames = std::max(0, n);
-    } else if (arg == "--inspect-reload") {
-      const char* value = requireValue("--inspect-reload");
-      if (!value) return false;
-      options.inspectReloadPath = value;
-    } else if (arg == "--wait-for-server") {
-      const char* value = requireValue("--wait-for-server");
-      if (!value) return false;
-      if (!parseDoubleStrict(value, options.waitForServerSeconds) ||
-          options.waitForServerSeconds < 0.0) {
-        std::cerr << "ERROR: invalid --wait-for-server value: " << value << "\n";
-        return false;
-      }
-    } else if (arg == "--exit-after") {
-      const char* value = requireValue("--exit-after");
-      if (!value) return false;
-      if (!parseDoubleStrict(value, options.exitAfterSeconds) || options.exitAfterSeconds < 0.0) {
-        std::cerr << "ERROR: invalid --exit-after value: " << value << "\n";
+      if (!parseDoubleStrict(value, seconds) || seconds < 0.0) {
+        std::cerr << "ERROR: invalid " << arg << " value: " << value << "\n";
         return false;
       }
     } else {
@@ -1100,6 +1055,8 @@ std::filesystem::path findRaisimLogoPath(const std::filesystem::path& binaryDir)
     candidates.push_back(sourceDir / "../../../logo.png");
     candidates.push_back(sourceDir / "../../../../logo.png");
     candidates.push_back(sourceDir / "../../../../docs/logo.png");
+    // raisim2Lib examples: synced next to the viewer icons.
+    candidates.push_back(sourceDir / "../assets/logo.png");
   }
   if (!binaryDir.empty()) {
     candidates.push_back(binaryDir / "logo.png");
@@ -1125,18 +1082,58 @@ std::filesystem::path findRaisimLogoPath(const std::filesystem::path& binaryDir)
   return {};
 }
 
-bool loadTcpViewerImageTexture(const std::filesystem::path& path, TcpViewerImageTexture& image) {
-  if (path.empty()) {
-    return false;
-  }
-  int width = 0;
-  int height = 0;
+// Decodes an image file to tightly packed RGBA8. Returns null (with nothing to
+// free) when the file is unreadable or empty; otherwise the caller owns the
+// pixels and must stbi_image_free() them.
+unsigned char* loadRgba8Pixels(const std::filesystem::path& path, int& width, int& height) {
   int channels = 0;
   unsigned char* pixels = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
   if (!pixels || width <= 0 || height <= 0) {
     if (pixels) {
       stbi_image_free(pixels);
     }
+    return nullptr;
+  }
+  return pixels;
+}
+
+// Uploads RGBA8 pixels as a linear-filtered, edge-clamped 2D texture. Returns 0
+// when no texture name could be allocated. Leaves GL_TEXTURE_2D unbound and the
+// unpack alignment as it found it.
+unsigned int uploadRgba8Texture(const unsigned char* pixels, int width, int height) {
+  unsigned int texture = 0;
+  gl::glGenTextures(1, &texture);
+  if (texture == 0) {
+    return 0;
+  }
+
+  gl::GLint previousAlignment = 4;
+  gl::glGetIntegerv(gl::GL_UNPACK_ALIGNMENT, &previousAlignment);
+  gl::glBindTexture(gl::GL_TEXTURE_2D, texture);
+  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, 1);
+  gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, static_cast<gl::GLint>(gl::GL_RGBA8), width, height, 0,
+    gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, pixels);
+  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, previousAlignment);
+  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER,
+    static_cast<gl::GLint>(gl::GL_LINEAR));
+  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER,
+    static_cast<gl::GLint>(gl::GL_LINEAR));
+  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S,
+    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
+  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T,
+    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
+  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
+  return texture;
+}
+
+bool loadTcpViewerImageTexture(const std::filesystem::path& path, TcpViewerImageTexture& image) {
+  if (path.empty()) {
+    return false;
+  }
+  int width = 0;
+  int height = 0;
+  unsigned char* pixels = loadRgba8Pixels(path, width, height);
+  if (!pixels) {
     return false;
   }
 
@@ -1170,30 +1167,11 @@ bool loadTcpViewerImageTexture(const std::filesystem::path& path, TcpViewerImage
       static_cast<float>(alphaMaxY + 1) / static_cast<float>(height));
   }
 
-  unsigned int texture = 0;
-  gl::glGenTextures(1, &texture);
+  const unsigned int texture = uploadRgba8Texture(pixels, width, height);
+  stbi_image_free(pixels);
   if (texture == 0) {
-    stbi_image_free(pixels);
     return false;
   }
-
-  gl::GLint previousAlignment = 4;
-  gl::glGetIntegerv(gl::GL_UNPACK_ALIGNMENT, &previousAlignment);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, texture);
-  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, 1);
-  gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, static_cast<gl::GLint>(gl::GL_RGBA8), width, height, 0,
-    gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, pixels);
-  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, previousAlignment);
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER,
-    static_cast<gl::GLint>(gl::GL_LINEAR));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER,
-    static_cast<gl::GLint>(gl::GL_LINEAR));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S,
-    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T,
-    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  stbi_image_free(pixels);
 
   image.release();
   image.texture = texture;
@@ -1207,12 +1185,8 @@ bool loadTcpViewerImageTexture(const std::filesystem::path& path, TcpViewerImage
 bool loadTcpViewerIconTexture(const std::filesystem::path& path, TcpViewerIcon& icon) {
   int width = 0;
   int height = 0;
-  int channels = 0;
-  unsigned char* pixels = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
-  if (!pixels || width <= 0 || height <= 0) {
-    if (pixels) {
-      stbi_image_free(pixels);
-    }
+  unsigned char* pixels = loadRgba8Pixels(path, width, height);
+  if (!pixels) {
     return false;
   }
 
@@ -1228,30 +1202,11 @@ bool loadTcpViewerIconTexture(const std::filesystem::path& path, TcpViewerIcon& 
     pixel[2] = 255;
   }
 
-  unsigned int texture = 0;
-  gl::glGenTextures(1, &texture);
+  const unsigned int texture = uploadRgba8Texture(pixels, width, height);
+  stbi_image_free(pixels);
   if (texture == 0) {
-    stbi_image_free(pixels);
     return false;
   }
-
-  gl::GLint previousAlignment = 4;
-  gl::glGetIntegerv(gl::GL_UNPACK_ALIGNMENT, &previousAlignment);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, texture);
-  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, 1);
-  gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, static_cast<gl::GLint>(gl::GL_RGBA8), width, height, 0,
-    gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, pixels);
-  gl::glPixelStorei(gl::GL_UNPACK_ALIGNMENT, previousAlignment);
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER,
-    static_cast<gl::GLint>(gl::GL_LINEAR));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER,
-    static_cast<gl::GLint>(gl::GL_LINEAR));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S,
-    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
-  gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T,
-    static_cast<gl::GLint>(gl::GL_CLAMP_TO_EDGE));
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  stbi_image_free(pixels);
 
   icon.texture = texture;
   icon.width = width;
@@ -1493,6 +1448,33 @@ void endIconTabBar() {
   ImGui::PopStyleVar();
 }
 
+// An icon over a soft drop shadow, the shared look of every icon glyph.
+void drawIconGlyph(ImDrawList* drawList, ImTextureID textureId, const ImVec2& iconMin,
+                   const ImVec2& iconMax, const ImVec4& iconTint) {
+  drawList->AddImage(textureId, ImVec2(iconMin.x + 1.0f, iconMin.y + 1.0f),
+    ImVec2(iconMax.x + 1.0f, iconMax.y + 1.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+    ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.34f)));
+  drawList->AddImage(textureId, iconMin, iconMax, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+    ImGui::GetColorU32(iconTint));
+}
+
+// The tinted rounded chip behind an icon button's glyph, then the glyph itself.
+void drawIconChip(ImDrawList* drawList, ImTextureID textureId, const ImVec2& iconMin,
+                  const ImVec2& iconMax, float chipPad, const ImVec4& iconTint, bool hovered,
+                  bool active) {
+  const ImVec4 chipFill(iconTint.x, iconTint.y, iconTint.z,
+                        active ? 0.26f : (hovered ? 0.22f : 0.16f));
+  const ImVec4 chipBorder(iconTint.x, iconTint.y, iconTint.z,
+                          active ? 0.72f : (hovered ? 0.58f : 0.42f));
+  drawList->AddRectFilled(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
+    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
+    ImGui::GetColorU32(chipFill), 3.0f);
+  drawList->AddRect(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
+    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
+    ImGui::GetColorU32(chipBorder), 3.0f);
+  drawIconGlyph(drawList, textureId, iconMin, iconMax, iconTint);
+}
+
 /**
  * @brief An icon-only tab, styled like the icon buttons.
  *
@@ -1551,11 +1533,7 @@ bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const
   // Selected tabs read as "active" so the tint matches the button palette.
   const ImVec4 iconTint = tcpViewerIconTint(kind, hovered, selected);
   drawList->PushClipRect(itemMin, itemMax, true);
-  drawList->AddImage(textureId, ImVec2(iconMin.x + 1.0f, iconMin.y + 1.0f),
-    ImVec2(iconMax.x + 1.0f, iconMax.y + 1.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.34f)));
-  drawList->AddImage(textureId, iconMin, iconMax, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(iconTint));
+  drawIconGlyph(drawList, textureId, iconMin, iconMax, iconTint);
   drawList->PopClipRect();
   return selected;
 }
@@ -1618,16 +1596,6 @@ float fontScaledTextControlWidth(float visibleChars) {
   return charWidth * std::max(1.0f, visibleChars) + style.FramePadding.x * 2.0f;
 }
 
-float responsiveTextControlWidth(float visibleChars, float viewportFraction = 0.46f) {
-  const float desired = fontScaledTextControlWidth(visibleChars);
-  const float currentAvail = std::max(0.0f, ImGui::GetContentRegionAvail().x);
-  const float displayWidth = ImGui::GetIO().DisplaySize.x;
-  const float maxWidth = displayWidth > 1.0f
-    ? std::max(ImGui::GetFontSize() * 12.0f, displayWidth * viewportFraction)
-    : FLT_MAX;
-  return std::max(ImGui::GetFontSize() * 8.0f, std::min(std::max(currentAvail, desired), maxWidth));
-}
-
 float comboWidthForTextItems(const char* const* items, int itemCount) {
   const ImGuiStyle& style = ImGui::GetStyle();
   float maxTextWidth = 0.0f;
@@ -1666,20 +1634,8 @@ bool drawIconTextButton(const TcpViewerIcons& icons, TcpViewerIconKind kind, con
   ImDrawList* drawList = ImGui::GetWindowDrawList();
   const ImTextureID textureId = (ImTextureID)(intptr_t)icon->texture;
   const ImVec4 iconTint = tcpViewerIconTint(kind, hovered, active);
-  const ImVec4 chipFill(iconTint.x, iconTint.y, iconTint.z, active ? 0.26f : (hovered ? 0.22f : 0.16f));
-  const ImVec4 chipBorder(iconTint.x, iconTint.y, iconTint.z, active ? 0.72f : (hovered ? 0.58f : 0.42f));
   drawList->PushClipRect(itemMin, itemMax, true);
-  drawList->AddRectFilled(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
-    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
-    ImGui::GetColorU32(chipFill), 3.0f);
-  drawList->AddRect(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
-    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
-    ImGui::GetColorU32(chipBorder), 3.0f);
-  drawList->AddImage(textureId, ImVec2(iconMin.x + 1.0f, iconMin.y + 1.0f),
-    ImVec2(iconMax.x + 1.0f, iconMax.y + 1.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.34f)));
-  drawList->AddImage(textureId, iconMin, iconMax, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(iconTint));
+  drawIconChip(drawList, textureId, iconMin, iconMax, chipPad, iconTint, hovered, active);
   drawList->AddText(ImVec2(iconMax.x + style.ItemInnerSpacing.x, centerY - textSize.y * 0.5f),
     ImGui::GetColorU32(ImGuiCol_Text), label);
   drawList->PopClipRect();
@@ -1720,22 +1676,8 @@ bool drawIconOnlyButton(const TcpViewerIcons& icons, TcpViewerIconKind kind,
   ImDrawList* drawList = ImGui::GetWindowDrawList();
   const ImTextureID textureId = (ImTextureID)(intptr_t)icon->texture;
   const ImVec4 iconTint = tcpViewerIconTint(kind, hovered, active);
-  const ImVec4 chipFill(iconTint.x, iconTint.y, iconTint.z,
-                        active ? 0.26f : (hovered ? 0.22f : 0.16f));
-  const ImVec4 chipBorder(iconTint.x, iconTint.y, iconTint.z,
-                          active ? 0.72f : (hovered ? 0.58f : 0.42f));
   drawList->PushClipRect(itemMin, itemMax, true);
-  drawList->AddRectFilled(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
-    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
-    ImGui::GetColorU32(chipFill), 3.0f);
-  drawList->AddRect(ImVec2(iconMin.x - chipPad, iconMin.y - chipPad),
-    ImVec2(iconMax.x + chipPad, iconMax.y + chipPad),
-    ImGui::GetColorU32(chipBorder), 3.0f);
-  drawList->AddImage(textureId, ImVec2(iconMin.x + 1.0f, iconMin.y + 1.0f),
-    ImVec2(iconMax.x + 1.0f, iconMax.y + 1.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.34f)));
-  drawList->AddImage(textureId, iconMin, iconMax, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-    ImGui::GetColorU32(iconTint));
+  drawIconChip(drawList, textureId, iconMin, iconMax, chipPad, iconTint, hovered, active);
   drawList->PopClipRect();
   ImGui::PopID();
   return pressed;
@@ -1759,6 +1701,11 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   using raisin::tcp_viewer::ClientRequestType;
   const float vecWidth = std::round(ImGui::GetFontSize() * 12.5f);
   const float textWidth = fontScaledTextControlWidth(26.0f);
+  // Every field is labelled after the control, in the disabled colour.
+  const auto trailingLabel = [](const char* label) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", label);
+  };
 
   ImGui::TextUnformatted("Shape");
   for (int i = 0; i < static_cast<int>(kSpawnShapes.size()); ++i) {
@@ -1784,8 +1731,7 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
 
   ImGui::SetNextItemWidth(textWidth);
   ImGui::InputText("##spawn_name", form.name, sizeof(form.name));
-  ImGui::SameLine();
-  ImGui::TextDisabled("Name");
+  trailingLabel("Name");
 
   if (shape.needsFile) {
     ImGui::SetNextItemWidth(textWidth);
@@ -1812,8 +1758,7 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
           });
       }
     }
-    ImGui::SameLine();
-    ImGui::TextDisabled("File (server-side path)");
+    trailingLabel("File (server-side path)");
     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + textWidth);
     ImGui::TextDisabled(
       "RaiSim resolves this path on the simulation host. A path the server cannot open "
@@ -1825,53 +1770,44 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
     case ClientRequestType::CR_SPAWN_BOX:
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat3("##spawn_box", form.boxExtent, 0.01f, 0.001f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Extents (m)");
+      trailingLabel("Extents (m)");
       break;
     case ClientRequestType::CR_SPAWN_SPHERE:
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_radius", &form.radius, 0.005f, 0.001f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Radius (m)");
+      trailingLabel("Radius (m)");
       break;
     case ClientRequestType::CR_SPAWN_CYLINDER:
     case ClientRequestType::CR_SPAWN_CAPSULE:
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_radius", &form.radius, 0.005f, 0.001f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Radius (m)");
+      trailingLabel("Radius (m)");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_height", &form.height,
         0.005f, shape.type == ClientRequestType::CR_SPAWN_CAPSULE ? 0.0f : 0.001f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Height (m)");
+      trailingLabel("Height (m)");
       break;
     case ClientRequestType::CR_SPAWN_PLANE:
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_ground", &form.groundHeight, 0.01f, -1000.0f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Height (m)");
+      trailingLabel("Height (m)");
       break;
     case ClientRequestType::CR_SPAWN_HEIGHT_MAP:
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat2("##spawn_hm_center", form.heightMapCenter, 0.05f, -10000.0f, 10000.0f,
         "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Center X/Y (m)");
+      trailingLabel("Center X/Y (m)");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat2("##spawn_hm_size", form.heightMapSize, 0.05f, 0.001f, 10000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Size X/Y (m)");
+      trailingLabel("Size X/Y (m)");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_hm_scale", &form.heightMapHeightScale, 0.01f, -1000.0f, 1000.0f,
         "%.4f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Height scale");
+      trailingLabel("Height scale");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat("##spawn_hm_offset", &form.heightMapHeightOffset, 0.01f, -1000.0f, 1000.0f,
         "%.4f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Height offset (m)");
+      trailingLabel("Height offset (m)");
       break;
     default:
       break;
@@ -1880,16 +1816,13 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   if (shape.needsMass) {
     ImGui::SetNextItemWidth(vecWidth);
     compactDragFloat("##spawn_mass", &form.mass, 0.05f, 0.001f, 100000.0f, "%.4g");
-    ImGui::SameLine();
-    ImGui::TextDisabled("Mass (kg)");
+    trailingLabel("Mass (kg)");
     ImGui::SetNextItemWidth(vecWidth);
     ImGui::Combo("##spawn_body_type", &form.bodyType, "dynamic\0kinematic\0static\0");
-    ImGui::SameLine();
-    ImGui::TextDisabled("Body type");
+    trailingLabel("Body type");
     ImGui::SetNextItemWidth(textWidth);
     ImGui::InputText("##spawn_appearance", form.appearance, sizeof(form.appearance));
-    ImGui::SameLine();
-    ImGui::TextDisabled("Appearance");
+    trailingLabel("Appearance");
   }
 
   const bool placeable = shape.type != ClientRequestType::CR_SPAWN_PLANE &&
@@ -1899,8 +1832,7 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
     ImGui::BeginDisabled(form.useCameraPlacement);
     ImGui::SetNextItemWidth(vecWidth);
     compactDragFloat3("##spawn_position", form.position, 0.02f, -100000.0f, 100000.0f, "%.3f");
-    ImGui::SameLine();
-    ImGui::TextDisabled("Position (m)");
+    trailingLabel("Position (m)");
     ImGui::EndDisabled();
     if (form.useCameraPlacement) {
       form.position[0] = dropPoint.x;
@@ -1910,16 +1842,13 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
     if (ImGui::TreeNode("Initial state")) {
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat3("##spawn_lin_vel", form.linearVelocity, 0.05f, -1000.0f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Linear velocity (m/s)");
+      trailingLabel("Linear velocity (m/s)");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat3("##spawn_ang_vel", form.angularVelocity, 0.05f, -1000.0f, 1000.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Angular velocity (rad/s)");
+      trailingLabel("Angular velocity (rad/s)");
       ImGui::SetNextItemWidth(vecWidth);
       compactDragFloat4("##spawn_quat", form.quatWxyz, 0.005f, -1.0f, 1.0f, "%.3f");
-      ImGui::SameLine();
-      ImGui::TextDisabled("Quaternion WXYZ");
+      trailingLabel("Quaternion WXYZ");
       ImGui::TreePop();
     }
   }
@@ -2007,6 +1936,16 @@ void drawCollapsedLeftPanelLogo(const TcpViewerImageTexture& logo) {
   drawList->AddImage(textureId, imageMin, imageMax, logo.uvMin, logo.uvMax,
     ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
 }
+
+// Flags shared by the floating panels (left overlay, object inspector, AS
+// inspector). NoDecoration minus NoScrollbar: a panel's height cap can make it
+// shorter than its content in a small pane, and a scrollbar is the only way to
+// reach the rest of it.
+constexpr ImGuiWindowFlags kOverlayPanelWindowFlags =
+  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+  ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
+  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+  ImGuiWindowFlags_NoNavFocus;
 
 /**
  * @brief Draw one pane's rendered texture and feed that pane's viewer its input.
@@ -2121,8 +2060,11 @@ struct ViewerPane {
   std::shared_ptr<raisim::World> world;
   std::shared_ptr<raisin::RayraiWindow> viewer;
   std::unique_ptr<RemoteScene> scene;
+  /** The server's RaiSim Engine scene: its files, the download prompt and its visuals. */
+  std::unique_ptr<raisin::tcp_viewer::ViewerSceneFiles> sceneFiles;
   TcpClient client;
   SensorRenderer sensorRenderer;
+  raisin::tcp_viewer::ActuatorTraces actuatorTraces;
   raisin::tcp_viewer::LocalSimulation localSimulation;
   bool connectingLocalSimulation = false;
   bool autoConnect = false;
@@ -2134,6 +2076,8 @@ struct ViewerPane {
   bool sceneReceived = false;
   bool awaitingResponse = false;
   bool awaitingSensorAck = false;
+  /** Rotation state of this pane's sensor-update batches (see sendSensorUpdate()). */
+  size_t nextSensorUpdateIndex = 0;
   std::chrono::steady_clock::time_point updateRequestSentAt = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point nextAutoConnectAttempt = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point nextTcpUpdateRequestTime = std::chrono::steady_clock::now();
@@ -2296,12 +2240,28 @@ struct ViewerPane {
 
 } // namespace
 
+static void reportClosedServerConnection(ViewerPane& pane) {
+  if (pane.sceneReceived) {
+    pane.lastStatus = "connection lost";
+  } else {
+    pane.lastStatus = "server closed before its first reply; requested protocol features may be unsupported";
+    // A matching discovery version does not guarantee support for our feature bits.
+    // Retrying this rejected first frame without user action would loop forever.
+    pane.autoConnect = false;
+  }
+}
+
+// Point the pane's host/port fields (and the port text box) at an endpoint.
+static void setPaneEndpoint(ViewerPane& pane, const std::string& host, int port) {
+  std::snprintf(pane.host, sizeof(pane.host), "%s", host.c_str());
+  pane.port = port;
+  std::snprintf(pane.portBuf, sizeof(pane.portBuf), "%d", port);
+}
+
 // Restored panes resume their own endpoint through the normal retry loop.
 static void restorePaneConnection(ViewerPane& pane, const ConnectionEntry& endpoint,
                                   bool autoConnect) {
-  std::snprintf(pane.host, sizeof(pane.host), "%s", endpoint.host.c_str());
-  pane.port = endpoint.port;
-  std::snprintf(pane.portBuf, sizeof(pane.portBuf), "%d", endpoint.port);
+  setPaneEndpoint(pane, endpoint.host, endpoint.port);
   pane.autoConnect = autoConnect;
 }
 
@@ -2570,11 +2530,11 @@ int main(int argc, char* argv[]) {
     pane.scene->setShowCollisionBodies(false);
     pane.scene->setForceTransparent(false);
     pane.scene->setResourceSearchPaths(resourceDirs);
+    pane.sceneFiles = std::make_unique<raisin::tcp_viewer::ViewerSceneFiles>();
+    pane.sceneFiles->setResourceDirs(resourceDirs);
     pane.appliedResourceDirSerial = resourceDirSerial;
 
-    std::snprintf(pane.host, sizeof(pane.host), "%s", options.host.c_str());
-    pane.port = options.port;
-    std::snprintf(pane.portBuf, sizeof(pane.portBuf), "%d", options.port);
+    setPaneEndpoint(pane, options.host, options.port);
     std::snprintf(pane.screenshotDirBuf, sizeof(pane.screenshotDirBuf), "%s",
                   options.screenshotDir.string().c_str());
     const std::filesystem::path defaultSessionPath =
@@ -2728,6 +2688,11 @@ int main(int argc, char* argv[]) {
   // closed like any other.
   uint32_t leadPaneId = primaryPaneId;
   const bool logExitFps = readEnvBool("RAYRAI_TCP_VIEWER_LOG_EXIT_FPS", false);
+  const auto toggleFullscreenDesktop = [window]() {
+    const Uint32 flags = SDL_GetWindowFlags(window);
+    const bool isFullscreen = (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
+    SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+  };
   const auto fpsMeasureStart = std::chrono::steady_clock::now();
   uint64_t fpsMeasureFrames = 0;
 
@@ -2739,10 +2704,12 @@ int main(int argc, char* argv[]) {
     // Everything not aliased here (settings, uiScale, recent connections,
     // discovery, quit) is shared across panes and captured by reference.
     auto& scene = *pane.scene;
+    auto& sceneFiles = *pane.sceneFiles;
     auto& world = pane.world;
     auto& viewer = pane.viewer;
     auto& client = pane.client;
     auto& sensorRenderer = pane.sensorRenderer;
+    auto& actuatorTraces = pane.actuatorTraces;
     auto& localSimulation = pane.localSimulation;
     auto& connectingLocalSimulation = pane.connectingLocalSimulation;
     auto& autoConnect = pane.autoConnect;
@@ -2750,6 +2717,7 @@ int main(int argc, char* argv[]) {
     auto& sceneReceived = pane.sceneReceived;
     auto& awaitingResponse = pane.awaitingResponse;
     auto& awaitingSensorAck = pane.awaitingSensorAck;
+    auto& nextSensorUpdateIndex = pane.nextSensorUpdateIndex;
     auto& updateRequestSentAt = pane.updateRequestSentAt;
     auto& nextAutoConnectAttempt = pane.nextAutoConnectAttempt;
     auto& nextTcpUpdateRequestTime = pane.nextTcpUpdateRequestTime;
@@ -3069,6 +3037,7 @@ int main(int argc, char* argv[]) {
       bodyFramesNode->poses.clear();
       bodyFramesNode->enable(false);
     }
+    sceneFiles.reset(*viewer, scene);
     clearRemoteSceneAndFrustums(*viewer, scene, cameraFrustums);
     sensorRenderer.clear();
     sceneReceived = false;
@@ -3101,9 +3070,7 @@ int main(int argc, char* argv[]) {
       awaitingResponse = false;
       awaitingSensorAck = false;
       everConnected = true;
-      std::snprintf(host, sizeof(host), "%s", endpoint.host.c_str());
-      port = endpoint.port;
-      std::snprintf(portBuf, sizeof(portBuf), "%d", port);
+      setPaneEndpoint(pane, endpoint.host, endpoint.port);
       if (!localSimulation.active()) {
         recordConnection(recentConnections, endpoint.host, endpoint.port);
         settingsDirty = true;
@@ -3229,6 +3196,7 @@ int main(int argc, char* argv[]) {
             break;
         }
       }
+      sceneFiles.receive(scene.takeSceneFileBlock());
     } else {
       static_cast<void>(scene.takeViewerCommands());
     }
@@ -3241,7 +3209,8 @@ int main(int argc, char* argv[]) {
       stats.parseErrors++;
     } else {
       lastStatus = fromReplay ? "replay" : "connected";
-      if (screenshotAfterFirstScene) {
+      // A scene the server shares is shown first.
+      if (screenshotAfterFirstScene && sceneFiles.settled(*viewer)) {
         screenshotRequested = true;
         screenshotAfterFirstScene = false;
       }
@@ -3426,11 +3395,7 @@ int main(int argc, char* argv[]) {
         }
       }
       if (ImGui::IsKeyPressed(ImGuiKey_F12, false)) screenshotRequested = true;
-      if (ImGui::IsKeyPressed(ImGuiKey_F11, false)) {
-        const Uint32 flags = SDL_GetWindowFlags(window);
-        const bool isFullscreen = (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
-        SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-      }
+      if (ImGui::IsKeyPressed(ImGuiKey_F11, false)) toggleFullscreenDesktop();
     }
 
     constexpr float menuBarHeight = 0.0f;
@@ -3464,7 +3429,10 @@ int main(int argc, char* argv[]) {
         shouldQuitForInitialServerWait(options.waitForServerSeconds, replayMode,
         client.isConnected(), everConnected, wallElapsed)) {
       lastStatus = "wait-for-server timed out";
+      std::cerr << "rayrai_tcp_viewer: no server connected within " << options.waitForServerSeconds
+                << " s (--wait-for-server)\n";
       quit = true;
+      viewerExitCode = 1;
     }
     if (pane.id == leadPaneId) {
       // poll() drains newly arrived beacons and drops ones that stopped
@@ -3685,7 +3653,7 @@ int main(int argc, char* argv[]) {
       }
     };
     const auto appendRulerPoint = [&](const glm::vec3& point, const std::string& label) {
-      if (!ruler.hasA || (ruler.hasA && ruler.hasB) || ruler.nextPoint == 0) {
+      if (!ruler.hasA || ruler.hasB || ruler.nextPoint == 0) {
         ruler.hasA = true;
         ruler.a = point;
         ruler.aLabel = trimAscii(label).empty() ? "scene point" : trimAscii(label);
@@ -3769,9 +3737,16 @@ int main(int argc, char* argv[]) {
           }
           const std::vector<raisin::tcp_viewer::ClientRequest>& frameRequests =
             exportOnlyFrame ? exportFrame : pendingControlRequests;
-          if (!sendUpdateRequest(client, updateRequestTag, frameRequests)) {
+          // Scene-file requests ride along, except with a world export, which goes alone.
+          std::vector<raisin::tcp_viewer::ClientRequest> withSceneFiles;
+          if (!exportOnlyFrame) {
+            withSceneFiles = frameRequests;
+            sceneFiles.appendRequests(withSceneFiles);
+          }
+          if (!sendUpdateRequest(client, updateRequestTag,
+                                 withSceneFiles.empty() ? frameRequests : withSceneFiles)) {
             if (!client.lastIoWouldBlock()) {
-              lastStatus = "connection lost";
+              reportClosedServerConnection(pane);
               networkFailed = true;
             } else if (exportOnlyFrame) {
               // Nothing went out; keep the export queued for the next slot.
@@ -3783,18 +3758,18 @@ int main(int argc, char* argv[]) {
             if (!exportOnlyFrame) {
               pendingControlRequests.clear();
               if (mouseForce.active) {
-                mouseForce.pendingRequestIndex = std::numeric_limits<size_t>::max();
+                mouseForce.pendingRequestIndex = kNoPendingRequest;
               }
               // The wire attachment stays live on the server, but the queued drag
               // request is gone, so the next frame has to push a fresh one.
               if (wireDrag.active) {
-                wireDrag.pendingRequestIndex = std::numeric_limits<size_t>::max();
+                wireDrag.pendingRequestIndex = kNoPendingRequest;
               }
             } else {
               // The remaining requests kept their slots, but the erase above
               // shifted them, so drop the cached indices.
-              mouseForce.pendingRequestIndex = std::numeric_limits<size_t>::max();
-              wireDrag.pendingRequestIndex = std::numeric_limits<size_t>::max();
+              mouseForce.pendingRequestIndex = kNoPendingRequest;
+              wireDrag.pendingRequestIndex = kNoPendingRequest;
             }
           }
         }
@@ -3802,7 +3777,7 @@ int main(int argc, char* argv[]) {
         if (!networkFailed && awaitingResponse) {
           if (!client.recvMessage(payload)) {
             if (!client.lastIoWouldBlock()) {
-              lastStatus = "connection lost";
+              reportClosedServerConnection(pane);
               networkFailed = true;
             } else if (now - updateRequestSentAt > kServerResponseTimeout) {
               // Silence is its own failure mode. RaisimServer serves one client
@@ -3838,7 +3813,7 @@ int main(int argc, char* argv[]) {
               if (!sensorRenderer.render(*viewer, pending, sensorStatus)) {
                 lastStatus = "sensor render failed";
                 networkFailed = true;
-              } else if (!sendSensorUpdate(client, pending)) {
+              } else if (!sendSensorUpdate(client, pending, nextSensorUpdateIndex)) {
                 if (!client.lastIoWouldBlock()) {
                   lastStatus = "sensor update failed";
                   networkFailed = true;
@@ -3863,9 +3838,6 @@ int main(int argc, char* argv[]) {
         awaitingSensorAck = false;
         client.disconnect();
         clearSceneState();
-        requestedTag = 0;
-        requestedIndex = 0;
-        requestedEntry = nullptr;
       }
     }
 
@@ -3895,29 +3867,37 @@ int main(int argc, char* argv[]) {
       exportScenePending = false;
     }
 
-    if (showWorldFrame) {
-      if (!worldFrame) {
-        worldFrame = viewer->addCoordinateFrame("world_frame");
+    // Creates, refreshes or removes the world axes to match showWorldFrame.
+    const auto syncWorldFrame = [&]() {
+      if (showWorldFrame) {
+        if (!worldFrame) {
+          worldFrame = viewer->addCoordinateFrame("world_frame");
+        }
+        if (worldFrame) {
+          worldFrame->poses.resize(1);
+          setTcpViewerIdentityPose(worldFrame->poses[0]);
+          worldFrame->frameSize = computeWorldFrameSize(viewer->getCamera());
+        }
+      } else if (worldFrame) {
+        viewer->removeCoordinateFrame("world_frame");
+        worldFrame.reset();
       }
-      if (worldFrame) {
-        worldFrame->poses.resize(1);
-        setTcpViewerIdentityPose(worldFrame->poses[0]);
-        worldFrame->frameSize = computeWorldFrameSize(viewer->getCamera());
-      }
-    } else if (worldFrame) {
-      viewer->removeCoordinateFrame("world_frame");
-      worldFrame.reset();
-    }
-    if (showWorldFrame && worldFrame) {
-      worldFrame->frameSize = computeWorldFrameSize(viewer->getCamera());
-    }
+    };
+    syncWorldFrame();
+
+    // A scene the server shares brings its own camera, lights and render settings.
+    if (sceneFiles.update(*viewer, scene) && !sceneFiles.sync().scene()->cameras.empty())
+      autoFrameApplied = true;
+    if (sceneFiles.takeViewerSettingsReset()) pane.appliedSettingsSerial = 0;
 
     auto& cam = viewer->getCamera();
-    cam.nearPlane = settings.cameraNear;
-    cam.farPlane = settings.cameraFar;
-    cam.zNear = settings.cameraNear;
-    cam.zFar = settings.cameraFar;
-    cam.zoom = settings.cameraFovDeg;
+    if (!sceneFiles.applied()) {
+      cam.nearPlane = settings.cameraNear;
+      cam.farPlane = settings.cameraFar;
+      cam.zNear = settings.cameraNear;
+      cam.zFar = settings.cameraFar;
+      cam.zoom = settings.cameraFovDeg;
+    }
     cam.movementSpeed = cameraSpeed;
     // Render settings are shared: whichever pane's panel edited them raised
     // settingsDirty, and the serial bump makes every other pane — including one
@@ -3936,6 +3916,7 @@ int main(int argc, char* argv[]) {
     }
     if (pane.appliedResourceDirSerial != resourceDirSerial) {
       scene.setResourceSearchPaths(resourceDirs);
+      sceneFiles.setResourceDirs(resourceDirs);
       pane.appliedResourceDirSerial = resourceDirSerial;
     }
     if (settingsSavePending && now - lastSettingsDirtyTime >= kSettingsSaveDebounce) {
@@ -3945,7 +3926,9 @@ int main(int argc, char* argv[]) {
     }
     const bool weatherControlsLight = settings.skyEnabled && settings.skyWeatherEnabled &&
       weatherDefaultEnabledForQuality(settings.renderQuality);
-    if (weatherControlsLight) {
+    if (sceneFiles.applied()) {
+      // The scene's lights and weather stay as applyRscene() set them.
+    } else if (weatherControlsLight) {
       viewer->updateWeather(static_cast<double>(std::max(0.0f, io.DeltaTime)));
       applyWeatherLightStrength(viewer->getLight(), viewer->getRenderQualitySettings(), lightStrength);
     } else {
@@ -3964,9 +3947,9 @@ int main(int argc, char* argv[]) {
       showContactPoints, contactPointSize, showContactForces, contactForceSize,
       contactForceAbsolute);
 
-    // Per-body coordinate axes: drive a single shared CoordinateFrame node that
-    // collects one Pose per visible body. Filters out collision-pass duplicates,
-    // ground, and heightmaps (they don't have meaningful body frames).
+    // Recover body poses from the visual-to-body offsets, once for both overlays.
+    const auto bodyFramePoses = (showBodyFrames || showComMarkers)
+      ? scene.getBodyFrames() : std::vector<raisin::tcp_viewer::BodyFramePose>{};
     {
       const bool wantFrames = showBodyFrames;
       if (wantFrames && !bodyFramesNode) {
@@ -3976,19 +3959,13 @@ int main(int argc, char* argv[]) {
         bodyFramesNode->enable(wantFrames);
       }
       if (wantFrames && bodyFramesNode) {
-        const auto entries = scene.getVisualEntries();
         bodyFramesNode->poses.clear();
-        bodyFramesNode->poses.reserve(entries.size());
-        for (const auto& s : entries) {
-          if (s.entry.isCollision) continue;
-          if (s.entry.shape == raisim::Shape::Ground ||
-              s.entry.shape == raisim::Shape::HeightMap) continue;
-          if (!s.entry.hasState) continue;
+        bodyFramesNode->poses.reserve(bodyFramePoses.size());
+        for (const auto& frame : bodyFramePoses) {
           raisin::CoordinateFrame::Pose p;
-          p.position = s.entry.lastPos;
-          // lastQuat is wxyz: x holds w.
-          p.quaternion = glm::quat::wxyz(
-            s.entry.lastQuat.x, s.entry.lastQuat.y, s.entry.lastQuat.z, s.entry.lastQuat.w);
+          p.position = frame.position;
+          const auto& q = frame.quaternionWxyz;
+          p.quaternion = glm::quat::wxyz(q.x, q.y, q.z, q.w);
           bodyFramesNode->poses.push_back(p);
         }
         bodyFramesNode->frameSize = bodyFrameSize;
@@ -4008,16 +3985,9 @@ int main(int argc, char* argv[]) {
         }
         comMarkers.clear();
       } else {
-        const auto entries = scene.getVisualEntries();
         std::vector<glm::vec3> targets;
-        targets.reserve(entries.size());
-        for (const auto& s : entries) {
-          if (s.entry.isCollision) continue;
-          if (s.entry.shape == raisim::Shape::Ground ||
-              s.entry.shape == raisim::Shape::HeightMap) continue;
-          if (!s.entry.hasState) continue;
-          targets.push_back(s.entry.lastPos);
-        }
+        targets.reserve(bodyFramePoses.size());
+        for (const auto& frame : bodyFramePoses) targets.push_back(frame.position);
         const float r = std::max(0.001f, comMarkerSize);
         while (comMarkers.size() < targets.size()) {
           const size_t idx = comMarkers.size();
@@ -4184,7 +4154,6 @@ int main(int argc, char* argv[]) {
     // Gizmo handles are world-axis-aligned. Translate/rotate produce deltas
     // expressed in the world frame; those deltas are composed with the body's
     // current held pose by the drag handler below.
-    (void)gizmoOriginQuat;  // (kept for future use; gizmo display is world-aligned)
     if (poseGrabberPickable) {
       gizmoLayout = computeGizmoLayout(viewer->getCamera(), viewportState, gizmoOriginWorld);
       if (!poseGrabber.dragging && viewportState.hovered) {
@@ -4349,11 +4318,8 @@ int main(int argc, char* argv[]) {
           lastStatus = "mouse force: server lacks sim control";
         }
       } else if (!forceTarget.entry) {
-        if (!requestedEntry) {
-          lastStatus = "mouse force: select a body";
-        } else {
-          lastStatus = "mouse force: unsupported object";
-        }
+        lastStatus = requestedEntry ? "mouse force: unsupported object"
+                                    : "mouse force: select a body";
       } else {
         if (forceTarget.fromPick && forceTarget.visual) {
           viewer->setTargetVisual(forceTarget.visual);
@@ -4386,12 +4352,14 @@ int main(int argc, char* argv[]) {
         mouseForce.currentMouse = io.MousePos;
       }
     }
-    const auto cancelPendingMouseForce = [&]() {
-      const size_t idx = mouseForce.pendingRequestIndex;
-      if (idx != std::numeric_limits<size_t>::max() && idx < pendingControlRequests.size()) {
+    const auto erasePendingRequest = [&](size_t idx) {
+      if (idx != kNoPendingRequest && idx < pendingControlRequests.size()) {
         pendingControlRequests.erase(pendingControlRequests.begin() + static_cast<long>(idx));
       }
-      mouseForce.pendingRequestIndex = std::numeric_limits<size_t>::max();
+    };
+    const auto cancelPendingMouseForce = [&]() {
+      erasePendingRequest(mouseForce.pendingRequestIndex);
+      mouseForce.pendingRequestIndex = kNoPendingRequest;
     };
     const auto queueOrUpdateMouseForce = [&]() {
       raisin::tcp_viewer::ClientRequest r;
@@ -4402,7 +4370,7 @@ int main(int argc, char* argv[]) {
       r.vec3b = mouseForce.force;
 
       const size_t idx = mouseForce.pendingRequestIndex;
-      if (idx != std::numeric_limits<size_t>::max() && idx < pendingControlRequests.size()) {
+      if (idx != kNoPendingRequest && idx < pendingControlRequests.size()) {
         auto& pending = pendingControlRequests[idx];
         if (pending.type == raisin::tcp_viewer::ClientRequestType::CR_APPLY_FORCE &&
             pending.visTag == mouseForce.tag) {
@@ -4421,13 +4389,10 @@ int main(int argc, char* argv[]) {
         activeForceEntry = requestedEntry;
       }
 
-      if (!mouseButtonDown) {
+      if (!mouseButtonDown || !activeForceEntry) {
         cancelPendingMouseForce();
         mouseForce = MouseForceGesture{};
-      } else if (!activeForceEntry) {
-        cancelPendingMouseForce();
-        mouseForce = MouseForceGesture{};
-        lastStatus = "mouse force target lost";
+        if (mouseButtonDown) lastStatus = "mouse force target lost";
       } else {
         mouseForce.applicationPoint = visualLocalPointToWorld(
           *activeForceEntry, mouseForce.localApplicationPoint);
@@ -4453,10 +4418,7 @@ int main(int argc, char* argv[]) {
     // instead of teleporting it, so the solver keeps contacts and joints
     // consistent while it moves.
     const auto releaseWireDrag = [&]() {
-      const size_t idx = wireDrag.pendingRequestIndex;
-      if (idx != std::numeric_limits<size_t>::max() && idx < pendingControlRequests.size()) {
-        pendingControlRequests.erase(pendingControlRequests.begin() + static_cast<long>(idx));
-      }
+      erasePendingRequest(wireDrag.pendingRequestIndex);
       wireDrag = WireDragGesture{};
     };
     const auto queueOrUpdateWireDrag = [&]() {
@@ -4472,7 +4434,7 @@ int main(int argc, char* argv[]) {
         pendingControlRequests.push_back(attach);
         wireDrag.attachQueued = true;
         // The drag that follows lands after the attach, so its index shifts.
-        wireDrag.pendingRequestIndex = std::numeric_limits<size_t>::max();
+        wireDrag.pendingRequestIndex = kNoPendingRequest;
       }
       raisin::tcp_viewer::ClientRequest drag;
       drag.type = ClientRequestType::CR_DRAG_OBJECT;
@@ -4480,7 +4442,7 @@ int main(int argc, char* argv[]) {
       drag.point = glm::dvec3(wireDrag.target);
 
       const size_t idx = wireDrag.pendingRequestIndex;
-      if (idx != std::numeric_limits<size_t>::max() && idx < pendingControlRequests.size() &&
+      if (idx != kNoPendingRequest && idx < pendingControlRequests.size() &&
           pendingControlRequests[idx].type == ClientRequestType::CR_DRAG_OBJECT) {
         pendingControlRequests[idx] = drag;
         return;
@@ -4517,7 +4479,7 @@ int main(int argc, char* argv[]) {
         wireDrag.attachPoint = grabPoint;
         wireDrag.localAttachPoint = visualWorldPointToLocal(*wireTarget.entry, grabPoint);
         wireDrag.target = grabPoint;
-        wireDrag.pendingRequestIndex = std::numeric_limits<size_t>::max();
+        wireDrag.pendingRequestIndex = kNoPendingRequest;
         lastStatus = "wire attached";
       }
     }
@@ -4697,9 +4659,7 @@ int main(int argc, char* argv[]) {
           // writeFrameRgba() already closed the encoder (resized window, or
           // ffmpeg died); surface why so the recording does not fail silently.
           captureStatus = videoStatus;
-          if (serverRequestedRecording) {
-            serverRequestedRecording = false;
-          }
+          serverRequestedRecording = false;
         }
       }
     }
@@ -4740,27 +4700,28 @@ int main(int argc, char* argv[]) {
         ImGui::TextDisabled("Orthographic views (%s)", isOrtho ? "ortho active" : "perspective");
         // Icon plus label: the six faces read as a set, and the border glyph
         // marks which face of the box you end up looking at.
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewTop, "Top", "view_top")) {
-          applyOrtho(OrthoView::Top);
-        }
-        ImGui::SameLine();
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewBottom, "Bottom", "view_bottom")) {
-          applyOrtho(OrthoView::Bottom);
-        }
-        ImGui::SameLine();
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewFront, "Front", "view_front")) {
-          applyOrtho(OrthoView::Front);
-        }
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewBack, "Back", "view_back")) {
-          applyOrtho(OrthoView::Back);
-        }
-        ImGui::SameLine();
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewLeft, "Left", "view_left")) {
-          applyOrtho(OrthoView::Left);
-        }
-        ImGui::SameLine();
-        if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewRight, "Right", "view_right")) {
-          applyOrtho(OrthoView::Right);
+        // Three faces per row.
+        struct OrthoButton {
+          TcpViewerIconKind icon;
+          const char* label;
+          const char* id;
+          OrthoView view;
+        };
+        constexpr OrthoButton orthoButtons[] = {
+          {TcpViewerIconKind::ViewTop, "Top", "view_top", OrthoView::Top},
+          {TcpViewerIconKind::ViewBottom, "Bottom", "view_bottom", OrthoView::Bottom},
+          {TcpViewerIconKind::ViewFront, "Front", "view_front", OrthoView::Front},
+          {TcpViewerIconKind::ViewBack, "Back", "view_back", OrthoView::Back},
+          {TcpViewerIconKind::ViewLeft, "Left", "view_left", OrthoView::Left},
+          {TcpViewerIconKind::ViewRight, "Right", "view_right", OrthoView::Right}};
+        for (size_t i = 0; i < std::size(orthoButtons); ++i) {
+          if (i % 3 != 0) {
+            ImGui::SameLine();
+          }
+          const OrthoButton& button = orthoButtons[i];
+          if (drawIconTextButton(uiIcons, button.icon, button.label, button.id)) {
+            applyOrtho(button.view);
+          }
         }
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::ViewPerspective,
               isOrtho ? "Perspective" : "Perspective (active)", "view_perspective")) {
@@ -4781,17 +4742,17 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < static_cast<int>(cameraBookmarks.size()); ++i) {
           ImGui::TableNextColumn();
           ImGui::PushID(i);
+          CameraBookmark& bookmark = cameraBookmarks[static_cast<size_t>(i)];
           const std::string setLabel = "Set " + std::to_string(i + 1);
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Save, setLabel.c_str(), "set_bookmark")) {
-            cameraBookmarks[static_cast<size_t>(i)].valid = true;
-            cameraBookmarks[static_cast<size_t>(i)].position = viewer->getCamera().getPosition();
-            cameraBookmarks[static_cast<size_t>(i)].target = viewer->getCamera().target;
+            bookmark.valid = true;
+            bookmark.position = viewer->getCamera().getPosition();
+            bookmark.target = viewer->getCamera().target;
           }
           ImGui::SameLine();
-          ImGui::BeginDisabled(!cameraBookmarks[static_cast<size_t>(i)].valid);
+          ImGui::BeginDisabled(!bookmark.valid);
           const std::string restoreLabel = "Restore " + std::to_string(i + 1);
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Focus, restoreLabel.c_str(), "restore_bookmark")) {
-            const auto& bookmark = cameraBookmarks[static_cast<size_t>(i)];
             applyCameraLookAt(viewer->getCamera(), bookmark.position, bookmark.target);
           }
           ImGui::EndDisabled();
@@ -4803,9 +4764,7 @@ int main(int argc, char* argv[]) {
 
       ImGui::SeparatorText("Window");
       if (drawIconTextButton(uiIcons, TcpViewerIconKind::Options, "Toggle Fullscreen", "toggle_fullscreen")) {
-        const Uint32 flags = SDL_GetWindowFlags(window);
-        const bool isFullscreen = (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
-        SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+        toggleFullscreenDesktop();
       }
     };
 
@@ -4946,14 +4905,14 @@ int main(int argc, char* argv[]) {
       // Recording" label sat next to the video controls and read as if it
       // produced a video file.
       ImGui::SeparatorText("Session Replay Log");
-      ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + fontScaledTextControlWidth(28.0f));
+      ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + controlWidth);
       ImGui::TextDisabled(
         "Records the scene updates themselves to a .rrtcs file, not video frames. Replay it later "
         "with --replay-session to scrub the timeline and re-render from any camera. For a playable "
         "movie, use Video above.");
       ImGui::PopTextWrapPos();
       drawCompactPathInput("##SessionFile", sessionPathBuf, sizeof(sessionPathBuf),
-        fontScaledTextControlWidth(28.0f), pathFieldEditing, "path/to/session.rrtcs");
+        controlWidth, pathFieldEditing, "path/to/session.rrtcs");
       drawBrowseButton("browse_session_path", FileBrowserMode::SaveFile, "Select session log",
         std::filesystem::path(sessionPathBuf), {"rrtcs"},
         [&](const std::filesystem::path& chosen) {
@@ -4995,9 +4954,6 @@ int main(int argc, char* argv[]) {
         }
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::Home, "Restart Replay", "restart_replay")) {
           clearSceneState();
-          requestedTag = 0;
-          requestedIndex = 0;
-          requestedEntry = nullptr;
           replayIndex = 0;
           replayStart = std::chrono::steady_clock::now();
           replayBaseMicros = replayFrames.empty() ? 0 : replayFrames.front().timeMicros;
@@ -5420,6 +5376,10 @@ int main(int argc, char* argv[]) {
       }
     };
 
+    // Scene-file prompt and download progress, below the menu bar.
+    sceneFiles.drawOverlay(ImVec2(paneOrigin.x, paneOrigin.y + menuBarHeight),
+                           ImVec2(uiSize.x, uiSize.y - menuBarHeight), int(pane.id));
+
     const ImVec2 overlayBase(paneOrigin.x + 12.0f, paneOrigin.y + 12.0f + menuBarHeight);
     // Right edge the left overlay actually occupied this frame, so the object
     // inspector can avoid it. Starts at the pane's left edge: with no overlay
@@ -5446,21 +5406,13 @@ int main(int argc, char* argv[]) {
       ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.97f, 0.99f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.86f, 0.88f, 0.92f, 0.95f));
     }
-    // NoDecoration minus NoScrollbar: the height cap below can make the panel
-    // shorter than its content in a small pane, and a scrollbar is the only way
-    // to reach the rest of it.
-    const ImGuiWindowFlags overlayFlags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
-      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNavFocus;
     // Auto-resize alone would let a tall panel run past the bottom of a small
     // pane and over its neighbour, so cap it at the pane the panel belongs to.
     ImGui::SetNextWindowSizeConstraints(
       ImVec2(0.0f, 0.0f),
       ImVec2(FLT_MAX, std::max(ImGui::GetFontSize() * 6.0f,
                                uiSize.y - (overlayPos.y - paneOrigin.y) - 12.0f)));
-    if (ImGui::Begin(overlayWindowName.c_str(), nullptr, overlayFlags)) {
+    if (ImGui::Begin(overlayWindowName.c_str(), nullptr, kOverlayPanelWindowFlags)) {
       overlayHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
       overlayRightEdge = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
       const bool overlayHoverShouldOpen = overlayMinimized && overlayHovered &&
@@ -5536,9 +5488,7 @@ int main(int argc, char* argv[]) {
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Save, "Save Endpoint", "save_endpoint")) {
             ConnectionEntry endpoint;
             if (normalizeConnectionEndpoint(host, port, endpoint)) {
-              std::snprintf(host, sizeof(host), "%s", endpoint.host.c_str());
-              port = endpoint.port;
-              std::snprintf(portBuf, sizeof(portBuf), "%d", port);
+              setPaneEndpoint(pane, endpoint.host, endpoint.port);
               recordConnection(recentConnections, endpoint.host, endpoint.port);
               settingsDirty = true;
             } else {
@@ -5559,9 +5509,7 @@ int main(int argc, char* argv[]) {
               shownDetectedServer = true;
               const std::string label = formatServerLabel(server);
               if (ImGui::Selectable(label.c_str())) {
-                std::snprintf(host, sizeof(host), "%s", server.endpoint.host.c_str());
-                port = server.endpoint.port;
-                std::snprintf(portBuf, sizeof(portBuf), "%d", port);
+                setPaneEndpoint(pane, server.endpoint.host, server.endpoint.port);
                 if (!client.isConnected()) {
                   connectToEndpoint(server.endpoint, true, "connecting", "connect failed");
                 }
@@ -5579,9 +5527,7 @@ int main(int argc, char* argv[]) {
             for (const auto& entry : recentConnections) {
               const std::string label = formatConnectionLabel(entry);
               if (ImGui::Selectable(label.c_str())) {
-                std::snprintf(host, sizeof(host), "%s", entry.host.c_str());
-                port = entry.port;
-                std::snprintf(portBuf, sizeof(portBuf), "%d", port);
+                setPaneEndpoint(pane, entry.host, entry.port);
               }
             }
           }
@@ -5612,9 +5558,6 @@ int main(int argc, char* argv[]) {
             awaitingSensorAck = false;
             lastStatus = "disconnected";
             clearSceneState();
-            requestedTag = 0;
-            requestedIndex = 0;
-            requestedEntry = nullptr;
           }
         }
 
@@ -5740,9 +5683,7 @@ int main(int argc, char* argv[]) {
               // there is no dead space between the columns.
               if (ImGui::Selectable(serverRow.name.c_str(), false,
                                     ImGuiSelectableFlags_SpanAllColumns)) {
-                std::snprintf(host, sizeof(host), "%s", server.endpoint.host.c_str());
-                port = server.endpoint.port;
-                std::snprintf(portBuf, sizeof(portBuf), "%d", port);
+                setPaneEndpoint(pane, server.endpoint.host, server.endpoint.port);
                 connectToEndpoint(server.endpoint, true, "connecting", "connect failed");
               }
               ImGui::TableSetColumnIndex(1);
@@ -5783,9 +5724,6 @@ int main(int argc, char* argv[]) {
               awaitingResponse = awaitingSensorAck = false;
               connectingLocalSimulation = autoConnect = false;
               lastStatus = "Local simulation stopped";
-              requestedTag = 0;
-              requestedIndex = 0;
-              requestedEntry = nullptr;
             }
           }
 
@@ -5828,19 +5766,7 @@ int main(int argc, char* argv[]) {
 
             ImGui::TableNextColumn();
             if (drawCompactCheckbox("Show World Frame", &showWorldFrame)) {
-              if (showWorldFrame) {
-                if (!worldFrame) {
-                  worldFrame = viewer->addCoordinateFrame("world_frame");
-                }
-                if (worldFrame) {
-                  worldFrame->poses.resize(1);
-                  setTcpViewerIdentityPose(worldFrame->poses[0]);
-                  worldFrame->frameSize = computeWorldFrameSize(viewer->getCamera());
-                }
-              } else if (worldFrame) {
-                viewer->removeCoordinateFrame("world_frame");
-                worldFrame.reset();
-              }
+              syncWorldFrame();
             }
 
             ImGui::TableNextColumn();
@@ -5889,9 +5815,6 @@ int main(int argc, char* argv[]) {
           const float leftItemWidth = leftLabelWidth + leftValueWidth + innerSpacing + padding * 2;
           const float rightItemWidth =
             rightLabelWidth + rightValueWidth + innerSpacing + padding * 2;
-          const float cellPadX = ImGui::GetStyle().CellPadding.x;
-          const float sliderRowWidth =
-            leftItemWidth + rightItemWidth + ImGui::GetStyle().ItemSpacing.x + cellPadX * 4.0f;
           ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,
             ImVec2(8.0f,
                    compactControlCellPadding(ImGui::GetStyle().CellPadding).y));
@@ -6235,22 +6158,14 @@ int main(int argc, char* argv[]) {
           ImGui::BeginDisabled(!canControlSim);
           using raisin::tcp_viewer::ClientRequestType;
           // Pause / Resume toggle — icon-only with hover tooltip.
-          if (simPaused) {
-            if (drawIconOnlyButton(uiIcons, TcpViewerIconKind::Play,
-                                   "Resume simulation", "sim_resume")) {
-              raisin::tcp_viewer::ClientRequest r;
-              r.type = ClientRequestType::CR_RESUME;
-              pendingControlRequests.push_back(r);
-              simPaused = false;
-            }
-          } else {
-            if (drawIconOnlyButton(uiIcons, TcpViewerIconKind::Pause,
-                                   "Pause simulation", "sim_pause")) {
-              raisin::tcp_viewer::ClientRequest r;
-              r.type = ClientRequestType::CR_PAUSE;
-              pendingControlRequests.push_back(r);
-              simPaused = true;
-            }
+          if (drawIconOnlyButton(uiIcons,
+                simPaused ? TcpViewerIconKind::Play : TcpViewerIconKind::Pause,
+                simPaused ? "Resume simulation" : "Pause simulation",
+                simPaused ? "sim_resume" : "sim_pause")) {
+            raisin::tcp_viewer::ClientRequest r;
+            r.type = simPaused ? ClientRequestType::CR_RESUME : ClientRequestType::CR_PAUSE;
+            pendingControlRequests.push_back(r);
+            simPaused = !simPaused;
           }
           // Step buttons — auto-pause first if running, then queue the step(s).
           auto queueStep = [&](int n) {
@@ -6570,6 +6485,7 @@ int main(int argc, char* argv[]) {
           ImGui::EndTabItem();
         }
         if (beginIconTabItem(uiIcons, TcpViewerIconKind::Diagnostics, "Diagnostics", "tab_diagnostics")) {
+          constexpr const char* packetColumnNames[] = {"t", "bytes", "src", "ok", "obj", "vis", "sens", "miss"};
           constexpr float packetColumnWidths[] = {62.0f, 62.0f, 46.0f, 34.0f, 44.0f, 44.0f, 44.0f, 44.0f};
           float packetTableWidth = ImGui::GetStyle().ScrollbarSize + ImGui::GetStyle().CellPadding.x * 16.0f;
           for (const float width : packetColumnWidths) {
@@ -6625,14 +6541,10 @@ int main(int argc, char* argv[]) {
           if (ImGui::BeginChild("##PacketHistory", ImVec2(diagnosticsContentWidth, packetHeight), true)) {
             if (ImGui::BeginTable("##packet_table", 8,
                   ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit)) {
-              ImGui::TableSetupColumn("t", ImGuiTableColumnFlags_WidthFixed, 62.0f);
-              ImGui::TableSetupColumn("bytes", ImGuiTableColumnFlags_WidthFixed, 62.0f);
-              ImGui::TableSetupColumn("src", ImGuiTableColumnFlags_WidthFixed, 46.0f);
-              ImGui::TableSetupColumn("ok", ImGuiTableColumnFlags_WidthFixed, 34.0f);
-              ImGui::TableSetupColumn("obj", ImGuiTableColumnFlags_WidthFixed, 44.0f);
-              ImGui::TableSetupColumn("vis", ImGuiTableColumnFlags_WidthFixed, 44.0f);
-              ImGui::TableSetupColumn("sens", ImGuiTableColumnFlags_WidthFixed, 44.0f);
-              ImGui::TableSetupColumn("miss", ImGuiTableColumnFlags_WidthFixed, 44.0f);
+              for (size_t column = 0; column < std::size(packetColumnNames); ++column) {
+                ImGui::TableSetupColumn(packetColumnNames[column], ImGuiTableColumnFlags_WidthFixed,
+                                        packetColumnWidths[column]);
+              }
               ImGui::TableHeadersRow();
               for (auto it = diagnosticsPresentation.packetSamples.rbegin();
                    it != diagnosticsPresentation.packetSamples.rend(); ++it) {
@@ -6786,12 +6698,7 @@ int main(int argc, char* argv[]) {
         std::max(ImGui::GetFontSize() * 8.0f, uiSize.y - menuBarHeight - 24.0f));
       ImGui::SetNextWindowSizeConstraints(detailMinSize, detailMaxSize);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
-      const ImGuiWindowFlags detailFlags =
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-        ImGuiWindowFlags_NoNavFocus;
-      if (ImGui::Begin(detailWindowName.c_str(), nullptr, detailFlags)) {
+      if (ImGui::Begin(detailWindowName.c_str(), nullptr, kOverlayPanelWindowFlags)) {
         const ImGuiStyle& detailStyle = ImGui::GetStyle();
         const float detailToggleWidth =
           (ImGui::CalcTextSize("-").x + detailStyle.FramePadding.x * 2.0f) * 1.6f;
@@ -6833,40 +6740,36 @@ int main(int argc, char* argv[]) {
           }
 
           const auto selectedSensors = scene.getSensorsForTag(selectedTag);
+          // Record operating points every update, so the plots have a trail when opened.
+          if (selectedInfo.isArticulated && !selectedInfo.actuators.empty()) {
+            actuatorTraces.update(selectedInfo, scene.getServerWorldTime());
+          }
           if (ImGui::BeginTabBar("##selected_object_tabs")) {
             if (ImGui::BeginTabItem("Object")) {
+          // Opens a label/value row and leaves the cursor in the value cell.
+          const auto beginPropRow = [](const char* label) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted(label);
+            ImGui::TableSetColumnIndex(1);
+          };
           if (ImGui::BeginTable("##selected_props", 2, ImGuiTableFlags_SizingFixedFit)) {
             ImGui::TableSetupColumn("label", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Name");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Name");
             ImGui::TextColored(nameColor, "%s", objectName.c_str());
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Tag");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Tag");
             ImGui::TextColored(tagColor, "%u", selectedTag);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Index");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Index");
             ImGui::TextColored(indexColor, "%d", selectedIndex);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Body");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Body");
             ImGui::TextColored(indexColor, "%d", selectedEntry->localBodyIdx);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Type");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Type");
             ImGui::TextColored(shapeColor, "%s", objectTypeLabel(selectedEntry->objectTypeRaw));
 
             if (!selectedEntry->meshFile.empty()) {
@@ -6875,81 +6778,48 @@ int main(int argc, char* argv[]) {
               if (slashPos != std::string::npos && slashPos + 1 < meshLabel.size()) {
                 meshLabel = meshLabel.substr(slashPos + 1);
               }
-              ImGui::TableNextRow();
-              ImGui::TableSetColumnIndex(0);
-              ImGui::TextUnformatted("Mesh");
-              ImGui::TableSetColumnIndex(1);
+              beginPropRow("Mesh");
               ImGui::TextColored(metaColor, "%s", meshLabel.c_str());
             }
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Articulated");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Articulated");
             ImGui::TextColored(metaColor, "%s", selectedEntry->isArticulated ? "yes" : "no");
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Collision");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Collision");
             ImGui::TextColored(metaColor, "%s", selectedEntry->isCollision ? "yes" : "no");
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Pos");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Pos");
             ImGui::TextColored(metaColor, "%.3f %.3f %.3f", selectedEntry->lastPos.x,
               selectedEntry->lastPos.y, selectedEntry->lastPos.z);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Quat");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Quat");
             ImGui::TextColored(metaColor, "%.3f %.3f %.3f %.3f", selectedEntry->lastQuat.x,
               selectedEntry->lastQuat.y, selectedEntry->lastQuat.z, selectedEntry->lastQuat.w);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Size");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Size");
             ImGui::TextColored(metaColor, "%.3f %.3f %.3f", selectedEntry->lastSize.x,
               selectedEntry->lastSize.y, selectedEntry->lastSize.z);
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::TextUnformatted("Color");
-            ImGui::TableSetColumnIndex(1);
+            beginPropRow("Color");
             ImGui::TextColored(metaColor, "%.2f %.2f %.2f %.2f", selectedEntry->lastColor.r,
               selectedEntry->lastColor.g, selectedEntry->lastColor.b, selectedEntry->lastColor.a);
 
             const auto motionIt = motionEstimates.find(visualMotionKey(selectedTag, selectedIndex));
             if (motionIt != motionEstimates.end() && motionIt->second.valid) {
               const auto& motion = motionIt->second;
-              ImGui::TableNextRow();
-              ImGui::TableSetColumnIndex(0);
-              ImGui::TextUnformatted("Lin vel");
-              ImGui::TableSetColumnIndex(1);
+              beginPropRow("Lin vel");
               ImGui::TextColored(metaColor, "%.3f %.3f %.3f", motion.linearVelocity.x,
                 motion.linearVelocity.y, motion.linearVelocity.z);
 
-              ImGui::TableNextRow();
-              ImGui::TableSetColumnIndex(0);
-              ImGui::TextUnformatted("Speed");
-              ImGui::TableSetColumnIndex(1);
+              beginPropRow("Speed");
               ImGui::TextColored(metaColor, "%.3f m/s", glm::length(motion.linearVelocity));
 
-              ImGui::TableNextRow();
-              ImGui::TableSetColumnIndex(0);
-              ImGui::TextUnformatted("Angular");
-              ImGui::TableSetColumnIndex(1);
+              beginPropRow("Angular");
               ImGui::TextColored(metaColor, "%.3f rad/s", motion.angularSpeed);
             }
 
             if (!selectedEntry->resourceDir.empty()) {
-              ImGui::TableNextRow();
-              ImGui::TableSetColumnIndex(0);
-              ImGui::TextUnformatted("Resource");
-              ImGui::TableSetColumnIndex(1);
+              beginPropRow("Resource");
               ImGui::TextColored(metaColor, "%s", shortenPathLabel(selectedEntry->resourceDir, 56).c_str());
             }
 
@@ -7124,6 +6994,14 @@ int main(int argc, char* argv[]) {
                 ImGui::EndTabItem();
               }
             }
+            if (selectedInfo.isArticulated && !selectedInfo.actuators.empty()) {
+              const std::string actuatorTabLabel =
+                "Actuators (" + std::to_string(selectedInfo.actuators.size()) + ")";
+              if (ImGui::BeginTabItem(actuatorTabLabel.c_str())) {
+                raisin::tcp_viewer::drawObjectActuators(selectedInfo, actuatorTraces);
+                ImGui::EndTabItem();
+              }
+            }
             ImGui::EndTabBar();
           }
         }
@@ -7167,12 +7045,7 @@ int main(int argc, char* argv[]) {
                                           ImVec2(wantedWidth, maxHeight));
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
       ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, ImGui::GetStyle().WindowBorderSize);
-      const ImGuiWindowFlags inspectorFlags =
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-        ImGuiWindowFlags_NoNavFocus;
-      if (ImGui::Begin(inspectorWindowName.c_str(), nullptr, inspectorFlags)) {
+      if (ImGui::Begin(inspectorWindowName.c_str(), nullptr, kOverlayPanelWindowFlags)) {
         ImGui::PushStyleColor(ImGuiCol_TextDisabled,
           raionrobotics_imgui_secondary_text_color());
         // Title row — mirrors the "Status" line in the connection panel.
@@ -7219,6 +7092,24 @@ int main(int argc, char* argv[]) {
           ImGui::Separator();
           bool gcChanged = false;
           inspector.dragging = false;
+          // Edits the wxyz quaternion stored at gc[offset..offset+3], renormalized.
+          const auto dragNormalizedQuat = [&](const char* id, int offset) {
+            float quat[4] = {float(inspector.gc[offset]),
+                             float(inspector.gc[offset + 1]),
+                             float(inspector.gc[offset + 2]),
+                             float(inspector.gc[offset + 3])};
+            if (compactDragFloat4(id, quat, 0.01f, -1.0f, 1.0f)) {
+              const double n = std::sqrt(double(quat[0]) * quat[0] + double(quat[1]) * quat[1] +
+                                         double(quat[2]) * quat[2] + double(quat[3]) * quat[3]);
+              const double inv = n > 1e-6 ? 1.0 / n : 1.0;
+              inspector.gc[offset] = quat[0] * inv;
+              inspector.gc[offset + 1] = quat[1] * inv;
+              inspector.gc[offset + 2] = quat[2] * inv;
+              inspector.gc[offset + 3] = quat[3] * inv;
+              gcChanged = true;
+            }
+            if (ImGui::IsItemActive()) inspector.dragging = true;
+          };
           for (size_t ji = 0; ji < inspector.joints.size(); ++ji) {
             const auto& j = inspector.joints[ji];
             ImGui::PushID(int(ji));
@@ -7259,37 +7150,9 @@ int main(int argc, char* argv[]) {
                 gcChanged = true;
               }
               if (ImGui::IsItemActive()) inspector.dragging = true;
-              float quat[4] = {float(inspector.gc[j.gcOffset + 3]),
-                               float(inspector.gc[j.gcOffset + 4]),
-                               float(inspector.gc[j.gcOffset + 5]),
-                               float(inspector.gc[j.gcOffset + 6])};
-              if (compactDragFloat4("##float_quat", quat, 0.01f, -1.0f, 1.0f)) {
-                const double n = std::sqrt(double(quat[0]) * quat[0] + double(quat[1]) * quat[1] +
-                                           double(quat[2]) * quat[2] + double(quat[3]) * quat[3]);
-                const double inv = n > 1e-6 ? 1.0 / n : 1.0;
-                inspector.gc[j.gcOffset + 3] = quat[0] * inv;
-                inspector.gc[j.gcOffset + 4] = quat[1] * inv;
-                inspector.gc[j.gcOffset + 5] = quat[2] * inv;
-                inspector.gc[j.gcOffset + 6] = quat[3] * inv;
-                gcChanged = true;
-              }
-              if (ImGui::IsItemActive()) inspector.dragging = true;
+              dragNormalizedQuat("##float_quat", j.gcOffset + 3);
             } else if (j.type == raisim::Joint::Type::SPHERICAL) {
-              float quat[4] = {float(inspector.gc[j.gcOffset]),
-                               float(inspector.gc[j.gcOffset + 1]),
-                               float(inspector.gc[j.gcOffset + 2]),
-                               float(inspector.gc[j.gcOffset + 3])};
-              if (compactDragFloat4("##sph_quat", quat, 0.01f, -1.0f, 1.0f)) {
-                const double n = std::sqrt(double(quat[0]) * quat[0] + double(quat[1]) * quat[1] +
-                                           double(quat[2]) * quat[2] + double(quat[3]) * quat[3]);
-                const double inv = n > 1e-6 ? 1.0 / n : 1.0;
-                inspector.gc[j.gcOffset] = quat[0] * inv;
-                inspector.gc[j.gcOffset + 1] = quat[1] * inv;
-                inspector.gc[j.gcOffset + 2] = quat[2] * inv;
-                inspector.gc[j.gcOffset + 3] = quat[3] * inv;
-                gcChanged = true;
-              }
-              if (ImGui::IsItemActive()) inspector.dragging = true;
+              dragNormalizedQuat("##sph_quat", j.gcOffset);
             }
             ImGui::PopID();
           }

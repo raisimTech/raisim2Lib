@@ -2,13 +2,19 @@
 <!--
   Fixed-base quadruped rig for the motor operating region (EM-MOR) example.
 
-  Each leg has two actuators, attached to its joints with <actuator> elements. Their parameters
-  live in the linked files in actuators/ (searched like sensor files):
-  * actuators/abduction_actuator.xml: the hip abduction (HAA) motor behind a 6:1 reducer.
-  * actuators/hound_leg_actuator.xml: the hip (HFE) and knee (KFE) motors, coupled like KAIST Hound.
+  Every joint has an actuator (a motor with its gear), placed with an <actuator> element. The
+  actuator models live in the linked files in actuators/ (searched like sensor files):
+  * actuators/abduction_actuator.xml: the hip abduction (HAA) actuator, a 6:1 reducer.
+  * actuators/hound_leg_actuator.xml: the hip (HFE) and knee (KFE) actuators, 10:1 reducers.
+  Like in KAIST Hound, the knee motor sits on the body and its reducer's ring gear turns with the
+  thigh, so the knee motor also turns with the hip: w_knee_motor = 10 w_KFE + 1 w_HFE. Each knee
+  <actuator> declares that with a <coupling>.
 
-  The effort limits are the Box-MOR (gear ratio x peak torque). rotor_inertia is the reflected
-  inertia of a 1e-4 kg m^2 rotor.
+  The actuator torques are limited by the motor operating regions of the actuators; the effort
+  limits apply only to setGeneralizedForce() and the built-in PD controller. The velocity limits are
+  1.5x the no-load speeds at the joints (40 rad/s abduction, 24 rad/s hip and knee): the motors
+  settle near their no-load speeds, and the limits keep a run without the operating regions
+  bounded. rotor_inertia is the reflected inertia of a 1e-4 kg m^2 rotor.
 -->
 <robot name="mor_quadruped_rig">
   <material name="body_gray"><color rgba="0.22 0.24 0.28 1"/></material>
@@ -40,7 +46,7 @@
     <child link="LF_hip"/>
     <origin xyz="0.45 0.15 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-0.6" upper="0.6" effort="18"/>
+    <limit lower="-0.6" upper="0.6" effort="18" velocity="60"/>
     <dynamics damping="0.02" rotor_inertia="0.0036"/>
   </joint>
   <link name="LF_hip">
@@ -59,7 +65,7 @@
     <child link="LF_thigh"/>
     <origin xyz="0 0.08 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="LF_thigh">
@@ -79,7 +85,7 @@
     <child link="LF_shank"/>
     <origin xyz="0 0 -0.25"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="LF_shank">
@@ -99,8 +105,11 @@
       <material name="foot_dark"/>
     </visual>
   </link>
-  <actuator name="LF_HAA" joints="LF_HAA" file="abduction_actuator.xml"/>
-  <actuator name="LF_leg" joints="LF_HFE LF_KFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="LF_HAA" file="abduction_actuator.xml"/>
+  <actuator joint="LF_HFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="LF_KFE" file="hound_leg_actuator.xml">
+    <coupling joint="LF_HFE" ratio="1"/>
+  </actuator>
 
   <!-- RF leg -->
   <joint name="RF_HAA" type="revolute">
@@ -108,7 +117,7 @@
     <child link="RF_hip"/>
     <origin xyz="0.45 -0.15 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-0.6" upper="0.6" effort="18"/>
+    <limit lower="-0.6" upper="0.6" effort="18" velocity="60"/>
     <dynamics damping="0.02" rotor_inertia="0.0036"/>
   </joint>
   <link name="RF_hip">
@@ -127,7 +136,7 @@
     <child link="RF_thigh"/>
     <origin xyz="0 -0.08 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="RF_thigh">
@@ -147,7 +156,7 @@
     <child link="RF_shank"/>
     <origin xyz="0 0 -0.25"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="RF_shank">
@@ -167,8 +176,11 @@
       <material name="foot_dark"/>
     </visual>
   </link>
-  <actuator name="RF_HAA" joints="RF_HAA" file="abduction_actuator.xml"/>
-  <actuator name="RF_leg" joints="RF_HFE RF_KFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="RF_HAA" file="abduction_actuator.xml"/>
+  <actuator joint="RF_HFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="RF_KFE" file="hound_leg_actuator.xml">
+    <coupling joint="RF_HFE" ratio="1"/>
+  </actuator>
 
   <!-- LH leg -->
   <joint name="LH_HAA" type="revolute">
@@ -176,7 +188,7 @@
     <child link="LH_hip"/>
     <origin xyz="-0.45 0.15 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-0.6" upper="0.6" effort="18"/>
+    <limit lower="-0.6" upper="0.6" effort="18" velocity="60"/>
     <dynamics damping="0.02" rotor_inertia="0.0036"/>
   </joint>
   <link name="LH_hip">
@@ -195,7 +207,7 @@
     <child link="LH_thigh"/>
     <origin xyz="0 0.08 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="LH_thigh">
@@ -215,7 +227,7 @@
     <child link="LH_shank"/>
     <origin xyz="0 0 -0.25"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="LH_shank">
@@ -235,8 +247,11 @@
       <material name="foot_dark"/>
     </visual>
   </link>
-  <actuator name="LH_HAA" joints="LH_HAA" file="abduction_actuator.xml"/>
-  <actuator name="LH_leg" joints="LH_HFE LH_KFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="LH_HAA" file="abduction_actuator.xml"/>
+  <actuator joint="LH_HFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="LH_KFE" file="hound_leg_actuator.xml">
+    <coupling joint="LH_HFE" ratio="1"/>
+  </actuator>
 
   <!-- RH leg -->
   <joint name="RH_HAA" type="revolute">
@@ -244,7 +259,7 @@
     <child link="RH_hip"/>
     <origin xyz="-0.45 -0.15 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-0.6" upper="0.6" effort="18"/>
+    <limit lower="-0.6" upper="0.6" effort="18" velocity="60"/>
     <dynamics damping="0.02" rotor_inertia="0.0036"/>
   </joint>
   <link name="RH_hip">
@@ -263,7 +278,7 @@
     <child link="RH_thigh"/>
     <origin xyz="0 -0.08 0"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="RH_thigh">
@@ -283,7 +298,7 @@
     <child link="RH_shank"/>
     <origin xyz="0 0 -0.25"/>
     <axis xyz="0 1 0"/>
-    <limit effort="30"/>
+    <limit effort="30" velocity="36"/>
     <dynamics damping="0.02" rotor_inertia="0.01"/>
   </joint>
   <link name="RH_shank">
@@ -303,6 +318,9 @@
       <material name="foot_dark"/>
     </visual>
   </link>
-  <actuator name="RH_HAA" joints="RH_HAA" file="abduction_actuator.xml"/>
-  <actuator name="RH_leg" joints="RH_HFE RH_KFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="RH_HAA" file="abduction_actuator.xml"/>
+  <actuator joint="RH_HFE" file="hound_leg_actuator.xml"/>
+  <actuator joint="RH_KFE" file="hound_leg_actuator.xml">
+    <coupling joint="RH_HFE" ratio="1"/>
+  </actuator>
 </robot>

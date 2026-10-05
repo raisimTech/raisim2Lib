@@ -9,7 +9,10 @@ XML Example: Templated World
 
 Overview
 ========
-Instantiates a templated XML world with parameter overrides (spawn options, counts, offsets). Use this to see how parameterized XML files can generate variants of a scene without duplicating the XML.
+Instantiates a templated XML world with parameter overrides (spawn options,
+counts, offsets). Use it to see how a parameterized XML file can generate
+variants of a scene without duplicating the XML. See
+:doc:`../../WorldConfigurationFile`.
 
 Target
 ======
@@ -29,7 +32,10 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Loads a templated XML world and overrides parameters at runtime.
-- Uses ``World::ParameterContainer`` to set spawn flags and counts.
+- Loads ``rsc/xmlScripts/templatedWorld/templatedWorld.xml`` and passes the
+  parameter overrides to the ``raisim::World`` constructor.
+- Uses ``World::ParameterContainer`` entries to set spawn flags, the sphere
+  count, the sphere height offset, the Laikago start position, and the floor
+  height.
 - Runs the scene with RaisimServer for visualization.
 

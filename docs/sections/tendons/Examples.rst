@@ -3,7 +3,8 @@ Tendon examples and Rayrai
 #############################
 
 For short C++ examples of individual features, including length locks,
-bounded force control, and the existing wire API, start with :doc:`CodeExamples`.
+bounded force control, and straight two-site connections, start with
+:doc:`CodeExamples`.
 
 The examples use procedural primitives and embedded URDF descriptions, so they
 need no external robot or texture assets. Their source lives under
@@ -52,10 +53,8 @@ changes servo targets instead of assigning animated body poses.
    :width: 100%
 
 The coupling cables above are the actual spatial routes used by the constraint.
-Earlier revisions of ``tendon_coupling`` coupled only fixed joint coordinates,
-so they had no cable lines. Rebuild ``tendon_coupling`` and ``rayrai_tendons``
-and restart the program to see this revised scene. Fixed tendons in general
-still have no spatial route of their own.
+The fixed shoulder/elbow transmission that drives the mechanism has no spatial
+route of its own, so it is not drawn.
 
 Build and run
 =============
@@ -75,8 +74,8 @@ Use the platform setup from :doc:`../BuildAndTest` on macOS and Windows. Omit th
 Linux compiler override when using the normal macOS or Visual Studio toolchain.
 With Visual Studio, build with ``--config Release`` and run ``.exe`` files from
 ``BUILD/bin``. Use an appropriate temporary/build directory for the host.
-CMake checks installed package capabilities and skips unavailable tendon targets
-with a message. No release version change is needed to enable the examples.
+The four tendon targets are part of the regular example build
+(``RAISIM_EXAMPLE``, on by default).
 
 Normal license discovery applies. Every example accepts
 ``--activation-key /path/to/activation.raisim``. ``--help`` lists its options
@@ -115,8 +114,9 @@ replace the analytic length calculation used by physics.
 
 The same automatic paths work in a local ``raisin::RayraiWindow``, in a TCP
 viewer receiving ``RaisimServer`` updates, and in a viewer simulating a loaded
-native XML world. Custom cable-rendering code is unnecessary. Fixed tendons have no spatial route to draw. A coupling adds no separate
-geometry of its own; its participating spatial tendons supply the visible paths.
+native XML world. Custom cable-rendering code is unnecessary. Fixed tendons
+have no spatial route to draw. A coupling adds no separate geometry of its own;
+its participating spatial tendons supply the visible paths.
 
 .. code-block:: cpp
 
@@ -190,32 +190,33 @@ Future C++ servo commands are not part of the exported scene, so loading a file
 alone does not replay the demo controller. The exported embedded articulated
 models have URDF sidecars; see :doc:`Reference` for path handling.
 
-Register tests with ``RAISIM_TENDON_EXAMPLE_TESTS=ON``. Optionally set
-``RAISIM_EXAMPLE_ACTIVATION_KEY`` to pass an explicit license to CTest. After
-configuring from the repository root and building the four example targets,
-include the export and coupling-check targets:
+Automated checks for these examples are registered by the RaiSim engine source
+tree (``test/examples``), which compiles the example sources from an adjacent
+``raisim2Lib`` checkout; the ``raisim2Lib`` example build itself registers no
+tests. Configure the engine build with ``-DRAISIM_TENDON_EXAMPLE_TESTS=ON`` and,
+optionally, ``-DRAISIM_EXAMPLE_ACTIVATION_KEY=/path/to/activation.raisim`` to
+pass an explicit license to the tests. The Rayrai and TCP checks are added only
+when the engine build includes Rayrai. Then build and run:
 
 .. code-block:: bash
 
-   cmake --build BUILD --target tendon_example_export_check \
-     tendon_example_coupling_check tendon_example_coupling_tcp_check
-   ctest --test-dir BUILD/examples -j 12 --output-on-failure -R tendon_example
+   cmake --build BUILD --parallel 12
+   ctest --test-dir BUILD -j 12 --output-on-failure -R tendon_example
 
-For a standalone ``cmake -S examples -B BUILD`` configuration, use
-``--test-dir BUILD``. On Windows also use ``--config Release`` for building and
+On Windows also use ``--config Release`` for building and
 ``-C Release`` for CTest. The checks cover the individual/combined headless
 scenes, invalid command-line arguments, XML/URDF export, and a round trip that
 compares initial placement and controlled trajectories after 1,200 steps. The
 finite Rayrai checks verify generated spatial visuals for the combined and
 coupling scenes. A separate test checks that both coupling cables transmit
 forces, and another compares their moving routes, radii, and colors after actual
-server serialization and TCP viewer parsing. Each graphics test returns skip code 77
-if SDL cannot create a graphics context.
+server serialization and TCP viewer parsing. Each graphics test returns skip
+code 77 if SDL cannot create a graphics context.
 
-For the engine source checkout, the ``TendonTest.*`` tests additionally cover
+In the same engine build, the ``TendonTest.*`` tests additionally cover
 analytic lengths and gradients, moving-guide torques, force signs and ratios,
 contact coupling, friction/stiction, implicit stiffness, armature curvature,
 polynomial derivatives, particle attachments, enable/removal behavior,
-XML/MJCF loading, and checkpoint replay. They can be selected from the engine's
-CTest build with ``-R TendonTest`` and the same ``-j 12`` setting. The public
-binary distribution's example tests do not require that source checkout.
+sleeping islands, XML/MJCF loading, and checkpoint replay. Select them with
+``-R TendonTest`` and the same ``-j 12`` setting. These tests are not part of
+the binary distribution.

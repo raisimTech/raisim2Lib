@@ -75,13 +75,7 @@ bool readEnvBool(const char* name, bool defaultValue) {
     return defaultValue;
   }
   const std::string value = toLowerAscii(rawValue);
-  if (value == "0" || value == "false" || value == "off" || value == "no") {
-    return false;
-  }
-  if (value == "1" || value == "true" || value == "on" || value == "yes") {
-    return true;
-  }
-  return true;
+  return !(value == "0" || value == "false" || value == "off" || value == "no");
 }
 
 bool shouldQuitForInitialServerWait(double waitForServerSeconds, bool replayMode,
@@ -206,15 +200,14 @@ GpuQualityRecommendation recommendRenderQualityForCurrentGpu() {
   recommendation.gpu.renderer = glStringValue(gl::GL_RENDERER);
   recommendation.gpu.version = glStringValue(gl::GL_VERSION);
 
-  gl::GLint value = 0;
-  gl::glGetIntegerv(gl::GL_MAX_TEXTURE_SIZE, &value);
-  recommendation.gpu.maxTextureSize = static_cast<int>(value);
-  value = 0;
-  gl::glGetIntegerv(gl::GL_MAX_SAMPLES, &value);
-  recommendation.gpu.maxSamples = static_cast<int>(value);
-  value = 0;
-  gl::glGetIntegerv(gl::GL_MAX_TEXTURE_IMAGE_UNITS, &value);
-  recommendation.gpu.maxTextureImageUnits = static_cast<int>(value);
+  const auto glInt = [](gl::GLenum name) {
+    gl::GLint value = 0;
+    gl::glGetIntegerv(name, &value);
+    return static_cast<int>(value);
+  };
+  recommendation.gpu.maxTextureSize = glInt(gl::GL_MAX_TEXTURE_SIZE);
+  recommendation.gpu.maxSamples = glInt(gl::GL_MAX_SAMPLES);
+  recommendation.gpu.maxTextureImageUnits = glInt(gl::GL_MAX_TEXTURE_IMAGE_UNITS);
 
   recommendation.quality = automaticRenderQualityFromGpuInfo(recommendation.gpu);
   return recommendation;
@@ -985,11 +978,12 @@ void drawShortcutTable(const char* tableId) {
   row("Esc", "Cancel measure tool / exit fullscreen");
   row("F11", "Toggle fullscreen");
   row("F12", "Screenshot");
-  row("WASD", "Move camera (when viewport has focus)");
-  row("Space / Shift", "Camera up / down");
-  row("Right-drag", "Orbit camera");
-  row("Middle-drag", "Pan camera");
-  row("Scroll", "Zoom / dolly");
+  // These rows describe Camera::update() and RayraiWindow::processMouseEvents();
+  // keep them in step with those functions.
+  row("WASD", "Move free camera (viewport focused; not while following a body)");
+  row("Space", "Move free camera up");
+  row("Left-drag", "Rotate camera (orbit when following a body, pan in orthographic view)");
+  row("Scroll", "Dolly / zoom");
   row("Shift+Left-drag", "Apply mouse force to selected body");
 #if defined(__APPLE__)
   row("Cmd+Left-drag", "Pull a body with the interaction wire (spring, not teleport)");
@@ -1044,17 +1038,22 @@ struct FileBrowserState {
   std::function<void(const std::filesystem::path&)> onAccept;
 };
 
+/** Lower-case extension of `path` without the leading dot. */
+std::string lowerCaseFileExtension(const std::filesystem::path& path) {
+  std::string extension = path.extension().string();
+  if (!extension.empty() && extension.front() == '.') {
+    extension.erase(extension.begin());
+  }
+  return toLowerAscii(extension);
+}
+
 /** True when `path`'s extension passes the browser's filter. */
 bool fileBrowserAcceptsExtension(const FileBrowserState& browser,
                                  const std::filesystem::path& path) {
   if (browser.extensions.empty()) {
     return true;
   }
-  std::string extension = path.extension().string();
-  if (!extension.empty() && extension.front() == '.') {
-    extension.erase(extension.begin());
-  }
-  extension = toLowerAscii(extension);
+  const std::string extension = lowerCaseFileExtension(path);
   return std::find(browser.extensions.begin(), browser.extensions.end(), extension) !=
          browser.extensions.end();
 }
@@ -1173,15 +1172,6 @@ bool allComponentsFinite(const float* values, size_t count) {
     if (!std::isfinite(values[i])) return false;
   }
   return true;
-}
-
-std::string lowerCaseFileExtension(const std::string& path) {
-  const std::filesystem::path parsed(path);
-  std::string extension = parsed.extension().string();
-  if (!extension.empty() && extension.front() == '.') {
-    extension.erase(extension.begin());
-  }
-  return toLowerAscii(extension);
 }
 
 bool spawnExtensionAccepted(const SpawnShapeInfo& shape, const std::string& path) {
@@ -1321,6 +1311,25 @@ std::string buildSpawnRequest(
   return {};
 }
 
+/** `p` nudged one pixel down-right, where overlay drop shadows are drawn. */
+ImVec2 shadowOffset(const ImVec2& p) {
+  return ImVec2(p.x + 1.0f, p.y + 1.0f);
+}
+
+/** A line over its one-pixel drop shadow. */
+void addShadowedLine(ImDrawList* drawList, const ImVec2& a, const ImVec2& b, ImU32 shadow,
+                     float shadowThickness, ImU32 color, float thickness) {
+  drawList->AddLine(shadowOffset(a), shadowOffset(b), shadow, shadowThickness);
+  drawList->AddLine(a, b, color, thickness);
+}
+
+/** Text over its one-pixel drop shadow. */
+void addShadowedText(ImDrawList* drawList, const ImVec2& pos, ImU32 shadow, ImU32 color,
+                     const char* text) {
+  drawList->AddText(shadowOffset(pos), shadow, text);
+  drawList->AddText(pos, color, text);
+}
+
 void drawMouseForcePreview(
   const MouseForceGesture& gesture, const ViewerViewportState& viewport, const raisin::Camera& camera) {
   if (!gesture.active) {
@@ -1340,9 +1349,7 @@ void drawMouseForcePreview(
   drawList->AddCircleFilled(origin, 5.0f, shadow, 24);
   drawList->AddCircleFilled(origin, 3.5f, lineColor, 24);
   if (len >= 2.0f) {
-    drawList->AddLine(ImVec2(origin.x + 1.0f, origin.y + 1.0f), ImVec2(tip.x + 1.0f, tip.y + 1.0f),
-      shadow, 5.0f);
-    drawList->AddLine(origin, tip, lineColor, 3.0f);
+    addShadowedLine(drawList, origin, tip, shadow, 5.0f, lineColor, 3.0f);
     const ImVec2 dir(drag.x / len, drag.y / len);
     const ImVec2 normal(-dir.y, dir.x);
     const float headLen = std::min(22.0f, std::max(10.0f, len * 0.24f));
@@ -1351,16 +1358,14 @@ void drawMouseForcePreview(
     const ImVec2 p1(tip.x, tip.y);
     const ImVec2 p2(base.x + normal.x * headHalfWidth, base.y + normal.y * headHalfWidth);
     const ImVec2 p3(base.x - normal.x * headHalfWidth, base.y - normal.y * headHalfWidth);
-    drawList->AddTriangleFilled(ImVec2(p1.x + 1.0f, p1.y + 1.0f), ImVec2(p2.x + 1.0f, p2.y + 1.0f),
-      ImVec2(p3.x + 1.0f, p3.y + 1.0f), shadow);
+    drawList->AddTriangleFilled(shadowOffset(p1), shadowOffset(p2), shadowOffset(p3), shadow);
     drawList->AddTriangleFilled(p1, p2, p3, fillColor);
   }
 
   char label[96];
   std::snprintf(label, sizeof(label), "%.1f N", glm::length(gesture.force));
   const ImVec2 labelPos(tip.x + 10.0f, tip.y - ImGui::GetFontSize() * 0.5f);
-  drawList->AddText(ImVec2(labelPos.x + 1.0f, labelPos.y + 1.0f), shadow, label);
-  drawList->AddText(labelPos, lineColor, label);
+  addShadowedText(drawList, labelPos, shadow, lineColor, label);
 }
 
 void drawWireDragPreview(
@@ -1379,9 +1384,7 @@ void drawWireDragPreview(
   ImDrawList* drawList = ImGui::GetForegroundDrawList();
   const ImU32 shadow = IM_COL32(5, 8, 12, 190);
   const ImU32 wireColor = IM_COL32(120, 226, 255, 255);
-  drawList->AddLine(ImVec2(anchor.x + 1.0f, anchor.y + 1.0f),
-    ImVec2(target.x + 1.0f, target.y + 1.0f), shadow, 4.0f);
-  drawList->AddLine(anchor, target, wireColor, 2.0f);
+  addShadowedLine(drawList, anchor, target, shadow, 4.0f, wireColor, 2.0f);
   drawList->AddCircleFilled(anchor, 5.0f, shadow, 24);
   drawList->AddCircleFilled(anchor, 3.5f, wireColor, 24);
   drawList->AddCircle(target, 7.0f, shadow, 24, 4.0f);
@@ -1391,8 +1394,7 @@ void drawWireDragPreview(
   std::snprintf(label, sizeof(label), "wire %.3f m",
     glm::distance(gesture.attachPoint, gesture.target));
   const ImVec2 labelPos(target.x + 10.0f, target.y - ImGui::GetFontSize() * 0.5f);
-  drawList->AddText(ImVec2(labelPos.x + 1.0f, labelPos.y + 1.0f), shadow, label);
-  drawList->AddText(labelPos, wireColor, label);
+  addShadowedText(drawList, labelPos, shadow, wireColor, label);
 }
 
 void drawRulerOverlay(
@@ -1415,11 +1417,10 @@ void drawRulerOverlay(
   const ImU32 pointAColor = IM_COL32(255, 214, 84, 255);
   const ImU32 pointBColor = IM_COL32(120, 255, 166, 255);
   const auto drawEndpoint = [&](const ImVec2& pos, const char* label, ImU32 color) {
-    drawList->AddCircleFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), 6.0f, shadow, 28);
+    drawList->AddCircleFilled(shadowOffset(pos), 6.0f, shadow, 28);
     drawList->AddCircleFilled(pos, 4.0f, color, 28);
-    const ImVec2 textPos(pos.x + 8.0f, pos.y - ImGui::GetFontSize() * 0.5f);
-    drawList->AddText(ImVec2(textPos.x + 1.0f, textPos.y + 1.0f), shadow, label);
-    drawList->AddText(textPos, color, label);
+    addShadowedText(drawList, ImVec2(pos.x + 8.0f, pos.y - ImGui::GetFontSize() * 0.5f), shadow,
+      color, label);
   };
 
   if (visibleA && visibleB) {
@@ -1428,9 +1429,7 @@ void drawRulerOverlay(
     const ImVec2 dir(delta.x / len, delta.y / len);
     const ImVec2 normal(-dir.y, dir.x);
     const float tickHalf = 8.0f;
-    drawList->AddLine(ImVec2(screenA.x + 1.0f, screenA.y + 1.0f),
-      ImVec2(screenB.x + 1.0f, screenB.y + 1.0f), shadow, 5.0f);
-    drawList->AddLine(screenA, screenB, lineColor, 2.5f);
+    addShadowedLine(drawList, screenA, screenB, shadow, 5.0f, lineColor, 2.5f);
     drawList->AddLine(ImVec2(screenA.x - normal.x * tickHalf, screenA.y - normal.y * tickHalf),
       ImVec2(screenA.x + normal.x * tickHalf, screenA.y + normal.y * tickHalf), lineColor, 2.5f);
     drawList->AddLine(ImVec2(screenB.x - normal.x * tickHalf, screenB.y - normal.y * tickHalf),
@@ -1617,9 +1616,7 @@ void drawPoseGrabberOverlay(const GizmoScreenLayout& L,
       (activeAxis >= 0 && activeMode == PoseGrabberGesture::Mode::Translate && activeAxis == i) ||
       (activeAxis < 0  && hoverMode == PoseGrabberGesture::Mode::Translate && hoverAxis == i);
     const ImU32 col = isHot ? hot : axisColors[i];
-    drawList->AddLine(ImVec2(L.origin.x + 1, L.origin.y + 1),
-                      ImVec2(L.axisTip[i].x + 1, L.axisTip[i].y + 1), shadow, 4.0f);
-    drawList->AddLine(L.origin, L.axisTip[i], col, isHot ? 3.5f : 2.5f);
+    addShadowedLine(drawList, L.origin, L.axisTip[i], shadow, 4.0f, col, isHot ? 3.5f : 2.5f);
     drawList->AddCircleFilled(L.axisTip[i], isHot ? 6.0f : 4.5f, col, 24);
     drawList->AddText(ImVec2(L.axisTip[i].x + 6.0f, L.axisTip[i].y - 6.0f), col, labels[i]);
   }
@@ -1647,14 +1644,8 @@ void drawAngleOverlay(
     IM_COL32(74, 214, 255, 255)};
   const char* lbls[3] = {"A", "B (vertex)", "C"};
 
-  if (visA && visB) {
-    drawList->AddLine(ImVec2(sA.x + 1, sA.y + 1), ImVec2(sB.x + 1, sB.y + 1), shadow, 4.0f);
-    drawList->AddLine(sA, sB, armColor, 2.0f);
-  }
-  if (visB && visC) {
-    drawList->AddLine(ImVec2(sB.x + 1, sB.y + 1), ImVec2(sC.x + 1, sC.y + 1), shadow, 4.0f);
-    drawList->AddLine(sB, sC, armColor, 2.0f);
-  }
+  if (visA && visB) addShadowedLine(drawList, sA, sB, shadow, 4.0f, armColor, 2.0f);
+  if (visB && visC) addShadowedLine(drawList, sB, sC, shadow, 4.0f, armColor, 2.0f);
 
   if (angle.picked >= 3 && visA && visB && visC) {
     const ImVec2 ba(sA.x - sB.x, sA.y - sB.y);
@@ -1692,11 +1683,10 @@ void drawAngleOverlay(
   }
 
   const auto drawPoint = [&](const ImVec2& pos, const char* label, ImU32 color) {
-    drawList->AddCircleFilled(ImVec2(pos.x + 1, pos.y + 1), 6.0f, shadow, 24);
+    drawList->AddCircleFilled(shadowOffset(pos), 6.0f, shadow, 24);
     drawList->AddCircleFilled(pos, 4.0f, color, 24);
-    const ImVec2 tp(pos.x + 8.0f, pos.y - ImGui::GetFontSize() * 0.5f);
-    drawList->AddText(ImVec2(tp.x + 1, tp.y + 1), shadow, label);
-    drawList->AddText(tp, color, label);
+    addShadowedText(drawList, ImVec2(pos.x + 8.0f, pos.y - ImGui::GetFontSize() * 0.5f), shadow,
+      color, label);
   };
   if (visA) drawPoint(sA, lbls[0], ptColor[0]);
   if (visB) drawPoint(sB, lbls[1], ptColor[1]);
@@ -1725,24 +1715,19 @@ void drawRulerCursorIcon(const RulerToolState& ruler, const ViewerViewportState&
   const ImVec2 dir(delta.x / len, delta.y / len);
   const ImVec2 normal(-dir.y, dir.x);
 
-  drawList->AddLine(ImVec2(base.x + 1.0f, base.y + 1.0f),
-    ImVec2(end.x + 1.0f, end.y + 1.0f), shadow, 4.5f);
-  drawList->AddLine(base, end, lineColor, 2.5f);
+  addShadowedLine(drawList, base, end, shadow, 4.5f, lineColor, 2.5f);
   for (int i = 0; i <= 4; ++i) {
     const float t = static_cast<float>(i) / 4.0f;
     const float tickHalf = (i == 0 || i == 4) ? 6.0f : 4.0f;
     const ImVec2 center(base.x + delta.x * t, base.y + delta.y * t);
     const ImVec2 a(center.x - normal.x * tickHalf, center.y - normal.y * tickHalf);
     const ImVec2 b(center.x + normal.x * tickHalf, center.y + normal.y * tickHalf);
-    drawList->AddLine(ImVec2(a.x + 1.0f, a.y + 1.0f),
-      ImVec2(b.x + 1.0f, b.y + 1.0f), shadow, 3.0f);
-    drawList->AddLine(a, b, tickColor, 1.7f);
+    addShadowedLine(drawList, a, b, shadow, 3.0f, tickColor, 1.7f);
   }
 
   const char* label = nextRulerPointLabel(ruler);
   const ImVec2 labelPos(end.x + 5.0f, end.y - ImGui::GetFontSize() * 0.5f);
-  drawList->AddText(ImVec2(labelPos.x + 1.0f, labelPos.y + 1.0f), shadow, label);
-  drawList->AddText(labelPos, tickColor, label);
+  addShadowedText(drawList, labelPos, shadow, tickColor, label);
 }
 
 void drawAngleCursorIcon(const AngleToolState& angle, const ViewerViewportState& viewport) {
@@ -1767,9 +1752,7 @@ void drawAngleCursorIcon(const AngleToolState& angle, const ViewerViewportState&
   const float r = 12.0f;
 
   // Flat baseline (the protractor's straight edge), pi to 0 in screen coords.
-  drawList->AddLine(ImVec2(c.x - r + 1.0f, c.y + 1.0f),
-    ImVec2(c.x + r + 1.0f, c.y + 1.0f), shadow, 3.0f);
-  drawList->AddLine(ImVec2(c.x - r, c.y), ImVec2(c.x + r, c.y), arcColor, 1.7f);
+  addShadowedLine(drawList, ImVec2(c.x - r, c.y), ImVec2(c.x + r, c.y), shadow, 3.0f, arcColor, 1.7f);
 
   // Upper half-arc (semicircle).
   constexpr int kSteps = 22;
@@ -1778,9 +1761,7 @@ void drawAngleCursorIcon(const AngleToolState& angle, const ViewerViewportState&
     const float t = static_cast<float>(i) / static_cast<float>(kSteps);
     const float a = 3.14159265f - 3.14159265f * t;   // pi → 0
     const ImVec2 cur(c.x + std::cos(a) * r, c.y - std::sin(a) * r);
-    drawList->AddLine(ImVec2(prev.x + 1.0f, prev.y + 1.0f),
-      ImVec2(cur.x + 1.0f, cur.y + 1.0f), shadow, 3.0f);
-    drawList->AddLine(prev, cur, arcColor, 1.7f);
+    addShadowedLine(drawList, prev, cur, shadow, 3.0f, arcColor, 1.7f);
     prev = cur;
   }
 
@@ -1794,14 +1775,13 @@ void drawAngleCursorIcon(const AngleToolState& angle, const ViewerViewportState&
   }
 
   // Central pivot dot.
-  drawList->AddCircleFilled(ImVec2(c.x + 1.0f, c.y + 1.0f), 2.5f, shadow, 12);
+  drawList->AddCircleFilled(shadowOffset(c), 2.5f, shadow, 12);
   drawList->AddCircleFilled(c, 1.8f, armColor, 12);
 
   // Label which point comes next.
   const char* label = nextAnglePointLabel(angle);
   const ImVec2 labelPos(c.x + r + 4.0f, c.y - ImGui::GetFontSize() * 0.5f);
-  drawList->AddText(ImVec2(labelPos.x + 1.0f, labelPos.y + 1.0f), shadow, label);
-  drawList->AddText(labelPos, armColor, label);
+  addShadowedText(drawList, labelPos, shadow, armColor, label);
 }
 
 float quaternionAngularSpeed(const glm::vec4& previous, const glm::vec4& current, double dt) {
@@ -1939,9 +1919,6 @@ void copyWeatherPresetToSettings(ViewerSettings& settings, int preset) {
 raisin::RayraiWindow::WeatherSettings weatherSettingsFromViewerSettings(
   const ViewerSettings& settings) {
   auto weather = raisin::RayraiWindow::defaultWeatherSettings(weatherPresetFromIndex(settings.skyWeatherPreset));
-  if (settings.skyWeatherPreset == 10) {
-    weather.preset = raisin::RayraiWindow::WeatherPreset::Custom;
-  }
   weather.enabled = settings.skyEnabled && settings.skyWeatherEnabled &&
     weatherDefaultEnabledForQuality(settings.renderQuality);
   weather.preset = weatherPresetFromIndex(settings.skyWeatherPreset);
@@ -2295,26 +2272,16 @@ const char* objectTypeLabel(int objectTypeRaw) {
     return "unknown";
   }
   switch (static_cast<raisim::ObjectType>(objectTypeRaw)) {
-    case raisim::ObjectType::SPHERE:
-      return "sphere";
-    case raisim::ObjectType::BOX:
-      return "box";
-    case raisim::ObjectType::CYLINDER:
-      return "cylinder";
-    case raisim::ObjectType::CAPSULE:
-      return "capsule";
-    case raisim::ObjectType::MESH:
-      return "mesh";
-    case raisim::ObjectType::HALFSPACE:
-      return "halfspace";
-    case raisim::ObjectType::HEIGHTMAP:
-      return "heightmap";
-    case raisim::ObjectType::ARTICULATED_SYSTEM:
-      return "articulated system";
-    case raisim::ObjectType::COMPOUND:
-      return "compound";
-    default:
-      return "unknown";
+    case raisim::ObjectType::SPHERE: return "sphere";
+    case raisim::ObjectType::BOX: return "box";
+    case raisim::ObjectType::CYLINDER: return "cylinder";
+    case raisim::ObjectType::CAPSULE: return "capsule";
+    case raisim::ObjectType::MESH: return "mesh";
+    case raisim::ObjectType::HALFSPACE: return "halfspace";
+    case raisim::ObjectType::HEIGHTMAP: return "heightmap";
+    case raisim::ObjectType::ARTICULATED_SYSTEM: return "articulated system";
+    case raisim::ObjectType::COMPOUND: return "compound";
+    default: return "unknown";
   }
 }
 
@@ -3073,20 +3040,25 @@ int drawCompactStepper(const char* id, float width) {
   return delta;
 }
 
-/** Numeric text box plus a compact stepper, with the label trailing. */
-bool drawStepperFloat(const char* id, const char* label, float* value, float step, float min,
-                      float max, const char* format, float fieldWidth = 0.0f) {
+/**
+ * @brief Numeric text box plus a compact stepper, with the label trailing.
+ *
+ * @p input draws the "##value" text box and returns whether it was edited.
+ */
+template <typename T, typename InputFn>
+bool drawStepperField(const char* id, const char* label, T* value, T step, T min, T max,
+                      float fieldWidth, InputFn input) {
   ImGui::PushID(id);
   bool changed = false;
   const float width = fieldWidth > 0.0f ? fieldWidth : ImGui::GetFontSize() * 3.6f;
   // No CompactControlScope here: these are text boxes and must match the height
   // of every other text box in the panel, not the shorter slider/checkbox rows.
   ImGui::SetNextItemWidth(width);
-  changed = ImGui::InputFloat("##value", value, 0.0f, 0.0f, format);
+  changed = input();
   ImGui::SameLine(0.0f, 1.0f);
   const int delta = drawCompactStepper("stepper", std::round(ImGui::GetFontSize() * 0.62f));
   if (delta != 0) {
-    *value += static_cast<float>(delta) * step;
+    *value += static_cast<T>(delta) * step;
     changed = true;
   }
   if (changed) {
@@ -3099,69 +3071,56 @@ bool drawStepperFloat(const char* id, const char* label, float* value, float ste
   return changed;
 }
 
+bool drawStepperFloat(const char* id, const char* label, float* value, float step, float min,
+                      float max, const char* format, float fieldWidth = 0.0f) {
+  return drawStepperField(id, label, value, step, min, max, fieldWidth,
+    [&] { return ImGui::InputFloat("##value", value, 0.0f, 0.0f, format); });
+}
+
 /** Integer flavour of drawStepperFloat(). */
 bool drawStepperInt(const char* id, const char* label, int* value, int step, int min, int max,
                     float fieldWidth = 0.0f) {
-  ImGui::PushID(id);
-  bool changed = false;
-  const float width = fieldWidth > 0.0f ? fieldWidth : ImGui::GetFontSize() * 3.6f;
-  ImGui::SetNextItemWidth(width);
-  changed = ImGui::InputInt("##value", value, 0, 0);
-  ImGui::SameLine(0.0f, 1.0f);
-  const int delta = drawCompactStepper("stepper", std::round(ImGui::GetFontSize() * 0.62f));
-  if (delta != 0) {
-    *value += delta * step;
-    changed = true;
+  return drawStepperField(id, label, value, step, min, max, fieldWidth,
+    [&] { return ImGui::InputInt("##value", value, 0, 0); });
+}
+
+/**
+ * @brief A compact slider whose label and value are drawn inside its frame.
+ *
+ * @p slider draws the "##slider" control and returns whether it changed.
+ */
+template <typename T, typename SliderFn>
+bool drawInlineLabelSlider(const char* id, const char* label, const T* value, const char* format,
+                           float itemWidth, bool disabled, SliderFn slider) {
+  ImGui::PushID(id ? id : label);
+  if (itemWidth > 0.0f) {
+    ImGui::PushItemWidth(itemWidth);
   }
-  if (changed) {
-    *value = std::clamp(*value, min, max);
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+  const bool changed = slider();
+  ImGui::PopStyleColor();
+  if (itemWidth > 0.0f) {
+    ImGui::PopItemWidth();
   }
-  ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted(label);
+
+  char valueBuf[32];
+  std::snprintf(valueBuf, sizeof(valueBuf), format, *value);
+  drawSliderInsideLabel(label, valueBuf, disabled);
   ImGui::PopID();
   return changed;
 }
 
 bool drawInlineLabelSliderFloat(const char* id, const char* label, float* value, float min, float max,
                                 const char* format, float itemWidth = 0.0f, bool disabled = false) {
-  ImGui::PushID(id ? id : label);
-  if (itemWidth > 0.0f) {
-    ImGui::PushItemWidth(itemWidth);
-  }
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-  const bool changed = compactSliderFloat("##slider", value, min, max, format);
-  ImGui::PopStyleColor();
-  if (itemWidth > 0.0f) {
-    ImGui::PopItemWidth();
-  }
-
-  char valueBuf[32];
-  std::snprintf(valueBuf, sizeof(valueBuf), format, *value);
-  drawSliderInsideLabel(label, valueBuf, disabled);
-  ImGui::PopID();
-  return changed;
+  return drawInlineLabelSlider(id, label, value, format, itemWidth, disabled,
+    [&] { return compactSliderFloat("##slider", value, min, max, format); });
 }
 
 bool drawInlineLabelSliderInt(const char* id, const char* label, int* value, int min, int max,
                               const char* format = "%d", float itemWidth = 0.0f,
                               bool disabled = false) {
-  ImGui::PushID(id ? id : label);
-  if (itemWidth > 0.0f) {
-    ImGui::PushItemWidth(itemWidth);
-  }
-  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-  const bool changed = compactSliderInt("##slider", value, min, max, format);
-  ImGui::PopStyleColor();
-  if (itemWidth > 0.0f) {
-    ImGui::PopItemWidth();
-  }
-
-  char valueBuf[32];
-  std::snprintf(valueBuf, sizeof(valueBuf), format, *value);
-  drawSliderInsideLabel(label, valueBuf, disabled);
-  ImGui::PopID();
-  return changed;
+  return drawInlineLabelSlider(id, label, value, format, itemWidth, disabled,
+    [&] { return compactSliderInt("##slider", value, min, max, format); });
 }
 
 bool drawOverlaySlider(const char* id, const char* label, float* value, float min, float max,
@@ -3369,34 +3328,24 @@ TcpViewerIconKind fileBrowserIconKind(const std::filesystem::path& path, bool is
   if (isDirectory) {
     return TcpViewerIconKind::FolderClosed;
   }
-  std::string extension = path.extension().string();
-  if (!extension.empty() && extension.front() == '.') {
-    extension.erase(extension.begin());
-  }
-  extension = toLowerAscii(extension);
+  const std::string extension = lowerCaseFileExtension(path);
+  const auto isAny = [&](std::initializer_list<const char*> candidates) {
+    return std::find(candidates.begin(), candidates.end(), extension) != candidates.end();
+  };
 
   if (extension == "urdf") return TcpViewerIconKind::Robot;
-  if (extension == "obj" || extension == "stl" || extension == "dae" || extension == "ply" ||
-      extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "usd" ||
-      extension == "usda" || extension == "usdc" || extension == "usdz") {
+  if (isAny({"obj", "stl", "dae", "ply", "gltf", "glb", "fbx", "usd", "usda", "usdc", "usdz"})) {
     return TcpViewerIconKind::ObjectMesh;
   }
-  if (extension == "png" || extension == "jpg" || extension == "jpeg" || extension == "bmp" ||
-      extension == "tga" || extension == "hdr" || extension == "exr" || extension == "pgm") {
+  if (isAny({"png", "jpg", "jpeg", "bmp", "tga", "hdr", "exr", "pgm"})) {
     return TcpViewerIconKind::FileImage;
   }
-  if (extension == "mp4" || extension == "mov" || extension == "avi" || extension == "mkv" ||
-      extension == "webm") {
-    return TcpViewerIconKind::Video;
-  }
-  if (extension == "csv" || extension == "tsv") return TcpViewerIconKind::FileCsv;
-  if (extension == "zip" || extension == "gz" || extension == "tgz" || extension == "bz2" ||
-      extension == "xz" || extension == "7z" || extension == "tar" || extension == "zst") {
+  if (isAny({"mp4", "mov", "avi", "mkv", "webm"})) return TcpViewerIconKind::Video;
+  if (isAny({"csv", "tsv"})) return TcpViewerIconKind::FileCsv;
+  if (isAny({"zip", "gz", "tgz", "bz2", "xz", "7z", "tar", "zst"})) {
     return TcpViewerIconKind::FileArchive;
   }
-  if (extension == "xml" || extension == "json" || extension == "yaml" || extension == "yml" ||
-      extension == "lua" || extension == "py" || extension == "toml" || extension == "ini" ||
-      extension == "cfg" || extension == "mjcf" || extension == "sdf") {
+  if (isAny({"xml", "json", "yaml", "yml", "lua", "py", "toml", "ini", "cfg", "mjcf", "sdf"})) {
     return TcpViewerIconKind::FileCode;
   }
   if (extension == "rrtcs") return TcpViewerIconKind::Save;

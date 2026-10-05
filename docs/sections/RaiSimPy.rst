@@ -44,6 +44,7 @@ remains as a compatibility alias.
 
 .. code-block:: python
 
+    import time
     import raisimpy as raisim
 
     raisim.World.setActivationKey("/absolute/path/to/activation.raisim")
@@ -58,6 +59,7 @@ remains as a compatibility alias.
     server.launchServer(8080)
     for _ in range(10_000):
         server.integrateWorldThreadSafe()
+        time.sleep(world.getTimeStep())  # run at roughly real time
     server.killServer()
 
 Start ``build-examples/examples/rayrai_tcp_viewer`` in another terminal to view
@@ -66,11 +68,11 @@ this server-based example.
 Examples And API Coverage
 =========================
 
-The current examples under ``raisimPy/examples`` cover articulated robots,
-heightmaps, constraints, charts, point clouds, instanced visuals, dynamic
-visual meshes, and server-side visual objects. The Python method names normally
-match C++, but the binding surface is defined by the files under
-``raisimPy/src``; a C++ method that is not bound there is not automatically
+The examples under ``raisimPy/examples`` cover articulated robots, joint
+springs, heightmaps, constraints, ray-cast scans, charts, point clouds,
+instanced visuals, dynamic visual meshes, and server-side visual objects. The
+Python method names normally match C++, but the binding surface is defined by
+the files under ``raisimPy/src``; a C++ method that is not bound there is not
 available in Python.
 
 NumPy arrays passed to pose, state, force, and geometry methods must have the

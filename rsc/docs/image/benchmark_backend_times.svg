@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="588" viewBox="0 0 960 588" role="img" aria-labelledby="title desc">
   <title id="title">RaiSim and MuJoCo benchmark timing comparison</title>
-  <desc id="desc">Horizontal bar chart comparing median RaiSim and MuJoCo wall-clock seconds for six benchmarks, based on three single-threaded runs. Lower times are better.</desc>
+  <desc id="desc">Horizontal bar chart comparing median RaiSim and MuJoCo wall-clock seconds for 7 benchmarks, based on three single-threaded runs. Lower times are better.</desc>
   <style>
     text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
     .title { font-size: 24px; font-weight: 700; }
@@ -14,53 +14,58 @@
     .raisim { fill: #14806f; }
     .mujoco { fill: #d47b42; }
   </style>
-  <rect width="960" height="520" fill="#ffffff"/>
+  <rect width="960" height="588" fill="#ffffff"/>
   <text x="30" y="36" class="title">Wall-clock time by backend</text>
-  <text x="30" y="60" class="subtitle">Median of three single-threaded runs, Apple M1, default benchmark arguments. Lower is better.</text>
+  <text x="30" y="60" class="subtitle">Median of three single-threaded runs, AMD Ryzen 9 3950X, default benchmark arguments. Lower is better.</text>
   <rect x="650" y="32" width="14" height="14" rx="2" class="raisim"/>
   <text x="672" y="44" class="legend">RaiSim</text>
   <rect x="744" y="32" width="14" height="14" rx="2" class="mujoco"/>
   <text x="766" y="44" class="legend">MuJoCo</text>
-  <line x1="230" y1="78" x2="230" y2="430" class="grid"/>
-  <line x1="395" y1="78" x2="395" y2="430" class="grid"/>
-  <line x1="560" y1="78" x2="560" y2="430" class="grid"/>
-  <line x1="725" y1="78" x2="725" y2="430" class="grid"/>
-  <line x1="890" y1="78" x2="890" y2="430" class="grid"/>
-  <line x1="230" y1="430" x2="890" y2="430" class="axis"/>
-  <text x="230" y="452" text-anchor="middle" class="tick">0</text>
-  <text x="395" y="452" text-anchor="middle" class="tick">3</text>
-  <text x="560" y="452" text-anchor="middle" class="tick">6</text>
-  <text x="725" y="452" text-anchor="middle" class="tick">9</text>
-  <text x="890" y="452" text-anchor="middle" class="tick">12 s</text>
-  <text x="560" y="486" text-anchor="middle" class="subtitle">Wall-clock seconds</text>
+  <line x1="230" y1="78" x2="230" y2="498" class="grid"/>
+  <line x1="395" y1="78" x2="395" y2="498" class="grid"/>
+  <line x1="560" y1="78" x2="560" y2="498" class="grid"/>
+  <line x1="725" y1="78" x2="725" y2="498" class="grid"/>
+  <line x1="890" y1="78" x2="890" y2="498" class="grid"/>
+  <line x1="230" y1="498" x2="890" y2="498" class="axis"/>
+  <text x="230" y="520" text-anchor="middle" class="tick">0</text>
+  <text x="395" y="520" text-anchor="middle" class="tick">4</text>
+  <text x="560" y="520" text-anchor="middle" class="tick">8</text>
+  <text x="725" y="520" text-anchor="middle" class="tick">12</text>
+  <text x="890" y="520" text-anchor="middle" class="tick">16 s</text>
+  <text x="560" y="554" text-anchor="middle" class="subtitle">Wall-clock seconds</text>
   <text x="30" y="98" class="label">Chain20 speed</text>
-  <rect x="230" y="82" width="24" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="103" width="148" height="16" rx="3" class="mujoco"/>
-  <text x="262" y="95" class="value">0.433 s</text>
-  <text x="386" y="116" class="value">2.697 s</text>
+  <rect x="230" y="82" width="23" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="103" width="146" height="16" rx="3" class="mujoco"/>
+  <text x="261" y="95" class="value">0.569 s</text>
+  <text x="384" y="116" class="value">3.535 s</text>
   <text x="30" y="158" class="label">Heightmap ANYmal speed</text>
-  <rect x="230" y="142" width="50" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="163" width="239" height="16" rx="3" class="mujoco"/>
-  <text x="288" y="155" class="value">0.914 s</text>
-  <text x="477" y="176" class="value">4.346 s</text>
-  <text x="30" y="218" class="label">Primitive speed</text>
-  <rect x="230" y="202" width="150" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="223" width="600" height="16" rx="3" class="mujoco"/>
-  <text x="388" y="215" class="value">2.729 s</text>
-  <text x="838" y="236" class="value">10.904 s</text>
-  <text x="30" y="278" class="label">Chain10 speed</text>
-  <rect x="230" y="262" width="12" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="283" width="41" height="16" rx="3" class="mujoco"/>
-  <text x="250" y="275" class="value">0.214 s</text>
-  <text x="279" y="296" class="value">0.739 s</text>
-  <text x="30" y="338" class="label">ANYmal standing</text>
-  <rect x="230" y="322" width="194" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="343" width="603" height="16" rx="3" class="mujoco"/>
-  <text x="432" y="335" class="value">3.528 s</text>
-  <text x="841" y="356" class="value">10.969 s</text>
-  <text x="30" y="398" class="label">ANYmal falling</text>
-  <rect x="230" y="382" width="10" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="403" width="24" height="16" rx="3" class="mujoco"/>
-  <text x="248" y="395" class="value">0.171 s</text>
-  <text x="262" y="416" class="value">0.444 s</text>
+  <rect x="230" y="142" width="48" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="163" width="228" height="16" rx="3" class="mujoco"/>
+  <text x="286" y="155" class="value">1.152 s</text>
+  <text x="466" y="176" class="value">5.519 s</text>
+  <text x="30" y="218" class="label">Chain10 speed</text>
+  <rect x="230" y="202" width="12" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="223" width="45" height="16" rx="3" class="mujoco"/>
+  <text x="250" y="215" class="value">0.283 s</text>
+  <text x="283" y="236" class="value">1.093 s</text>
+  <text x="30" y="278" class="label">Primitive speed</text>
+  <rect x="230" y="262" width="139" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="283" width="363" height="16" rx="3" class="mujoco"/>
+  <text x="377" y="275" class="value">3.376 s</text>
+  <text x="601" y="296" class="value">8.804 s</text>
+  <text x="30" y="338" class="label">ANYmal falling</text>
+  <rect x="230" y="322" width="12" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="343" width="30" height="16" rx="3" class="mujoco"/>
+  <text x="250" y="335" class="value">0.283 s</text>
+  <text x="268" y="356" class="value">0.732 s</text>
+  <text x="30" y="398" class="label">ANYmal standing</text>
+  <rect x="230" y="382" width="228" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="403" width="570" height="16" rx="3" class="mujoco"/>
+  <text x="466" y="395" class="value">5.519 s</text>
+  <text x="808" y="416" class="value">13.819 s</text>
+  <text x="30" y="458" class="label">Strandbeest</text>
+  <rect x="230" y="442" width="11" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="463" width="20" height="16" rx="3" class="mujoco"/>
+  <text x="249" y="455" class="value">0.258 s</text>
+  <text x="258" y="476" class="value">0.492 s</text>
 </svg>

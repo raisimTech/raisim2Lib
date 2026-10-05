@@ -2,11 +2,12 @@
 Capture, diagnostics, and headless rendering
 ############################################
 
-This page covers everything you need to drive rayrai without a GUI: the
-headless/offscreen GL context and context hand-off between renderers, ImGui
-integration, the camera and picking APIs, screenshot/diagnostics captures,
-exposure and calibration helpers, async mesh loading and the mesh caches,
-compressed texture storage, and heightmap texture overrides.
+This page covers embedding rayrai in an application and driving it without a
+GUI: ImGui integration, the headless/offscreen GL context and context hand-off
+between renderers, the camera and picking APIs, screenshot and diagnostics
+captures, exposure and calibration helpers, async mesh loading and the mesh
+caches, compressed texture storage, and heightmap textures and streaming
+updates.
 
 ImGui integration (SDL2 + OpenGL)
 =================================
@@ -37,9 +38,10 @@ Minimal pattern (trimmed from the examples):
       app.endFrame();
     }
 
-The ``renderViewer`` helper uses ``ImGui::IsItemHovered()`` and mouse positions
-to drive camera interaction and picking. Current offscreen examples exercise
-the camera paths used by rayrai rendering and validation.
+The ``renderViewer`` helper uses ``ImGui::IsItemHovered()`` and the mouse
+position to drive camera interaction and picking. It renders at the window's
+drawable (framebuffer) size and scales the cursor from window to drawable
+pixels, so input stays aligned on HiDPI displays.
 
 Headless/offscreen OpenGL context
 =================================
@@ -56,16 +58,22 @@ helpers to create and bind a hidden SDL window context:
     auto world = std::make_shared<raisim::World>();
     raisin::RayraiWindow viewer(world, 640, 480);
 
+``createOffscreenGlContext`` initializes SDL video if needed and requests an
+OpenGL 4.3 core context, falling back to 3.3; it aborts when no context can be
+created. The caller owns both handles and releases them with
+``SDL_GL_DeleteContext`` and ``SDL_DestroyWindow``.
+
 The offscreen path does not require an ImGui context. If an application embeds rayrai
-without ImGui, pass ``false`` for hover/click arguments to ``RayraiWindow::update`` or
-drive camera state explicitly. The renderer guards ImGui input access so headless tests
-and batch image generation can run without creating ImGui state.
+without ImGui, pass ``false`` for the hover and click arguments of ``RayraiWindow::update``
+or drive the camera state explicitly. The renderer guards ImGui input access, so headless
+tests and batch image generation can run without creating ImGui state.
 
 End-to-end headless capture (build a scene, render once, write a PNG):
 
 .. code-block:: cpp
 
     #include <SDL.h>
+    #define STB_IMAGE_WRITE_IMPLEMENTATION  // in exactly one source file
     #include <stb/stb_image_write.h>
 
     #include <raisim/World.hpp>
@@ -126,8 +134,9 @@ context created on the main thread to a worker, release it with
 ``RayraiWindow::detachOffscreenGlContext(window)`` (safe to call when no
 context is current), then call ``makeOffscreenContextCurrent`` on the worker.
 When several renderers share one thread, switch between their contexts with
-``makeOffscreenContextCurrent`` too: it also resets rayrai's per-thread GL
-binding caches, which a plain ``SDL_GL_MakeCurrent`` does not.
+``makeOffscreenContextCurrent`` too: it also updates glbinding and resets
+rayrai's per-context GL binding caches, which a plain ``SDL_GL_MakeCurrent``
+does not.
 
 A context created while another one is current joins its share group. Within
 a share group, the geometry of untextured meshes is uploaded once and reused;
@@ -167,9 +176,9 @@ Detectability is not a physics flag. It does not create collision, dynamics,
 or a semantic label, and it does not affect normal viewer visibility.
 
 The ``renderWithExternalCamera`` overloads that take a RaiSim ``RGBCamera`` or
-``DepthCamera`` are stricter: they disable custom visualization objects and
-point clouds entirely, regardless of detectability. That keeps RaiSim sensor
-images limited to world geometry.
+``DepthCamera`` are stricter: they never draw custom visualization objects,
+point clouds, or coordinate frames, regardless of detectability and of the
+overrides. That keeps RaiSim sensor images limited to world geometry.
 
 Camera control and picking
 ==========================
@@ -184,22 +193,24 @@ The internal ``update`` call drives camera input and picking:
 
 .. code-block:: cpp
 
-    // Cursor is in framebuffer coordinates of the render area
+    // Cursor is in pixels of the render target, top-left origin.
     viewer.update(width, height, isHovered, cursorX, cursorY, shouldClick);
 
-For custom visuals under the internal camera, ``pickTargetVisualAt`` resolves
-the pick id and returns the public ``Visuals*`` directly. A null pointer means
-nothing was hit:
+For custom visuals under the internal camera, ``pickTargetVisualAt`` runs a
+picking pass immediately (the GL context must be current) and returns the
+picked ``Visuals*`` directly. A null pointer means nothing was hit:
 
 .. code-block:: cpp
 
-    // From an ImGui handler: convert the mouse position into the render-target
-    // framebuffer space and pick.
+    // From an ImGui handler, right after the ImGui::Image that shows the viewer:
+    // convert the mouse position into render-target pixels and pick.
+    // renderWidth/renderHeight are the sizes passed to viewer.update().
     if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
-      auto pos = ImGui::GetMousePos();
-      auto origin = ImGui::GetItemRectMin();
-      int fbX = static_cast<int>(pos.x - origin.x);
-      int fbY = static_cast<int>(pos.y - origin.y);
+      const ImVec2 pos = ImGui::GetMousePos();
+      const ImVec2 origin = ImGui::GetItemRectMin();
+      const ImVec2 size = ImGui::GetItemRectSize();
+      const int fbX = static_cast<int>((pos.x - origin.x) * renderWidth / size.x);
+      const int fbY = static_cast<int>((pos.y - origin.y) * renderHeight / size.y);
 
       if (auto* visual = viewer.pickTargetVisualAt(fbX, fbY)) {
         viewer.setTargetVisual(visual);
@@ -232,10 +243,13 @@ frame path.
 * ``captureSupersampledRgba`` renders high-resolution screenshots without
   resizing the caller's camera. ``scale`` is clamped to 1–4.
 * ``captureDebugPasses`` captures the standard PBR/post-process debug-pass set
-  as top-left ordered RGBA buffers. It overrides the PBR debug output for this
-  renderer only and leaves the process environment untouched;
+  (25 passes) as top-left ordered RGBA buffers. It overrides the PBR debug
+  output for this renderer only and leaves the process environment untouched;
   ``pbrDebugOutputMode()`` returns the mode in force, which otherwise comes from
-  ``RAYRAI_PBR_DEBUG_OUTPUT``.
+  ``RAYRAI_PBR_DEBUG_OUTPUT``. The capture temporarily switches to Ultra
+  quality and afterwards restores the previous settings through
+  ``setRenderQualitySettings``, so application-added lights are cleared and the
+  preset reads ``Custom``.
 * ``captureRenderPassTimings`` inserts blocking GPU timer queries for pass-level
   measurements of an external camera. Use it for benchmarks, not ordinary
   frames.
@@ -256,12 +270,12 @@ frame path.
     auto timings = viewer.captureRenderPassTimings(viewer.getCamera(), ov);
     auto viewerTimings = viewer.captureViewerPassTimings(1280, 720);
     std::string json = viewer.renderDiagnosticsJson();
-    viewer.writeRenderDiagnosticsFiles("/tmp/rayrai_diag", /*importReport=*/{});
+    viewer.writeRenderDiagnosticsFiles("/tmp/rayrai_diag", /*importReport=*/nullptr);
 
 When the scene contains foliage batches, both timing captures render twice.
 The coarse passes (``shadow``, ``scene_color`` or ``scene_color_and_resolve``,
 ``postprocess``, and so on) come from the first render, and the foliage
-sub-passes (``scene_foliage_*`` and ``shadow_foliage_*``) from the second. The
+sub-passes (``scene_foliage*`` and ``shadow_foliage*``) from the second. The
 sub-passes overlap the coarse passes, so do not add them to a frame total.
 
 Per-frame state can be read without extra rendering, and describes the most
@@ -285,16 +299,17 @@ camera; use a single shadow cascade with it. External renders reuse the
 previous frame when the camera, overrides, settings, and scene are unchanged;
 call ``invalidateExternalFrameCache()`` after editing GL resources in place.
 When the quality settings enable MSAA, an external camera keeps its
-multisample buffers between renders; ``camera.setSceneMsaaSamples(1)`` releases
-them.
+multisample buffers between renders; the next render of that camera without
+MSAA, or ``camera.setSceneMsaaSamples(1)``, releases them.
 
-With ``setLinearHdrRenderingEnabled(true)`` (off by default), scene colour stays
+With ``setLinearHdrRenderingEnabled(true)`` (off by default), scene color stays
 linear through MSAA, fog, bloom, and depth of field, and exposure, the tone
 curve, and gamma are applied once at the end of postprocessing; bloom
-thresholds are then scene-linear. Captures that run the built-in
-postprocessing (``RenderOverrides::postProcess``, the default) follow this
-pipeline, while renders with ``postProcess = false``, a custom ``post`` shader,
-or a PBR debug output keep the previous output.
+thresholds are then scene-linear. Renders with reprojected temporal AA use the
+same linear pipeline even when the switch is off. Captures that run the
+built-in postprocessing (``RenderOverrides::postProcess``, the default) follow
+this pipeline, while renders with ``postProcess = false``, a custom ``post``
+shader, or a PBR debug output keep the previous output.
 
 For transparent scenes, ``transparentDrawDebugView`` reports draw order, OIT,
 refraction, overdraw, and per-item sorting state. Shadow and reflection-probe
@@ -302,14 +317,15 @@ planning are similarly exposed through ``shadowDebugOverlaySummary``,
 ``planDirectionalShadowCascades``, ``planAdditionalShadowAtlas``, and
 ``reflectionProbeDebugOverlaySummary``. ``shaderWarmupDiagnostics`` reports
 shader compile/link cost from startup, and ``estimateRenderPassAccounting``
-returns a CPU-only summary of which passes are active (fast path eligible,
-shadows, post-process, bloom, denoise, readback) along with the dominant
-bottleneck.
+returns a CPU-only estimate of the passes the current settings need (fast-path
+eligibility, shadow, scene, transparent, post-process, bloom, AO-denoise, and
+debug-readback pass counts) together with a heuristic ``likelyBottleneck`` tag.
 
-For long-running applications and offline pipelines, see
-:doc:`RenderQuality` for the ``recommendDynamicQuality`` and
-``recommendMaterialTextureBudget`` helpers that turn ``captureRenderPassTimings``
-measurements into proposed setting changes.
+For long-running applications and offline pipelines, :doc:`RenderQuality`
+describes two helpers that propose setting changes without applying them:
+``recommendDynamicQuality``, which works from ``captureRenderPassTimings``
+measurements, and ``recommendMaterialTextureBudget``, which works from a
+texture-memory budget.
 
 Exposure, calibration, and output transforms
 ============================================
@@ -339,17 +355,23 @@ with ``transformRgbaForOutput`` before saving the image.
 (luminance histogram, cloud/precipitation breakdown, wet/snow response) as
 plain RGBA buffers for embedding into reports.
 
-The renderer also has a built-in auto-exposure loop: enable it via
-``RenderQualitySettings::autoExposureEnabled`` and the renderer drives
-``pbrExposure`` toward ``autoExposureKey`` (target post-tonemap luma) at
-``autoExposureSpeed`` per frame, clamped to ``[autoExposureMinFactor,
-autoExposureMaxFactor]``. For applications that need to drive exposure
-themselves (e.g. tone-matched batch capture), use the static helpers above to
-read the current frame's luminance and recommend a new exposure value:
+The renderer also has a built-in auto-exposure loop. With
+``RenderQualitySettings::autoExposureEnabled``, each camera multiplies
+``pbrExposure`` by its own auto-exposure factor, which moves the average
+luminance of the previous frame toward ``autoExposureKey``. Every frame
+corrects the fraction ``autoExposureSpeed`` of the remaining error, and the
+factor is clamped to ``[autoExposureMinFactor, autoExposureMaxFactor]``;
+``pbrExposure`` itself is not modified. For applications that need to drive
+exposure themselves (e.g. tone-matched batch capture), use the static helpers
+above to read the current frame's luminance and recommend a new exposure value.
+``setRenderQualitySettings`` also rebuilds the main light and removes
+additional lights (see :doc:`Lighting`), so re-add application lights after
+each call in a loop like this one:
 
 .. code-block:: cpp
 
     // Frame loop driving exposure manually from the most recent capture.
+    // dtSeconds is the frame time of the application loop.
     float currentExposure = 1.0f;
     while (running) {
       auto frame = viewer.captureSupersampledRgba(viewer.getCamera(), 1, {});
@@ -415,13 +437,12 @@ costs regeneration time on the next load.
   glTF buffers are detected. ``RAYRAI_ASYNC_LOD_CACHE_DIR`` stores them in
   another folder instead (if that folder is not writable, nothing is cached).
   Without it, an unwritable asset folder falls back to the system temporary
-  directory. Setting ``RAYRAI_DISABLE_ASYNC_LOD_CACHE`` to any value disables
-  this cache.
+  directory.
 
 Compressed texture storage
 ==========================
 ``rayrai/Bc7TextureStorage.hpp`` provides an opt-in, load-time helper that
-re-encodes eligible colour textures as BC7 to reduce texture memory. Call it
+re-encodes eligible color textures as BC7 to reduce texture memory. Call it
 with the renderer's GL context current, after the visuals are loaded:
 
 .. code-block:: cpp
@@ -472,8 +493,9 @@ a renderer-owned per-name texture override.
 
 .. code-block:: cpp
 
-    auto* terrain = world->addHeightMap(/*sample_x=*/256, /*sample_y=*/256,
-                                        /*size_x=*/40.0, /*size_y=*/40.0,
+    // heights holds 256 * 256 samples, indexed y * 256 + x.
+    auto* terrain = world->addHeightMap(/*xSamples=*/256, /*ySamples=*/256,
+                                        /*xSize=*/40.0, /*ySize=*/40.0,
                                         /*centerX=*/0.0, /*centerY=*/0.0, heights);
     viewer.setHeightmapPatternResourcePath("/path/to/terrain_albedo.png");
     viewer.setHeightmapNormalResourcePath("/path/to/terrain_normal.png");
@@ -492,5 +514,8 @@ a renderer-owned per-name texture override.
     }
 
 ``updateVisualHeightPatch`` also takes inclusive bounds, but its height input is
-the full row-major height array; only the requested region is copied. Call
-``update(...)`` instead when physics collision heights must change too.
+the full row-major height array (plus a height offset); only the requested
+region is copied. The center and size arguments must equal the heightmap's
+current ones, otherwise the call returns ``false`` without changes. The patch
+changes only the rendered heights; call ``update(...)`` instead when physics
+collision heights must change too.

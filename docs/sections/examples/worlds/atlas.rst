@@ -1,10 +1,12 @@
 #####################
-Atlas
+Server Example: Atlas
 #####################
 
 Overview
 ========
-Spawns Atlas in a world scene and applies external force and torque to perturb the robot. This example demonstrates a larger articulated system streamed through RaisimServer.
+Spawns an Atlas humanoid and applies an external force and torque to its base
+every step. The example demonstrates a larger articulated system streamed
+through RaisimServer.
 
 Screenshot
 ==========
@@ -30,8 +32,10 @@ This example uses RaisimServer. Start ``rayrai_tcp_viewer`` and connect to port 
 
 Details
 =======
-- Spawns Atlas robots and initializes the base pose with zero joint torques.
-- Applies external force/torque each frame to perturb the robot.
+- Spawns one Atlas (the grid size ``N`` in the source is 1) and initializes
+  its base pose with zero joint torques.
+- Applies an external force and torque to the base every step to perturb the
+  robot.
 - Uses a checkerboard ground so the TCP viewer's reflective ground option is visible.
 - Focuses the TCP viewer on the robot.
 

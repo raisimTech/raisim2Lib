@@ -114,8 +114,8 @@ them changes the rendered image:
 
 * After shadow maps or the planar reflection were rendered in a frame, one
   ``glFlush`` submits them so the GPU works on them while the CPU encodes the
-  scene pass. This lowers frame time at the cost of some process CPU time;
-  ``RAYRAI_DEBUG_DISABLE_PASS_FLUSH=1`` turns it off for comparisons.
+  scene pass. This lowers frame time at the cost of some process CPU time.
+  The ``RAYRAI_DEBUG_DISABLE_PASS_FLUSH=1`` debug switch skips this flush.
 * The environment background is drawn inside the scene pass. After an opaque
   depth prepass it is depth-tested, so only pixels that no surface covers are
   shaded. ``environmentBackgroundDiagnostics()`` reports how the last scene pass
@@ -125,7 +125,7 @@ them changes the rendered image:
 * An external ``Camera`` keeps its multisampled render target between frames;
   the next render of that camera without MSAA releases it.
   ``Camera::setSceneMsaaSamples(samples, keepAllocation)`` exposes the same
-  behaviour.
+  behavior.
 
 While ``RenderQualitySettings::geometryRefraction`` is on, the frame caches that
 let unchanged external-camera renders reuse earlier results are bypassed, so
@@ -178,16 +178,16 @@ The byte counts are cumulative mesh-buffer counters, not total or live GPU
 memory. Textures, VAOs, and render targets are excluded. ``cachedSnapshots`` is
 the number of published mesh templates currently held, one per distinct asset
 and share group. Use ``resetSharedGpuAssetStats()`` before a controlled
-measurement, and ``setSharedGpuAssetCacheEnabled(false)`` before loading assets
-for a comparison with separate uploads. Restore it to ``true`` before the
-shared-cache run.
+measurement. The cache is enabled by default;
+``setSharedGpuAssetCacheEnabled(false)`` makes every later mesh lookup upload
+its own buffers.
 
 Shader binary cache and multi-threaded prewarming
 =================================================
 
 rayrai's PBR shaders compile in 10-30 seconds on first run depending on the
-GL driver. v2.3.0 adds two features that eliminate that wait in production
-RL pipelines:
+GL driver. Two features (available since v2.3.0) remove that wait in
+production RL pipelines:
 
 1. **Persistent shader binary cache.** Compiled GL programs are written to a
    per-driver cache directory and reloaded on subsequent runs.
@@ -331,8 +331,7 @@ caches are also checked against their source and rebuilt when stale.
    * - LOD chains prepared by asynchronous loading of instanced meshes
      - ``rayrai_cache_<file>.lods`` next to the source asset, else
        ``<temp>/rayrai_async_lod_cache``
-     - ``RAYRAI_ASYNC_LOD_CACHE_DIR``; ``RAYRAI_DISABLE_ASYNC_LOD_CACHE``
-       disables the cache
+     - ``RAYRAI_ASYNC_LOD_CACHE_DIR``
    * - Procedural cloud noise textures
      - ``$HOME/.raisim/rayrai``, then ``%USERPROFILE%\.raisim\rayrai``
        (Windows), then ``<temp>/raisim/rayrai``
@@ -349,8 +348,7 @@ not start with ``0``, unless noted otherwise.
 
 * ``RAYRAI_MESH_PREPROCESS_CACHE_DIR``, ``RAYRAI_ASYNC_LOD_CACHE_DIR``,
   ``RAYRAI_CLOUD_TEXTURE_CACHE_DIR``: cache directories (see
-  `On-disk caches`_). ``RAYRAI_DISABLE_ASYNC_LOD_CACHE`` disables the
-  asynchronous LOD cache when set to any value.
+  `On-disk caches`_).
 * ``RAYRAI_FOLIAGE_LOD_PIXEL_ERROR`` and
   ``RAYRAI_FOLIAGE_SHADOW_LOD_PIXEL_ERROR``: foliage LOD error budgets
   (defaults ``2.25`` pixels and ``2.5`` texels; read once per process). The
@@ -363,22 +361,23 @@ not start with ``0``, unless noted otherwise.
   shader tier on a larger GPU, for testing.
 * ``RAYRAI_EAGER_SHADER_WARMUP``: compile every registered shader when a
   renderer is constructed instead of on first use.
-* ``RAYRAI_PBR_DEBUG_OUTPUT``: PBR debug visualization channel (``0`` is off);
+* ``RAYRAI_PBR_DEBUG_OUTPUT``: PBR debug visualization channel (``0`` is off).
+  ``RayraiWindow::setPbrDebugOutputMode`` overrides it for one renderer, and
   ``captureDebugPasses`` overrides it for the frames it renders.
-* ``RAYRAI_DISABLE_VULKAN_RAY_QUERY``: set to exactly ``1`` to use the portable
-  OpenGL glass tracer even when the Vulkan ray-query backend is available.
 
 The TCP viewer reads its own ``RAYRAI_TCP_VIEWER_*`` variables
-(:doc:`../RayraiTcpViewer`). Variables named ``RAYRAI_DEBUG_*``,
-``RAYRAI_LOG_*`` and ``RAYRAI_BENCH_*``, and the other ``RAYRAI_DISABLE_*`` and
-``RAYRAI_ENABLE_*`` switches, are renderer-development diagnostics (reference
-paths, logging and experiments) and may change between releases.
+(:doc:`../RayraiTcpViewer`). Variables named ``RAYRAI_DEBUG_*`` and
+``RAYRAI_LOG_*`` are renderer-development diagnostics (debug switches and
+logging) and may change between releases. Apart from these debug switches,
+optimizations have no switches to turn them off.
 
 Additional tips
 ===============
 
-* If you add/remove RaiSim objects after constructing the viewer, call
-  ``RayraiWindow::updateObjectLists()`` so the renderer refreshes its cache.
+* Every ``update`` and external-camera render calls
+  ``RayraiWindow::updateObjectLists()``, so RaiSim objects added to or removed
+  from the world are picked up automatically. Call it yourself only when the
+  renderer's object lists must be current before the next render.
 * Use ``setShowCollisionBodies(true)`` for debug visualization of collision shapes.
 * If you want rayrai overlays to use your ImGui font, pass it via ``setExternalFont``.
 
@@ -438,8 +437,9 @@ Rendering and materials
 .. doxygenstruct:: raisin::RenderQualitySettings
    :members:
 
-.. doxygenstruct:: raisin::RayraiWindow::RenderOverrides
-   :members:
+The per-render toggles passed to the external-camera, capture, and timing
+APIs are the nested struct :cpp:struct:`raisin::RayraiWindow::RenderOverrides`,
+documented with ``raisin::RayraiWindow`` above.
 
 .. doxygenenum:: raisin::RenderQualityPreset
 

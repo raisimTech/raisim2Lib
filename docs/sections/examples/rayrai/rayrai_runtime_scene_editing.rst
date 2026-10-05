@@ -30,14 +30,15 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_runtime_scene_editing
 
 On Windows, run ``rayrai_runtime_scene_editing.exe`` instead.
-This example uses the in-process rayrai renderer.
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 Details
 =======
 - Captures and restores a ``World::SingleBodySnapshot``.
 - Clones a primitive single-body object with ``cloneSingleBodyObject``.
-- Looks up a body by stable object id.
-- Toggles the sphere collision mask during the simulation.
+- Looks up a body by its stable object id with ``World::getObjectById``.
+- Toggles the sphere collision mask with ``World::setObjectCollisionFilter``
+  during the simulation.
 - Removes and recreates a cloned body while the world is running.
 
 What to look for
@@ -46,7 +47,9 @@ The scene contains a source box, a cloned box, and a sphere. During the loop:
 
 - The source box is restored from a snapshot and relaunched.
 - The cloned box is periodically removed and recreated.
-- The sphere alternates between normal collision and a filtered collision mask.
+- Every 240 steps, the sphere switches between colliding with everything and a
+  zero collision mask. With the zero mask it passes through the ground and is
+  drawn gray and translucent.
 
 These operations are intentionally visible so users can verify that the object
 state changes are reflected by rayrai immediately.
@@ -56,7 +59,6 @@ API pattern
 The important pattern is:
 
 .. code-block:: cpp
-
 
    raisim::World::SingleBodySnapshot snapshot;
    world->captureSingleBodySnapshot(body, snapshot);

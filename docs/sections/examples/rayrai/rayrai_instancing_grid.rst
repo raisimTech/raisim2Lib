@@ -25,12 +25,13 @@ Run the build-tree executable:
    ./build-examples/examples/rayrai_instancing_grid
 
 On Windows, run ``rayrai_instancing_grid.exe`` instead.
-This example uses the in-process rayrai renderer (no external client required).
+This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 
 Details
 =======
-- Creates a 300x300 grid of instanced boxes with per-instance color weights.
+- Creates a 300 × 300 grid (90,000 instances) of instanced boxes with
+  per-instance color weights.
 - Animates one instance to demonstrate dynamic updates.
 - Uses ``InstancedVisuals`` for efficient bulk rendering.
 

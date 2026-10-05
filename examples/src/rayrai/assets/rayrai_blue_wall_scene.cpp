@@ -2,6 +2,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -211,6 +213,8 @@ bool compareReference(raisin::Camera& camera, const std::filesystem::path& path)
 
 int main(int argc, char* argv[]) {
   std::filesystem::path screenshot;
+  std::filesystem::path recording;
+  int recordingFrames = 60;  // Four seconds at 15 fps.
   std::filesystem::path reference;
   int benchmarkFrames = 0;
   bool checkCamera = false;
@@ -218,6 +222,12 @@ int main(int argc, char* argv[]) {
     const std::string option = argv[i];
     if (option == "--screenshot" && i + 1 < argc) {
       screenshot = argv[++i];
+    } else if (option == "--record" && i + 1 < argc) {
+      recording = argv[++i];
+    } else if (option == "--record-frames" && i + 1 < argc) {
+      try { recordingFrames = std::stoi(argv[++i]); }
+      catch (...) { return 2; }
+      if (recordingFrames < 1) return 2;
     } else if (option == "--compare-reference" && i + 1 < argc) {
       reference = argv[++i];
     } else if (option == "--verify-camera") {
@@ -231,7 +241,8 @@ int main(int argc, char* argv[]) {
       }
       if (benchmarkFrames < 1) return 2;
     } else {
-      std::cerr << "Usage: rayrai_blue_wall_scene [--screenshot PNG] "
+      std::cerr << "Usage: rayrai_blue_wall_scene [--screenshot PNG] [--record FRAME_DIR] "
+                   "[--record-frames N] "
                    "[--compare-reference PNG] [--verify-camera] "
                    "[--benchmark-frames N]\n";
       return 2;
@@ -246,6 +257,11 @@ int main(int argc, char* argv[]) {
     std::cerr << sceneError << '\n';
     return 1;
   }
+  if (!recording.empty()) {
+    description.width = 640;
+    description.height = 400;
+    std::filesystem::create_directories(recording);
+  }
   const std::filesystem::path lightsPath =
       description.meshPath.string() + ".rayrai_lights.json";
   for (const auto& path : {description.meshPath, lightsPath, description.hdrPath}) {
@@ -257,7 +273,7 @@ int main(int argc, char* argv[]) {
 
   ExampleApp app;
   if (!app.init("RayRai Blue Wall", description.width, description.height,
-                screenshot.empty() && reference.empty() && benchmarkFrames == 0 &&
+                screenshot.empty() && recording.empty() && reference.empty() && benchmarkFrames == 0 &&
                 !checkCamera)) return 1;
 
   auto world = std::make_shared<raisim::World>();
@@ -302,6 +318,13 @@ int main(int argc, char* argv[]) {
   settings.minAdditionalShadowResolution = 256;
   settings.updateShadowsEveryFrame = false;
   settings.autoSelectImportedShadowLight = true;
+  if (!recording.empty()) {
+    // Gallery captures do not need full-resolution interactive shadow maps.
+    settings.shadowResolution = 2048;
+    settings.pointShadowResolutionScale = 0.25f;
+    settings.additionalShadowResolutionScale = 0.25f;
+    settings.viewerMsaaSamples = 2;
+  }
   viewer->setRenderQualitySettings(settings);
 
   raisin::RayraiWindow::SceneImportReport report;
@@ -377,8 +400,32 @@ int main(int argc, char* argv[]) {
     app.renderViewer(*viewer);
     app.endFrame();
   };
-  if (!screenshot.empty() || !reference.empty() || benchmarkFrames > 0 || checkCamera) {
+  if (!screenshot.empty() || !recording.empty() || !reference.empty() || benchmarkFrames > 0 || checkCamera) {
     for (int i = 0; i < 3; ++i) renderFrame();
+    if (!recording.empty()) {
+      const int frames = recordingFrames;
+      // Orbit the room's focal point and return to the initial view for a smooth loop.
+      const glm::vec3 pivot = description.cameraPosition +
+          3.0f * glm::normalize(description.cameraTarget - description.cameraPosition);
+      const glm::vec3 offset = description.cameraPosition - pivot;
+      for (int frame = 0; frame < frames; ++frame) {
+        const float angle = 0.065f * std::sin(2.0f * 3.14159265359f * frame / frames);
+        const glm::vec3 eye = pivot + glm::vec3(
+            std::cos(angle) * offset.x - std::sin(angle) * offset.y,
+            std::sin(angle) * offset.x + std::cos(angle) * offset.y, offset.z);
+        lookAt(camera, eye, pivot, description.verticalFov,
+               description.nearPlane, description.farPlane);
+        renderFrame();
+        char name[32];
+        std::snprintf(name, sizeof(name), "frame_%03d.png", frame);
+        if (!saveScreenshot(camera, recording / name)) return 1;
+        if ((frame + 1) % 25 == 0)
+          std::cout << "Blue Wall: recorded " << frame + 1 << '/' << frames << std::endl;
+      }
+      lookAt(camera, description.cameraPosition, description.cameraTarget,
+             description.verticalFov, description.nearPlane, description.farPlane);
+      renderFrame();
+    }
     if (benchmarkFrames > 0) {
       const auto start = std::chrono::steady_clock::now();
       for (int i = 0; i < benchmarkFrames; ++i) renderFrame();
@@ -407,6 +454,13 @@ int main(int argc, char* argv[]) {
     }
   } else {
     while (!app.quit) renderFrame();
+  }
+  if (!recording.empty()) {
+    // The shared GL asset cache outlives ExampleApp's context during normal teardown.
+    // Recording processes exit directly, as the documentation generators do.
+    std::cout.flush();
+    std::cerr.flush();
+    std::_Exit(0);
   }
   viewer.reset();
   app.shutdown();
