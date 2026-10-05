@@ -18,7 +18,7 @@
 #include "rayrai/example_common.hpp"
 #include "rayrai/RsceneVisuals.hpp"
 #include "example_resources.hpp"
-#include "forest_loading.hpp"
+#include "rayrai_loading_progress.hpp"
 
 namespace {
 
@@ -84,8 +84,7 @@ int main(int argc, char* argv[]) {
     raisin::RayraiWindow viewer(world, 1280, 800);
     viewer.setAsyncMeshLoadingEnabled(true);
     raisin::applyRscene(*world->getRscene(), viewer);
-    ForestLoadingProgress loading;
-    loading.label = "Loading city assets";
+    RayraiLoadingProgress loading("Loading city assets");
     loading.update(viewer.pendingAsyncMeshLoadCount());
     // A screenshot waits for the assets, then lets the robot and cones settle.
     constexpr int kSettleFrames = 90;

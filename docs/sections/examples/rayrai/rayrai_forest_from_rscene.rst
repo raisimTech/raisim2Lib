@@ -48,9 +48,9 @@ CMake copies next to the executables:
 
 On Windows, run ``rayrai_forest_from_rscene.exe`` from ``build-examples\bin``.
 The example renders in process and does not need ``rayrai_tcp_viewer``.
-Meshes load asynchronously; physics starts once they are ready and then runs
-eight 2 ms steps per rendered frame. The mesh LOD caches described in
-:doc:`rayrai_forest` are shared with that example.
+Meshes load asynchronously behind a loading bar; physics starts once they are
+ready and then runs eight 2 ms steps per rendered frame. The mesh LOD caches
+described in :doc:`rayrai_forest` are shared with that example.
 
 Changing the render settings
 ============================

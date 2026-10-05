@@ -85,7 +85,7 @@ executable in that checkout opens the project through Engine2 so it can be
 compared with this native viewer.
 Open either scene in Engine2 to edit collision assets and visual batches.
 Neither viewer needs runtime Python. A small
-[loading overlay](forest_loading.hpp)
+[loading overlay](../../../include/rayrai_loading_progress.hpp)
 shows asset progress across the top while meshes import asynchronously and
 finish GPU uploads. It disappears automatically once all assets are ready,
 and does not intercept camera input. Physics waits until loading finishes.

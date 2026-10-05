@@ -1,6 +1,6 @@
 #include <iostream>
 #include "forest_viewer.hpp"
-#include "forest_loading.hpp"
+#include "rayrai_loading_progress.hpp"
 
 int main(int argc, char** argv) {
   try {
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     ImGui::GetIO().IniFilename = nullptr;
     {
       ForestViewer forest(assets,1280,800);
-      ForestLoadingProgress loading;
+      RayraiLoadingProgress loading("Loading forest assets");
       loading.update(forest.viewer->pendingAsyncMeshLoadCount());
       while (!app.quit) {
         app.processEvents();

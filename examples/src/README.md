@@ -38,6 +38,11 @@ Examples find their models, maps and textures with
 copies next to the executables, so examples run from any working directory
 without arguments.
 
+rayrai examples that load meshes asynchronously show a loading bar with
+`RayraiLoadingProgress` from `examples/include/rayrai_loading_progress.hpp`:
+pass it `RayraiWindow::pendingAsyncMeshLoadCount()` every frame and draw it
+after the viewer.
+
 ## Directory groups
 
 - `server/basics`: primitive objects, dense sphere-drop scenes, mesh objects,
