@@ -48,24 +48,24 @@
   <rect x="230" y="223" width="45" height="16" rx="3" class="mujoco"/>
   <text x="250" y="215" class="value">0.283 s</text>
   <text x="283" y="236" class="value">1.093 s</text>
-  <text x="30" y="278" class="label">Primitive speed</text>
-  <rect x="230" y="262" width="139" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="283" width="363" height="16" rx="3" class="mujoco"/>
-  <text x="377" y="275" class="value">3.376 s</text>
-  <text x="601" y="296" class="value">8.804 s</text>
-  <text x="30" y="338" class="label">ANYmal falling</text>
-  <rect x="230" y="322" width="12" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="343" width="30" height="16" rx="3" class="mujoco"/>
-  <text x="250" y="335" class="value">0.283 s</text>
-  <text x="268" y="356" class="value">0.732 s</text>
-  <text x="30" y="398" class="label">ANYmal standing</text>
-  <rect x="230" y="382" width="228" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="403" width="570" height="16" rx="3" class="mujoco"/>
-  <text x="466" y="395" class="value">5.519 s</text>
-  <text x="808" y="416" class="value">13.819 s</text>
-  <text x="30" y="458" class="label">Strandbeest</text>
-  <rect x="230" y="442" width="11" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="463" width="20" height="16" rx="3" class="mujoco"/>
-  <text x="249" y="455" class="value">0.258 s</text>
-  <text x="258" y="476" class="value">0.492 s</text>
+  <text x="30" y="278" class="label">Strandbeest</text>
+  <rect x="230" y="262" width="7" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="283" width="20" height="16" rx="3" class="mujoco"/>
+  <text x="245" y="275" class="value">0.178 s</text>
+  <text x="258" y="296" class="value">0.478 s</text>
+  <text x="30" y="338" class="label">Primitive speed</text>
+  <rect x="230" y="322" width="139" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="343" width="363" height="16" rx="3" class="mujoco"/>
+  <text x="377" y="335" class="value">3.376 s</text>
+  <text x="601" y="356" class="value">8.804 s</text>
+  <text x="30" y="398" class="label">ANYmal falling</text>
+  <rect x="230" y="382" width="12" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="403" width="30" height="16" rx="3" class="mujoco"/>
+  <text x="250" y="395" class="value">0.283 s</text>
+  <text x="268" y="416" class="value">0.732 s</text>
+  <text x="30" y="458" class="label">ANYmal standing</text>
+  <rect x="230" y="442" width="228" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="463" width="570" height="16" rx="3" class="mujoco"/>
+  <text x="466" y="455" class="value">5.519 s</text>
+  <text x="808" y="476" class="value">13.819 s</text>
 </svg>

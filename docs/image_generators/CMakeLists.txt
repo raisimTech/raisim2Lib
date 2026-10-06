@@ -70,7 +70,8 @@ set(_doc_image_generators
     doc_image_constraints
     doc_image_strandbeest
     doc_image_benchmark_scenes
-    doc_image_ray_scan_lidar)
+    doc_image_ray_scan_lidar
+    doc_image_heightmap_rotation)
 set(_gallery_scenes rayrai_blue_wall_scene granular_media_showcase
                     tendon_pulleys rayrai_nested_glass_showcase)
 foreach(_scene IN LISTS _gallery_scenes)

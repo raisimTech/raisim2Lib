@@ -23,7 +23,7 @@ Rebuild applications after updating (``InstancedVisuals`` ABI change).
 * OpenUSD joints excluded from the articulation, and extra joints into a body that already has its tree joint, close loops (a revolute joint as two pins on its axis, a spherical one as a pin, a fixed one as three pins). MJCF ``<connect>`` equalities become pins; inactive ones are skipped with a warning.
 * Redundant constraints are found when the model is loaded (from its geometry at several poses) and in every step; the motion is the same as without them. A constraint whose directions its joints already hold is ignored with a warning.
 * **Behaviour change:** ``RUNGE_KUTTA_4`` integrates as ``TRAPEZOID`` while a system has loop or mimic constraints, and ``TRAPEZOID`` and ``EULER`` integrate positions with the admissible part of a velocity set by hand.
-* The OpenUSD Strandbeest (79 DoF, 84 pins) steps in 78 µs, 2.1× faster than MuJoCo at the same loop accuracy. Chains of spherical joints step 13–16% faster (``chain20_speed`` 0.667 s → 0.569 s). The Linux libraries are linked with ``-Bsymbolic-functions``, so their internal calls skip the PLT (2–3% on the articulated benchmarks).
+* The OpenUSD Strandbeest (79 DoF, 84 pins) steps in 52 µs, 3.0× faster than MuJoCo at the same loop accuracy. Chains of spherical joints step 13–16% faster (``chain20_speed`` 0.667 s → 0.569 s). The Linux libraries are linked with ``-Bsymbolic-functions``, so their internal calls skip the PLT (2–3% on the articulated benchmarks).
 * :doc:`../Benchmark` re-measured on an AMD Ryzen 9 3950X, with scene images and the Strandbeest against MuJoCo.
 
 **World loading**
@@ -32,6 +32,12 @@ Rebuild applications after updating (``InstancedVisuals`` ABI change).
 * rayrai ``raisin::applyRscene``/``rsceneRenderSettings`` show a scene as Engine 2's viewport does: render settings, sky, every light, local fog, reflection probes, visual-only objects with their materials, instanced visuals, terrain foliage and texture splatting, and the camera.
 * Faster object insertion (no redundant contact-body re-sort or per-body ``dynamic_cast``). Adding or removing an object now only marks the contact bodies stale; they are rebuilt once, before the next step, ray query or checkpoint, so building a world is linear instead of quadratic in its object count (adding 2,000 boxes: 42 ms → 5.7 ms; the forest scene's physics build and first step: 121 ms → 48 ms). Object indices and simulation results are unchanged.
 * ``World::addMesh()`` reads a mesh file once per world while the file keeps its size and modification time (``Mesh::FileCache``), so every ``.rasset`` instance placed from it shares one read. Vertices are bit-identical to reading the file directly.
+
+**Height maps**
+
+* Height maps can be rotated: ``setOrientation`` takes any orientation (it used to be a fatal error). Contacts with every shape, ray tests and sensors, swept CCD, granular particles, rayrai and the TCP viewer follow it, and a scene on a rotated map moves like the same scene, gravity included, rotated together with an unrotated map (to rounding error). ``getHeight``, ``getContactHeight``, ``getNormal`` and ``getColor`` keep ignoring the orientation. World XML: ``<heightmap quat="w x y z">``; an exported rotated map reloads with its orientation. Unrotated maps are unchanged; each body near a rotated map adds about 40 ns per step. See :doc:`../HeightMap`.
+* ``World::addHeightMap(const HeightMap*)`` copies the source's position along z and its orientation (it kept only the center x and y).
+* TCP viewer: height-map bounds (camera framing) include the map's position along z.
 
 **rayrai**
 

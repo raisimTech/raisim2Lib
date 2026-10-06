@@ -230,8 +230,10 @@ heightmap
 (optional, default ``default``) ``material`` [string],
 (optional) ``appearance`` [string],
 (optional, default=1) ``collision_group``, (optional, default=-1) ``collision_mask``,
-(optional, default=0) ``center_x``, ``center_y``, ``center_z`` [float].
-``center_z`` sets the height-map position along z.
+(optional, default=0) ``center_x``, ``center_y``, ``center_z`` [float],
+(optional, default=identity) ``quat`` [w, x, y, z].
+``center_z`` sets the height-map position along z, and ``quat`` its
+orientation about the center (see :doc:`HeightMap`).
 
 The height data comes from exactly one of the following options. If several
 are present, the first one in this list is used.

@@ -30,7 +30,8 @@ All numbers on this page were collected on a single machine with the following c
         - Clang 20.1.8, C++20.
       * - Benchmark run
         - October 5, 2026, from the RaiSim 2.7 development tree (revision ``b31a6ae6c`` with the
-          changes of this release cycle).
+          changes of this release cycle). The Strandbeest was re-measured, with both engines, on
+          October 7, 2026, at revision ``59241ca3f`` after a faster loop-constraint solve.
       * - RaiSim build
         - ``CMAKE_BUILD_TYPE=Release`` (``-O3 -DNDEBUG -march=native``).
       * - MuJoCo build
@@ -168,7 +169,7 @@ for reference.
 Results
 =======
 
-In the recorded run, RaiSim was 1.91× to 6.21× faster than MuJoCo across these seven workloads. The
+In the recorded runs, RaiSim was 2.50× to 6.21× faster than MuJoCo across these seven workloads. The
 charts below show both the median timings and the relative speedup.
 
 .. container:: benchmark-graph-block
@@ -205,6 +206,10 @@ charts below show both the median timings and the relative speedup.
         - 0.283 (0.283–0.286)
         - 1.093 (1.092–1.096)
         - 3.86×
+      * - Strandbeest
+        - 0.178 (0.178–0.207)
+        - 0.478 (0.477–0.479)
+        - 2.69×
       * - Primitive speed
         - 3.376 (3.357–3.395)
         - 8.804 (8.754–8.822)
@@ -217,14 +222,10 @@ charts below show both the median timings and the relative speedup.
         - 5.519 (5.466–5.740)
         - 13.819 (13.805–13.861)
         - 2.50×
-      * - Strandbeest
-        - 0.258 (0.254–0.287)
-        - 0.492 (0.487–0.493)
-        - 1.91×
 
-The Strandbeest's times include loading the scene: RaiSim imports the OpenUSD file (about 0.05 s),
-while MuJoCo loads the prepared MJCF. The simulation loop alone takes 78 µs per step in RaiSim and
-162 µs in MuJoCo, a ratio of 2.08.
+The Strandbeest's times include loading the scene: RaiSim imports the OpenUSD file (about 0.02 s),
+while MuJoCo loads the prepared MJCF. The simulation loop alone takes 52 µs per step in RaiSim and
+157 µs in MuJoCo, a ratio of 3.03.
 
 Absolute times depend on hardware, compiler, and scene configuration, so treat them as relative
 magnitudes rather than fixed specifications.

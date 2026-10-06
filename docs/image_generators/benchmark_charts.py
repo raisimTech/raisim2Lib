@@ -16,10 +16,10 @@ RESULTS = [
     ("Chain20 speed", 0.569, 3.535),
     ("Heightmap ANYmal speed", 1.152, 5.519),
     ("Chain10 speed", 0.283, 1.093),
+    ("Strandbeest", 0.178, 0.478),
     ("Primitive speed", 3.376, 8.804),
     ("ANYmal falling", 0.283, 0.732),
     ("ANYmal standing", 5.519, 13.819),
-    ("Strandbeest", 0.258, 0.492),
 ]
 
 STYLE = """    text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }

@@ -3,18 +3,41 @@ Height Map
 #############################
 
 A height map is a grid of points that are triangulated to form a surface.
-Since it is axis-aligned, collision checking is very efficient and it is a recommended way to create terrain.
+Since it is a regular grid, collision checking is very efficient and it is a recommended way to create terrain.
 A height map is always a static object. Height samples are stored row by row:
 the sample at grid index ``(x, y)`` is ``height[y * xSamples + x]``.
 
-Heightmap collision requires identity orientation. Translating a heightmap is
-supported: ``setPosition(x, y, z)`` moves its center to ``(x, y)`` and offsets
-all heights by ``z``. ``setOrientation`` accepts only the identity, and
-collision detection raises a fatal error and terminates the simulation process
-if a heightmap is rotated. These checks are active in every build
-configuration. Use a mesh when the terrain surface itself must be rotated.
+Placement
+=========
 
-You can query the surface at a world-frame ``(x, y)`` position:
+The grid lives in the height map's own frame: the center of the grid is the
+origin and the heights rise along the local z axis. ``setPosition(x, y, z)``
+moves the center to ``(x, y)`` and offsets all heights by ``z``.
+``setOrientation(...)`` turns the whole surface about its center, so a tilted
+map is a slope, a map rotated 90 degrees about x is a wall, and one rotated 180
+degrees is a ceiling.
+
+.. image:: ../../rsc/docs/image/rayrai/heightmap_rotation.png
+   :alt: A rough height map tilted into a slope and a bumpy height map stood up as a wall
+   :width: 100%
+
+Two rotated height maps: a slope tilted 20 degrees and a wall at its foot. The
+box and the cylinder rest on the slope, held by friction, while the ball (its
+descent shown light to dark), the capsule and the small sphere roll and slide
+down and stop against the wall.
+
+Everything that touches the surface follows the orientation: contacts with
+every shape, ray tests and the sensors built on them, swept CCD, granular
+particles, and rendering in rayrai and the TCP viewer. A scene on a rotated map
+moves like the same scene on the unrotated map, with every body and gravity
+rotated along with it; the two agree to rounding error. A height map is one-sided whatever its
+orientation: everything below the surface, along the local -z axis, is inside
+the terrain, and a body that ends up there is pushed back out through the
+surface.
+
+You can query the surface at a world-frame ``(x, y)`` position. These queries
+ignore the orientation: they describe the map with its position applied but
+not rotated.
 
 * height: :code:`getHeight(x, y)` (visual height) and
   :code:`getContactHeight(x, y)` (collision surface; the two differ only after

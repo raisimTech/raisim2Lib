@@ -36,16 +36,16 @@
   <text x="30" y="212" class="label">Chain10 speed</text>
   <rect x="230" y="194" width="294" height="24" rx="4" class="bar"/>
   <text x="536" y="211" class="value">3.86x</text>
-  <text x="30" y="262" class="label">Primitive speed</text>
-  <rect x="230" y="244" width="199" height="24" rx="4" class="bar"/>
-  <text x="441" y="261" class="value">2.61x</text>
-  <text x="30" y="312" class="label">ANYmal falling</text>
-  <rect x="230" y="294" width="197" height="24" rx="4" class="bar"/>
-  <text x="439" y="311" class="value">2.59x</text>
-  <text x="30" y="362" class="label">ANYmal standing</text>
-  <rect x="230" y="344" width="191" height="24" rx="4" class="bar"/>
-  <text x="433" y="361" class="value">2.50x</text>
-  <text x="30" y="412" class="label">Strandbeest</text>
-  <rect x="230" y="394" width="145" height="24" rx="4" class="bar"/>
-  <text x="387" y="411" class="value">1.91x</text>
+  <text x="30" y="262" class="label">Strandbeest</text>
+  <rect x="230" y="244" width="204" height="24" rx="4" class="bar"/>
+  <text x="446" y="261" class="value">2.69x</text>
+  <text x="30" y="312" class="label">Primitive speed</text>
+  <rect x="230" y="294" width="199" height="24" rx="4" class="bar"/>
+  <text x="441" y="311" class="value">2.61x</text>
+  <text x="30" y="362" class="label">ANYmal falling</text>
+  <rect x="230" y="344" width="197" height="24" rx="4" class="bar"/>
+  <text x="439" y="361" class="value">2.59x</text>
+  <text x="30" y="412" class="label">ANYmal standing</text>
+  <rect x="230" y="394" width="191" height="24" rx="4" class="bar"/>
+  <text x="433" y="411" class="value">2.50x</text>
 </svg>
