@@ -422,8 +422,9 @@ Current runnable coverage:
 * :doc:`Rayrai RGB camera <examples/rayrai/rayrai_rgb_camera>` uses the Go1
   ``d455_front/color`` RGB sensor and renders it through ``raisin::Camera``.
 * :doc:`Rayrai depth camera <examples/rayrai/rayrai_depth_camera>` uses the Go1
-  ``d455_front/depth`` depth sensor, renders the linear depth plane, and reads
-  a ``float`` depth buffer back to the CPU.
+  ``d455_front/depth`` depth sensor, renders the linear depth plane, reads
+  a ``float`` depth buffer back to the CPU, and draws the projected points as
+  instanced cubes.
 * :doc:`Rayrai LiDAR point cloud <examples/rayrai/rayrai_lidar_pointcloud>`
   shows a robot-mounted ``SpinningLidar`` and visualizes its scan as a rayrai
   point cloud.

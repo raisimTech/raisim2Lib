@@ -21,6 +21,12 @@ namespace
 constexpr size_t kTerrainSamples = 129;
 constexpr double kTerrainSize = 12.0;
 
+// Projected depth pixels are drawn as small cubes, one for every kPointStride-th pixel in each
+// direction, shaded from the near clip to kPointColorRange beyond it.
+constexpr int kPointStride = 6;
+constexpr float kPointCubeSize = 0.012f;
+constexpr float kPointColorRange = 3.0f;
+
 ImVec2 fitToAspect(ImVec2 available, float aspect) {
   if (aspect <= 0.0f)
     return available;
@@ -32,6 +38,30 @@ ImVec2 fitToAspect(ImVec2 available, float aspect) {
     size.x = size.y * aspect;
   }
   return size;
+}
+
+// Projects a depth image (rows top to bottom) into world-frame points and replaces the cubes in
+// `cubes` with them. Pixels where the camera saw nothing (depth 0) are skipped.
+void showProjectedPixels(raisim::DepthCamera& sensor, const std::vector<float>& depth,
+                         std::vector<raisim::Vec<3>>& points,
+                         std::vector<raisin::InstancedVisuals::InstanceSpec>& instances,
+                         raisin::InstancedVisuals& cubes) {
+  const auto& properties = sensor.getProperties();
+  sensor.depthToPointCloud(depth, points);
+  instances.clear();
+  for (int row = 0; row < properties.height; row += kPointStride) {
+    for (int col = 0; col < properties.width; col += kPointStride) {
+      const size_t pixel = size_t(row) * size_t(properties.width) + size_t(col);
+      if (!(depth[pixel] > 0.0f))
+        continue;
+      raisin::InstancedVisuals::InstanceSpec cube;
+      cube.position = glm::vec3(points[pixel][0], points[pixel][1], points[pixel][2]);
+      cube.colorWeight = (depth[pixel] - float(properties.clipNear)) / kPointColorRange;
+      instances.push_back(cube);
+    }
+  }
+  cubes.clearInstances();
+  cubes.addInstances(instances.data(), instances.size());
 }
 
 double smoothStep(double edge0, double edge1, double value) {
@@ -221,6 +251,20 @@ int main(int argc, char* argv[]) {
   frontDepthFrustum->setDetectable(false);
   rearDepthFrustum->setDetectable(false);
 
+  // Projected pixels of each camera, bright near the camera and dark far away, in the color of
+  // its frustum. They are not detectable, so the cameras never see each other's cubes.
+  auto addProjectedPixelCubes = [&](const std::string& name, const glm::vec3& color) {
+    auto cubes = viewer->addInstancedVisuals(name, raisim::Shape::Box,
+      glm::vec3(kPointCubeSize), glm::vec4(color, 1.0f), glm::vec4(0.35f * color, 1.0f));
+    cubes->setDetectable(false);
+    cubes->setCastsShadows(false);
+    return cubes;
+  };
+  auto frontPixelCubes = addProjectedPixelCubes("front_depth_pixels", {1.0f, 0.62f, 0.18f});
+  auto rearPixelCubes = addProjectedPixelCubes("rear_depth_pixels", {0.20f, 0.72f, 1.0f});
+  std::vector<raisim::Vec<3>> projectedPoints;
+  std::vector<raisin::InstancedVisuals::InstanceSpec> pixelCubeInstances;
+
   const auto& frontDepthProperties = frontDepthCam->getProperties();
   const int frontDepthWidth = std::max(1, frontDepthProperties.width);
   const int frontDepthHeight = std::max(1, frontDepthProperties.height);
@@ -264,21 +308,26 @@ int main(int argc, char* argv[]) {
 
     viewer->renderWithExternalCamera(*frontDepthCam, *frontDepthCamera, {});
     viewer->renderDepthPlaneDistance(*frontDepthCam, *frontDepthCamera);
+    // Flip so rows run top to bottom, the pixel layout DepthCamera uses for its rays.
     frontDepthCamera->getRawImage(
       *frontDepthCam, raisin::Camera::SensorStorageMode::CUSTOM_BUFFER,
-      frontDepthValues.data(), frontDepthValues.size(), /*flipVertical=*/false);
+      frontDepthValues.data(), frontDepthValues.size(), /*flipVertical=*/true);
     frontCenterDepth = frontDepthValues[
       size_t(frontDepthHeight / 2) * size_t(frontDepthWidth) +
       size_t(frontDepthWidth / 2)];
+    showProjectedPixels(*frontDepthCam, frontDepthValues, projectedPoints,
+                        pixelCubeInstances, *frontPixelCubes);
 
     viewer->renderWithExternalCamera(*rearDepthCam, *rearDepthCamera, {});
     viewer->renderDepthPlaneDistance(*rearDepthCam, *rearDepthCamera);
     rearDepthCamera->getRawImage(
       *rearDepthCam, raisin::Camera::SensorStorageMode::CUSTOM_BUFFER,
-      rearDepthValues.data(), rearDepthValues.size(), /*flipVertical=*/false);
+      rearDepthValues.data(), rearDepthValues.size(), /*flipVertical=*/true);
     rearCenterDepth = rearDepthValues[
       size_t(rearDepthHeight / 2) * size_t(rearDepthWidth) +
       size_t(rearDepthWidth / 2)];
+    showProjectedPixels(*rearDepthCam, rearDepthValues, projectedPoints,
+                        pixelCubeInstances, *rearPixelCubes);
 
     if (frontDepthFrustum)
       frontDepthFrustum->updateFromDepthCamera(*frontDepthCam);
@@ -305,7 +354,8 @@ int main(int argc, char* argv[]) {
     ImGui::BeginChild("FrontDepthPanel",
       ImVec2(panelAvailable.x, depthPanelHeight), true,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    ImGui::Text("Front depth | primitives: %zu", frontPrimitives.size());
+    ImGui::Text("Front depth | primitives: %zu | pixel cubes: %zu",
+                frontPrimitives.size(), frontPixelCubes->count());
     ImGui::Text("Center depth: %.4f m", frontCenterDepth);
     ImVec2 frontAvailable = ImGui::GetContentRegionAvail();
     const float frontAspect = float(frontDepthWidth) / float(frontDepthHeight);
@@ -318,7 +368,8 @@ int main(int argc, char* argv[]) {
     ImGui::Dummy(ImVec2(0.0f, panelSpacing));
     ImGui::BeginChild("RearDepthPanel", ImVec2(panelAvailable.x, 0.0f), true,
       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    ImGui::Text("Rear depth | primitives: %zu", rearPrimitives.size());
+    ImGui::Text("Rear depth | primitives: %zu | pixel cubes: %zu",
+                rearPrimitives.size(), rearPixelCubes->count());
     ImGui::Text("Center depth: %.4f m", rearCenterDepth);
     ImVec2 rearAvailable = ImGui::GetContentRegionAvail();
     const float rearAspect = float(rearDepthWidth) / float(rearDepthHeight);
