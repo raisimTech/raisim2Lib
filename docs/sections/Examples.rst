@@ -213,6 +213,10 @@ feature page:
    * - ``blocky_heightmap_drop``
      - 900 primitives and convex-hull meshes dropped onto a heightmap made of
        flat 0.4 m tiles.
+   * - ``rotated_blocky_heightmap_drop``
+     - The ``blocky_heightmap_drop`` scene with the heightmap tilted by
+       15 degrees about the x axis (see :doc:`HeightMap`): the same bodies land
+       on the slope, and the spheres and cylinders roll down it.
    * - ``large_scale_ray_test``
      - Repeated ray queries against walls and pillars; see :doc:`RayTest`.
    * - ``rayrai_blue_wall_scene``
