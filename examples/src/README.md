@@ -119,6 +119,9 @@ after the viewer.
 - `blocky_heightmap_drop`: drop 900 mixed bodies (boxes, spheres, capsules, cylinders,
   and monkey meshes) onto a 250x250-sample, 20m x 20m
   height map whose 5x5 sample blocks share one height drawn uniformly from -0.15m to 0.15m.
+- `rotated_blocky_heightmap_drop`: the `blocky_heightmap_drop` scene with its height map
+  tilted by 15 degrees about the x axis; the same 900 bodies drop onto the slope, and a
+  ground plane catches what rolls off its low edge.
 - `rayrai_coacd_mesh_approximation`: original mesh versus CoACD convex approximation mesh
   collision parts through `World::addMesh`.
 - `rayrai_visual_asset_support`: inspect realistic textured URDF assets while

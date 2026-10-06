@@ -80,6 +80,23 @@ int main(int argc, char* argv[]) {
   std::vector<float> rayraiDepth(size_t(depthWidth) * size_t(depthHeight));
   float centerRayraiDepth = std::numeric_limits<float>::quiet_NaN();
 
+  // Sensed points drawn as one instanced batch of small cubes, shaded from yellow at the near clip
+  // to blue kPointColorRange beyond it. Every kPointStride-th pixel in each direction becomes a
+  // cube. The batch is not detectable, so the depth camera never sees its own points.
+  constexpr int kPointStride = 4;
+  constexpr float kPointCubeSize = 0.015f;
+  constexpr float kPointColorRange = 3.0f;
+  auto depthPoints = viewer->addInstancedVisuals("depth_points", raisim::Shape::Box,
+    glm::vec3(kPointCubeSize), glm::vec4(1.0f, 0.85f, 0.2f, 1.0f),
+    glm::vec4(0.2f, 0.4f, 1.0f, 1.0f));
+  depthPoints->setDetectable(false);
+  depthPoints->setCastsShadows(false);
+  const float clipNear = float(depthProp.clipNear);
+  std::vector<raisim::Vec<3>> sensedPoints;
+  std::vector<raisin::InstancedVisuals::InstanceSpec> pointInstances;
+  pointInstances.reserve(size_t((depthWidth + kPointStride - 1) / kPointStride) *
+                         size_t((depthHeight + kPointStride - 1) / kPointStride));
+
   depthCam->updatePose();
   const glm::vec3 sensorPos = toGlm(depthCam->getPosition());
   const glm::mat3 sensorRot = toGlm(depthCam->getOrientation());
@@ -106,12 +123,32 @@ int main(int argc, char* argv[]) {
 
     viewer->renderWithExternalCamera(*depthCam, *depthCamera, {});
     viewer->renderDepthPlaneDistance(*depthCam, *depthCamera);
+    // Flip so rows run top to bottom, the pixel layout DepthCamera uses for its rays.
     depthCamera->getRawImage(*depthCam,
                              raisin::Camera::SensorStorageMode::CUSTOM_BUFFER,
                              rayraiDepth.data(),
                              rayraiDepth.size(),
-                             /*flipVertical=*/false);
+                             /*flipVertical=*/true);
     centerRayraiDepth = rayraiDepth[size_t(depthHeight / 2) * size_t(depthWidth) + size_t(depthWidth / 2)];
+
+    // Back-project the depth image into world-frame points and show them as cubes.
+    depthCam->depthToPointCloud(rayraiDepth, sensedPoints);
+    pointInstances.clear();
+    for (int row = 0; row < depthHeight; row += kPointStride) {
+      for (int col = 0; col < depthWidth; col += kPointStride) {
+        const size_t pixel = size_t(row) * size_t(depthWidth) + size_t(col);
+        const float depth = rayraiDepth[pixel];
+        // rayrai writes 0 where the ray hit nothing.
+        if (!(depth > 0.0f))
+          continue;
+        raisin::InstancedVisuals::InstanceSpec point;
+        point.position = toGlm(sensedPoints[pixel]);
+        point.colorWeight = (depth - clipNear) / kPointColorRange;
+        pointInstances.push_back(point);
+      }
+    }
+    depthPoints->clearInstances();
+    depthPoints->addInstances(pointInstances.data(), pointInstances.size());
 
     // CPU depth camera path.
     //
@@ -163,14 +200,15 @@ int main(int argc, char* argv[]) {
     const float aspect = float(depthWidth) / float(depthHeight);
 
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(380, 250), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(380, 270), ImGuiCond_FirstUseEver);
     ImGui::Begin("Depth Sensor", nullptr, ImGuiWindowFlags_NoCollapse);
     ImVec2 avail = ImGui::GetContentRegionAvail();
-    avail.y = std::max(1.0f, avail.y - ImGui::GetTextLineHeightWithSpacing());
+    avail.y = std::max(1.0f, avail.y - 2.0f * ImGui::GetTextLineHeightWithSpacing());
     ImVec2 size = fitToAspect(avail, aspect);
     ImTextureID tex = (ImTextureID)(intptr_t)depthCamera->getLinearDepthTexture();
     ImGui::Image(tex, size, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::Text("rayrai center depth: %.4f m", centerRayraiDepth);
+    ImGui::Text("sensed points: %zu cubes", depthPoints->count());
     ImGui::End();
 
     app.endFrame();

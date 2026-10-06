@@ -6,7 +6,8 @@ Overview
 ========
 Visualizes stale deleted-heightmap geometry in a rayrai depth image. The scene
 places a PD-controlled ANYmal on a flat terrain patch and renders its front and
-rear depth cameras into separate ImGui panels. Press Space to create a visibly
+rear depth cameras into separate ImGui panels, and draws the pixels of each
+camera projected into the world as small instanced cubes. Press Space to create a visibly
 different heightmap with broad mounds that shift across both camera frames, then
 replace randomized populations of simple primitives and delete the old scene.
 
@@ -34,6 +35,9 @@ How to reproduce
 #. Compare the depth image with the current colored terrain in the main view. A
    mound or primitive from an earlier generation indicates stale deleted geometry
    in the depth pass.
+#. The projected pixel cubes must lie on the current terrain and primitives. Cubes
+   floating in the air or buried in the ground show that the depth image does not
+   match the scene.
 
 Details
 =======
@@ -46,6 +50,11 @@ Details
   terrain generation.
 - Places two to nine deterministic pseudo-random static boxes, spheres, and
   cylinders in each camera's near field.
+- Projects each depth image into world-frame points with
+  ``DepthCamera::depthToPointCloud`` and draws every sixth pixel in each
+  direction as a small cube, one ``InstancedVisuals`` batch per camera in the
+  color of its frustum (orange front, blue rear), darker with distance. The
+  batches are not detectable, so the cameras never see the cubes.
 - Allocates the new heightmap and primitives before calling
   ``World::removeObject`` on the old scene, guaranteeing distinct object
   addresses while still exercising deletion.

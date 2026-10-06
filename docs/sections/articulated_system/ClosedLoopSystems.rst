@@ -278,7 +278,10 @@ Performance
 ===========
 
 The cost of the loop constraints grows linearly with the number of joints for a fixed number of
-constraints, and many coupled loops need no more contact-solver iterations than one. The
+constraints, and many coupled loops need no more contact-solver iterations than one. Loops that
+meet only through a few shared joints, like the legs of a walking machine that all hang from its
+body and its crank, are factored leg by leg: their cost then grows about linearly with the number
+of loops rather than with its cube. RaiSim recognizes this structure from the model. The
 12-legged :doc:`../examples/server/strandbeest_closed_loops` (79 degrees of freedom, 36 coupled
 loops, walking on its feet) takes about 49 µs per step on a desktop CPU (AMD Ryzen 9 3950X), 40
 times faster than real time at its 2 ms time step. :doc:`../Benchmark` compares the same machine,

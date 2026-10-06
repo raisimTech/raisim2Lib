@@ -51,8 +51,8 @@ Shape categories
 * **ConvexMesh**: convex mesh representation (``MeshCollisionMode::CONVEX_HULL``
   or each part of a ``MeshCollisionMode::CONVEXIFY`` decomposition).
 * **Mesh**: non-convex triangle mesh (``MeshCollisionMode::ORIGINAL_MESH``).
-* **Heightmap**: grid terrain represented by triangles. Rotation is not
-  supported in collision; a rotated heightmap is a fatal error.
+* **Heightmap**: grid terrain represented by triangles. It can be translated and rotated
+  arbitrarily; contacts are computed in the heightmap's own frame and mapped back to the world.
 * **Ray**: query-only shape used by ray tests.
 
 Pair list (narrowphase algorithms and contact counts)
@@ -216,11 +216,12 @@ Mesh vs Mesh
 
 Heightmap interactions
 ----------------------
-Heightmap contacts operate on grid triangles; heightmap rotation is not
-supported (rotation must be identity). When the footprint of a box, capsule,
-cylinder, or convex mesh lies over an exactly level patch of the heightmap,
-RaiSim reuses the corresponding plane routine (see the plane tables). All
-heightmap pairs go through the manifold reduction described above.
+Heightmap contacts operate on grid triangles. A rotated heightmap is handled in its own frame:
+the other body's pose (and, for swept CCD, its motion) is expressed in the unrotated map's frame,
+the contacts are found there and their points and normals are rotated back into the world. When
+the footprint of a box, capsule, cylinder, or convex mesh lies over an exactly level patch of the
+heightmap, RaiSim reuses the corresponding plane routine (see the plane tables). All heightmap
+pairs go through the manifold reduction described above.
 
 .. list-table::
    :header-rows: 1
