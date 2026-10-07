@@ -48,11 +48,11 @@
   <rect x="230" y="223" width="45" height="16" rx="3" class="mujoco"/>
   <text x="250" y="215" class="value">0.283 s</text>
   <text x="283" y="236" class="value">1.093 s</text>
-  <text x="30" y="278" class="label">Strandbeest</text>
-  <rect x="230" y="262" width="7" height="16" rx="3" class="raisim"/>
-  <rect x="230" y="283" width="20" height="16" rx="3" class="mujoco"/>
-  <text x="245" y="275" class="value">0.178 s</text>
-  <text x="258" y="296" class="value">0.478 s</text>
+  <text x="30" y="278" class="label">Strandbeest (loop only)</text>
+  <rect x="230" y="262" width="6" height="16" rx="3" class="raisim"/>
+  <rect x="230" y="283" width="19" height="16" rx="3" class="mujoco"/>
+  <text x="244" y="275" class="value">0.155 s</text>
+  <text x="257" y="296" class="value">0.470 s</text>
   <text x="30" y="338" class="label">Primitive speed</text>
   <rect x="230" y="322" width="139" height="16" rx="3" class="raisim"/>
   <rect x="230" y="343" width="363" height="16" rx="3" class="mujoco"/>

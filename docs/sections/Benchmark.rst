@@ -43,8 +43,8 @@ All numbers on this page were collected on a single machine with the following c
           ``OPENBLAS_NUM_THREADS`` and ``MKL_NUM_THREADS`` were set to 1.
       * - Metric
         - Wall-clock seconds of each benchmark run, measured by the benchmark launcher. This includes
-          building the scene, which takes a few milliseconds except for the Strandbeest (see
-          `Results`_). Lower is better. ``Speedup`` is the median MuJoCo time divided by the median
+          building the scene, which takes a few milliseconds. The Strandbeest is the exception: its
+          row reports the simulation loop alone (see `Results`_). Lower is better. ``Speedup`` is the median MuJoCo time divided by the median
           RaiSim time, so values above 1 mean RaiSim was faster.
       * - Settings
         - Each benchmark and backend was run three times with its default arguments (the step
@@ -206,10 +206,10 @@ charts below show both the median timings and the relative speedup.
         - 0.283 (0.283–0.286)
         - 1.093 (1.092–1.096)
         - 3.86×
-      * - Strandbeest
-        - 0.178 (0.178–0.207)
-        - 0.478 (0.477–0.479)
-        - 2.69×
+      * - Strandbeest (simulation loop)
+        - 0.155 (0.154–0.155)
+        - 0.470 (0.470–0.475)
+        - 3.03×
       * - Primitive speed
         - 3.376 (3.357–3.395)
         - 8.804 (8.754–8.822)
@@ -223,9 +223,10 @@ charts below show both the median timings and the relative speedup.
         - 13.819 (13.805–13.861)
         - 2.50×
 
-The Strandbeest's times include loading the scene: RaiSim imports the OpenUSD file (about 0.02 s),
-while MuJoCo loads the prepared MJCF. The simulation loop alone takes 52 µs per step in RaiSim and
-157 µs in MuJoCo, a ratio of 3.03.
+The Strandbeest row times its 3,000 simulation steps alone: 52 µs per step in RaiSim and 157 µs in
+MuJoCo. Loading the scene is left out because the two engines do different work there: RaiSim
+imports the OpenUSD file (about 0.02 s), while MuJoCo loads the prepared MJCF. Including it, the
+whole runs take 0.178 s and 0.478 s, a ratio of 2.69.
 
 Absolute times depend on hardware, compiler, and scene configuration, so treat them as relative
 magnitudes rather than fixed specifications.

@@ -70,10 +70,9 @@ set(_doc_image_generators
     doc_image_constraints
     doc_image_strandbeest
     doc_image_benchmark_scenes
-    doc_image_ray_scan_lidar
     doc_image_heightmap_rotation)
 set(_gallery_scenes rayrai_blue_wall_scene granular_media_showcase
-                    tendon_pulleys rayrai_nested_glass_showcase)
+                    tendon_pulleys rayrai_nested_glass_showcase rayrai_city)
 foreach(_scene IN LISTS _gallery_scenes)
   list(APPEND _doc_image_generators "doc_image_${_scene}")
 endforeach()
@@ -157,7 +156,6 @@ add_custom_command(
 
 set(_rolling_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/rolling_friction_frames")
 set(_strandbeest_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/strandbeest_frames")
-set(_lidar_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/ray_scan_lidar_frames")
 set(_previous_stamp "${_doc_image_shader_warmup_stamp}")
 list(APPEND _doc_image_outputs "${_doc_image_shader_warmup_stamp}")
 foreach(_gen IN LISTS _doc_image_generators)
@@ -166,7 +164,8 @@ foreach(_gen IN LISTS _doc_image_generators)
     set(_gen_source "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/src/rayrai/assets/rayrai_blue_wall_scene.cpp")
   elseif(_gen STREQUAL "doc_image_rayrai_nested_glass_showcase")
     set(_gen_source "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/src/rayrai/materials/rayrai_nested_glass.cpp")
-  elseif(_gen STREQUAL "doc_image_granular_media_showcase" OR _gen STREQUAL "doc_image_tendon_pulleys")
+  elseif(_gen STREQUAL "doc_image_granular_media_showcase" OR _gen STREQUAL "doc_image_tendon_pulleys"
+         OR _gen STREQUAL "doc_image_rayrai_city")
     set(_gen_source "${CMAKE_CURRENT_SOURCE_DIR}/doc_image_home_dynamics.cpp")
   endif()
   add_executable(${_gen} "${_gen_source}")
@@ -192,7 +191,6 @@ foreach(_gen IN LISTS _doc_image_generators)
   set(_doc_image_prepare_command "")
   set(_doc_image_rolling_frames_dir_arg "")
   set(_doc_image_strandbeest_frames_dir_arg "")
-  set(_doc_image_lidar_frames_dir_arg "")
   set(_doc_image_gallery_frames_dir_arg "")
   set(_doc_image_arguments "")
   set(_doc_image_model_dependencies "")
@@ -206,13 +204,6 @@ foreach(_gen IN LISTS _doc_image_generators)
         COMMAND ${CMAKE_COMMAND} -E rm -rf "${_strandbeest_frames_dir}")
     set(_doc_image_model_dependencies
         "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/strandbeest/strandbeest.urdf")
-  elseif(_gen STREQUAL "doc_image_ray_scan_lidar")
-    set(_doc_image_lidar_frames_dir_arg "${_lidar_frames_dir}")
-    set(_doc_image_prepare_command
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${_lidar_frames_dir}")
-    set(_doc_image_model_dependencies
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/husky/husky.urdf"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/src/server/sensors/ray_scan_lidar.cpp")
   elseif(_scene_name IN_LIST _gallery_scenes)
     set(_doc_image_gallery_frames_dir_arg "${CMAKE_CURRENT_BINARY_DIR}/${_gen}_frames")
     set(_doc_image_prepare_command
@@ -230,6 +221,10 @@ foreach(_gen IN LISTS _doc_image_generators)
           COMMAND ${CMAKE_COMMAND} -E make_directory "${_blue_wall_rsc}"
           COMMAND ${CMAKE_COMMAND} -E copy_if_different
                   ${_doc_image_model_dependencies} "${_blue_wall_rsc}")
+    elseif(_scene_name STREQUAL "rayrai_city")
+      set(_doc_image_model_dependencies
+          "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/city/rayrai_city.rscene"
+          "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/anymal_c/urdf/anymal.urdf")
     elseif(_scene_name STREQUAL "rayrai_nested_glass_showcase")
       set(_doc_image_arguments "--record=${_doc_image_gallery_frames_dir_arg};--frames=60;--width=640;--height=400;--samples=32;--backend=portable")
       set(_doc_image_model_dependencies
@@ -252,7 +247,6 @@ foreach(_gen IN LISTS _doc_image_generators)
               -D "DOC_IMAGE_RUNTIME_ENV_VALUE=${_doc_image_lib_dirs_str}"
               -D "DOC_IMAGE_ROLLING_FRAMES_DIR=${_doc_image_rolling_frames_dir_arg}"
               -D "DOC_IMAGE_STRANDBEEST_FRAMES_DIR=${_doc_image_strandbeest_frames_dir_arg}"
-              -D "DOC_IMAGE_LIDAR_FRAMES_DIR=${_doc_image_lidar_frames_dir_arg}"
               -D "DOC_IMAGE_GALLERY_FRAMES_DIR=${_doc_image_gallery_frames_dir_arg}"
               -D "DOC_IMAGE_ARGUMENTS=${_doc_image_arguments}"
               -D "DOC_IMAGE_ATTEMPTS=3"
@@ -280,11 +274,17 @@ if(FFMPEG_EXECUTABLE)
       set(_gif_name "granular_media_kicking")
     endif()
     set(_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/${_gif_name}.gif")
+    set(_palette "palettegen=stats_mode=diff")
+    if(_scene STREQUAL "rayrai_city")
+      # The camera moves through a detailed street, so frames share almost no pixels;
+      # 64 colors keep the GIF near the size of the others (about 7.5 MB instead of 11.7).
+      set(_palette "palettegen=stats_mode=diff:max_colors=64")
+    endif()
     add_custom_command(
         OUTPUT "${_gif}"
         COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -framerate 15
                 -i "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}_frames/frame_%03d.png"
-                -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] palettegen=stats_mode=diff [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
+                -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] ${_palette} [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
                 -loop 0 "${_gif}.tmp.gif"
         COMMAND ${CMAKE_COMMAND} -E rename "${_gif}.tmp.gif" "${_gif}"
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}.stamp"
@@ -328,20 +328,6 @@ if(FFMPEG_EXECUTABLE)
       COMMENT "Compositing Strandbeest frames into GIF"
       VERBATIM)
   list(APPEND _doc_image_outputs "${_strandbeest_gif}")
-  set(_lidar_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/ray_scan_lidar.gif")
-  add_custom_command(
-      OUTPUT "${_lidar_gif}"
-      COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error
-              -framerate 25
-              -i "${_lidar_frames_dir}/frame_%03d.png"
-              -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] palettegen=stats_mode=diff [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
-              -loop 0
-              "${_lidar_gif}"
-      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/doc_image_ray_scan_lidar.stamp"
-      WORKING_DIRECTORY "${RAISIM_DOC_IMAGE_OUTPUT_DIR}"
-      COMMENT "Compositing ray-scan lidar frames into GIF"
-      VERBATIM)
-  list(APPEND _doc_image_outputs "${_lidar_gif}")
 else()
   message(STATUS "ffmpeg not found; skipping documentation GIF compositing")
 endif()

@@ -16,7 +16,9 @@ RESULTS = [
     ("Chain20 speed", 0.569, 3.535),
     ("Heightmap ANYmal speed", 1.152, 5.519),
     ("Chain10 speed", 0.283, 1.093),
-    ("Strandbeest", 0.178, 0.478),
+    # The simulation loop alone: RaiSim's OpenUSD import (about 0.02 s) would otherwise
+    # dominate the difference. See the paragraph under the results table.
+    ("Strandbeest (loop only)", 0.155, 0.470),
     ("Primitive speed", 3.376, 8.804),
     ("ANYmal falling", 0.283, 0.732),
     ("ANYmal standing", 5.519, 13.819),

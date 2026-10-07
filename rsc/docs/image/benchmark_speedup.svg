@@ -36,9 +36,9 @@
   <text x="30" y="212" class="label">Chain10 speed</text>
   <rect x="230" y="194" width="294" height="24" rx="4" class="bar"/>
   <text x="536" y="211" class="value">3.86x</text>
-  <text x="30" y="262" class="label">Strandbeest</text>
-  <rect x="230" y="244" width="204" height="24" rx="4" class="bar"/>
-  <text x="446" y="261" class="value">2.69x</text>
+  <text x="30" y="262" class="label">Strandbeest (loop only)</text>
+  <rect x="230" y="244" width="231" height="24" rx="4" class="bar"/>
+  <text x="473" y="261" class="value">3.03x</text>
   <text x="30" y="312" class="label">Primitive speed</text>
   <rect x="230" y="294" width="199" height="24" rx="4" class="bar"/>
   <text x="441" y="311" class="value">2.61x</text>

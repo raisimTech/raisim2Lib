@@ -35,10 +35,10 @@ RaiSim |raisim_version_title|
           :alt: 12-legged Strandbeest walking, driven by one crank through 36 closed kinematic loops
           :width: 100%
           :target: sections/examples/server/strandbeest_closed_loops.html
-     - .. image:: ../rsc/docs/image/rayrai/ray_scan_lidar.gif
-          :alt: Husky driving over rough terrain with ray-scan lidar hits colored by range
+     - .. image:: ../rsc/docs/image/rayrai/rayrai_city.gif
+          :alt: Camera moving around ANYmal C standing on a photoreal city street next to roadworks
           :width: 100%
-          :target: sections/examples/server/ray_scan_lidar.html
+          :target: sections/examples/rayrai/rayrai_city.html
 
 RaiSim is a cross-platform multi-body physics engine for robotics and AI. The
 binary package provides rigid bodies, articulated systems, deformable bodies,

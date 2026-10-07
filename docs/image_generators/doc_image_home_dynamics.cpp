@@ -1,7 +1,9 @@
-// Records the existing granular-media and tendon-pulley scenes for the home gallery.
+// Records the existing granular-media, tendon-pulley and city scenes for the home gallery.
 #include "doc_image_common.hpp"
 #include "tendon_scenes.hpp"
 #include <rayrai/helper.hpp>
+#include <rayrai/RsceneVisuals.hpp>
+#include <glbinding/gl/gl.h>
 #include <raisim/object/granular/GranularSystem.hpp>
 #include <cmath>
 #include <cstdlib>
@@ -214,6 +216,83 @@ void granular(const std::filesystem::path& frames, const std::filesystem::path& 
               disturbed, maxDisplacement, robot->getGeneralizedCoordinate()[2]);
   sync();
 }
+// The rayrai_city example: the city .rscene with ANYmal C standing on the street. The
+// camera swings around the robot to one side, then the other, rising a little, so the
+// loop closes without a jump. Frames come from the viewer's own render, as on screen:
+// it draws the scene's HDR sky and every viewer-only visual (buildings, cars, street
+// furniture), which captures through an external camera would skip.
+void city(const std::filesystem::path& frames, const std::filesystem::path& rsc) {
+  constexpr int width = 1280, height = 800;  // The gallery GIF step scales to 640 px.
+  auto world = std::make_shared<raisim::World>((rsc / "city/rayrai_city.rscene").string());
+  // Same robot, pose and PD gains as examples/src/rayrai/worlds/rayrai_city.cpp.
+  constexpr double robotX = -36., robotY = -1.6, robotYaw = 2.6;
+  auto* robot = world->addArticulatedSystem((rsc / "anymal_c/urdf/anymal.urdf").string());
+  Eigen::VectorXd gc(robot->getGeneralizedCoordinateDim());
+  Eigen::VectorXd gv = Eigen::VectorXd::Zero(robot->getDOF()), pgain = gv, dgain = gv;
+  gc << robotX, robotY, .56, std::cos(robotYaw / 2), 0., 0., std::sin(robotYaw / 2),
+      .03, .4, -.8, -.03, .4, -.8, .03, -.4, .8, -.03, -.4, .8;
+  pgain.tail<12>().setConstant(200.);
+  dgain.tail<12>().setConstant(10.);
+  robot->setState(gc, gv);
+  robot->setControlMode(raisim::ControlMode::PD_PLUS_FEEDFORWARD_TORQUE);
+  robot->setPdGains(pgain, dgain);
+  robot->setPdTarget(gc, gv);
+  robot->setGeneralizedForce(gv);
+  // Let the robot and the traffic cones settle.
+  for (double t = 0.; t < 1.5; t += world->getTimeStep()) world->integrate();
+
+  raisin::RayraiWindow viewer(world, width, height);
+  viewer.setAsyncMeshLoadingEnabled(true);
+  raisin::applyRscene(*world->getRscene(), viewer);
+  if (!doc_image::waitForSceneAssetsReady(viewer, width, height))
+    throw std::runtime_error("city assets did not finish loading");
+  viewer.setAsyncMeshLoadingEnabled(false);
+
+  auto& camera = viewer.getCamera();
+  const glm::vec3 pivot(float(robotX), float(robotY), 0.f);
+  // Aiming down the street past the robot keeps the horizon near the middle of the frame.
+  const glm::vec3 target(-32.f, -1.3f, .6f);
+  const auto placeCamera = [&](int frame) {
+    const float phase = 2.f * kPi * float(frame) / kFrames;
+    const float heading = kPi * (-170.f + 25.f * std::sin(phase)) / 180.f;
+    const float radius = 4.4f - .4f * (1.f - std::cos(phase));
+    const float eyeHeight = .95f + .25f * (1.f - std::cos(phase));
+    doc_image::setCameraLookAt(camera, pivot + glm::vec3(radius * std::cos(heading),
+                                                          radius * std::sin(heading), eyeHeight),
+                               target, 58.f);
+    // The street runs far beyond setCameraLookAt's 80 m far plane.
+    camera.nearPlane = camera.zNear = .1f;
+    camera.farPlane = camera.zFar = 2000.f;
+  };
+  const auto render = [&] { viewer.update(width, height, false, 0, 0, /*headless=*/true); };
+  placeCamera(0);
+  for (int i = 0; i < 5; ++i) render();  // Settle temporal effects at the first pose.
+
+  const char* previewFrames = std::getenv("RAISIM_DOC_GALLERY_FRAME_COUNT");
+  const int frameCount = previewFrames ? std::clamp(std::atoi(previewFrames), 1, kFrames) : kFrames;
+  // Real-time playback at 15 fps: four seconds of simulation over the loop.
+  const int totalSteps = int(std::lround(4. / world->getTimeStep()));
+  std::vector<unsigned char> rgba(size_t(width) * height * 4);
+  for (int frame = 0; frame < frameCount; ++frame) {
+    placeCamera(frame);
+    render();
+    gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
+    gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
+    gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
+    char name[32];
+    std::snprintf(name, sizeof(name), "frame_%03d.png", frame);
+    if (!doc_image::writePng(frames / name, width, height, rgba, /*flipVertical=*/true))
+      doc_image::finishAndExit(1);
+    const int steps = (frame + 1) * totalSteps / kFrames - frame * totalSteps / kFrames;
+    for (int i = 0; i < steps; ++i) world->integrate();
+    if (!robot->getGeneralizedCoordinate().e().allFinite())
+      throw std::runtime_error("non-finite robot state");
+    if ((frame + 1) % 5 == 0 || frame + 1 == frameCount) {
+      std::printf("doc_image: %s frame %d/%d\n", DOC_IMAGE_SCENE, frame + 1, frameCount);
+      std::fflush(stdout);
+    }
+  }
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -229,6 +308,7 @@ int main(int argc, char** argv) {
   if (!gl.init(DOC_IMAGE_SCENE)) doc_image::finishAndExit(1);
   try {
     if (std::string(DOC_IMAGE_SCENE) == "tendon_pulleys") pulleys(frames);
+    else if (std::string(DOC_IMAGE_SCENE) == "rayrai_city") city(frames, rsc);
     else granular(frames, rsc);
   } catch (const std::exception& e) {
     std::fprintf(stderr, "doc_image: %s\n", e.what());

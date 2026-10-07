@@ -14,7 +14,7 @@
   <img src="rsc/docs/image/rayrai/rayrai_nested_glass_showcase.gif" alt="Camera orbiting nested and overlapping glass solids" width="49%" />
   <br />
   <img src="rsc/docs/image/rayrai/strandbeest_closed_loops.gif" alt="12-legged Strandbeest walking, driven by one crank through 36 closed kinematic loops" width="49%" />
-  <img src="rsc/docs/image/rayrai/ray_scan_lidar.gif" alt="Husky driving over rough terrain with ray-scan lidar hits colored by range" width="49%" />
+  <img src="rsc/docs/image/rayrai/rayrai_city.gif" alt="Camera moving around ANYmal C standing on a photoreal city street next to roadworks" width="49%" />
 </p>
 
 For full documentation, see the [RaiSim documentation](https://raisim.com).
