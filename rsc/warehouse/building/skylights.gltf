@@ -1,0 +1,132 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "generate_warehouse_rscene.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "skylights"
+  }
+ ],
+ "meshes": [
+  {
+   "name": "skylights",
+   "primitives": [
+    {
+     "material": 0,
+     "indices": 0,
+     "attributes": {
+      "POSITION": 1,
+      "NORMAL": 2,
+      "TEXCOORD_0": 3
+     }
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "name": "skylight",
+   "pbrMetallicRoughness": {
+    "baseColorFactor": [
+     0.9,
+     0.92,
+     0.95,
+     1.0
+    ],
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.5
+   },
+   "emissiveFactor": [
+    0.92,
+    0.95,
+    1.0
+   ],
+   "extensions": {
+    "KHR_materials_emissive_strength": {
+     "emissiveStrength": 6.0
+    }
+   }
+  }
+ ],
+ "buffers": [
+  {
+   "uri": "skylights.bin",
+   "byteLength": 4864
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 768,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 768,
+   "byteLength": 1536,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 2304,
+   "byteLength": 1536,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 3840,
+   "byteLength": 1024,
+   "target": 34962
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5125,
+   "count": 192,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 128,
+   "type": "VEC3",
+   "min": [
+    -28.5,
+    -12.4,
+    10.572777777777777
+   ],
+   "max": [
+    28.5,
+    12.4,
+    11.26611111111111
+   ]
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 128,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5126,
+   "count": 128,
+   "type": "VEC2"
+  }
+ ],
+ "extensionsUsed": [
+  "KHR_materials_emissive_strength"
+ ]
+}

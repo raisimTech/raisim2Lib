@@ -50,7 +50,9 @@ Place the activation key at:
     $HOME/.raisim/activation.raisim
 
 (``$HOME/raisim/activation.raisim`` is also checked), or pass an explicit path
-before creating the first world:
+before creating the first world. A process started without ``$HOME`` still finds
+the key in your home directory, and if the current user has none, RaiSim also
+checks the other users' home directories on the machine:
 
 .. code-block:: cpp
 

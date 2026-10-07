@@ -1,0 +1,11 @@
+Model Information:
+* title:	Forklift Truck
+* source:	https://sketchfab.com/3d-models/forklift-truck-060f3f8bc7de4e6ca2f348d414702e9d
+* author:	louis-muir (https://sketchfab.com/louir-muir)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Forklift Truck" (https://sketchfab.com/3d-models/forklift-truck-060f3f8bc7de4e6ca2f348d414702e9d) by louis-muir (https://sketchfab.com/louir-muir) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

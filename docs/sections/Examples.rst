@@ -192,6 +192,10 @@ Start with these targets when learning a specific feature:
      - A photoreal city of modular buildings, streets and parked cars loaded
        from ``rsc/city/rayrai_city.rscene``, with an ANYmal C quadruped added
        in C++. See :doc:`examples/rayrai/rayrai_city`.
+   * - ``rayrai_warehouse``
+     - A photoreal warehouse of pallet racks, forklifts and a dock area loaded
+       from ``rsc/warehouse/rayrai_warehouse.rscene``, with an ANYmal C
+       quadruped added in C++. See :doc:`examples/rayrai/rayrai_warehouse`.
 
 Targets without a dedicated page
 --------------------------------
@@ -248,6 +252,9 @@ Some targets depend on bundled assets or platform runtime packages:
 * ``rayrai_city`` reads ``rsc/city/rayrai_city.rscene`` from the ``rsc`` copy
   next to the executables (``--scene`` picks another file). Its street trees
   are the forest's, so it also needs ``rsc/forest``.
+* ``rayrai_warehouse`` reads ``rsc/warehouse/rayrai_warehouse.rscene`` the same
+  way. It reuses the city's sky, asphalt and traffic cones, so it also needs
+  ``rsc/city``.
 * ``rayrai_coacd_mesh_approximation`` writes ``raisim_coacd_*`` cache files
   beside the YCB meshes in the build tree's ``rsc`` copy.
 
@@ -304,6 +311,7 @@ Rayrai Tools And Examples
    examples/rayrai/rayrai_swept_ccd
    examples/rayrai/rayrai_forest_from_rscene
    examples/rayrai/rayrai_city
+   examples/rayrai/rayrai_warehouse
    examples/rayrai/rayrai_tcp_viewer
 
 Server Examples

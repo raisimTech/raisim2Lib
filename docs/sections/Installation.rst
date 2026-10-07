@@ -218,8 +218,13 @@ RaiSim first checks the path passed to
 ``raisim::World::setActivationKey()``. If that file is not found, it falls back
 to the user-directory location above (``$HOME`` on Linux and macOS,
 ``%USERPROFILE%`` on Windows) and then to ``raisim/activation.raisim`` in the
-same user directory. If no key is found, RaiSim prints the checked paths and
-your machine id and stops with a fatal error. RaiSim locates and validates the
+same user directory. The user directory is also taken from the operating
+system's account records, so a process started without ``$HOME``, for example
+by a service manager or a launcher that clears the environment, still finds the
+key. If the current user has no key, RaiSim checks the same locations in the
+other users' home directories on the machine and prints which key it uses. If
+no key is found, RaiSim prints the checked paths and your machine id and stops
+with a fatal error. RaiSim locates and validates the
 key once per process, when the first ``raisim::World`` is constructed, so call
 ``setActivationKey()`` before creating any world.
 

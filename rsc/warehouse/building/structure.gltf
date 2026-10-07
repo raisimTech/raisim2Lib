@@ -1,0 +1,243 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "generate_warehouse_rscene.py"
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "structure"
+  }
+ ],
+ "meshes": [
+  {
+   "name": "structure",
+   "primitives": [
+    {
+     "material": 0,
+     "indices": 0,
+     "attributes": {
+      "POSITION": 1,
+      "NORMAL": 2,
+      "TEXCOORD_0": 3
+     }
+    },
+    {
+     "material": 1,
+     "indices": 4,
+     "attributes": {
+      "POSITION": 5,
+      "NORMAL": 6,
+      "TEXCOORD_0": 7
+     }
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "name": "steel",
+   "pbrMetallicRoughness": {
+    "baseColorFactor": [
+     0.32,
+     0.34,
+     0.36,
+     1.0
+    ],
+    "metallicFactor": 0.0,
+    "roughnessFactor": 0.8,
+    "baseColorTexture": {
+     "index": 0
+    },
+    "metallicRoughnessTexture": {
+     "index": 1
+    }
+   },
+   "occlusionTexture": {
+    "index": 1
+   }
+  },
+  {
+   "name": "galvanized",
+   "pbrMetallicRoughness": {
+    "baseColorFactor": [
+     0.62,
+     0.63,
+     0.64,
+     1.0
+    ],
+    "metallicFactor": 0.85,
+    "roughnessFactor": 0.9,
+    "baseColorTexture": {
+     "index": 0
+    },
+    "metallicRoughnessTexture": {
+     "index": 1
+    }
+   },
+   "occlusionTexture": {
+    "index": 1
+   }
+  }
+ ],
+ "buffers": [
+  {
+   "uri": "structure.bin",
+   "byteLength": 153216
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 19296,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 19296,
+   "byteLength": 38592,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 57888,
+   "byteLength": 38592,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 96480,
+   "byteLength": 25728,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 122208,
+   "byteLength": 4896,
+   "target": 34963
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 127104,
+   "byteLength": 9792,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 136896,
+   "byteLength": 9792,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 146688,
+   "byteLength": 6528,
+   "target": 34962
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5125,
+   "count": 4824,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 3216,
+   "type": "VEC3",
+   "min": [
+    -30.150000000000002,
+    -18.0,
+    0.0
+   ],
+   "max": [
+    30.150000000000002,
+    18.0,
+    11.6
+   ]
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 3216,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5126,
+   "count": 3216,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 4,
+   "componentType": 5125,
+   "count": 1224,
+   "type": "SCALAR"
+  },
+  {
+   "bufferView": 5,
+   "componentType": 5126,
+   "count": 816,
+   "type": "VEC3",
+   "min": [
+    -30.011907211226557,
+    -17.78,
+    9.764208323367116
+   ],
+   "max": [
+    30.011907211226557,
+    17.78,
+    11.55888888888889
+   ]
+  },
+  {
+   "bufferView": 6,
+   "componentType": 5126,
+   "count": 816,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 7,
+   "componentType": 5126,
+   "count": 816,
+   "type": "VEC2"
+  }
+ ],
+ "images": [
+  {
+   "uri": "../textures/generated/painted_steel_diff.jpg"
+  },
+  {
+   "uri": "../textures/generated/painted_steel_arm.jpg"
+  }
+ ],
+ "textures": [
+  {
+   "source": 0,
+   "sampler": 0
+  },
+  {
+   "source": 1,
+   "sampler": 0
+  }
+ ],
+ "samplers": [
+  {
+   "magFilter": 9729,
+   "minFilter": 9987,
+   "wrapS": 10497,
+   "wrapT": 10497
+  }
+ ]
+}

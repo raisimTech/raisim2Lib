@@ -1,0 +1,4 @@
+<rasset version="1">
+  <visual file="model.gltf"/>
+  <collision type="cylinder" radius="0.169" height="0.554" position="0 0 0.277"/>
+</rasset>

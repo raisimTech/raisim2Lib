@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pallet Jack (Low Poly)
+* source:	https://sketchfab.com/3d-models/pallet-jack-low-poly-55397e1bb66a48bd9d6e1ef93d8456cc
+* author:	Berk Gedik (https://sketchfab.com/berkgedik)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pallet Jack (Low Poly)" (https://sketchfab.com/3d-models/pallet-jack-low-poly-55397e1bb66a48bd9d6e1ef93d8456cc) by Berk Gedik (https://sketchfab.com/berkgedik) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

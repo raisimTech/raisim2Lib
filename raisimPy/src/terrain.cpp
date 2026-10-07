@@ -230,18 +230,19 @@ void init_terrain(py::module_ &m) {
 
 
 	    .def("getCenterX", &raisim::HeightMap::getCenterX, R"mydelimiter(
-	    Get the x center.
+	    Get the x coordinate of the grid center in the height map frame. It is the world x of
+	    the center only while the height map has the identity pose.
 
 	    Returns:
-            float: the x center.
+            float: the x center in the height map frame.
 	    )mydelimiter")
 
 
 	    .def("getCenterY", &raisim::HeightMap::getCenterY, R"mydelimiter(
-	    Get the y center.
+	    Get the y coordinate of the grid center in the height map frame.
 
 	    Returns:
-            float: the y center.
+            float: the y center in the height map frame.
 	    )mydelimiter")
 
 

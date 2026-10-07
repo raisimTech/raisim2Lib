@@ -58,6 +58,10 @@ Quick map to the current rayrai-related targets:
 * ``rayrai_city``: a photoreal city built from free Poly Haven, BlendKit and
   Sketchfab assets and stored as a ``.rscene`` file, with an ANYmal C
   quadruped on the street; see :doc:`../examples/rayrai/rayrai_city`.
+* ``rayrai_warehouse``: a photoreal warehouse of pallet racks, forklifts and a
+  dock area built from free Poly Haven and Sketchfab assets and generated
+  racking, stored as a ``.rscene`` file, with an ANYmal C quadruped in an
+  aisle; see :doc:`../examples/rayrai/rayrai_warehouse`.
 * glTF/GLB scene import with authored lights and reflection-probe sidecars is
   described in :doc:`../examples/rayrai/rayrai_blender_scene_import`.
 * OpenUSD visual meshes can be loaded through ``RayraiWindow::addVisualMesh``;

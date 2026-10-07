@@ -232,8 +232,9 @@ heightmap
 (optional, default=1) ``collision_group``, (optional, default=-1) ``collision_mask``,
 (optional, default=0) ``center_x``, ``center_y``, ``center_z`` [float],
 (optional, default=identity) ``quat`` [w, x, y, z].
-``center_z`` sets the height-map position along z, and ``quat`` its
-orientation about the center (see :doc:`HeightMap`).
+``center_x`` and ``center_y`` place the grid center in the height map's frame, ``center_z``
+sets the position of that frame along z, and ``quat`` its orientation about the frame origin
+(see :doc:`HeightMap`).
 
 The height data comes from exactly one of the following options. If several
 are present, the first one in this list is used.
