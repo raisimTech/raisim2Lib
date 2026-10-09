@@ -186,34 +186,42 @@ full request/response sequence and troubleshooting guidance.
 
 Depth and LiDAR
 ===============
-The renderer supports a linear depth plane and a GPU-assisted LiDAR pass. These sensor
-passes render RaiSim world objects only; visualization-only objects are intentionally
-ignored so they cannot leak into training observations.
+The renderer supports a linear depth plane and a GPU LiDAR. The depth pass renders RaiSim world
+objects only; visualization-only objects are intentionally ignored so they cannot leak into
+training observations. The GPU LiDAR scans the collision geometry, exactly like the CPU LiDAR.
 
 * ``renderDepthPlaneDistance`` renders camera-plane distance into the camera's
   ``R32F`` linear-depth texture; pixels without geometry are ``0``. Its
   optional ``drawVisualizationObjects`` argument (default ``false``) adds custom
   and instanced visuals; only detectable ones are included unless
   ``visualizationObjectsMustBeDetectable`` is ``false``.
-* ``measureSpinningLidarSingleDrawGPU`` renders, using a spherical chunk
-  shader, the yaw span the LiDAR swept since the previous call (from the world
-  time and the spin rate) and stores the hits, in the sensor frame, with
-  ``SpinningLidar::setScan``. Pass ``objectToExclude`` (for example the robot
-  carrying the sensor) to leave one object out of the scan.
+* ``measureSpinningLidarSingleDrawGPU`` advances the LiDAR head with
+  ``SpinningLidar::advanceSweep`` and casts the swept rays on the GPU against
+  the collision bodies of the world (``World::getRayCastBodies``): primitives,
+  heightmaps and meshes, intersected exactly. It returns the points of
+  ``SpinningLidar::update``, ray by ray and in the same order, to float
+  precision (about 1e-5 of the range), and stores them in the sensor frame with
+  ``SpinningLidar::setScan``. As on the CPU, rays start at the minimum range and
+  the body carrying the sensor is ignored. Pass ``objectToExclude`` to leave out
+  every body of one more object.
 
 Read the depth texture of an external camera with
 ``Camera::getLinearDepthTexture()``; ``getDepthPlaneTexture()`` returns the one
 of the viewer's internal camera.
 
-LiDAR usage has two paths. Prefer the rayrai GPU path when rayrai is available:
+The two LiDAR paths share the head state, so a LiDAR can switch between them at
+any update. Both return the same points; they differ in cost. A GPU update pays
+a fixed synchronous readback of about 0.1 ms and then casts thousands of rays
+almost for free; a CPU update costs about 0.1 to 0.3 µs per ray. For an Ouster
+OS1-64 (32,768 rays per turn) over a heightmap, updating at the sensor's 100 Hz
+rate, the GPU path is about 8 to 9 times faster; called every 1 ms physics step
+(330 rays per update) the two are about even.
 
-1) GPU slice rendering via ``measureSpinningLidarSingleDrawGPU`` for fast
-   incremental updates.
-2) CPU-based scan via RaiSim (``SpinningLidar::update``), then visualize with a
-   point cloud, only when rayrai is unavailable or deterministic CPU ray-query
-   behavior is required.
+1) GPU: ``measureSpinningLidarSingleDrawGPU``, preferred when rayrai is
+   available and each update casts a few thousand rays or more.
+2) CPU: ``SpinningLidar::update``, needs no GL context.
 
-GPU slice example:
+GPU example:
 
 .. code-block:: cpp
 

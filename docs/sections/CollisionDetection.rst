@@ -342,8 +342,9 @@ other pairs use only discrete detection.
 When enabled, RaiSim adds speculative contacts for bodies whose speed (linear speed plus angular
 speed times the sweep radius) is at least ``sweptCcdMinSpeed``.
 Use ``World::setCollisionCountersEnabled(true)`` and ``getLastCollisionCounters()`` to inspect
-``sweptCcdCandidates`` and ``sweptCcdContacts`` in benchmark or diagnostic code. Deformable particle
-contacts are still handled by the discrete deformable collision path.
+``sweptCcdCandidates`` and ``sweptCcdContacts`` in benchmark or diagnostic code. Deformable particles
+do not use swept CCD: their contacts include speculative ones for every body a particle can reach within
+the step (see :doc:`DeformableObject`).
 
 Collision counters
 ==================

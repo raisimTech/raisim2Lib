@@ -216,6 +216,15 @@ pitch are each specified as ``start angle, signed increment, count``. See
 :doc:`RayTest` for the exact signature, sampling order, compact-output behavior,
 and performance considerations.
 
+``update()`` first advances the spinning head with ``advanceSweep(worldTime)``,
+which returns the yaw columns swept since the last update (``first``, ``count``
+and ``direction``; a sweep longer than one turn repeats columns) and sets the
+current yaw and timestamps, and then casts those columns. Another ray tracer can
+call ``advanceSweep()`` itself, cast the columns against
+``World::getRayCastBodies()`` (the collision bodies the ray tests see, with
+their world poses) and store the points with ``setScan()``. rayrai's GPU LiDAR
+does exactly this and returns the same points as ``update()``.
+
 
 IMU
 ====================================
@@ -498,7 +507,8 @@ For LiDAR, ``rayrai_lidar_pointcloud`` computes the scan of the robot-mounted
 ``SpinningLidar`` on the CPU with ``update(world)``, transforms the sensor-frame
 points to world coordinates and displays them as a rayrai point cloud. To
 measure the scan on the GPU instead, call ``measureSpinningLidarSingleDrawGPU``,
-which stores the sensor-frame hit points in the LiDAR with ``setScan()``:
+which casts the same rays against the same collision geometry and stores the
+same sensor-frame points in the LiDAR with ``setScan()``:
 
 .. code-block:: cpp
 

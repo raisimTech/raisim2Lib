@@ -7,7 +7,8 @@ Overview
 Drapes a soft cloth over a raised static sphere and, to the side, builds a
 stack of randomly oriented deformable cubes from OBJ meshes. All cubes use
 resampled surface particles with automatically generated internal struts, so
-they share the same volumetric behavior.
+they share the same volumetric behavior. On the other side of the cloth, a
+tilted block of soft rubber, an elastic solid, drops onto the ground.
 
 Use this example as the starting point for soft-body setup. It shows explicit
 cloth topology and deformable-object construction from closed OBJ meshes. See
@@ -39,6 +40,9 @@ Details
 - Demonstrates ``World::addDeformableCloth`` with explicit vertices and
   triangle indices.
 - Demonstrates OBJ particle generation and automatic internal struts.
+- Demonstrates an elastic solid: a filled OBJ mesh with a ``youngsModulus``
+  (50 kPa, Poisson's ratio 0.45) is cut into tetrahedra, so the block bounces,
+  bulges and recovers like a rubber block.
 - Generates deterministic random cube orientations at startup, so repeated runs
   show the same pile while still exercising non-axis-aligned contacts.
 - Uses ``MeshParticleOptions::spacing`` so RaiSim resamples the mesh surface and
@@ -46,8 +50,9 @@ Details
   raw OBJ vertices. During mesh loading, RaiSim also raises the deformable
   collision radius to at least ``0.58 * spacing`` so the generated spheres cover
   the surface without particle-scale holes.
-- Uses ``distanceCompliance`` and ``bendCompliance`` for the cloth, and
-  ``distanceCompliance`` plus internal struts for the mesh objects.
+- Uses ``distanceCompliance``, ``bendCompliance`` and ``airDrag`` for the
+  cloth, and ``distanceCompliance``, ``damping`` and internal struts for the
+  mesh objects.
 - Tunes the cloth to be highly deformable, with high bend and stretch
   compliance so it visibly sags and wraps around the sphere.
 - Uses identical mesh settings for every cube and dedicated
@@ -67,13 +72,19 @@ The example covers:
 - **Mesh object**: particles are generated from a closed OBJ mesh and
   connected with internal struts. This is the starting point for deformable
   objects that should compress and spring back.
+- **Elastic solid**: a closed OBJ mesh is filled with particles and cut into
+  tetrahedra with the elasticity of a material of given Young's modulus and
+  Poisson's ratio. Use it when the response should follow a real material.
 
 Material parameters
 ===================
 The material controls the XPBD/PBD response:
 
 - ``distanceCompliance`` controls stretch resistance.
-- ``bendCompliance`` controls bending resistance for cloth-like surfaces.
+- ``bendCompliance`` is the inverse of the bending modulus of cloth-like
+  surfaces; the cloth uses ``1e3`` (a bending modulus of 1e-3 N m).
+- ``airDrag`` damps the cloth's motion through the air, and ``damping``
+  damps the vibration of the cubes' material.
 - ``distanceCompliance`` also controls the elastic response of the mesh-based
   cubes in this example.
 
@@ -84,8 +95,8 @@ resolution.
 The cloth in this example uses deliberately soft values so it visibly sags and
 wraps over the raised sphere. The mesh-based deformable cubes are stacked to
 the side so they do not hide the cloth-sphere interaction. The cube material
-uses internal struts and damping so the dropped cubes deform, settle, and
-recover. The example sets the cube ``collisionRadius`` from the requested
+uses internal struts and stiffness-proportional damping so the dropped cubes
+deform, settle, and recover. The example sets the cube ``collisionRadius`` from the requested
 particle spacing. For a stiffer fabric, reduce ``distanceCompliance`` and
 ``bendCompliance`` or increase the solver iteration count.
 

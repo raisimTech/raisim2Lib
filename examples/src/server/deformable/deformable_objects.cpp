@@ -319,8 +319,9 @@ int main(int argc, char* argv[]) {
   raisim::DeformableObject::Material clothMaterial;
   clothMaterial.totalMass = 1.5;
   clothMaterial.distanceCompliance = 5.0e-2;
-  clothMaterial.bendCompliance = 1.2;
+  clothMaterial.bendCompliance = 1.0e3;  // a soft fabric: bending modulus 1e-3 N m
   clothMaterial.damping = 0.002;
+  clothMaterial.airDrag = 2.0;
   clothMaterial.collisionRadius = 0.01;
   clothMaterial.iterations = 3;
 
@@ -383,6 +384,29 @@ int main(int argc, char* argv[]) {
     totalCubeTriangles += cube->getTriangles().size();
   }
 
+  // an elastic solid: a filled mesh with a Young's modulus is cut into tetrahedra, here a tilted
+  // block of soft rubber dropped on the other side of the cloth
+  raisim::DeformableObject::Material rubberMaterial;
+  rubberMaterial.totalMass = 2.0;
+  rubberMaterial.youngsModulus = 5.0e4;
+  rubberMaterial.poissonRatio = 0.45;
+  rubberMaterial.damping = 0.002;
+  rubberMaterial.iterations = 6;
+
+  raisim::DeformableObject::MeshBuildOptions rubberBuild;
+  rubberBuild.particles.mode = raisim::DeformableObject::MeshParticleOptions::Mode::Filled;
+  rubberBuild.particles.spacing = 0.04;
+
+  const std::string rubberObj = cubeObjPrefix.string() + "rubber.obj";
+  if (!writeClosedCubeObj(rubberObj, 0.36, eulerRotation(0.35, 0.25, 0.4))) {
+    std::cerr << "Could not write temporary OBJ file: " << rubberObj << std::endl;
+    return 1;
+  }
+  cubeObjFiles.push_back(rubberObj);
+  auto* rubber = world.addDeformableObject(rubberObj, rubberMaterial, rubberBuild, {}, "deformable_cube");
+  rubber->setName("elastic_solid_block");
+  rubber->setPositionOffset({-1.55, 0.0, 0.7});
+
   std::cout << "deformable_objects: cloth_particles=" << cloth->getNumParticles()
             << " cloth_triangles=" << cloth->getTriangles().size()
             << " cube_particles=" << totalCubeParticles
@@ -394,6 +418,8 @@ int main(int argc, char* argv[]) {
             << " cube_iterations=" << cubeMaterial.iterations
             << " cube_compliance=" << cubeMaterial.distanceCompliance
             << " cube_collision_radius=" << cubeMaterial.collisionRadius
+            << " solid_particles=" << rubber->getNumParticles()
+            << " solid_tetrahedra=" << rubber->getTetrahedra().size()
             << std::endl;
 
   raisim::RaisimServer server(&world);
