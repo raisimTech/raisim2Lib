@@ -1,3 +1,5 @@
+// Manual regression tool for stale geometry in depth images after scene replacement.
+
 #include <algorithm>
 #include <cmath>
 #include <limits>

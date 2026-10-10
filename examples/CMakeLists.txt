@@ -114,7 +114,6 @@ endfunction()
 # server examples
 # Basics and object lifecycle.
 create_executable(primitive_grid src/server/basics/primitive_grid.cpp)
-create_executable(sphere_drop src/server/basics/sphere_drop.cpp)
 create_executable(mesh_stack src/server/basics/mesh_stack.cpp)
 create_executable(compound_object src/server/basics/compound_object.cpp)
 create_executable(dynamic_object_addition src/server/basics/dynamic_object_addition.cpp)
@@ -127,10 +126,8 @@ create_executable(material_static_friction src/server/materials/material_static_
 create_executable(procedural_heightmap src/server/terrain/procedural_heightmap.cpp)
 create_executable(heightmap_from_png src/server/terrain/heightmap_from_png.cpp)
 create_executable(dynamic_heightmap src/server/terrain/dynamic_heightmap.cpp)
-create_executable(heightmap_primitive_drop src/server/terrain/heightmap_primitive_drop.cpp)
 create_executable(heightmap_mesh_drop src/server/terrain/heightmap_mesh_drop.cpp)
 create_executable(blocky_heightmap_drop src/server/terrain/blocky_heightmap_drop.cpp)
-create_executable(rotated_blocky_heightmap_drop src/server/terrain/rotated_blocky_heightmap_drop.cpp)
 
 # Sensors.
 create_executable(ray_casting src/server/sensors/ray_casting.cpp)
@@ -147,7 +144,7 @@ create_executable(strandbeest_closed_loops src/server/robots/strandbeest_closed_
 create_executable(inverse_dynamics src/server/robots/inverse_dynamics.cpp)
 create_executable(shadow_hand_usd_cube src/server/robots/shadow_hand_usd_cube.cpp)
 create_executable(nvidia_usd_robots src/server/robots/nvidia_usd_robots.cpp)
-set_target_properties(shadow_hand_usd_cube nvidia_usd_robots PROPERTIES
+set_target_properties(robotiq_gripper_mimic shadow_hand_usd_cube nvidia_usd_robots PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)
 
@@ -182,8 +179,7 @@ else()
                    "with the TCP viewer (raisim/server/SceneFileServer.hpp, new in v2.7.1)")
 endif()
 
-# Performance and optional deformables.
-create_executable(object_lifecycle_stress src/server/performance/object_lifecycle_stress.cpp)
+# Performance and deformables.
 create_executable(island_sleep_benchmark src/server/performance/island_sleep_benchmark.cpp)
 create_executable(deformable_objects src/server/deformable/deformable_objects.cpp)
 
@@ -199,10 +195,7 @@ create_executable(mjcf_gymnasium_hopper src/server/mjcf/mjcf_gymnasium_hopper.cp
 create_executable(mjcf_gymnasium_walker2d src/server/mjcf/mjcf_gymnasium_walker2d.cpp)
 create_executable(mjcf_gymnasium_humanoid src/server/mjcf/mjcf_gymnasium_humanoid.cpp)
 
-# World and terrain scenes.
-create_executable(office1_scene src/worlds/office1_scene.cpp)
-create_executable(atlas src/worlds/atlas.cpp)
-create_executable(anymal_pair src/worlds/anymal_pair.cpp)
+# Packaged robot scenes.
 create_executable(kinova_arm src/worlds/kinova_arm.cpp)
 
 # rayrai examples
@@ -213,7 +206,6 @@ create_rayrai_executable(rayrai_complete_showcase src/rayrai/getting_started/ray
 # Sensors.
 create_rayrai_executable(rayrai_rgb_camera src/rayrai/sensors/rayrai_rgb_camera.cpp)
 create_rayrai_executable(rayrai_depth_camera src/rayrai/sensors/rayrai_depth_camera.cpp)
-create_rayrai_executable(rayrai_heightmap_replacement src/rayrai/sensors/rayrai_heightmap_replacement.cpp)
 create_rayrai_executable(rayrai_lidar_pointcloud src/rayrai/sensors/rayrai_lidar_pointcloud.cpp)
 create_rayrai_executable(rayrai_aruco_marker src/rayrai/sensors/rayrai_aruco_marker.cpp)
 
@@ -333,4 +325,11 @@ if(RAISIM_FOREST_COLLISION_BENCHMARK)
     target_include_directories(forest_collision_benchmark PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rayrai/worlds)
     target_compile_definitions(forest_collision_benchmark PRIVATE
         FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
+endif()
+
+# Manual regression and debug programs are opt-in.
+option(RAISIM_DEBUG_TOOLS "Build manual regression and debug tools" OFF)
+if(RAISIM_DEBUG_TOOLS)
+    create_executable(object_lifecycle_stress tools/debug/object_lifecycle_stress.cpp)
+    create_rayrai_executable(rayrai_heightmap_replacement tools/debug/rayrai_heightmap_replacement.cpp)
 endif()

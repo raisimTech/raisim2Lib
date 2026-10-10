@@ -17,10 +17,9 @@ Quick map to the current rayrai-related targets:
   that combines RGB/depth cameras, raw buffer readback, LiDAR visualization,
   camera frustums, instancing, and custom visuals.
 * ``rayrai_rgb_camera`` / ``rayrai_depth_camera`` /
-  ``rayrai_heightmap_replacement`` /
   ``rayrai_lidar_pointcloud`` / ``rayrai_aruco_marker``: robot-attached RGB
-  rendering, depth readback, depth images while heightmaps are replaced and
-  deleted, LiDAR point-cloud visualization, and marker rendering.
+  rendering, depth readback, LiDAR point-cloud visualization, and marker
+  rendering.
 * ``rayrai_custom_visuals`` / ``rayrai_instancing_grid`` /
   ``rayrai_pointcloud_animation``: visual primitives, instancing, and dynamic
   point-cloud streaming.
@@ -66,3 +65,7 @@ Quick map to the current rayrai-related targets:
   described in :doc:`../examples/rayrai/rayrai_blender_scene_import`.
 * OpenUSD visual meshes can be loaded through ``RayraiWindow::addVisualMesh``;
   see :doc:`../OpenUSD` for importer scope and runtime layout.
+
+For manual regression checks of depth images after heightmap and primitive
+replacement, see :doc:`../debug_tools/rayrai_heightmap_replacement`. This
+optional debug tool is built with ``RAISIM_DEBUG_TOOLS=ON``.

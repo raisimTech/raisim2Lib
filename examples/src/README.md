@@ -45,7 +45,7 @@ after the viewer.
 
 ## Directory groups
 
-- `server/basics`: primitive objects, dense sphere-drop scenes, mesh objects,
+- `server/basics`: primitive objects, mesh objects,
   compound objects, dynamic object addition, and YCB object loading.
 - `server/assets`: model import, mesh preprocessing, cache reuse, `addMesh`
   workflows, and mesh asset export.
@@ -58,7 +58,7 @@ after the viewer.
   dynamics demos.
 - `server/visualization`: server-driven visual output and synchronous update
   flow.
-- `server/performance`: object lifecycle stress and island sleeping examples.
+- `server/performance`: island sleeping benchmark.
 - `server/deformable`: cloth, surface-mesh deformables, filled deformables,
   internal struts, compliance, and Young's modulus examples.
 - `server/mjcf`: MJCF world loading and articulated Gymnasium models.
@@ -79,19 +79,15 @@ after the viewer.
 - `rayrai/worlds`: large rayrai worlds such as the instanced forest and its
   `.rscene` version, and the photoreal city and warehouse loaded from
   `.rscene` with an ANYmal C on the street or in an aisle.
-- `worlds`: larger packaged scene examples.
+- `worlds`: packaged manipulator scene.
 - `xml`: XML world loading and templated XML world examples.
 
 ## Useful starting targets
 
 - `primitive_grid`: basic server-side simulation and visualization.
-- `sphere_drop`: drop 1000 dynamic spheres onto a ground plane.
 - `rayrai_basic_scene`: minimal in-process rayrai rendering.
 - `rayrai_complete_showcase`: broad rayrai feature overview.
 - `rayrai_depth_camera`: rayrai depth capture plus CPU depth-camera comparison.
-- `rayrai_heightmap_replacement`: visualize stale deleted-heightmap geometry in a
-  robot's front and rear depth images by pressing Space to replace the terrain
-  and randomized primitive populations.
 - `rayrai_rgb_camera`: in-process rayrai RGB capture.
 - `rayrai_rolling_spinning_friction`: rolling and spinning friction on a grid
   of spheres and cylinders.
@@ -99,6 +95,10 @@ after the viewer.
   actuated motors whose operating regions (bus voltage and peak torque) come
   from actuator files linked in the URDF, including KAIST-Hound-style coupled
   hip/knee actuators.
+- `robotiq_gripper_mimic`: a Kinova arm with a wrist-mounted Robotiq 2F-85 uses PD
+  joint poses to grasp a cube at one table marker, carry it to another, release it,
+  then reset and repeat. Use `--headless --cycles 3` for task checks or
+  `--benchmark --cycles 10` for single-threaded timing.
 - `tendon_elastic`, `tendon_pulleys`, and `tendon_coupling`: procedural tendon
   simulations streamed to the TCP viewer.
 - `rayrai_tendons`: the same tendon scenes with automatic local drawing and
@@ -115,13 +115,9 @@ after the viewer.
 - `articulated_system_benchmark`: run standalone timing scenes for ANYmal,
   Atlas, and chain articulated systems.
 - `dynamic_heightmap`: animate a heightmap and color map through RaisimServer.
-- `heightmap_primitive_drop`: drop 432 mixed primitives onto a procedural heightmap.
 - `blocky_heightmap_drop`: drop 900 mixed bodies (boxes, spheres, capsules, cylinders,
   and monkey meshes) onto a 250x250-sample, 20m x 20m
   height map whose 5x5 sample blocks share one height drawn uniformly from -0.15m to 0.15m.
-- `rotated_blocky_heightmap_drop`: the `blocky_heightmap_drop` scene with its height map
-  tilted by 15 degrees about the x axis; the same 900 bodies drop onto the slope, and a
-  ground plane catches what rolls off its low edge.
 - `rayrai_coacd_mesh_approximation`: original mesh versus CoACD convex approximation mesh
   collision parts through `World::addMesh`.
 - `rayrai_visual_asset_support`: inspect realistic textured URDF assets while
@@ -143,6 +139,18 @@ after the viewer.
 
 Some targets are guarded by installed RaiSim API availability. If CMake prints a
 `Skipping ...` message, install a newer RaiSim/rayrai package and reconfigure.
+
+## Regression and debug tools
+
+Manual diagnostic programs live under `examples/tools/debug` and are built with
+`-DRAISIM_DEBUG_TOOLS=ON` when building the examples project. The option is off
+by default. See the [debug tools guide](../../docs/sections/DebugTools.rst) for
+build and run instructions.
+
+- `object_lifecycle_stress`: repeatedly create, simulate, and remove primitives
+  to inspect object lifecycle and memory handling.
+- `rayrai_heightmap_replacement`: inspect front and rear depth images while
+  replacing terrain and primitives to detect stale deleted geometry.
 
 ## Blue Wall RayRai scene
 

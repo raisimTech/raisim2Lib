@@ -1,103 +1,184 @@
 // This file is part of RaiSim. You must obtain a valid license from RaiSim Tech
 // Inc. prior to usage.
 
-// A Robotiq 2F-85 gripper picks up a box, lifts it, and puts it back, over and over. The gripper
-// has a single actuated joint (the left knuckle); its other five finger joints follow it through
-// URDF <mimic> constraints, which keep the finger pads parallel just like the real linkage.
+// A fixed-base Kinova arm carries its wrist-mounted Robotiq 2F-85 through
+// predefined joint poses. Finger-pad contacts grasp a cube on the blue marker,
+// carry it to the green marker, and release it. The world resets and repeats.
 
-#include "raisim/RaisimServer.hpp"
-#include "raisim/World.hpp"
-#include "rayrai_tcp_viewer_hint.hpp"
+#include <chrono>
+#include <csignal>
+#include <cstddef>
+#include <exception>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
 #include "example_resources.hpp"
-
-#include <Eigen/Core>
-
-#include <cmath>
+#include "raisim/RaisimServer.hpp"
+#include "rayrai_tcp_viewer_hint.hpp"
+#include "robotiq_pick_and_place.hpp"
 
 namespace {
 
-constexpr double kCycle = 12.;       // [s] one pick-and-place cycle
-constexpr double kHoverHeight = 0.35;  // [m] lift position with the pads clear of the box
-constexpr double kGraspHeight = 0.17;  // [m] lift position with the pads around the box
-constexpr double kCarryHeight = 0.40;  // [m]
-constexpr double kClosed = 0.75;     // [rad] knuckle target when gripping; the box stops the
-                                     // fingers earlier, so the PD squeezes it
-constexpr double kBoxWidth = 0.04;   // [m] the open gripper spans 85 mm between its pads
+volatile std::sig_atomic_t stop_requested = 0;
+void RequestStop(int) { stop_requested = 1; }
 
-/// smooth step from a (at t0) to b (at t1)
-double ramp(double t, double t0, double t1, double a, double b) {
-  if (t <= t0) return a;
-  if (t >= t1) return b;
-  const double s = (t - t0) / (t1 - t0);
-  return a + (b - a) * s * s * (3. - 2. * s);
+struct Options {
+  bool headless = false;
+  bool benchmark = false;
+  bool help = false;
+  std::size_t cycles = 0;
+  int port = 8080;
+  std::string activation_key;
+};
+
+unsigned long PositiveInteger(const std::string& text, unsigned long maximum) {
+  if (text.empty() ||
+      text.find_first_not_of("0123456789") != std::string::npos) {
+    throw std::invalid_argument("Expected a positive integer, got '" + text +
+                                "'");
+  }
+  const unsigned long number = std::stoul(text);
+  if (number == 0 || number > maximum) {
+    throw std::invalid_argument("Integer out of range: '" + text + "'");
+  }
+  return number;
+}
+
+Options ParseOptions(int argc, char** argv) {
+  Options options;
+  for (int i = 1; i < argc; ++i) {
+    const std::string arg(argv[i]);
+    if (arg == "--help" || arg == "-h") {
+      options.help = true;
+    } else if (arg == "--headless") {
+      options.headless = true;
+    } else if (arg == "--benchmark") {
+      options.benchmark = true;
+      options.headless = true;
+    } else if (arg == "--cycles" || arg == "--port" ||
+               arg == "--activation-key") {
+      if (++i == argc) {
+        throw std::invalid_argument("Missing value for " + arg);
+      }
+      if (arg == "--cycles") {
+        options.cycles = PositiveInteger(argv[i], 1000000);
+      } else if (arg == "--port") {
+        options.port = static_cast<int>(PositiveInteger(argv[i], 65535));
+      } else {
+        options.activation_key = argv[i];
+      }
+    } else {
+      throw std::invalid_argument("Unknown option: " + arg);
+    }
+  }
+  if (options.headless && options.cycles == 0) {
+    options.cycles = options.benchmark ? 10 : 3;
+  }
+  return options;
+}
+
+void PrintResult(std::size_t cycle,
+                 const raisim_examples::robotiq::CycleResult& result) {
+  std::cout << "Cycle " << cycle << ": "
+            << (result.IsSuccessful() ? "PASS" : "FAIL")
+            << " lifted=" << result.lifted << " transported=" << result.carried
+            << " released=" << result.released
+            << " bilateral_grasp=" << result.bilateral_grasp
+            << " placement_error_m="
+            << (result.placed_position - raisim_examples::robotiq::kDestination)
+                   .norm()
+            << " max_mimic_error_rad=" << result.max_mimic_error << '\n';
 }
 
 }  // namespace
 
-int main(int argc, char* argv[]) {
-  raisim::World::setActivationKey(exampleRscPath(argv[0], "activation.raisim"));
-
-  raisim::World world;
-  world.setTimeStep(0.001);
-  // the targets below change every step; a sleeping gripper would not follow them
-  world.setSleepingEnabled(false);
-  auto* ground = world.addGround(0., "ground");
-  ground->setAppearance("checkerboard");
-
-  auto* gripper = world.addArticulatedSystem(
-      exampleRscPath(argv[0], "robotiq_2f85/robotiq_2f85_mimic.urdf"));
-  gripper->setName("robotiq_2f85");
-  for (auto& body : gripper->getCollisionBodies()) body.setMaterial("pad");
-
-  auto* box = world.addBox(kBoxWidth, kBoxWidth, 0.06, 0.1, "box");
-  box->setName("box");
-  box->setPosition(0., 0., 0.03);
-  box->setAppearance("0.95,0.55,0.15,1.0");
-  world.setMaterialPairProp("pad", "box", 1.0, 0.0, 0.001);
-  world.setMaterialPairProp("ground", "box", 0.8, 0.0, 0.001);
-
-  // only the lift and the left knuckle are driven; the mimic joints have no gains of their own
-  const size_t lift = gripper->getGeneralizedVelocityIndex("lift");
-  const size_t knuckle = gripper->getGeneralizedVelocityIndex("robotiq_85_left_knuckle_joint");
-  Eigen::VectorXd gc = gripper->getGeneralizedCoordinate().e();
-  gc[lift] = kHoverHeight;
-  gripper->setGeneralizedCoordinate(gc);
-  Eigen::VectorXd pGain = Eigen::VectorXd::Zero(gripper->getDOF());
-  Eigen::VectorXd dGain = Eigen::VectorXd::Zero(gripper->getDOF());
-  pGain[lift] = 5000.;
-  dGain[lift] = 200.;
-  pGain[knuckle] = 10.;
-  dGain[knuckle] = 0.2;
-  gripper->setPdGains(pGain, dGain);
-  const Eigen::VectorXd zeroVelocity = Eigen::VectorXd::Zero(gripper->getDOF());
-
-  raisim::RaisimServer server(&world);
-  server.launchServer();
-  raisim_examples::warnIfNoClientConnected(server);
-  server.setCameraPositionAndLookAt({0.45, -0.45, 0.4}, {0., 0., 0.15});
-
-  for (;;) {
-    RS_TIMED_LOOP(int(world.getTimeStep() * 1e6))
-    // the world time stops while the viewer pauses the simulation, and so does the script
-    const double t = std::fmod(world.getWorldTime(), kCycle);
-    double height, grip;
-    if (t < 3.) {  // open, descend around the box
-      height = ramp(t, 1., 3., kHoverHeight, kGraspHeight);
-      grip = 0.;
-    } else if (t < 7.5) {  // close, lift, hold
-      height = ramp(t, 4., 6., kGraspHeight, kCarryHeight);
-      grip = ramp(t, 3., 4., 0., kClosed);
-    } else if (t < 10.5) {  // put it down, open
-      height = ramp(t, 7.5, 9.5, kCarryHeight, kGraspHeight);
-      grip = ramp(t, 9.5, 10.5, kClosed, 0.);
-    } else {  // rise
-      height = ramp(t, 10.5, 12., kGraspHeight, kHoverHeight);
-      grip = 0.;
+int main(int argc, char** argv) {
+  try {
+    const auto options = ParseOptions(argc, argv);
+    if (options.help) {
+      std::cout << "Kinova/Robotiq repeating PD pick-and-place\n"
+                   "  --headless          Check three cycles without a "
+                   "renderer or server\n"
+                   "  --benchmark         Time ten unpaced cycles on one "
+                   "physics thread\n"
+                   "  --cycles N          Stop after N cycles (viewer mode "
+                   "repeats by default)\n"
+                   "  --port N            RaisimServer port (default 8080)\n"
+                   "  --activation-key P  Optional license path\n";
+      return 0;
     }
-    Eigen::VectorXd target = Eigen::VectorXd::Zero(gripper->getDOF());
-    target[lift] = height;
-    target[knuckle] = grip;
-    gripper->setPdTarget(target, zeroVelocity);
-    server.integrateWorldThreadSafe();
+    raisim::RaiSimMsg::setFatalCallback(
+        [] { throw std::runtime_error("RaiSim fatal error"); });
+    if (!options.activation_key.empty()) {
+      raisim::World::setActivationKey(options.activation_key);
+    }
+    raisim_examples::robotiq::Scene scene(
+        exampleRscPath(argv[0], "robotiq_2f85/kinova_robotiq.urdf"));
+    std::signal(SIGINT, RequestStop);
+    std::signal(SIGTERM, RequestStop);
+    std::unique_ptr<raisim::RaisimServer> server;
+    if (!options.headless) {
+      server = std::make_unique<raisim::RaisimServer>(&scene.world());
+      server->launchServer(options.port);
+      server->setCameraPositionAndLookAt({1.25, -1.5, 1.15}, {0.23, 0.0, 0.42});
+      raisim_examples::warnIfNoClientConnected(*server);
+    }
+
+    std::size_t steps = 0;
+    std::size_t reported_cycles = 0;
+    std::size_t previous_phase = raisim_examples::robotiq::kPhases.size();
+    bool success = true;
+    const auto begin = std::chrono::steady_clock::now();
+    while (!stop_requested &&
+           (options.cycles == 0 || scene.completed_cycles() < options.cycles)) {
+      if (server) {
+        RS_TIMED_LOOP(
+            static_cast<int>(raisim_examples::robotiq::kTimeStep * 1e6))
+        server->integrateWorldThreadSafe([&scene] { scene.Update(); });
+        if (scene.phase_index() != previous_phase) {
+          previous_phase = scene.phase_index();
+          std::cout << raisim_examples::robotiq::kPhases[previous_phase].name
+                    << '\n';
+        }
+      } else {
+        scene.Step();
+      }
+      ++steps;
+      if (scene.completed_cycles() != reported_cycles) {
+        reported_cycles = scene.completed_cycles();
+        success &= scene.last_result().IsSuccessful() &&
+                   scene.last_result().max_mimic_error < 1e-7;
+        if (!options.benchmark) {
+          PrintResult(reported_cycles, scene.last_result());
+        }
+      }
+    }
+    const double seconds =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - begin)
+            .count();
+    if (server) {
+      server->killServer();
+    }
+    if (stop_requested) {
+      return 130;
+    }
+    if (options.headless) {
+      if (options.benchmark) {
+        PrintResult(scene.completed_cycles(), scene.last_result());
+      }
+      std::cout << "cycles=" << scene.completed_cycles() << " steps=" << steps
+                << " physics_threads=1 elapsed_s=" << seconds
+                << " us_per_step=" << 1e6 * seconds / static_cast<double>(steps)
+                << " real_time_factor="
+                << static_cast<double>(steps) *
+                       raisim_examples::robotiq::kTimeStep / seconds
+                << '\n';
+    }
+    return success ? 0 : 1;
+  } catch (const std::exception& error) {
+    std::cerr << "robotiq_gripper_mimic: " << error.what() << '\n';
+    return 1;
   }
 }

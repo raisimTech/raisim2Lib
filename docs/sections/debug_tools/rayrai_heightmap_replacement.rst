@@ -1,10 +1,11 @@
 ######################################
-Rayrai Example: Heightmap Replacement
+Debug Tool: Heightmap Replacement
 ######################################
 
 Overview
 ========
-Visualizes stale deleted-heightmap geometry in a rayrai depth image. The scene
+Checks rayrai depth images for stale geometry after removing heightmaps and
+primitives. The scene
 places a PD-controlled ANYmal on a flat terrain patch and renders its front and
 rear depth cameras into separate ImGui panels, and draws the pixels of each
 camera projected into the world as small instanced cubes. Press Space to create a visibly
@@ -14,17 +15,19 @@ replace randomized populations of simple primitives and delete the old scene.
 Target
 ======
 CMake target: ``rayrai_heightmap_replacement``.
+Source: ``examples/tools/debug/rayrai_heightmap_replacement.cpp``.
 
 Run
 ====
-Run the build-tree executable:
+Build with ``RAISIM_DEBUG_TOOLS=ON`` as described in :doc:`../DebugTools`,
+then run the build-tree executable:
 
 .. code-block:: bash
 
-   ./build-examples/examples/rayrai_heightmap_replacement
+   ./build-debug/examples/rayrai_heightmap_replacement
 
-On Windows, run ``rayrai_heightmap_replacement.exe`` instead.
-This example renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
+On Windows, run ``build-debug\bin\rayrai_heightmap_replacement.exe`` instead.
+This tool renders in process with rayrai and does not need ``rayrai_tcp_viewer``.
 
 How to reproduce
 ================

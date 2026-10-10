@@ -32,10 +32,10 @@ Current sensor and terrain workflows
 
 The current package also includes the recent fixes for stale geometry after
 heightmap removal/replacement and TCP sensor/frame visualization. The public
-``rayrai_heightmap_replacement`` example demonstrates replacing terrain while
+``rayrai_heightmap_replacement`` debug tool demonstrates replacing terrain while
 front and rear depth cameras observe the world. The source-built TCP viewer
 services manual RGB/depth sensor requests and exposes previews in its Sensors
-tab. See :doc:`../examples/rayrai/rayrai_heightmap_replacement` and
+tab. See :doc:`../debug_tools/rayrai_heightmap_replacement` and
 :doc:`../RayraiTcpViewer`.
 
 Package availability

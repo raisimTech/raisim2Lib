@@ -36,6 +36,9 @@ Common CMake options
    * - ``RAISIM_FOREST_COLLISION_BENCHMARK``
      - Also build the ``forest_collision_benchmark`` example tool. Disabled by
        default.
+   * - ``RAISIM_DEBUG_TOOLS``
+     - Build manual regression and debug tools with the examples project
+       (``RAISIM_EXAMPLE=ON``). Disabled by default; see :doc:`DebugTools`.
 
 The RaiSim version is pinned by the checkout (``RAISIM_VERSION`` in the
 top-level ``CMakeLists.txt``). Configuring with a different
@@ -116,6 +119,9 @@ workloads in a downstream application.
 
 Tests
 =====
+
+For manual object lifecycle and rendering regression checks, see
+:doc:`DebugTools`.
 
 The public workspace has no CTest suite; the engine's own test suite is not
 shipped. The examples double as smoke tests, and ``raisimPy`` includes a

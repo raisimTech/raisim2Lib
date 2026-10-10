@@ -54,8 +54,7 @@ moves like the same scene on the unrotated map, with every body and gravity
 rotated along with it; the two agree to rounding error. A height map is one-sided whatever its
 orientation: everything below the surface, along the local -z axis, is inside
 the terrain, and a body that ends up there is pushed back out through the
-surface. The ``rotated_blocky_heightmap_drop`` example (see :doc:`Examples`) tilts a map by
-15 degrees.
+surface.
 
 Querying the surface
 ====================

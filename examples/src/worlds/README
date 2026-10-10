@@ -1,2 +1,2 @@
-This folder contains larger world and terrain scene examples for RaisimServer.
+This folder contains a packaged Kinova arm scene for RaisimServer.
 They render only world objects, height fields, and standard visuals.

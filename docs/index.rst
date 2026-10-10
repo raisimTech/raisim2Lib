@@ -83,6 +83,7 @@ If you are new to RaiSim, start with the page that matches your goal:
    sections/Examples
    sections/FeatureMap
    sections/BuildAndTest
+   sections/DebugTools
    sections/ProjectLayout
    sections/Performance
    sections/Benchmark

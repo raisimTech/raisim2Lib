@@ -24,6 +24,8 @@ Together they cover the RaiSim physics APIs, mesh import and export, OpenUSD
 loading, and rayrai rendering and asset inspection. RaisimUnity and RaisimUnreal
 are no longer supported; see :doc:`LegacyIntegrations`.
 
+For optional manual regression and debug programs, see :doc:`DebugTools`.
+
 .. image:: ../../rsc/docs/image/examples_overview.png
    :alt: Overview of RaiSim and rayrai examples
    :width: 100%
@@ -208,19 +210,12 @@ feature page:
 
    * - Target
      - Demonstrates
-   * - ``heightmap_primitive_drop``
-     - 432 boxes, spheres, capsules, and cylinders dropped onto a fractal
-       heightmap.
    * - ``heightmap_mesh_drop``
      - Twenty monkey meshes with triangle-mesh collision dropped one at a time
        onto a colored procedural heightmap.
    * - ``blocky_heightmap_drop``
      - 900 primitives and convex-hull meshes dropped onto a heightmap made of
        flat 0.4 m tiles.
-   * - ``rotated_blocky_heightmap_drop``
-     - The ``blocky_heightmap_drop`` scene with the heightmap tilted by
-       15 degrees about the x axis (see :doc:`HeightMap`): the same bodies land
-       on the slope, and the spheres and cylinders roll down it.
    * - ``large_scale_ray_test``
      - Repeated ray queries against walls and pillars; see :doc:`RayTest`.
    * - ``rayrai_blue_wall_scene``
@@ -292,7 +287,6 @@ Rayrai Tools And Examples
    examples/rayrai/rayrai_blender_scene_import
    examples/rayrai/rayrai_rgb_camera
    examples/rayrai/rayrai_depth_camera
-   examples/rayrai/rayrai_heightmap_replacement
    examples/rayrai/rayrai_lidar_pointcloud
    examples/rayrai/rayrai_aruco_marker
    examples/rayrai/rayrai_custom_visuals
@@ -339,7 +333,6 @@ Server Examples
    examples/server/mjcf_gymnasium_walker2d
    examples/server/model_asset_pipeline
    examples/server/nvidia_usd_robots
-   examples/server/object_lifecycle_stress
    examples/server/primitive_grid
    examples/server/procedural_heightmap
    examples/server/ray_casting
@@ -349,7 +342,6 @@ Server Examples
    examples/server/sensor_suite
    examples/server/shadow_hand_usd_cube
    examples/server/sim_control_demo
-   examples/server/sphere_drop
    examples/server/spring_damper_joints
    examples/server/strandbeest_closed_loops
    examples/server/synchronous_server_update
@@ -357,10 +349,7 @@ Server Examples
    examples/server/visual_objects_showcase
    examples/server/wheeled_robot_force_control
    examples/server/ycb_objects
-   examples/worlds/anymal_pair
-   examples/worlds/atlas
    examples/worlds/kinova_arm
-   examples/worlds/office1_scene
 
 XML Examples
 ============

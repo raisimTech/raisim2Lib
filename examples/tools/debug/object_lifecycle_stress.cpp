@@ -1,6 +1,8 @@
 // This file is part of RaiSim. You must obtain a valid license from RaiSim Tech
 // Inc. prior to usage.
 
+// Manual stress tool for object creation, removal, and memory handling.
+
 #include "raisim/RaisimServer.hpp"
 #include "raisim/World.hpp"
 

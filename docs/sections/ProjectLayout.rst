@@ -28,6 +28,8 @@ Public Workspace Directories
    * - ``examples``
      - C++ example sources and their CMake project. CMake target names include
        ``primitive_grid`` and ``rayrai_tcp_viewer``.
+   * - ``examples/tools/debug``
+     - Optional manual regression and debug tools; see :doc:`DebugTools`.
    * - ``rsc``
      - Runtime resources such as robot models, meshes, textures, USD/glTF
        assets, and example data.
