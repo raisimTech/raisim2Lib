@@ -47,7 +47,8 @@ while (true) {
 `setWaterBody(name, body)` adds a body, or replaces the one with that name. `removeWaterBody`,
 `clearWaterBodies`, `findWaterBody`, `waterBodyCount` and `waterBodyNames` manage the list, and
 `swapWorld` clears it. An invalid body (out-of-range field, more than 32 waves, an empty name)
-throws `std::invalid_argument` and is not stored.
+throws `std::invalid_argument` and is not stored. `validateWaterBody(body)` runs the same check
+without a window and names the first invalid field.
 
 `defaultWaterBody(preset)` gives a starting point:
 
@@ -77,7 +78,7 @@ frame for a rectangle.
 The surface is a sum of up to 32 Gerstner waves (`WaterBody::waves`). In a Gerstner wave, each
 point of the surface moves on a circle as the wave passes. Wave `i` has:
 
-- a travel direction,
+- a travel `direction` (normalized, in the body frame),
 - a `wavelength` λ (crest to crest, metres),
 - an `amplitude` A (crest height above the mean level),
 - a `steepness` in [0, 1],
@@ -93,14 +94,18 @@ troughs. Steepness 0 gives a sine wave; steepness 1 gives a cusped crest.
 Where crests whose steepness adds up to more than 1 meet, the surface folds over itself. Folding
 cannot happen when the steepness of all waves adds up to 1 or less.
 
-`generateGerstnerWaves(WaterWaveSpectrum)` creates a wind-driven set, longest wave first:
+`generateGerstnerWaves(WaterWaveSpectrum)` creates a wind-driven set of `waveCount` waves
+(1 to 32, 16 by default), longest wave first:
 
 - **Direction:** the first wave travels along `windAngleRadians`. The others are turned by
   random angles within `directionSpreadRadians`.
 - **Wavelength:** decreases from `maxWavelength` to `minWavelength` along the list.
 - **Amplitude:** decreases from `maxAmplitude` to `minAmplitude`.
 - **Steepness:** rises from `longWaveSteepness` to `shortWaveSteepness`.
-- **Shape of the decrease:** the falloff exponents set how quickly each quantity changes.
+- **Shape of the decrease:** the exponents `wavelengthFalloff`, `amplitudeFalloff` and
+  `steepnessFalloff` set how quickly each quantity changes; larger values give more short waves.
+- **Jitter:** `randomness` (0 to 1) jitters each wave's place in the list, so the wavelengths are
+  not evenly spaced.
 - **Steepness cap:** the steepness is scaled down so that the sum stays within
   `maxSteepnessSum`, which is 1 by default, so a generated surface never folds.
 
@@ -116,7 +121,8 @@ step with the simulation, set it from the world time:
 viewer.setWaterTimeSeconds(world.getWorldTime());
 ```
 
-Phases are evaluated in double precision, so the surface stays smooth after days of water time.
+`waterTimeSeconds()` returns the current water time. Phases are evaluated in double precision, so
+the surface stays smooth after days of water time.
 
 ### Querying the surface
 
@@ -128,6 +134,9 @@ as it is drawn. The sample holds:
 - `normal`: the surface normal;
 - `compression`: the horizontal area of the surface relative to its rest area, below 1 at crests;
 - `inside`: false outside a rectangle.
+
+`maxWaterWaveHeight(body)` returns the largest height of the surface above its mean level, the
+sum of the wave amplitudes, for example to keep props or cameras clear of the crests.
 
 `RayraiWindow::sampleWaterSurface(worldXY)` samples all bodies at the current water time and
 returns the highest surface. Use it to place floating props, to switch effects when the camera
@@ -179,6 +188,7 @@ its size.
   shore and every object that pierces the surface.
 - **Crest foam:** where a crest compresses the surface below `crestFoamThreshold` of its rest
   area, foam covers it (`crestFoamStrength`).
+- **Foam color:** `foamColor` is the albedo of all foam, shoreline, crest and flowing, in linear RGB.
 - **Caustics:** `causticStrength` is the fraction of the sunlight reaching the floor that the
   waves gather into bright caustic lines. Only surfaces that face the sun and are not in its
   shadow receive them, and they fade with depth. `causticScale` sets their size.
@@ -268,8 +278,10 @@ $$
   slope $S$ the water settles where friction balances gravity; in a wide channel it flows at
   $|\boldsymbol{v}| = h^{2/3} S^{1/2} / n$. The example creek carries 0.18 m³/s down a 7.5 %
   slope with $n$ = 0.035 in a channel about 1.5 m wide, up to 16 cm deep at about 1.8 m/s.
-- **Sources** add water at $s$ per unit area (`WaterFlowSource`), $s^{+} = \max(s, 0)$ and
-  $s^{-} = \min(s, 0)$. Water entering brings the source's `velocity` $\boldsymbol{v}_s$; a drain
+- **Sources** add water at $s$ per unit area (`WaterFlowSource`, at most 16 per body),
+  $s^{+} = \max(s, 0)$ and $s^{-} = \min(s, 0)$. A source is a disc: every cell whose center
+  lies in it gets an equal share of `flowRate`, or the cell under its center when the disc holds
+  no cell center. Water entering brings the source's `velocity` $\boldsymbol{v}_s$; a drain
   takes the water above it with its own velocity, never more than is there, so it lowers the
   water without speeding it up.
 - **Shorelines** move: water runs onto dry ground and recedes from it. A cell holding less than
@@ -370,7 +382,7 @@ by a spring, with four piers and a moving box, at High and 1600 x 900 on an RTX 
 | `waterUnderwaterView` | true | Absorb and scatter the view while the camera is under water. |
 | `waterSkyCaptureResolution` | 128 | Face size of the reflected sky, [16, 256] pixels. It is redrawn when the sky changes, and every frame when the background is an environment cubemap. |
 
-The presets set:
+Values outside these ranges are clamped, not rejected. The presets set:
 
 | Preset | Tiles | Reflections | Caustics | Sky |
 |---|---|---|---|---|
@@ -399,6 +411,78 @@ with `rayrai_benchmark --only=water`:
 At High, about 0.4 ms of that is the reflection search; each step costs about 0.01 ms. The mesh
 costs little: going from 8 to 64 quads per tile adds about 0.2 ms. The sky reflection is redrawn only when the sky changes, unless the background is an
 environment cubemap; then it is redrawn every frame.
+
+## Reference
+
+### WaterBody
+
+| Field | Default | Range | Meaning |
+|---|---|---|---|
+| `shape` | `Ocean` | `Ocean`, `Rectangle` | Infinite plane, or a rotated rectangle. |
+| `center` | (0, 0, 0) | finite | z is the mean surface height; x, y the rectangle center (for an ocean, the wave phase origin). |
+| `halfExtents` | (5, 2.5) m | (0, 10⁵] m | Rectangle half sizes along its local X and Y. |
+| `depth` | 2 m | (0, 10⁴] m | Rectangle depth below the mean level; the camera is under water only above this bottom. |
+| `yawRadians` | 0 | | Rotation of the body frame about +Z; wave and ripple directions are in this frame. |
+| `edgeFadeDistance` | 0.5 m | ≥ 0 | Rectangle: waves fade out over this distance inside the edges. |
+| `waves` | none | at most 32 | Gerstner waves; empty gives a still surface. |
+| `absorption` | (0.45, 0.07, 0.035) /m | ≥ 0 | Absorption coefficient, linear RGB. |
+| `scattering` | (0.02, 0.045, 0.07) /m | ≥ 0 | Scattering coefficient, linear RGB. |
+| `scatteringAnisotropy` | 0.3 | [−0.9, 0.9] | Henyey-Greenstein g; above 0 scatters forward. |
+| `indexOfRefraction` | 1.333 | [1, 2] | Fresnel reflection and refraction. |
+| `roughness` | 0.04 | [0.01, 1] | Microfacet roughness at rest. |
+| `rippleStrength` | 0.7 | [0, 4] | Ripple normals; 0 turns them off. |
+| `rippleScale` | 2.5 m | [0.05, 100] m | Size of the ripple pattern. |
+| `rippleDirection` | (1, 0) | not zero | Main ripple travel direction (normalized). |
+| `foamColor` | (0.82, 0.86, 0.88) | [0, 1] | Foam albedo, linear RGB. |
+| `shorelineFoamDepth` | 0.25 m | ≥ 0 | Foam where the water is shallower; 0 turns it off. |
+| `crestFoamStrength` | 0.6 | [0, 1] | Foam on compressed crests. |
+| `crestFoamThreshold` | 0.45 | [0, 1] | Crest foam where the surface is compressed below this fraction of its rest area. |
+| `causticStrength` | 0.6 | [0, 1] | Fraction of the sunlight on the floor gathered into caustics; 0 turns them off. |
+| `causticScale` | 1.5 m | [0.05, 100] m | Size of the caustic pattern. |
+| `shorelineFadeDepth` | 0.06 m | [0, 10] m | Reflections fade in over this depth at the shore. |
+| `flow` | off | | Shallow-water simulation (below). |
+
+The struct defaults are the `Ocean` preset without waves; `defaultWaterBody` also generates the
+waves of its preset.
+
+### WaterFlow and WaterFlowSource
+
+| Field | Default | Range | Meaning |
+|---|---|---|---|
+| `enabled` | false | | Simulate the body, which must be a `Rectangle`. |
+| `cellSize` | 0.25 m | [0.01, 100] m | Grid spacing; at most 1024 cells along a side. |
+| `manningRoughness` | 0.03 s/m^(1/3) | [0, 0.5] | Bed friction: about 0.012 for concrete, 0.03 for a natural stream bed, 0.1 for a weedy one. |
+| `edges` | `Open` | `Open`, `Closed` | Water leaves through open edges; closed edges are walls. |
+| `bedCeiling` | 2 m | (0, 10⁴] m | Height above `center.z` up to which scene geometry forms the bed. |
+| `movingBodies` | true | | Capture the moving RaiSim bodies every frame so they push the water. |
+| `foamStrength` | 0.6 | [0, 1] | Foam where the water runs fast and shallow; 0 turns it off. |
+| `sources` | none | at most 16 | `WaterFlowSource` discs. |
+
+| `WaterFlowSource` field | Default | Range | Meaning |
+|---|---|---|---|
+| `position` | (0, 0) | | World XY of the disc center, metres. |
+| `radius` | 0.5 m | (0, 10⁴] m | Disc radius. |
+| `flowRate` | 0.05 m³/s | finite | Volume per second; negative drains, at most the water the disc holds. |
+| `velocity` | (0, 0) | finite | Horizontal velocity of the entering water, world frame, m/s. |
+
+### Diagnostics
+
+`waterDiagnostics()` describes the last color render. All fields but `bodyCount` are zero (false)
+when that render had no water in view and the camera was not under water.
+
+| Field | Meaning |
+|---|---|
+| `bodyCount` | Registered water bodies. |
+| `bodiesDrawn`, `tilesDrawn` | Bodies and surface mesh tiles drawn. |
+| `trianglesDrawn` | Surface triangles per pass over the mesh (drawn once per render, once more to compose multisampled edges). |
+| `sceneCaptured` | The scene color and depth were copied for refraction. |
+| `screenSpaceReflections` | On-screen objects were reflected. |
+| `cameraUnderwater` | The camera was inside a body. |
+| `underwaterFogDrawn` | The underwater view pass ran (needs `waterUnderwaterView`). |
+| `skyCaptureFaceSize` | Face size of the reflected sky cubemap, pixels. |
+| `timeSeconds` | Water time of the render. |
+| `flowBodies`, `flowSteps` | Simulated bodies updated for the render, and the steps they took. |
+| `flowTimeDropped` | Water time the simulations skipped after a stalled frame, seconds. |
 
 ## Limitations
 

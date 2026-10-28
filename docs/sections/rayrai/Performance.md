@@ -467,6 +467,23 @@ documented with `raisin::RayraiWindow` above.
 - [`raisin::ReflectionProbeBlend`](/api/raisin/ReflectionProbeBlend.md)
 - [`raisin::ReflectionProbePlacementSuggestion`](/api/raisin/ReflectionProbePlacementSuggestion.md)
 
+### Water
+
+- [`raisin::WaterBody`](/api/raisin/WaterBody.md)
+- [`raisin::GerstnerWave`](/api/raisin/GerstnerWave.md)
+- [`raisin::WaterWaveSpectrum`](/api/raisin/WaterWaveSpectrum.md)
+- [`raisin::WaterFlow`](/api/raisin/WaterFlow.md)
+- [`raisin::WaterFlowSource`](/api/raisin/WaterFlowSource.md)
+- [`raisin::WaterFlowSample`](/api/raisin/WaterFlowSample.md)
+- [`raisin::WaterSurfaceSample`](/api/raisin/WaterSurfaceSample.md)
+- [`raisin::WaterDiagnostics`](/api/raisin/WaterDiagnostics.md)
+- [`raisin::WaterBodyShape`](/api/raisin/index.md#waterbodyshape)
+- [`raisin::WaterPreset`](/api/raisin/index.md#waterpreset)
+- [`raisin::WaterFlowEdges`](/api/raisin/index.md#waterflowedges)
+
+The water functions (`generateGerstnerWaves`, `defaultWaterBody`, `validateWaterBody`,
+`sampleWaterSurface`, `maxWaterWaveHeight`) are in `rayrai/Water.hpp`; see [Water](./Water.md).
+
 Render quality, weather, capture, reflection-probe, and diagnostics helpers are
 exposed through `raisin::RayraiWindow` and the public headers included by
 `rayrai/RayraiWindow.hpp`. The sections above document the intended entry

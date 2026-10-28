@@ -176,7 +176,12 @@ bloom parameters.
 | `cloudQuality` | Texture | Texture | Volumetric | Volumetric |
 | `textureAnisotropy` | 1 | 4 | 8 | 16 |
 | Foliage wind | off | off | on | on |
+| Water mesh, `waterTileResolution` | 16 | 24 | 32 | 48 (LOD scale 1.5) |
+| Water reflections, `waterReflectionSteps` | off | 16 | 32 | 48 (120 m) |
+| Water caustics | off | on | on | on |
+| `waterSkyCaptureResolution` | 32 | 64 | 128 | 256 |
 
+The water settings are described in [Water: Quality settings](./Water.md#quality-settings).
 Bloom is off in every preset; its tuning is kept for when you enable it.
 Ultra's temporal AA runs without projection jitter. `Custom` starts from the
 struct defaults with the texture cloud layer enabled.

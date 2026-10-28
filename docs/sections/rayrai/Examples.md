@@ -62,6 +62,11 @@ Quick map to the current rayrai-related targets:
   dock area built from free Poly Haven and Sketchfab assets and generated
   racking, stored as a `.rscene` file, with an ANYmal C quadruped in an
   aisle; see [Rayrai Example: Warehouse](../examples/rayrai/rayrai_warehouse.md).
+- `rayrai_water_pond`: a pond in a meadow drawn with rayrai water, with trees,
+  mossy rocks and a jetty on its banks; see [Rayrai Example: Water Pond](../examples/rayrai/rayrai_water_pond.md).
+- `rayrai_water_stream`: a creek simulated as flowing water runs down a hillside
+  into a pool, and wooden balls float down it with the buoyancy and drag of the
+  simulated current; see [Rayrai Example: Water Stream](../examples/rayrai/rayrai_water_stream.md).
 - `rayrai_offroad_buggy`: an off-road buggy driven with the arrow keys on a
   dirt race circuit with a pit lane, tyre walls, hay bales and cones that it
   can knock over, and spectator stands. Its double wishbones, coilovers and

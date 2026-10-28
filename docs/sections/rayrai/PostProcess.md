@@ -51,7 +51,9 @@ Stylized and diagnostic looks:
 Atmospheric and water effects:
 
 - `underwaterEnabled` / `underwaterTint` / `underwaterCausticStrength` /
-  `underwaterCausticScale` / `underwaterDepthExtinction`.
+  `underwaterCausticScale` / `underwaterDepthExtinction`. This overlay tints the whole image
+  regardless of any water; for oceans, pools and a camera that dives under a surface, use
+  water bodies ([Water](./Water.md)), whose underwater view is independent of it.
 - `heatHazeEnabled` / `heatHazeStrength` / `heatHazeFrequency` /
   `heatHazeSpeed` / `heatHazeMaxY`.
 - `lightShaftsEnabled` / `lightShaftsStrength` / `lightShaftsDecay` /

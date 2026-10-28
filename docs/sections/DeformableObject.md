@@ -308,6 +308,25 @@ unset. With the default area the compliance is $1 / (E t)$ for every
 length, including a weld of coincident particles ($L = 0$, a mesh seam);
 with `crossSectionArea` set, such a weld is rigid.
 
+A membrane that is stiff for its particle masses spreads a load over the whole
+sheet, which sweeps over the triangles reach one triangle at a time: a hanging
+sheet of 64 × 64 particles, 0.2 kg/m², $E t$ = 1000 N/m stretched 2.8 times as
+far as plane stress predicts at the default 6 iterations, and 23 times as far
+with $E t$ = 10⁴ N/m. When the inverse mass weight of a triangle's strains
+exceeds 4 times its softest compliance $/\,h^2$, the triangles are solved
+together in every iteration by conjugate gradients on their multipliers,
+preconditioned with a sparse Cholesky factorization of a membrane whose
+stiffness bounds that of every triangle in every orientation (computed again
+only when the substep length or a mass changes). The number of conjugate
+gradient iterations grows with the square root of that stiffness ratio, from 2
+to at most 8. Both sheets above then stretch within 3 % of plane stress at 6
+iterations (the pinned edge keeps the sheet from narrowing, which stiffens it a
+little), at 6.7 and 15.8 ms per step instead of 0.7 ms; the sweeps needed 200
+iterations (21 ms per step) to come as close for the softer sheet and were still
+17 % off for the stiffer one. The damping of a
+membrane is still swept: its compliance, scaled by the damping time, is softer,
+and the sweeps converge for it.
+
 Without `youngsModulus`, the mesh edges are springs with
 `distanceCompliance`. Such a spring network has no Poisson effect, and its
 stiffness depends on the triangulation.
@@ -419,6 +438,33 @@ stiffness, because its fibers slide against each other, so cloth is usually
 given a much smaller $D$. The rest curvature $H_0$ comes from the
 mesh as it is created, so closed shells and curved panels keep their shape;
 only a flat rest mesh is flat at rest.
+
+A bending modulus that is large for the particle masses, as for paper, plastic
+film, cardboard or sheet metal, couples the whole surface: a sweep of the
+iterations over the hinges carries a bending moment only one hinge further, so
+such a sheet sagged like cloth. When the inverse mass weight of a hinge's
+curvature exceeds 4 times its compliance $/\,h^2$ for the substep length $h$,
+all hinges are solved together in every iteration, through a sparse Cholesky
+factorization of their stiffness that is computed again only when the substep
+length or a mass changes (pinning or unpinning a particle). For a flat rest
+shape the hinges are linear in the positions and one solve settles them. The
+rest curvature of a curved hinge turns with the hinge; its exact derivative
+enters the solve, which then takes two conjugate gradient iterations
+preconditioned with the same factorization, and its forces carry no spurious
+torque. Closed shells, curved panels and sheets whose mesh file rounded their
+coordinates out of the plane are solved this way.
+
+A 0.3 m strip clamped at one end then sags 1.2 to 1.3 times as far as beam
+theory with 2 iterations as with the default 6, where the sweeps let it sag 16
+to 19 times as far; the remaining difference is the discretization of the
+bending, which shrinks as the mesh is refined. A stiff half cylinder clamped
+along its edges sagged 6 to 8 times its converged deflection at 6 iterations
+and now settles at it with 3. This costs about three times as much per step
+for a 64 × 64 flat sheet, and about four times as much per iteration for a
+curved one. In this solve a hinge is at most $10^{10}$ times stiffer than that
+inverse mass weight, beyond which double precision loses the particle masses;
+such a hinge is rigid for every practical purpose. Fabrics stay well below the
+threshold and keep the sweeps.
 
 ## Damping
 
@@ -544,6 +590,21 @@ the cloth (1.7 times as fast with `setMonolithicDeformables(false)`):
 
 (the `deformable_rigid_coupling` benchmark, single thread, Ryzen 9 3950X).
 
+A heavy body resting on a flat sheet whose hinges are solved together (see
+[Bending](#bending)) presses particles that the sheet's bending stiffness holds,
+not a support under them. While the elastic constraints are projected, the
+contact rows of such a body, and those of the sheet's own supports, see each
+particle move with the sheet: the mobility between the contact particles comes
+from the factorization of the hinges, and an impulse moves all of them at once,
+while each elastic sweep passes the impulses on to the rest of the sheet. A box
+on a stiff plate resting on two rods used to ride the plate on a soft, slow
+spring (a swing of 16 mm with a period of about 2 s at 6 iterations, where the
+plate's own period is 0.26 s); it now settles within a few periods, and in the
+`deformable_stiff_sheet` benchmark the plate under a 0.5 kg box sags 2 % more
+than beam theory instead of 18 %. Up to 256 contact particles are coupled this
+way; a sheet lying on a support (more of them) is held by the support as
+described above.
+
 In the joint solve `iterations` counts the sweeps in which the elastic
 constraints are projected; the contacts keep converging after them. A
 deformable with `substeps` greater than one makes the whole world step in that
@@ -646,6 +707,12 @@ this order:
 5. Reduce `distanceCompliance` or increase `youngsModulus` only after the
    discretization and solver budget are reasonable.
 
+Stiff bending and stiff membranes (see [Bending](#bending) and
+[Elastic Modulus](#elastic-modulus)) are solved over the whole surface in every
+iteration, so their stiffness no longer depends on `iterations`; their cost per
+iteration is several times that of a sweep, so they converge with fewer
+iterations than a soft material needs.
+
 `XPBD` is the recommended default because its compliance gives a material
 stiffness that depends far less on the iteration count and time step than
 `PBD`, where stiffness is only a by-product of how many rigid projections are
@@ -708,6 +775,11 @@ changes such as tearing or cutting.
 Granular systems do not collide with deformable objects. A rigid edge or corner
 can still pass between particle spheres when `collisionRadius` is small
 compared with the particle spacing.
+Membranes more than about 2300 times stiffer than their particle inertia over a
+substep (see [Elastic Modulus](#elastic-modulus)) are not fully converged by the 8
+conjugate gradient iterations of a projection. The contact coupling of heavy
+bodies with stiff sheets applies to sheets with a flat rest shape in the joint solve only, not to curved
+shells or to `setMonolithicDeformables(false)`.
 A long rope or cloth with many very shallow wrinkles (bends under 1°) that are
 all pushed flat within one step lengthens all at once, and its free end leaves
 faster than the push alone would make it: a 3 m rope of 300 particles with
