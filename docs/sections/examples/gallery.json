@@ -3,7 +3,7 @@
     {
       "id": "scenes",
       "title": "Scenes",
-      "description": "Large worlds rendered by rayrai: cities, forests, warehouses and off-road terrain.",
+      "description": "Rendered environments, from minimal scenes to cities, forests, warehouses and off-road terrain.",
       "examples": [
         "rayrai/rayrai_offroad_buggy",
         "rayrai/rayrai_city",
@@ -20,7 +20,7 @@
     {
       "id": "robots",
       "title": "Robots",
-      "description": "Legged robots, arms, hands and vehicles loaded from URDF, MJCF and OpenUSD.",
+      "description": "Loading and controlling legged robots, arms, hands and tracked or wheeled vehicles.",
       "examples": [
         "server/mjcf_gymnasium_humanoid",
         "server/nvidia_usd_robots",
@@ -31,14 +31,13 @@
         "server/templated_tracked_robot",
         "server/wheeled_robot_force_control",
         "server/mjcf_gymnasium_hopper",
-        "server/mjcf_gymnasium_walker2d",
-        "server/inverse_dynamics"
+        "server/mjcf_gymnasium_walker2d"
       ]
     },
     {
       "id": "rendering",
       "title": "Rendering",
-      "description": "Materials, lighting, instancing and visual assets.",
+      "description": "Materials, lighting, instancing, animated point clouds and visual assets.",
       "examples": [
         "rayrai/rayrai_nested_glass",
         "rayrai/rayrai_pbr_texture_maps",
@@ -46,6 +45,7 @@
         "rayrai/rayrai_quality_lighting",
         "rayrai/rayrai_instancing_grid",
         "rayrai/rayrai_custom_visuals",
+        "rayrai/rayrai_pointcloud_animation",
         "rayrai/rayrai_visual_asset_support",
         "server/visual_objects_showcase",
         "rayrai/rayrai_blender_scene_import"
@@ -60,7 +60,6 @@
         "rayrai/rayrai_rgb_camera",
         "rayrai/rayrai_depth_camera",
         "rayrai/rayrai_sensor_noise",
-        "rayrai/rayrai_pointcloud_animation",
         "rayrai/rayrai_aruco_marker",
         "server/ray_scan_lidar",
         "server/ray_casting",
@@ -69,20 +68,37 @@
       ]
     },
     {
-      "id": "contact",
-      "title": "Contact",
-      "description": "Collisions, friction, restitution, meshes and free rigid-body motion.",
+      "id": "bodies",
+      "title": "Bodies",
+      "description": "Creating primitives, compound bodies and mesh objects, and inspecting convex collision shapes.",
       "examples": [
         "server/primitive_grid",
+        "server/compound_object",
         "server/mesh_stack",
         "server/ycb_objects",
-        "server/compound_object",
-        "rayrai/rayrai_coacd_mesh_approximation",
+        "rayrai/rayrai_coacd_mesh_approximation"
+      ]
+    },
+    {
+      "id": "dynamics",
+      "title": "Dynamics",
+      "description": "Free rigid-body rotation, inverse dynamics, prescribed kinematic motion, and sleeping and waking bodies.",
+      "examples": [
+        "server/dzhanibekov_effect",
+        "server/inverse_dynamics",
+        "server/kinematic_platform",
+        "server/island_sleep_benchmark"
+      ]
+    },
+    {
+      "id": "contact",
+      "title": "Contact",
+      "description": "Friction, restitution and continuous collision detection: how bodies interact when they touch.",
+      "examples": [
         "server/material_restitution",
         "server/material_static_friction",
         "rayrai/rayrai_rolling_spinning_friction",
-        "rayrai/rayrai_swept_ccd",
-        "server/dzhanibekov_effect"
+        "rayrai/rayrai_swept_ccd"
       ]
     },
     {
@@ -110,16 +126,27 @@
       ]
     },
     {
+      "id": "fluids",
+      "title": "Fluids",
+      "description": "Bodies that float, sink and swim in water and air: buoyancy, drag, lift and added mass.",
+      "examples": [
+        "server/fluid_pool",
+        "server/fluid_stream",
+        "server/fluid_stream_anymal",
+        "rayrai/rayrai_fluid_waves",
+        "server/underwater_rov"
+      ]
+    },
+    {
       "id": "joints",
-      "title": "Joints",
-      "description": "Closed loops, length constraints, springs, mimic joints, motors and kinematic bodies.",
+      "title": "Mechanisms",
+      "description": "Closed loops, tendons, spring-damper joints, mimic joints and motor limits.",
       "examples": [
         "server/strandbeest_closed_loops",
         "server/length_constraints_newtons_cradle",
         "server/spring_damper_joints",
         "server/robotiq_gripper_mimic",
-        "rayrai/rayrai_motor_operating_region",
-        "server/kinematic_platform"
+        "rayrai/rayrai_motor_operating_region"
       ]
     },
     {
@@ -143,7 +170,6 @@
       "title": "Benchmarks",
       "description": "Speed measurements to run on your own machine.",
       "examples": [
-        "server/island_sleep_benchmark",
         "benchmark/articulated_system_benchmark",
         "benchmark/anymal_standing_benchmark"
       ]

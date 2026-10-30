@@ -760,6 +760,18 @@ torque-speed plane (green: EM-MOR; dashed: Box-MOR) with the motor's operating
 points over the last second of simulation time. A summary line counts the
 samples that fall outside the region; **Reset statistics** clears the counts.
 
+### Controls window {#controls-window}
+
+When the server has sliders (`RaisimServer::addSlider()`, see
+[Viewer Sliders](./raisim_server/Sliders.md)), a **Controls** window at the lower
+right of the pane shows one slider for each, labelled by its name. Dragging a
+slider, or Ctrl+clicking it and typing a number, sends the new value to the server
+with the next scene update (`CR_SET_CONTROL`); a typed number outside the slider's
+range is clamped to it. While you hold a slider the server's replies do not move
+it, and when you let go it shows the value the server kept. Each pane shows the
+sliders of its own server. The window is hidden while disconnected and during
+replay.
+
 ## Sim control workflow
 
 <figure>

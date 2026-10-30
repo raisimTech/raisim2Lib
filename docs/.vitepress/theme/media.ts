@@ -1,6 +1,6 @@
-// Home-page media. The clips are rayrai renders of RaiSim simulations, cut from
-// the 4K promo renders and encoded as H.264 MP4 (see rsc/docs/video/home/README.md).
-// The rendering tiles reuse the hero reel's small encodes.
+// Home-page media. The hero reel and most tiles use small H.264 encodes of
+// RaiSim simulations rendered with rayrai (see rsc/docs/video/home/README.md).
+// Physics cards also reuse example-gallery clips and their posters.
 import heroOffroad from '../../../rsc/docs/video/home/hero_offroad.mp4'
 import heroOffroadSm from '../../../rsc/docs/video/home/hero_offroad-960.mp4'
 import heroOffroadPoster from '../../../rsc/docs/video/home/hero_offroad.jpg'
@@ -22,8 +22,6 @@ import depth from '../../../rsc/docs/video/home/tile_depth.mp4'
 import depthPoster from '../../../rsc/docs/video/home/tile_depth.jpg'
 import rgb from '../../../rsc/docs/video/home/tile_rgb.mp4'
 import rgbPoster from '../../../rsc/docs/video/home/tile_rgb.jpg'
-import suspension from '../../../rsc/docs/video/home/tile_suspension.mp4'
-import suspensionPoster from '../../../rsc/docs/video/home/tile_suspension.jpg'
 import soil from '../../../rsc/docs/video/home/tile_soil.mp4'
 import soilPoster from '../../../rsc/docs/video/home/tile_soil.jpg'
 import strandbeest from '../../../rsc/docs/video/home/tile_strandbeest.mp4'
@@ -40,6 +38,12 @@ import tracks from '../../../rsc/docs/video/home/tile_tracks.mp4'
 import tracksPoster from '../../../rsc/docs/video/home/tile_tracks.jpg'
 import gymPolicy from '../../../rsc/docs/video/home/tile_gym.mp4'
 import gymPolicyPoster from '../../../rsc/docs/video/home/tile_gym.jpg'
+import fluids from '../../../rsc/docs/video/examples/underwater_rov.mp4'
+import fluidsPoster from '../../../rsc/docs/video/examples/underwater_rov.jpg'
+import deformables from '../../../rsc/docs/video/examples/deformable_objects.mp4'
+import deformablesPoster from '../../../rsc/docs/video/examples/deformable_objects.jpg'
+import tendons from '../../../rsc/docs/video/home/tile_tendons.mp4'
+import tendonsPoster from '../../../rsc/docs/video/home/tile_tendons.jpg'
 import tcpViewer from '../../../rsc/docs/video/home/tcp_viewer.jpg'
 
 export interface Clip {
@@ -92,7 +96,9 @@ export const clips = {
   lidar: { src: lidar, poster: lidarPoster },
   depth: { src: depth, poster: depthPoster },
   rgb: { src: rgb, poster: rgbPoster },
-  suspension: { src: suspension, poster: suspensionPoster },
+  fluids: { src: fluids, poster: fluidsPoster },
+  deformables: { src: deformables, poster: deformablesPoster },
+  tendons: { src: tendons, poster: tendonsPoster },
   soil: { src: soil, poster: soilPoster },
   strandbeest: { src: strandbeest, poster: strandbeestPoster },
   hand: { src: hand, poster: handPoster },

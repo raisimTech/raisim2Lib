@@ -357,6 +357,16 @@ void init_world(py::module_ &m) {
            py::arg("videoName"))
 
       .def("stopRecordingVideo", &raisim::RaisimServer::stopRecordingVideo)
+      .def("addSlider", &raisim::RaisimServer::addSlider, py::arg("name"), py::arg("min"), py::arg("max"),
+           py::arg("value"), R"mydelimiter(
+    Add a slider to the Controls window of the rayrai TCP viewer: a value the viewer's user sets within
+    [min, max] while the application reads it with getSlider().
+
+    Returns:
+        Its index for getSlider().
+    )mydelimiter")
+      .def("getSlider", &raisim::RaisimServer::getSlider, py::arg("index"),
+           "The value of a slider (addSlider()), as the viewer's user last set it.")
       .def("setCameraPositionAndLookAt", &raisim::RaisimServer::setCameraPositionAndLookAt,
            py::arg("position"), py::arg("lookAt"))
 
@@ -1278,6 +1288,39 @@ void init_world(py::module_ &m) {
         Args:
             np.array[float[3]]: gravity vector.
         )mydelimiter", py::arg("gravity"))
+
+      .def("setAmbientFluid", &raisim::World::setAmbientFluid, R"mydelimiter(
+        Fill the world with a fluid, such as air (FluidMedium.air()), outside the volumes of liquid.
+
+        Args:
+            fluid (FluidMedium): the fluid; a density of zero removes it.
+        )mydelimiter", py::arg("fluid"))
+      .def("getAmbientFluid", &raisim::World::getAmbientFluid, "Get the fluid outside the volumes of liquid.")
+      .def("addFluidVolume", &raisim::World::addFluidVolume, R"mydelimiter(
+        Add a body of liquid under a free surface: a pool, a lake, the sea.
+
+        Args:
+            volume (FluidVolume): the liquid and where it is.
+
+        Returns:
+            int: its index.
+        )mydelimiter", py::arg("volume"))
+      .def("setFluidVolume", &raisim::World::setFluidVolume, R"mydelimiter(
+        Change a volume of liquid, for example its surface height or its current.
+
+        Args:
+            index (int): its index.
+            volume (FluidVolume): the liquid and where it is.
+        )mydelimiter", py::arg("index"), py::arg("volume"))
+      .def("getFluidVolumes", &raisim::World::getFluidVolumes, "Get the volumes of liquid.")
+      .def("clearFluids", &raisim::World::clearFluids, "Remove every volume of liquid and the ambient fluid.")
+      .def("setFluidCoefficients", &raisim::World::setFluidCoefficients, R"mydelimiter(
+        Set how fluids act on every collision body of an object.
+
+        Args:
+            object (Object): the object.
+            coefficients (FluidCoefficients): the coefficients.
+        )mydelimiter", py::arg("object"), py::arg("coefficients"))
 
       .def("setERP",
            &raisim::World::setERP,

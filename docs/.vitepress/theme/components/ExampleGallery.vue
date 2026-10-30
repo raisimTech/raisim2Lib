@@ -100,14 +100,12 @@ onMounted(() => {
         type="button"
         class="rs-ex-tab"
         :aria-pressed="category.id === current.id"
-        :aria-label="`${category.title}, ${category.tiles.length} examples`"
         @click="select(category.id)"
       >
         <span class="rs-ex-tab-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path v-for="d in category.icon" :key="d" :d="d" /></svg>
         </span>
         <span class="rs-ex-tab-label">{{ category.title }}</span>
-        <span class="rs-ex-tab-count" aria-hidden="true">{{ category.tiles.length }}</span>
       </button>
     </div>
     <p class="rs-ex-description">{{ current.description }}</p>
@@ -147,21 +145,21 @@ onMounted(() => {
 
 .rs-ex-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .rs-ex-tab {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
-  padding: 7px 12px 7px 7px;
+  padding: 7px 4px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 11px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 22px;
   text-align: left;
   color: var(--vp-c-text-2);
   background: var(--vp-c-bg-soft);
@@ -188,17 +186,17 @@ onMounted(() => {
   display: grid;
   flex: none;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
   color: var(--vp-c-text-2);
   background: var(--vp-c-default-soft);
   transition: color 0.25s ease, background-color 0.25s ease;
 }
 
 .rs-ex-tab-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -224,18 +222,6 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.rs-ex-tab-count {
-  flex: none;
-  font-size: 12px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: var(--vp-c-text-3);
-}
-
-.rs-ex-tab[aria-pressed='true'] .rs-ex-tab-count {
-  color: var(--vp-c-brand-1);
 }
 
 .vp-doc p.rs-ex-description {
@@ -376,10 +362,16 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 1023px) {
+  .rs-ex-tab {
+    gap: 4px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
   .rs-ex-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
   }
 
   /* An odd last tab spans the row. */
@@ -389,22 +381,6 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .rs-ex-tab {
-    gap: 8px;
-    font-size: 13px;
-  }
-
-  .rs-ex-tab-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-  }
-
-  .rs-ex-tab-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
   .rs-ex {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;

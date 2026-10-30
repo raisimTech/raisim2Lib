@@ -5,10 +5,28 @@ import { clips } from '../../media'
 
 const cards = [
   {
-    clip: clips.suspension,
-    title: 'Articulated vehicles',
-    text: 'Suspension, steering and drive shafts move as one articulated system, with live spring and damper forces.',
-    link: '/sections/ArticulatedSystem.html',
+    clip: clips.army,
+    title: 'Fastest robot simulator in the world',
+    text: 'Contact-rich robot dynamics for fast training and control. Compare measured performance across robotics workloads in the benchmarks.',
+    link: '/sections/Benchmark.html',
+  },
+  {
+    clip: clips.fluids,
+    title: 'Fluid dynamics',
+    text: 'Buoyancy, drag, added mass and waves act on rigid bodies and robots, from floating rafts to underwater vehicles.',
+    link: '/sections/Fluids.html',
+  },
+  {
+    clip: clips.deformables,
+    title: 'Deformable objects',
+    text: 'Cloth and soft solids stretch, bend and collide with robots and rigid bodies, for draping, grasping and manipulation.',
+    link: '/sections/DeformableObject.html',
+  },
+  {
+    clip: clips.tendons,
+    title: 'Tendons',
+    text: 'Tendons wrap around pulleys, connect joints and transmit forces, with elastic response, actuation and length limits.',
+    link: '/sections/Tendons.html',
   },
   {
     clip: clips.soil,
@@ -50,8 +68,8 @@ const cards = [
       <h2 v-reveal="60" class="rs-h2">Physics that holds up on real robots.</h2>
       <p v-reveal="120" class="rs-lead">
         Legged-robot controllers trained in RaiSim have walked real robots over rough terrain in
-        <a class="rs-inline-link" :href="withBase('/sections/HallOfFame.html')">published research</a>. Hard contacts
-        with friction, closed loops, tracks, deformable soil and granular media are solved together, and the same inputs
+        <a class="rs-inline-link" :href="withBase('/sections/HallOfFame.html')">published research</a>. Hard contacts with friction, fluid forces, cloth and soft solids,
+        tendons, closed loops, tracks and deformable soil share the same world. The same inputs
         give the same trajectory, run after run.
       </p>
 

@@ -23,11 +23,11 @@ onBeforeUnmount(() => document.documentElement.classList.remove('rs-home-route')
 <template>
   <div class="rs-home">
     <HomeHero />
+    <HomePhysics />
     <HomeStats />
     <HomeEcosystem />
     <HomeSpeed />
     <HomeShowcase />
-    <HomePhysics />
     <HomeHallOfFame />
     <HomeFeatures />
     <HomeCode>

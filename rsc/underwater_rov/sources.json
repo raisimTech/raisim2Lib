@@ -1,0 +1,69 @@
+{
+  "asset_budget_bytes": 200000000,
+  "sources": [
+    {
+      "file": "coast_rocks.blend",
+      "name": "Coast Rocks 01",
+      "assetBaseId": "989946eb-151d-4e36-99ca-3698b0f46514",
+      "id": "471399b7-b592-4a87-bad0-86a87b3d6de2",
+      "license": "cc_zero",
+      "author": "Poly Haven ",
+      "url": "https://www.blenderkit.com/asset-gallery-detail/989946eb-151d-4e36-99ca-3698b0f46514/"
+    },
+    {
+      "file": "shell.blend",
+      "name": "Lambis Shell",
+      "assetBaseId": "19b1ef54-c54a-4c0c-b309-28f1b266686f",
+      "id": "a67d13ce-0cb9-4b0c-85f1-5ac97c67144d",
+      "license": "cc_zero",
+      "author": "Poly Haven ",
+      "url": "https://www.blenderkit.com/asset-gallery-detail/19b1ef54-c54a-4c0c-b309-28f1b266686f/"
+    },
+    {
+      "name": "Coast Sand 01",
+      "author": "Poly Haven",
+      "license": "CC0-1.0",
+      "url": "https://polyhaven.com/a/coast_sand_01",
+      "resolution": "1k"
+    },
+    {
+      "name": "Rock 07 and Rock 09",
+      "author": "Poly Haven",
+      "license": "CC0-1.0",
+      "url": "https://polyhaven.com/models",
+      "reuse": "../offroad_buggy/props/rock_07 and rock_09"
+    }
+  ],
+  "runtime_files": [
+    {
+      "file": "coast_rocks.glb",
+      "bytes": 2515612,
+      "sha256": "3a72df7a9e923c4bfbf128a3b1ecfd2817fda93906b48f3a253aa70372b4c63d"
+    },
+    {
+      "file": "marine_life.glb",
+      "bytes": 1440284,
+      "sha256": "a6666ee79aacb02203aba6a74335f3d6383e2cd52b657d5adb55d59479acbb4c"
+    },
+    {
+      "file": "rov.glb",
+      "bytes": 707344,
+      "sha256": "4d668f085ca7105cb88e3227ef06419de6b205fadbf94df380276d96684b3f29"
+    },
+    {
+      "file": "seabed.glb",
+      "bytes": 2867096,
+      "sha256": "1032019cb7125b8efaad4124529e32217cc62ef68a610312f87f42b894d2fc03"
+    },
+    {
+      "file": "shell.glb",
+      "bytes": 830868,
+      "sha256": "7c035b97aa2839cfaa7fa745b4ed6e7917458b76f09fb92251c8b9a7fd6ae5e5"
+    },
+    {
+      "file": "survey_station.glb",
+      "bytes": 165568,
+      "sha256": "b23d15d7d08bb17d6fd20f9ca2a70a94599e24d48189dc0b405d1e3dd45d0d2b"
+    }
+  ]
+}

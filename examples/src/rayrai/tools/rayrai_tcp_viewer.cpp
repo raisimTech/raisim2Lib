@@ -2236,6 +2236,9 @@ struct ViewerPane {
   std::vector<float> controlGc;
   uint32_t controlGcTag = 0;
   bool controlGcDirty = false;
+  // the server's sliders (RaisimServer::addSlider()) and the one being dragged
+  std::vector<raisin::tcp_viewer::ServerControlView> serverControls;
+  int draggedServerControl = -1;
 
   // ----- viewport gestures and tools -----
   ViewerViewportState viewportState;
@@ -2852,6 +2855,8 @@ int main(int argc, char* argv[]) {
     auto& requestedIndex = pane.requestedIndex;
     auto& requestedEntry = pane.requestedEntry;
     auto& motionEstimates = pane.motionEstimates;
+    auto& serverControls = pane.serverControls;
+    auto& draggedServerControl = pane.draggedServerControl;
     auto& pendingControlRequests = pane.pendingControlRequests;
     auto& simPaused = pane.simPaused;
     auto& controlForce = pane.controlForce;
@@ -3090,6 +3095,8 @@ int main(int argc, char* argv[]) {
     mouseForce = {};
     poseGrabber = {};
     pendingControlRequests.clear();
+    serverControls.clear();
+    draggedServerControl = -1;
     controlSelectionTag = 0;
     controlSelectionIndex = -1;
     controlPoseTag = 0;
@@ -3195,8 +3202,9 @@ int main(int argc, char* argv[]) {
     BufferReader reader(payload);
     scene.setVerbose(verboseParsing);
     const bool parsedOk = scene.applyResponse(reader, pending);
-    if (!fromReplay) {
-      for (const auto& command : scene.takeViewerCommands()) {
+    raisin::tcp_viewer::dispatchViewerCommands(
+      scene.takeViewerCommands(), fromReplay, sceneFiles, *viewer,
+      [&](const raisin::tcp_viewer::ViewerCommand& command) {
         switch (command.type) {
           case raisin::tcp_viewer::ViewerCommandType::StartRecording: {
             if (!raisin::tcp_viewer::canStartServerRecording(
@@ -3259,12 +3267,18 @@ int main(int argc, char* argv[]) {
                                 std::clamp(command.height, 120, 8192));
             }
             break;
+          case raisin::tcp_viewer::ViewerCommandType::SetFluidVolumes:
+            break;
+          case raisin::tcp_viewer::ViewerCommandType::SetControls:
+            raisin::tcp_viewer::receiveServerControls(serverControls, command.controls);
+            break;
         }
-      }
+      });
+    if (!fromReplay) {
       sceneFiles.receive(scene.takeSceneFileBlock(), client);
-    } else {
-      static_cast<void>(scene.takeViewerCommands());
     }
+    // the water moves with the server's world, as its waves do in the physics
+    if (scene.hasServerWorldTime()) viewer->setWaterTimeSeconds(scene.getServerWorldTime());
     const bool disconnectRequested = scene.consumeDisconnectRequested();
     bool ok = parsedOk && !disconnectRequested;
     if (disconnectRequested) {
@@ -6759,6 +6773,51 @@ int main(int argc, char* argv[]) {
       // Not even the minimised inspector fits beside the overlay: collapsing the
       // overlay is the only way to see the selection in a pane this narrow.
       selectedEntry = nullptr;
+    }
+
+    // the server's sliders, at the pane's lower right corner, while it streams
+    if (!serverControls.empty() && client.isConnected()) {
+      ImGui::SetNextWindowBgAlpha(0.5f);
+      ImGui::SetNextWindowPos(ImVec2(paneOrigin.x + uiSize.x - 12.0f, paneOrigin.y + uiSize.y - 12.0f),
+                              ImGuiCond_Always, ImVec2(1.0f, 1.0f));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
+      if (ImGui::Begin(("Controls##Overlay" + paneWindowSuffix).c_str(), nullptr, kOverlayPanelWindowFlags)) {
+        ImGui::TextColored(ImVec4(0.35f, 0.8f, 1.0f, 1.0f), "Controls");
+        if (!awaitingResponse)
+          raisin::tcp_viewer::settleServerControls(
+            serverControls, raisin::tcp_viewer::heldServerControls(serverControls.size(), draggedServerControl,
+                                                                   pendingControlRequests));
+        draggedServerControl = -1;
+        for (size_t i = 0; i < serverControls.size(); ++i) {
+          auto& control = serverControls[i].control;
+          ImGui::PushID(static_cast<int>(i));
+          ImGui::SetNextItemWidth(std::round(ImGui::GetFontSize() * 12.0f));
+          double value = control.value;
+          const bool changed = ImGui::SliderScalar(control.name.c_str(), ImGuiDataType_Double, &value, &control.min,
+                                                   &control.max, "%.3g", ImGuiSliderFlags_AlwaysClamp);
+          if (ImGui::IsItemActive()) draggedServerControl = static_cast<int>(i);
+          if (changed) {
+            control.value = value;
+            raisin::tcp_viewer::ClientRequest request;
+            request.type = raisin::tcp_viewer::ClientRequestType::CR_SET_CONTROL;
+            request.controlIndex = static_cast<int32_t>(i);
+            request.controlValue = value;
+            const auto pending = std::find_if(pendingControlRequests.begin(), pendingControlRequests.end(),
+                                              [&](const raisin::tcp_viewer::ClientRequest& queued) {
+                                                return queued.type == request.type &&
+                                                       queued.controlIndex == request.controlIndex;
+                                              });
+            if (pending != pendingControlRequests.end()) {
+              *pending = request;
+            } else {
+              pendingControlRequests.push_back(request);
+            }
+          }
+          ImGui::PopID();
+        }
+      }
+      ImGui::End();
+      ImGui::PopStyleVar();
     }
 
     if (selectedEntry) {

@@ -72,6 +72,7 @@ set(_doc_image_generators
     doc_image_benchmark_scenes
     doc_image_heightmap_rotation
     doc_image_deformable_solid
+    doc_image_fluids
     doc_image_tracks
     doc_image_home_tracks)
 set(_gallery_scenes rayrai_blue_wall_scene granular_media_showcase
@@ -182,6 +183,9 @@ foreach(_gen IN LISTS _doc_image_generators)
   if(_scene_name IN_LIST _gallery_scenes)
     target_include_directories(${_gen} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/include")
     target_compile_definitions(${_gen} PRIVATE DOC_IMAGE_SCENE="${_scene_name}")
+  endif()
+  if(_gen STREQUAL "doc_image_fluids")
+    target_include_directories(${_gen} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/include")
   endif()
   target_link_libraries(${_gen} PRIVATE rayrai raisim::raisim SDL2::SDL2)
   target_compile_features(${_gen} PRIVATE cxx_std_17)

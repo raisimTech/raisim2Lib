@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
           Get started
           <svg class="rs-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </a>
-        <a class="rs-btn rs-btn--ghost" href="#showcase">
+        <a class="rs-btn rs-btn--ghost" href="#physics">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4.8v10.4L15.5 10z" fill="currentColor" /></svg>
           See it in action
         </a>

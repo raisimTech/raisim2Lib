@@ -1,7 +1,8 @@
 # Examples
 
-Every example, recorded from the running program. Choose a topic, then select
-an example to open its page; [Run](#run) explains how to build and run them.
+Examples are grouped by the feature they demonstrate, with clips recorded from
+the running programs. Choose a topic, then select an example to open its page;
+[Run](#run) explains how to build and run them.
 
 <ExampleGallery />
 

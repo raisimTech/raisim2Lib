@@ -76,3 +76,14 @@ ffmpeg -ss 8 -i offroad.mp4 -frames:v 1 -vf "scale=960:-2:flags=lanczos" -q:v 4 
 The wide hero encodes use `scale=1920:-2`, `-crf 25 -maxrate 4500k -bufsize 8M`,
 and their posters `scale=1280:-2`. A phone that scrolls through the whole home
 page downloads about 16.5 MB of video.
+
+The physics cards also reuse `examples/underwater_rov.mp4` and
+`examples/deformable_objects.mp4`, with their existing posters. `tile_tendons.mp4`
+is a silent H.264 encode of `rsc/docs/image/rayrai/tendon_pulleys.gif`, preserving
+its 640 × 400 pixels, 15 fps and four-second loop. Its poster is taken at 1.5 s.
+
+```bash
+ffmpeg -i tendon_pulleys.gif -an -c:v libx264 -threads 1 -preset slow -crf 23 \
+  -pix_fmt yuv420p -profile:v high -movflags +faststart tile_tendons.mp4
+ffmpeg -ss 1.5 -i tile_tendons.mp4 -frames:v 1 -q:v 3 tile_tendons.jpg
+```

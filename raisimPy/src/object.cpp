@@ -124,6 +124,29 @@ void init_object(py::module_ &m) {
 	        int: object index in the world.
 	    )mydelimiter")
 
+	    .def("getFluidForce", [](const raisim::Object &self, size_t local_idx) {
+	        return convert_vec_to_np(self.getFluidForce(local_idx));
+	    }, R"mydelimiter(
+	    Get the force the fluids exerted on a body in the last step, in the world frame.
+
+	    Args:
+	        local_idx (int): body index (0 for single bodies).
+
+	    Returns:
+	        np.array[float[3]]: force [N].
+	    )mydelimiter", py::arg("local_idx") = 0)
+	    .def("getFluidTorque", [](const raisim::Object &self, size_t local_idx) {
+	        return convert_vec_to_np(self.getFluidTorque(local_idx));
+	    }, R"mydelimiter(
+	    Get the torque the fluids exerted on a body in the last step about its center of mass, in the world frame.
+
+	    Args:
+	        local_idx (int): body index (0 for single bodies).
+
+	    Returns:
+	        np.array[float[3]]: torque [N m].
+	    )mydelimiter", py::arg("local_idx") = 0)
+
 	    .def("getContacts", py::overload_cast<>(&raisim::Object::getContacts), R"mydelimiter(
 	    Get the list of contact points.
 

@@ -219,6 +219,12 @@ create_executable(heavy_objects_on_cloth src/server/deformable/heavy_objects_on_
 create_executable(cloth_on_slope src/server/deformable/cloth_on_slope.cpp)
 create_executable(tablecloth_pull src/server/deformable/tablecloth_pull.cpp)
 
+# Fluids.
+create_executable(fluid_pool src/server/fluid/fluid_pool.cpp)
+create_executable(underwater_rov src/server/fluid/underwater_rov.cpp)
+create_executable(fluid_stream src/server/fluid/fluid_stream.cpp)
+create_executable(fluid_stream_anymal src/server/fluid/fluid_stream_anymal.cpp)
+
 # benchmark examples
 create_executable(articulated_system_benchmark src/benchmark/articulated_system_benchmark.cpp)
 create_executable(anymal_standing_benchmark src/benchmark/anymal_standing_benchmark.cpp)
@@ -270,6 +276,7 @@ endfunction()
 create_sensor_noise_example()
 
 create_rayrai_executable(rayrai_deformable_terrain src/rayrai/physics/rayrai_deformable_terrain.cpp)
+create_rayrai_executable(rayrai_fluid_waves src/rayrai/physics/rayrai_fluid_waves.cpp)
 create_rayrai_executable(rayrai_lidar_pointcloud src/rayrai/sensors/rayrai_lidar_pointcloud.cpp)
 create_rayrai_executable(rayrai_aruco_marker src/rayrai/sensors/rayrai_aruco_marker.cpp)
 

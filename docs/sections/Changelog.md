@@ -1,6 +1,6 @@
 # Changelog
 
-Brief per-version notes for RaiSim, newest first. v2.11.0 is not released yet.
+Brief per-version notes for RaiSim, newest first.
 Package metadata changes only when a release is published, so the newest entry
 can be one version ahead of `RAISIM_VERSION`.
 

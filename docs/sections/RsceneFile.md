@@ -429,6 +429,8 @@ batches draw ground plants from plain glTF files that have no colliders.
 | `raisim_engine_scene` | Header (required, first record). |  |
 | `time_step`, `gravity`, `solver` | Solver, contact and sleeping settings. |  |
 | `contact_material` | A material pair of the world. |  |
+| `ambient_fluid` | The fluid around the bodies, such as air. |  |
+| `fluid_volume` | A body of liquid under a free surface (enabled volumes only). | Water over its area. |
 | `asset_root` | Resolves mesh and `.rasset` paths. | Resolves mesh, texture and HDR paths. |
 | `scene_graph` | Whether parents pass on their transforms. |  |
 | `group` | A folder; no transform. |  |
@@ -751,6 +753,13 @@ uses `collisionMeshPath`, or the render mesh when that is empty:
   `raisim::CoacdOptions` fields of the same names. A dynamic mesh with
   `customInertia=true` uses `inertiaDiagonal` and `centerOfMass`.
 
+A dynamic body takes how fluids act on it (`World::setFluidCoefficients`,
+see [Fluids](./Fluids.md)) from `fluidEnabled` (default `true`),
+`fluidBuoyancy` (`true`), `fluidDrag` (`-1`, the shape's own),
+`fluidSkinFriction` (`0.005`), `fluidMagnusLift` (`0.5`) and
+`fluidAddedMass` (`1`). Engine 2 writes them only when one differs from its
+default.
+
 rayrai draws the objects the RaiSim world does not show: visible visual-only
 objects, and the visual mesh of a visible `.rasset` object (its colliders
 are hidden). A primitive is drawn at the size RaiSim would build; a mesh file
@@ -867,6 +876,28 @@ axes are given in that frame.
 `#0` path and `id` name the light (default id `light_<path>`), and
 `parentGroupId` follows [Conventions](#conventions). `range` is **ignored**: the
 attenuation coefficients decide the falloff, in Engine 2 as well.
+
+### ambient_fluid record
+
+`ambient_fluid <density> <viscosity> <vx> <vy> <vz>`: the fluid around
+the bodies outside the liquid volumes (`World::setAmbientFluid`): density
+(kg/m³), dynamic viscosity (Pa s) and the velocity of the wind (m/s). Without
+the record there is none. See [Fluids](./Fluids.md).
+
+### fluid_volume record
+
+`fluid_volume <path> <cx> <cy> <surface> <halfX> <halfY> <depth> key=value ...`:
+a body of liquid under a free surface (`World::addFluidVolume`): the box
+centered on `(cx, cy)` with half sizes `halfX` and `halfY`, from
+`surface - depth` up to `surface`. Keys: `ocean` (default `false`; `true`
+leaves the box open on every side and below, and the sizes and depth are not
+used), `density` (`998.2`), `viscosity` (`1.002e-3`), `current` (`0,0,0`, m/s),
+`waveRadiation` (`1`), `waves` (none; five numbers per wave, `dx,dy,wavelength,amplitude,phase`,
+separated by commas or semicolons, as in `waves=1,0,20,0.3,0;0.6,0.8,7,0.1,1.5`: the
+`FluidWave`s that move the surface and the liquid under it) and `appearance` (`pool`, `lake`,
+`ocean` or `pond`, default `pool`): how **rayrai** draws the water over the volume. It draws the
+volume's waves where the physics moves them, with ripples on top.
+`enabled=false` skips the record.
 
 ### local_fog record
 

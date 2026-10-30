@@ -295,6 +295,45 @@ with `exportToXml`.
 - `sensors` and `actuators` children of an articulated system. See
   [Sensors](./Sensors.md) and [Actuators](./Actuators.md).
 
+## Fluids
+
+The optional `fluids` element under `raisim` holds the fluids of the world
+(see [Fluids](./Fluids.md)). A `fluid` child of an object sets how they act on
+it.
+
+```xml
+<fluids>
+  <ambient preset="air"/>
+  <volume preset="water" surface="0.7" bottom="0" min="-2, -1.2" max="2, 1.2" velocity="0.3, 0, 0"/>
+</fluids>
+<objects>
+  <box name="crate" mass="30">
+    <dim x="0.5" y="0.5" z="0.5"/>
+    <state pos="0, 0, 1"/>
+    <fluid drag="0.8" added_mass="0.5"/>
+  </box>
+</objects>
+```
+
+- `ambient` (optional): the fluid around the bodies outside the volumes
+  (`World::setAmbientFluid`).
+- `volume` (optional, multiple): a body of liquid under a free surface
+  (`World::addFluidVolume`). `surface` (default `0`) is the height of its
+  surface and `bottom` (default none) the height of its bottom; `min` and `max`
+  (default open) bound it horizontally, or `min_x`, `min_y`, `max_x` and
+  `max_y` along one axis. `wave_radiation` (default `1`) scales the damping of
+  the waves a floating body makes. Each `wave` child (optional, multiple) is a
+  wave on its surface: `direction` (default `1, 0`), `wavelength` (m, default
+  `10`), `amplitude` (m, default `0.1`) and `phase` (rad, default `0`).
+- Both take a fluid: `preset` (`water`, `seawater` or `air`; a volume
+  defaults to `water`), then `density` (kg/m³), `viscosity` (Pa s) and
+  `velocity` (m/s) override it.
+- `fluid` child of an object (optional, multiple): `enabled`, `buoyancy`
+  (`true` or `false`), `drag`, `skin_friction`, `magnus_lift` and
+  `added_mass` (`World::setFluidCoefficients`). Under an articulated system,
+  `collision_body` names the collision body it applies to; without it, it
+  applies to all of them.
+
 ## Simulation settings
 
 The optional `simulation` element under `raisim` sets solver,

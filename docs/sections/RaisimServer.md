@@ -166,8 +166,18 @@ bits are:
 - `PROTOCOL_FEATURE_SCENE_FILES`: every reply carries the state of the
   world's `.rscene` file list, and the client may ask for the list and for
   file chunks (see [Sharing a RaiSim Engine scene](#sharing-a-raisim-engine-scene)).
+- `PROTOCOL_FEATURE_BODY_FRAME_OFFSETS`: the initialization record of each
+  visual of an articulated system or compound carries its position and
+  rotation relative to its body.
+- `PROTOCOL_FEATURE_FLUID_VOLUMES`: every reply carries the world's volumes of
+  liquid ([Fluids](./Fluids.md)) while it has any, and the viewer draws their
+  water, also when it replays a session log. Volumes with a sampler have no
+  fixed surface and are not sent.
+- `PROTOCOL_FEATURE_CONTROLS`: a reply carries the application's sliders
+  (see [Sliders](#sliders)) after connecting and whenever one changes, and the
+  viewer sets their values with `CR_SET_CONTROL` requests.
 
-The rayrai TCP viewer negotiates all six bits automatically.
+The rayrai TCP viewer negotiates all nine bits automatically.
 `sendUpdateRequest()` in `rayrai/RaisimTcpCommon.hpp` advertises every bit
 the client build supports; a custom client that writes its own request frames
 may advertise any subset (see [Rayrai TCP Viewer](./RayraiTcpViewer.md)).
@@ -314,6 +324,36 @@ carries these requests out on the next scene update (see [Rayrai TCP Viewer](./R
 The viewer's output folder is its `--screenshot-dir` or the folder chosen in
 its **Record** tab. Screenshot and recording requests stored in a recorded
 session are ignored when the session is replayed.
+
+## Sliders
+
+An application can let the viewer's user set its values while it runs, such as
+the speed of a current or the gain of a controller. [Viewer Sliders](./raisim_server/Sliders.md)
+walks through them, with C++ and Python programs and their wire format:
+
+```cpp
+raisim::RaisimServer server(&world);
+const size_t speed = server.addSlider("Stream speed [m/s]", 0.0, 3.0, 0.8);
+server.launchServer(8080);
+for (;;) {
+  const double streamSpeed = server.getSlider(speed);
+  server.integrateWorldThreadSafe([&] { /* put streamSpeed into the world; it steps after */ });
+}
+```
+
+- `addSlider(name, min, max, value)` adds a slider labelled `name`, from `min`
+  to `max`, starting at `value`, and returns its index. A server holds up to 64.
+- `getSlider(index)` returns its value as the viewer's user last set it, within
+  `[min, max]`. It may be called from any thread.
+- The rayrai TCP viewer shows the sliders in its **Controls** window, at the
+  lower right of each pane connected to the server (see
+  [Rayrai TCP Viewer](./RayraiTcpViewer.md#controls-window)). A value the user
+  sets reaches the application with the next scene update. Viewers without
+  `PROTOCOL_FEATURE_CONTROLS` do not show them, and a replayed session does not.
+
+The [fluid stream](./examples/server/fluid_stream.md) and
+[fluid stream with ANYmal](./examples/server/fluid_stream_anymal.md) examples set
+the speed of a stream with a slider.
 
 ## Default bind address
 

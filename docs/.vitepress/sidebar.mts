@@ -31,6 +31,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Custom Visuals', link: '/sections/examples/rayrai/rayrai_custom_visuals.md' },
               { text: 'Deformable Terrain', link: '/sections/examples/rayrai/rayrai_deformable_terrain.md' },
               { text: 'Depth Camera', link: '/sections/examples/rayrai/rayrai_depth_camera.md' },
+              { text: 'Floating on Waves', link: '/sections/examples/rayrai/rayrai_fluid_waves.md' },
               { text: 'Forest', link: '/sections/examples/rayrai/rayrai_forest.md' },
               { text: 'Forest From .rscene', link: '/sections/examples/rayrai/rayrai_forest_from_rscene.md' },
               { text: 'Instancing Grid', link: '/sections/examples/rayrai/rayrai_instancing_grid.md' },
@@ -65,6 +66,9 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Dynamic Heightmap', link: '/sections/examples/server/dynamic_heightmap.md' },
               { text: 'Dynamic Object Addition', link: '/sections/examples/server/dynamic_object_addition.md' },
               { text: 'Dzhanibekov Effect', link: '/sections/examples/server/dzhanibekov_effect.md' },
+              { text: 'Fluid Pool', link: '/sections/examples/server/fluid_pool.md' },
+              { text: 'Fluid Stream', link: '/sections/examples/server/fluid_stream.md' },
+              { text: 'Fluid Stream with ANYmal', link: '/sections/examples/server/fluid_stream_anymal.md' },
               { text: 'Granular Media', link: '/sections/examples/server/granular_media.md' },
               { text: 'Heavy Objects on Cloth', link: '/sections/examples/server/heavy_objects_on_cloth.md' },
               { text: 'Heightmap From PNG', link: '/sections/examples/server/heightmap_from_png.md' },
@@ -96,6 +100,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Spring Damper Joints', link: '/sections/examples/server/spring_damper_joints.md' },
               { text: 'Strandbeest Closed Loops', link: '/sections/examples/server/strandbeest_closed_loops.md' },
               { text: 'Synchronous Server Update', link: '/sections/examples/server/synchronous_server_update.md' },
+              { text: 'Underwater ROV', link: '/sections/examples/server/underwater_rov.md' },
               { text: 'Templated Tracked Robot', link: '/sections/examples/server/templated_tracked_robot.md' },
               { text: 'Visual Objects Showcase', link: '/sections/examples/server/visual_objects_showcase.md' },
               { text: 'Wheeled Robot Force Control', link: '/sections/examples/server/wheeled_robot_force_control.md' },
@@ -179,7 +184,14 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
       { text: 'World Configuration File', link: '/sections/WorldConfigurationFile.md' },
       { text: '.rscene File', link: '/sections/RsceneFile.md' },
       { text: 'OpenUSD Loading', link: '/sections/OpenUSD.md' },
-      { text: 'Raisim Server', link: '/sections/RaisimServer.md' },
+      {
+        text: 'Raisim Server',
+        link: '/sections/RaisimServer.md',
+        collapsed: true,
+        items: [
+          { text: 'Viewer Sliders', link: '/sections/raisim_server/Sliders.md' },
+        ],
+      },
       { text: 'Objects', link: '/sections/Object.md' },
       {
         text: 'Articulated Systems',
@@ -201,6 +213,14 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
       },
       { text: 'Single-Body Objects', link: '/sections/SingleBodyObjects.md' },
       { text: 'Deformable Objects', link: '/sections/DeformableObject.md' },
+      {
+        text: 'Fluids',
+        link: '/sections/Fluids.md',
+        collapsed: true,
+        items: [
+          { text: 'Dynamics of Fluid Forces', link: '/sections/fluids/Dynamics.md' },
+        ],
+      },
       {
         text: 'Granular Media',
         link: '/sections/GranularMedia.md',
