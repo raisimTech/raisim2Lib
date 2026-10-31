@@ -48,13 +48,17 @@ std::vector<raisim::Vec<3>> ndarray_to_vec3_list(const NDArray &array) {
 
 }  // namespace
 
+void init_wrench_sensors(py::module_& m);
+
 void init_sensors(py::module_ &m) {
     py::enum_<raisim::Sensor::Type>(m, "SensorType", py::is_arithmetic())
         .value("UNKNOWN", raisim::Sensor::Type::UNKNOWN)
         .value("RGB", raisim::Sensor::Type::RGB)
         .value("DEPTH", raisim::Sensor::Type::DEPTH)
         .value("IMU", raisim::Sensor::Type::IMU)
-        .value("SPINNING_LIDAR", raisim::Sensor::Type::SPINNING_LIDAR);
+        .value("SPINNING_LIDAR", raisim::Sensor::Type::SPINNING_LIDAR)
+        .value("FORCE", raisim::Sensor::Type::FORCE)
+        .value("TACTILE", raisim::Sensor::Type::TACTILE);
 
     py::enum_<raisim::Sensor::MeasurementSource>(m, "SensorMeasurementSource", py::is_arithmetic())
         .value("RAISIM", raisim::Sensor::MeasurementSource::RAISIM)
@@ -289,4 +293,5 @@ void init_sensors(py::module_ &m) {
         .def("getTimeStamp", &raisim::SpinningLidar::getTimeStamp)
         .def("setTimeStamp", &raisim::SpinningLidar::setTimeStamp)
         .def("getCurrentYaw", &raisim::SpinningLidar::getCurrentYaw);
+    init_wrench_sensors(m);
 }
