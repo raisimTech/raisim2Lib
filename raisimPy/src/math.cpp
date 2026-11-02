@@ -52,7 +52,7 @@ void init_math(py::module_ &m) {
                 // convert from np.array[3,3] to Mat<3,3>
                 Mat<3,3> rot = convert_np_to_mat<3,3>(array);
                 self.rot = rot;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("pos",
             [](raisim::Transformation &self) { // getter
                 // convert from Vec<3> to np.array[3]
@@ -61,7 +61,7 @@ void init_math(py::module_ &m) {
                 // convert from np.array[3] to Vec<3>
                 Vec<3> pos = convert_np_to_vec<3>(array);
                 self.pos = pos;
-            });
+            }, py::for_getter(py::rv_policy::move));
 
 
     /******************/

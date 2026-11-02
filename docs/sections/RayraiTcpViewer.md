@@ -137,12 +137,47 @@ rescan button. Discovery only fills these lists: `--connect host:port` and
 typed endpoints work even when UDP broadcast is blocked.
 
 The beacon carries the server's executable name (on Linux; other platforms
-report `RaisimServer`), host name, bind mode, and whether its single client
-seat is taken. These fill the table's **Name**, **Computer** and
+report `RaisimServer`), host name, bind mode, process id, and whether its single
+client seat is taken. These fill the table's **Name**, **Computer** and
 **Availability** columns.
 
 For cross-machine connections on Windows, allow both the TCP server port
 (default `8080`) and UDP discovery port `59312` through the firewall.
+
+## Server examples next to the viewer
+
+When the viewer is built with the examples, the build writes
+`raisim_server_examples.tsv` next to the executables: one line per example that
+serves its world with `RaisimServer`, with its category and documentation title.
+A pane with no session lists those examples under **Server examples next to this
+viewer**, grouped by category, with a search field. Click one to start it: the
+viewer launches the executable from its own folder, finds the port it bound from
+its discovery beacon (the beacon names the process id) and connects to it on this
+computer. Start one from the command line with `--example NAME`, and list the
+examples of another folder with `--examples-dir DIR`.
+
+A started example gets a tab of its own, **Example output** (the file icon next
+to **Connection**), which opens when the example starts. It names the example,
+shows whether it is starting, running, exited (with its exit code) or stopped,
+and shows its output; **Stop example** ends it. The example also ends with its
+session: when you click **Disconnect**, when the server closes the connection or
+stops replying, and when the viewer closes. An example that ended, by itself or
+with its session, keeps its output in the tab until you click **Clear**, and the
+tab comes to the front when the example ends without being asked to. Starting
+another example replaces it in the tab; starting another kind of session in the
+pane (a dropped world XML or robot, or another server) ends it and removes the
+tab. The **Connection** tab lists the examples only and highlights the one
+started last. A viewer installed without the examples (no list next to it) shows
+no examples section.
+
+On Windows an example ends with the viewer however the viewer ends. On Linux and
+macOS, an example outlives a viewer that crashes or is killed with `SIGKILL`; stop
+it from a terminal.
+
+The [browser version](./WebAssembly.md) of the viewer lists the server examples
+compiled into its bundle instead and runs each in a worker of its own. Examples
+that ask for the same port, in two panes, are reached at distinct ports, as native
+servers bind the next free port.
 
 ## Local world simulation
 
@@ -195,6 +230,9 @@ on a pane connected to an external server is refused, so disconnect first.
 | `--host HOST` / `--port PORT` | Set the host and the port separately. Defaults are `127.0.0.1` and `8080`. |
 | `--connect HOST:PORT` | Set host and port together; IPv6 addresses use `[addr]:port`. An endpoint given on the command line replaces only the first pane's saved endpoint. |
 | `--auto-connect` / `--no-auto-connect` | Whether to dial the server on launch and keep retrying while disconnected. This also applies to panes restored from the saved layout. The environment variable `RAYRAI_TCP_VIEWER_AUTO_CONNECT` sets the default. |
+| `--example NAME` | Start the server example `NAME` listed next to the viewer and connect to it (see [Server examples next to the viewer](#server-examples-next-to-the-viewer)). The viewer exits with code 1 if no such example is listed. |
+| `--examples-dir DIR` | List and start the server examples of `DIR` (its `raisim_server_examples.tsv`) instead of the ones next to the viewer. |
+| `--render-quality NAME` | Render with the `fast`, `balanced`, `high` or `ultra` preset instead of the one chosen for the GPU. The browser viewer takes it as `?quality=NAME`. |
 | `--simulate FILE` | Run a RaiSim world XML in a simulation process owned by the viewer and connect to it (see [Local world simulation](#local-world-simulation)). The viewer exits with code 1 if the file is not a world or the simulation stops before the first connection. |
 | `--activation-key FILE` | RaiSim activation key for the viewer and any local simulation it starts. |
 | `--no-save-settings` | Do not write `settings.yaml` during this session, so layout and preference changes are discarded at exit. |
@@ -348,6 +386,12 @@ uses `.rayrai/settings.yaml` in the working directory. The file has one
 `pane_endpoint` and `resource_dir` may repeat. Values are clamped to their
 valid ranges when read. The viewer writes the file 750 ms after a change and at
 exit; `--no-save-settings` disables every write.
+
+The [browser version](./WebAssembly.md) keeps the same text in the page's local
+storage (key `rayrai-tcp-viewer-settings`), because a page's files last only as
+long as the page. Settings therefore persist per site and browser profile, and
+clearing the site's data resets them. A browser that blocks site data keeps the
+defaults and prints a warning when it cannot save.
 
 Every key is shared by all panes except `pane_endpoint`. The keys cover render
 quality and lighting (`render_quality`, `light_strength`, `light_yaw_deg`,
@@ -949,6 +993,14 @@ client can also read the files referenced by the server's `.rscene` scene
 `..` references may name files outside the scene directory, and image
 extensions alone do not prove that a file is safe to share; `server.setSceneFileSharing(false)`
 turns that off.
+
+Browser viewers reach the same port over WebSocket (see
+[Rayrai TCP viewer in the browser](./WebAssembly.md)). A browser names the page
+that opens the connection, so `RaisimServer` serves only pages from
+`https://raisim.com` and from this computer (`localhost`, `127.0.0.1`, `[::1]`)
+unless `server.allowWebViewerOrigin("http://host:port")` adds another. This
+keeps a web site you visit from driving a simulation on your computer; it is
+not an authentication mechanism for remote clients.
 
 <a id="tcp-viewer-sensor-round-trip"></a>
 

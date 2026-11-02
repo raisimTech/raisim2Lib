@@ -442,6 +442,8 @@ batches draw ground plants from plain glTF files that have no colliders.
 | `terrain_foliage_layer` | Stored. | Scattered instanced foliage. |
 | `object` | A ground, box, sphere, cylinder, capsule or mesh body, unless visual-only. | Visual-only objects and visible `.rasset` objects. |
 | `wire` | A spatial tendon between two bodies. | Drawn from the world. |
+| `articulated_resource` | A robot source shared by `articulated` records. |  |
+| `articulated` | An articulated system from a URDF, MJCF or RaiSim XML source (see [articulated record](#articulated-record)). | Drawn from the world. |
 | `sensor` | Nothing (see [sensor record](#sensor-record)). |  |
 | `instanced_visual` | Stored (enabled batches only). | One instanced batch each. |
 | `light` | Stored (visible lights only). | The main light and additional lights. |
@@ -808,14 +810,46 @@ part `localIndexB` (defaults `0,0,0` and `0`):
 drawn width; `0` hides the wire. `enabled=false` skips the record, and
 `id` is **ignored**.
 
+### articulated record
+
+`articulated_resource <id> <name> <source> key=value ...` names a URDF, MJCF or
+RaiSim XML file (or an inline description that starts with `<`) that robots
+share. Its keys are `resourceDirectory` (mesh directory; empty uses the
+source's folder), `modules` and `jointOrder` (`;`-separated lists),
+`doNotCollideWithParent` (default `true`) and `convexifyCollisionMeshes`
+(default `false`).
+
+`articulated <path> <resource> <x> <y> <z> <qw> <qx> <qy> <qz> <visible> <collidable> key=value ...`
+places one articulated system, as Engine 2 writes it. `<resource>` may be
+empty (`-`) when `sourcePath` names the source; `sourcePath`,
+`resourceDirectory`, `modules` and `jointOrder` override the resource's
+values, and the resource's collision options apply, as in Engine 2. Paths
+resolve against the scene folder and then `asset_root`.
+
+RaiSim adds the system with `collisionGroup` (default `1`) and
+`collisionMask` (default all bits; `0` when `collidable` is `false`), names
+it `<path>`, sets the base pose from the record's position and quaternion,
+then applies `generalizedCoordinate` and `generalizedVelocity` when given.
+For a floating base the record's pose replaces the first seven coordinates,
+so the stored list contributes only the joints. A list of the wrong size is
+an error. `visible` is for viewers. `scale` must be positive; the system is
+built at unit scale. Engine 2 also writes `semanticClass`, fluid keys and
+`raisim*` contact-tuning keys; neither its RaiSim bridge nor this reader
+applies them. `articulated_ik` records are rejected.
+
+```cpp
+raisim::World world("scene.rscene");
+auto* robot = dynamic_cast<raisim::ArticulatedSystem*>(world.getObject("/World/Robot"));
+```
+
 ### sensor record
 
 `sensor <path> <kind> <parent> <x> <y> <z> <qw> <qx> <qy> <qz> key=value ...`:
-a camera, depth camera, lidar or IMU mounted on a node. The record is parsed
-and creates nothing. RaiSim sensors live on articulated systems, which the
-reader does not create, and Engine 2 also creates nothing for a sensor on a
-rigid body; the frames and frusta Engine 2 draws for sensors are editor
-overlays.
+a camera, depth camera, lidar or IMU mounted on a node. A sensor on a rigid
+body is parsed and creates nothing; Engine 2 also creates nothing for it, and
+the frames and frusta Engine 2 draws for sensors are editor overlays. A
+sensor whose parent is an `articulated` node is an error: this reader does
+not create sensors on articulated systems.
 
 ### instanced_visual record
 
@@ -1051,8 +1085,7 @@ While parsing (`rscene::load`):
   positional field, or a value of the wrong type, including a name that is
   not listed for its field;
 - any record tag not listed in [Records](#records), for example
-  `articulated_resource`, `articulated`, `articulated_ik`,
-  `compound`, `compound_child`, `deformable`, `granular`,
+  `articulated_ik`, `compound`, `compound_child`, `deformable`, `granular`,
   `projected_decal`, `irradiance_volume` and `point_cloud`;
 - a node whose `parentGroupId` names another node while transforms are
   inherited (see [Conventions](#conventions));

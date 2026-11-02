@@ -2,8 +2,10 @@
 
 ## Activation Key
 
-RaiSim needs an activation key to run. Academic and trial licenses are free;
-the License page explains how to request one.
+The native edition of RaiSim needs an activation key to run. Academic and trial
+licenses are free; the License page explains how to request one. The browser
+WebAssembly edition uses [separate licensing terms](./License.md#webassembly-edition)
+and requires no activation key.
 
 <p class="rs-doc-cta">
   <a class="rs-doc-button" href="/sections/License.html">

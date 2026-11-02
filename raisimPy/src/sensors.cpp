@@ -57,8 +57,11 @@ void init_sensors(py::module_ &m) {
         .value("DEPTH", raisim::Sensor::Type::DEPTH)
         .value("IMU", raisim::Sensor::Type::IMU)
         .value("SPINNING_LIDAR", raisim::Sensor::Type::SPINNING_LIDAR)
+#if RAISIMPY_HAS_WRENCH_SENSORS
         .value("FORCE", raisim::Sensor::Type::FORCE)
-        .value("TACTILE", raisim::Sensor::Type::TACTILE);
+        .value("TACTILE", raisim::Sensor::Type::TACTILE)
+#endif
+        ;
 
     py::enum_<raisim::Sensor::MeasurementSource>(m, "SensorMeasurementSource", py::is_arithmetic())
         .value("RAISIM", raisim::Sensor::MeasurementSource::RAISIM)
@@ -98,6 +101,31 @@ void init_sensors(py::module_ &m) {
         .def("getSerialNumber", &raisim::SensorSet::getSerialNumber)
         .def("getName", &raisim::SensorSet::getName);
 
+    py::enum_<raisim::CameraProjectionType>(m, "CameraProjectionType")
+        .value("PINHOLE", raisim::CameraProjectionType::PINHOLE)
+        .value("FISHEYE_EQUIDISTANT", raisim::CameraProjectionType::FISHEYE_EQUIDISTANT);
+    py::class_<raisim::CameraIntrinsics>(m, "CameraIntrinsics")
+        .def(py::init<>())
+        .def_rw("fx", &raisim::CameraIntrinsics::fx).def_rw("fy", &raisim::CameraIntrinsics::fy)
+        .def_rw("cx", &raisim::CameraIntrinsics::cx).def_rw("cy", &raisim::CameraIntrinsics::cy)
+        .def("hasExplicitFocalLength", &raisim::CameraIntrinsics::hasExplicitFocalLength)
+        .def("hasExplicitPrincipalPoint", &raisim::CameraIntrinsics::hasExplicitPrincipalPoint);
+    py::class_<raisim::CameraFisheyeDistortion>(m, "CameraFisheyeDistortion")
+        .def(py::init<>()).def_rw("k1", &raisim::CameraFisheyeDistortion::k1)
+        .def_rw("k2", &raisim::CameraFisheyeDistortion::k2)
+        .def_rw("k3", &raisim::CameraFisheyeDistortion::k3)
+        .def_rw("k4", &raisim::CameraFisheyeDistortion::k4);
+    py::class_<raisim::CameraLensModel>(m, "CameraLensModel")
+        .def(py::init<>()).def_rw("projection", &raisim::CameraLensModel::projection)
+        .def_rw("intrinsics", &raisim::CameraLensModel::intrinsics)
+        .def_rw("fisheye", &raisim::CameraLensModel::fisheye)
+        .def("isFisheye", &raisim::CameraLensModel::isFisheye)
+        .def("projectionName", &raisim::CameraLensModel::projectionName)
+        .def("distortionModel", &raisim::CameraLensModel::distortionModel)
+        .def("setOpenCvFisheye", &raisim::CameraLensModel::setOpenCvFisheye,
+             py::arg("fx"),py::arg("fy"),py::arg("cx"),py::arg("cy"),
+             py::arg("k1")=0.,py::arg("k2")=0.,py::arg("k3")=0.,py::arg("k4")=0.);
+
     py::enum_<raisim::RGBCamera::RGBCameraProperties::NoiseType>(m, "RGBCameraNoiseType",
                                                                  py::is_arithmetic())
         .value("GAUSSIAN", raisim::RGBCamera::RGBCameraProperties::NoiseType::GAUSSIAN)
@@ -115,6 +143,7 @@ void init_sensors(py::module_ &m) {
         .def_rw("clipNear", &raisim::RGBCamera::RGBCameraProperties::clipNear)
         .def_rw("clipFar", &raisim::RGBCamera::RGBCameraProperties::clipFar)
         .def_rw("hFOV", &raisim::RGBCamera::RGBCameraProperties::hFOV)
+        .def_rw("lens", &raisim::RGBCamera::RGBCameraProperties::lens)
         .def_rw("noiseType", &raisim::RGBCamera::RGBCameraProperties::noiseType)
         .def_rw("mean", &raisim::RGBCamera::RGBCameraProperties::mean)
         .def_rw("std", &raisim::RGBCamera::RGBCameraProperties::std)
@@ -162,6 +191,7 @@ void init_sensors(py::module_ &m) {
         .def_rw("clipNear", &raisim::DepthCamera::DepthCameraProperties::clipNear)
         .def_rw("clipFar", &raisim::DepthCamera::DepthCameraProperties::clipFar)
         .def_rw("hFOV", &raisim::DepthCamera::DepthCameraProperties::hFOV)
+        .def_rw("lens", &raisim::DepthCamera::DepthCameraProperties::lens)
         .def_rw("noiseType", &raisim::DepthCamera::DepthCameraProperties::noiseType)
         .def_rw("mean", &raisim::DepthCamera::DepthCameraProperties::mean)
         .def_rw("std", &raisim::DepthCamera::DepthCameraProperties::std)
@@ -293,5 +323,7 @@ void init_sensors(py::module_ &m) {
         .def("getTimeStamp", &raisim::SpinningLidar::getTimeStamp)
         .def("setTimeStamp", &raisim::SpinningLidar::setTimeStamp)
         .def("getCurrentYaw", &raisim::SpinningLidar::getCurrentYaw);
+#if RAISIMPY_HAS_WRENCH_SENSORS
     init_wrench_sensors(m);
+#endif
 }

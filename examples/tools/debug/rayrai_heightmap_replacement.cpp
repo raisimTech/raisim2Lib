@@ -17,6 +17,7 @@
 #include "rayrai/CameraFrustum.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
+#include "rayrai_example_utils.hpp"
 
 namespace {
 constexpr size_t kTerrainSamples = 129;
@@ -27,18 +28,6 @@ constexpr double kTerrainSize = 12.0;
 constexpr int kPointStride = 6;
 constexpr float kPointCubeSize = 0.012f;
 constexpr float kPointColorRange = 3.0f;
-
-ImVec2 fitToAspect(ImVec2 available, float aspect) {
-  if (aspect <= 0.0f) return available;
-
-  ImVec2 size = available;
-  size.y = size.x / aspect;
-  if (size.y > available.y) {
-    size.y = available.y;
-    size.x = size.y * aspect;
-  }
-  return size;
-}
 
 // Projects a depth image (rows top to bottom) into world-frame points and replaces the cubes in
 // `cubes` with them. Pixels where the camera saw nothing (depth 0) are skipped.
@@ -307,7 +296,7 @@ int main(int argc, char* argv[]) {
     ImGui::Text("Center depth: %.4f m", frontCenterDepth);
     ImVec2 frontAvailable = ImGui::GetContentRegionAvail();
     const float frontAspect = float(frontDepthWidth) / float(frontDepthHeight);
-    ImVec2 frontImageSize = fitToAspect(frontAvailable, frontAspect);
+    ImVec2 frontImageSize = raisim_examples::fitToAspect(frontAvailable, frontAspect);
     ImTextureID frontTexture = (ImTextureID)(intptr_t)frontDepthCamera->getLinearDepthTexture();
     ImGui::Image(frontTexture, frontImageSize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::EndChild();
@@ -318,7 +307,7 @@ int main(int argc, char* argv[]) {
     ImGui::Text("Center depth: %.4f m", rearCenterDepth);
     ImVec2 rearAvailable = ImGui::GetContentRegionAvail();
     const float rearAspect = float(rearDepthWidth) / float(rearDepthHeight);
-    ImVec2 rearImageSize = fitToAspect(rearAvailable, rearAspect);
+    ImVec2 rearImageSize = raisim_examples::fitToAspect(rearAvailable, rearAspect);
     ImTextureID rearTexture = (ImTextureID)(intptr_t)rearDepthCamera->getLinearDepthTexture();
     ImGui::Image(rearTexture, rearImageSize, ImVec2(0, 1), ImVec2(1, 0));
     ImGui::EndChild();

@@ -5,12 +5,9 @@
 #include <iomanip>
 
 #include "glass_geometry.hpp"
-#include "rayrai/TextureBindingCache.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
-#define STB_IMAGE_WRITE_STATIC
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
+#include "rayrai_example_utils.hpp"
 
 namespace {
 using namespace raisin;
@@ -77,15 +74,8 @@ Options parse(int argc, char** argv) {
     throw std::runtime_error("Invalid dimensions, samples, bounces or counts");
   return o;
 }
-void save(Camera& camera, const Options& o) {
-  std::vector<unsigned char> pixels(size_t(o.width) * o.height * 4);
-  glBindTexture(GL_TEXTURE_2D, camera.getFinalTexture());
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-  resetTextureBindingCache();
-  for (int y = 0; y < o.height / 2; ++y) std::swap_ranges(pixels.begin() + y * o.width * 4, pixels.begin() + (y + 1) * o.width * 4, pixels.begin() + (o.height - 1 - y) * o.width * 4);
-  auto parent = std::filesystem::path(o.output).parent_path();
-  if (!parent.empty()) std::filesystem::create_directories(parent);
-  if (!stbi_write_png(o.output.c_str(), o.width, o.height, 4, pixels.data(), o.width * 4)) throw std::runtime_error("Capture failed");
+void save(Camera& camera, const std::filesystem::path& path) {
+  if (!raisim_examples::saveCameraPng(camera, path)) throw std::runtime_error("Capture failed");
 }
 void run(ExampleApp& app, const Options& o) {
   raisim::World world;
@@ -264,15 +254,13 @@ void run(ExampleApp& app, const Options& o) {
       if (!o.recording.empty()) {
         char name[32];
         std::snprintf(name, sizeof(name), "frame_%03d.png", i);
-        auto capture = o;
-        capture.output = (o.recording / name).string();
-        save(camera, capture);
+        save(camera, o.recording / name);
         if ((i + 1) % 25 == 0) std::cout << "Nested glass: recorded " << i + 1 << '/' << o.frames << std::endl;
       }
     }
     const double totalMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     const double ms = totalMs / o.frames;
-    if (!o.output.empty()) save(camera, o);
+    if (!o.output.empty()) save(camera, o.output);
     const auto d = viewer.geometryRefractionDiagnostics();
     std::cout << "backend=" << (d.backend == GeometryRefractionBackend::VulkanRayQuery ? "vulkan" : "portable") << " status=" << d.backendStatus << '\n';
     std::cout << "GPU: " << glGetString(GL_RENDERER) << '\n'

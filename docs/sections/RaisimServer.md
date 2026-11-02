@@ -370,13 +370,29 @@ from a wider network, any client on that network can pause, step, apply
 forces, spawn and remove objects. There is no token or authorization layer to
 fall back on.
 
+## Browser viewers
+
+The same port also accepts browser viewers, such as the
+[browser TCP viewer](./WebAssembly.md): the server recognizes their WebSocket
+upgrade request and then sends them the same stream a TCP viewer gets. Because a
+browser connects on behalf of whatever page is open, the server serves only pages
+from `https://raisim.com` and from this computer (`localhost`, `127.0.0.1`,
+`[::1]`), and refuses others with HTTP 403. To accept a page served from another
+address, name its origin before `launchServer()`:
+
+```cpp
+server.allowWebViewerOrigin("http://192.168.0.5:8000");
+```
+
+Clients outside browsers send no origin and are served as TCP viewers.
+
 ## Discovery beacons
 
 While the server is running, `RaisimServer` advertises itself with a UDP
 beacon once per second on port `59312`. The beacon payload contains the
 RaiSim TCP protocol version, TCP port, host name, executable name (on Linux;
 other platforms send `RaisimServer`), bind mode (`loopback` or `all`),
-and connection status. `rayrai_tcp_viewer` lists only beacons whose protocol
+connection status, process id, and `websocket=1` for browser viewer support. `rayrai_tcp_viewer` lists only beacons whose protocol
 version equals its own, in the server table of a pane without a session and
 in the endpoint popup of the **Connection** tab.
 

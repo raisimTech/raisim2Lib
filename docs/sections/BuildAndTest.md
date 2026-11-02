@@ -72,11 +72,6 @@ only one variant, every consumer configuration maps to that available variant;
 building a downstream project in Debug does not manufacture RaiSim debug
 assertions when only the Release library is installed.
 
-The packaged libraries contain no debug information. The Debug libraries keep
-RaiSim's `RSDEBUG` checks and their symbols, so error messages and backtraces
-name RaiSim's functions, but a debugger cannot show RaiSim's source lines or
-variables. Debug your own code as usual.
-
 ## Timing examples
 
 `raisim2Lib` includes standalone timing-oriented example executables. The
@@ -103,16 +98,24 @@ workloads in a downstream application.
 For manual object lifecycle and rendering regression checks, see
 [Regression and Debug Tools](./DebugTools.md).
 
-The public workspace has no CTest suite; the engine's own test suite is not
-shipped. The examples double as smoke tests, and `raisimPy` includes a
-`unittest` module for its tendon bindings. Run it after building with
-`-DRAISIM_PY=ON`, with `PYTHONPATH` pointing to the directory that contains
-the built `raisimpy` module:
+The engine's own test suite is not shipped. Building with `RAISIM_PY=ON`
+and `BUILD_TESTING=ON` registers `raisimpy_runtime`, which runs the Python
+API regressions and all Python examples with bounded headless loops:
+
+```bash
+RAISIM_ACTIVATION_KEY="$HOME/.raisim/activation.raisim" \
+  ctest --test-dir build-py -R raisimpy_runtime --output-on-failure
+```
+
+For direct `unittest` use, point `PYTHONPATH` to the built extension:
 
 ```bash
 PYTHONPATH=build/raisimPy RAISIM_ACTIVATION_KEY=$HOME/.raisim/activation.raisim \
-  python3 -m unittest raisimPy/tests/test_tendons.py
+  python3 -m unittest discover -s raisimPy/tests -v
 ```
+
+Set `RAISIMPY_TEST_SERVER=1` to run the example smoke tests with ephemeral
+loopback servers. See [RaisimPy](./RaiSimPy.md) for the APIs and example options.
 
 ## Build the documentation
 

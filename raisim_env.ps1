@@ -57,6 +57,35 @@ Add-PathEntry (Join-Path $rayraiBase "bin")
 Add-PathEntry (Join-Path $raisimBase "lib")
 Add-PathEntry (Join-Path $rayraiBase "lib")
 
+function Add-PythonPathEntry {
+  param([string]$Entry)
+
+  $entries = "$env:PYTHONPATH" -split ";"
+  foreach ($existing in $entries) {
+    if ($existing -ieq $Entry) {
+      return
+    }
+  }
+
+  if ([string]::IsNullOrEmpty($env:PYTHONPATH)) {
+    $env:PYTHONPATH = $Entry
+  } else {
+    $env:PYTHONPATH = "$Entry;$env:PYTHONPATH"
+  }
+
+  Write-Host "Added to PYTHONPATH: $Entry"
+}
+
+# raisimpy built from this checkout. Added even before the first build; multi-config
+# generators put it under Release. Set RAISIMPY_BUILD_DIR for other trees or configs.
+if (-not [string]::IsNullOrWhiteSpace($env:RAISIMPY_BUILD_DIR)) {
+  Add-PythonPathEntry $env:RAISIMPY_BUILD_DIR
+} else {
+  $raisimPyBuildDir = Join-Path $env:RAISIM_ROOT "build-py\raisimPy"
+  Add-PythonPathEntry $raisimPyBuildDir
+  Add-PythonPathEntry (Join-Path $raisimPyBuildDir "Release")
+}
+
 # If you're using vcpkg to supply runtime DLLs (e.g. SDL2), add its bin folders too.
 # This keeps example executables runnable from the build tree.
 $vcpkgRoot = $env:VCPKG_ROOT

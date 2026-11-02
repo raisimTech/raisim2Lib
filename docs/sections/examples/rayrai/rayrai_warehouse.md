@@ -28,7 +28,8 @@ raisin::RayraiWindow viewer(world, 1280, 800);  // applies the scene
 ./build-examples/examples/rayrai_warehouse --screenshot warehouse.png
 ```
 
-Source: `examples/src/rayrai/worlds/rayrai_warehouse.cpp` (CMake target
+Source: `examples/src/rayrai/worlds/rayrai_warehouse.cpp`, which runs the
+`photoreal_scene.hpp` it shares with the city example (CMake target
 `rayrai_warehouse`). `--screenshot` saves one frame and exits, and
 `--scene` loads another `.rscene` file. On an RTX 2070 SUPER a frame takes
 about 13 ms at 1280 × 800.

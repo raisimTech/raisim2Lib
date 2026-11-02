@@ -2,11 +2,15 @@ import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import { defineComponent, h, onMounted } from 'vue'
 
+import WebTools from './components/WebTools.vue'
+import BrowserViewer from './components/BrowserViewer.vue'
+import BrowserSceneEditor from './components/BrowserSceneEditor.vue'
 import ExampleGallery from './components/ExampleGallery.vue'
 import HomePage from './components/home/HomePage.vue'
 import NavCta from './components/NavCta.vue'
 import PaperList from './components/PaperList.vue'
 import PlatformTabs from './components/PlatformTabs.vue'
+import RunOnWeb from './components/RunOnWeb.vue'
 import { glow, inView, reveal } from './directives'
 import { setupDocVideos } from './docVideos'
 import './styles/vars.css'
@@ -21,6 +25,7 @@ const Layout = defineComponent({
     return () =>
       h(DefaultTheme.Layout, null, {
         'nav-bar-content-after': () => h(NavCta),
+        'doc-before': () => h(RunOnWeb),
       })
   },
 })
@@ -29,6 +34,9 @@ export default {
   extends: DefaultTheme,
   Layout,
   enhanceApp({ app, router }) {
+    app.component('WebTools', WebTools)
+    app.component('BrowserViewer', BrowserViewer)
+    app.component('BrowserSceneEditor', BrowserSceneEditor)
     app.component('HomePage', HomePage)
     app.component('ExampleGallery', ExampleGallery)
     app.component('PlatformTabs', PlatformTabs)

@@ -32,7 +32,8 @@ meshes, and the street-level camera.
 ## Target
 
 CMake target: `rayrai_city` (C++20). Source:
-`examples/src/rayrai/worlds/rayrai_city.cpp`. Like
+`examples/src/rayrai/worlds/rayrai_city.cpp`, which runs the
+`photoreal_scene.hpp` it shares with the warehouse example. Like
 [Rayrai Example: Forest From .rscene](./rayrai_forest_from_rscene.md), it needs the `.rscene` support of
 `raisim::World` and a rayrai whose `RayraiWindow` applies its world's
 scene; CMake skips the target when the installed rayrai lacks it.

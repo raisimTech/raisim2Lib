@@ -48,6 +48,8 @@ NB_MODULE(raisimpy, m) {
     // add meta information
 	m.doc() = "Python wrappers for the RaiSim library."; // docstring for the module
 	m.attr("__license__") = "PROPRIETARY";
+    m.attr("__version__") = RAISIMPY_VERSION;
+    m.attr("hasWrenchSensors") = bool(RAISIMPY_HAS_WRENCH_SENSORS);
 	py::list authors;
 	authors.append("Jemin Hwangbo (raisim)");
 	authors.append("Donho Kang (raisim)");
@@ -94,4 +96,34 @@ NB_MODULE(raisimpy, m) {
 	/* World */
 	/*********/
 	init_world(m);
+    m.attr("hasRayrai") = bool(RAISIMPY_HAS_RAYRAI);
+    auto rayrai = m.def_submodule("rayrai", "In-process Rayrai rendering (loaded on first use).");
+    rayrai.attr("available") = bool(RAISIMPY_HAS_RAYRAI);
+    rayrai.def("__dir__", []() -> nb::object {
+        try {
+            return nb::module_::import_("builtins").attr("dir")(nb::module_::import_("raisimpy_rayrai"));
+        } catch(nb::python_error& error) {
+            if(!error.matches(PyExc_ImportError)) throw;
+            nb::list names; names.append("available"); return names;
+        }
+    });
+    rayrai.def("__getattr__", [](const std::string& name) -> nb::object {
+        try {
+            return nb::module_::import_("raisimpy_rayrai").attr(name.c_str());
+        } catch(nb::python_error& error) {
+            if(!error.matches(PyExc_ImportError)) throw;
+            nb::raise_from(error,PyExc_AttributeError,"Rayrai backend is unavailable: %s",name.c_str());
+        }
+    });
+    m.def("__getattr__", [](const std::string& name) -> nb::object {
+        if (name == "RayraiWindow" || name == "RayraiViewer") {
+            try {
+                return nb::module_::import_("raisimpy_rayrai").attr(name.c_str());
+            } catch(nb::python_error& error) {
+                if(!error.matches(PyExc_ImportError)) throw;
+                nb::raise_from(error,PyExc_AttributeError,"Rayrai backend is unavailable: %s",name.c_str());
+            }
+        }
+        throw nb::attribute_error(("module raisimpy has no attribute " + name).c_str());
+    });
 }

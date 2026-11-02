@@ -180,6 +180,7 @@ add_custom_target(docs_site ALL
         COMMAND ${RAISIM_DOCS_NODE} ${CMAKE_CURRENT_BINARY_DIR}/node_modules/vitepress/bin/vitepress.js
                 build ${RAISIM_DOCS_STAGE_DIR}/docs --outDir ${RAISIM_DOCS_SITE_DIR}
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_links.py ${RAISIM_DOCS_SITE_DIR}
+                --ignore /web-examples/
         DEPENDS ${RAISIM_DOCS_NPM_STAMP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Building the documentation site with VitePress"

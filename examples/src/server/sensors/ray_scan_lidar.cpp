@@ -90,4 +90,5 @@ int main(int argc, char* argv[]) {
   }
 
   server.killServer();
+  return 0;
 }

@@ -2,9 +2,8 @@
 #include "rayrai/PhysicsSnapshot.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
+#include "rayrai_example_utils.hpp"
 #include "tendon_example_runner.hpp"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
 
 using namespace raisim_examples::tendons;
 namespace {
@@ -24,18 +23,10 @@ void positionCamera(raisin::RayraiWindow& viewer, Kind kind) {
   c.update(false);
 }
 void capture(raisin::RayraiWindow& viewer, const std::string& file) {
-  const int width = viewer.getCamera().rtWidth(), height = viewer.getCamera().rtHeight();
-  std::vector<unsigned char> pixels(static_cast<size_t>(width) * height * 4), flipped(pixels.size());
-  gl::GLint previous = 0;
-  gl::glGetIntegerv(gl::GL_TEXTURE_BINDING_2D, &previous);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, viewer.getImageTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, pixels.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, static_cast<gl::GLuint>(previous));
-  for (int row = 0; row < height; ++row) std::copy_n(pixels.data() + static_cast<size_t>(row) * width * 4, width * 4, flipped.data() + static_cast<size_t>(height - 1 - row) * width * 4);
-  const std::filesystem::path path(file);
-  if (path.has_parent_path()) std::filesystem::create_directories(path.parent_path());
-  if (!stbi_write_png(file.c_str(), width, height, 4, flipped.data(), width * 4)) throw std::runtime_error("cannot write screenshot: " + file);
-  std::cout << "Screenshot " << path << '\n';
+  const auto& camera = viewer.getCamera();
+  if (!raisim_examples::saveTexturePng(viewer.getImageTexture(), camera.rtWidth(), camera.rtHeight(), file))
+    throw std::runtime_error("cannot write screenshot: " + file);
+  std::cout << "Screenshot " << std::filesystem::path(file) << '\n';
 }
 int run(const Options& options) {
   if (!options.key.empty()) World::setActivationKey(options.key);

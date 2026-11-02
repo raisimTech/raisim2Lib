@@ -128,6 +128,15 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
       },
       { text: 'Build, Test, and Benchmark', link: '/sections/BuildAndTest.md' },
       {
+        text: 'Web tools',
+        link: '/sections/Web.md',
+        collapsed: false,
+        items: [
+          { text: 'Rayrai TCP viewer', link: '/sections/WebAssembly.md' },
+          { text: 'Browser scene editor', link: '/sections/BrowserSceneEditor.md' },
+        ],
+      },
+      {
         text: 'Regression and Debug Tools',
         link: '/sections/DebugTools.md',
         collapsed: true,
@@ -145,6 +154,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         link: '/sections/Changelog.md',
         collapsed: true,
         items: [
+          { text: 'Changelog: v2.13', link: '/sections/changelog/v2.13.md' },
           { text: 'Changelog: v2.11', link: '/sections/changelog/v2.11.md' },
           { text: 'Changelog: v2.10', link: '/sections/changelog/v2.10.md' },
           { text: 'Changelog: v2.9', link: '/sections/changelog/v2.9.md' },

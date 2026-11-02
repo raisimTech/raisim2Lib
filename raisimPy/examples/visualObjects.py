@@ -1,17 +1,18 @@
+from _example_utils import (
+    setup, simulation_steps, pace, start_server, finish_example, locked_server
+)
 import os
 import numpy as np
 import raisimpy as raisim
 import math
-import time
 
 # create raisim world
 rscDir = os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/"
-raisim.World.setLicenseFile(rscDir + "activation.raisim")
+args = setup(raisim)
 world = raisim.World()
 
 # create and launch raisim server
 server = raisim.RaisimServer(world)
-server.launchServer(8080)
 
 # ground
 ground = world.addGround()
@@ -62,18 +63,21 @@ dynamicMesh = server.addVisualMesh("dynamicMesh", vertex, color, index)
 dynamicMesh.setPosition(np.array([-2,0,0]))
 
 # visualization
+start_server(server, args)
+
 counter = 0
 
-for i in range(100000):
-    counter = counter + 1
-    visBox.setColor(1, 1, (counter % 255 + 1) / 256., 1)
-    visSphere.setColor(1, (counter % 255 + 1) / 256., 1, 1)
-    lines.setColor(1 - (counter % 255 + 1) / 256., 1, (counter % 255 + 1) / 256., 1)
-    visBox.setBoxSize((counter % 255 + 1) / 256. + 0.01, 1, 1)
-    vertex[0] = 0.5 * (2.+math.sin(counter*0.01))
-    color[10] = counter/5%255
-    dynamicMesh.updateMesh(vertex, color)
-    world.integrate()
-    time.sleep(world.getTimeStep())
+for i in simulation_steps(args, 100000):
+    with locked_server(server):
+        counter = counter + 1
+        visBox.setColor(1, 1, (counter % 255 + 1) / 256., 1)
+        visSphere.setColor(1, (counter % 255 + 1) / 256., 1, 1)
+        lines.setColor(1 - (counter % 255 + 1) / 256., 1, (counter % 255 + 1) / 256., 1)
+        visBox.setBoxSize((counter % 255 + 1) / 256. + 0.01, 1, 1)
+        vertex[0] = 0.5 * (2.+math.sin(counter*0.01))
+        color[10] = counter/5%255
+        dynamicMesh.updateMesh(vertex, color)
+    server.integrateWorldThreadSafe()
+    pace(args, world.getTimeStep())
 
-server.killServer()
+finish_example(server, world)

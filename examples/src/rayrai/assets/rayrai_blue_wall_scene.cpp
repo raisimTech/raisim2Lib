@@ -20,12 +20,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "example_resources.hpp"
 #include "raisim/World.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
-#include "stb/stb_image_write.h"
+#include "rayrai_example_utils.hpp"
 
 namespace {
 
@@ -112,25 +111,6 @@ void lookAt(raisin::Camera& camera, const glm::vec3& position, const glm::vec3& 
   camera.farPlane = camera.zFar = farPlane;
   camera.setCameraFixedTarget(false);
   camera.setCameraFixedDistance(false);
-}
-
-bool saveScreenshot(raisin::Camera& camera, const std::filesystem::path& path) {
-  const int width = camera.rtWidth();
-  const int height = camera.rtHeight();
-  const size_t stride = static_cast<size_t>(width) * 4;
-  std::vector<unsigned char> rgba(stride * static_cast<size_t>(height));
-  std::vector<unsigned char> row(stride);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  for (int y = 0; y < height / 2; ++y) {
-    auto* top = rgba.data() + static_cast<size_t>(y) * stride;
-    auto* bottom = rgba.data() + static_cast<size_t>(height - 1 - y) * stride;
-    std::memcpy(row.data(), top, stride);
-    std::memcpy(top, bottom, stride);
-    std::memcpy(bottom, row.data(), stride);
-  }
-  return stbi_write_png(path.string().c_str(), width, height, 4, rgba.data(), static_cast<int>(stride)) != 0;
 }
 
 bool verifyCamera(raisin::Camera& camera) {
@@ -381,7 +361,7 @@ int main(int argc, char* argv[]) {
         renderFrame();
         char name[32];
         std::snprintf(name, sizeof(name), "frame_%03d.png", frame);
-        if (!saveScreenshot(camera, recording / name)) return 1;
+        if (!raisim_examples::saveCameraPng(camera, recording / name)) return 1;
         if ((frame + 1) % 25 == 0) std::cout << "Blue Wall: recorded " << frame + 1 << '/' << frames << std::endl;
       }
       lookAt(camera, description.cameraPosition, description.cameraTarget, description.verticalFov, description.nearPlane, description.farPlane);
@@ -393,7 +373,7 @@ int main(int argc, char* argv[]) {
       const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
       std::cout << "Blue Wall benchmark: frames=" << benchmarkFrames << " total_ms=" << ms << " avg_ms=" << ms / benchmarkFrames << '\n';
     }
-    if (!screenshot.empty() && !saveScreenshot(camera, screenshot)) {
+    if (!screenshot.empty() && !raisim_examples::saveCameraPng(camera, screenshot)) {
       std::cerr << "Could not save " << screenshot << '\n';
       viewer.reset();
       app.shutdown();

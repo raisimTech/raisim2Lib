@@ -75,10 +75,17 @@ html.rs-home-route .VPFooter {
 }
 
 /*
- * The menu items get tighter spacing where the navigation bar would otherwise
- * push the "..." menu past the edge: on tablets, where the search box first
- * shows its label, and from 960 px, where the sidebar takes its column.
+ * Compact search keeps all navigation links reachable below 1280 px. Tighter
+ * menu spacing also leaves room on tablets and when the sidebar takes a column.
  */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .VPNavBar .VPNavBarSearch { padding-left: 12px; }
+  .VPNavBar .DocSearch-Button { justify-content: center; width: 40px; padding: 0; }
+  .VPNavBar .DocSearch-Button .DocSearch-Search-Icon { margin-right: 0; }
+  .VPNavBar .DocSearch-Button .DocSearch-Button-Placeholder,
+  .VPNavBar .DocSearch-Button .DocSearch-Button-Keys { display: none; }
+}
+
 @media (min-width: 768px) and (max-width: 959px) {
   .VPNavBar .VPNavBarMenu .VPNavBarMenuLink,
   .VPNavBar .VPNavBarMenu .VPFlyout .button {

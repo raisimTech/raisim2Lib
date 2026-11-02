@@ -11,7 +11,7 @@ import { withBase } from 'vitepress'
   display: none;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1280px) {
   .rs-nav-cta {
     display: inline-flex;
     align-items: center;

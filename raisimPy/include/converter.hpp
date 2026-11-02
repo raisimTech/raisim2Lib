@@ -46,10 +46,10 @@ template<size_t n>
 raisim::Vec<n> convert_np_to_vec(const NDArray &array) {
 
     // check size
-    if (array.size() != n) {
+    if (array.ndim() != 1 || array.size() != n) {
         std::ostringstream s;
-        s << "error: expecting the given vector to be of size " << n << " but got instead a size of "
-            << array.size() << ".";
+        s << "Expected a one-dimensional vector of length " << n << "; got "
+          << array.ndim() << " dimensions and " << array.size() << " elements.";
         throw std::domain_error(s.str());
     }
 
@@ -63,6 +63,27 @@ raisim::Vec<n> convert_np_to_vec(const NDArray &array) {
 
     // return vector
     return vec;
+}
+
+/// Copies isolate Python arrays from engine storage, which may move on a step.
+template<size_t n>
+NDArray convert_vec_list_to_np(const std::vector<raisim::Vec<n>>& values) {
+    auto result = make_ndarray_2d(values.size(), n);
+    for (size_t i = 0; i < values.size(); ++i)
+        for (size_t j = 0; j < n; ++j)
+            *ndarray_mutable_data(result, i, j) = values[i][j];
+    return result;
+}
+
+template<size_t n>
+std::vector<raisim::Vec<n>> convert_np_to_vec_list(const NDArray& array) {
+    if (array.ndim() != 2 || array.shape(1) != n)
+        throw std::invalid_argument("Expected an (N, " + std::to_string(n) + ") array.");
+    std::vector<raisim::Vec<n>> result(array.shape(0));
+    for (size_t i = 0; i < result.size(); ++i)
+        for (size_t j = 0; j < n; ++j)
+            result[i][j] = *ndarray_data(array, i, j);
+    return result;
 }
 
 

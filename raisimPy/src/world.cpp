@@ -17,6 +17,7 @@
 #include "raisim/RaisimServer.hpp"
 
 #include "converter.hpp"  // contains code that allows to convert between the Vec, Mat to numpy arrays.
+#include "modern_bindings.hpp"
 
 namespace py = nanobind;
 using namespace raisim;
@@ -92,14 +93,14 @@ void init_world(py::module_ &m) {
           [](const raisim::PolyLine &self) { return convert_vec_to_np(self.color); },
           [](raisim::PolyLine &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("points",
           [vec3_list_to_ndarray](const raisim::PolyLine &self) {
             return vec3_list_to_ndarray(self.points);
           },
           [ndarray_to_vec3_list](raisim::PolyLine &self, const NDArray &array) {
             self.points = ndarray_to_vec3_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_rw("width", &raisim::PolyLine::width)
       .def("lockMutex", &raisim::PolyLine::lockMutex)
       .def("unlockMutex", &raisim::PolyLine::unlockMutex)
@@ -129,7 +130,7 @@ void init_world(py::module_ &m) {
           },
           [](raisim::ArticulatedSystemVisual &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_ro("obj",
           [](raisim::ArticulatedSystemVisual &self) -> raisim::ArticulatedSystem & {
             return self.obj;
@@ -176,12 +177,12 @@ void init_world(py::module_ &m) {
           [](const raisim::Visuals &self) { return convert_vec_to_np(self.color); },
           [](raisim::Visuals &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("size",
           [](const raisim::Visuals &self) { return convert_vec_to_np(self.size); },
           [](raisim::Visuals &self, const NDArray &array) {
             self.size = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_rw("name", &raisim::Visuals::name)
       .def_rw("material", &raisim::Visuals::material)
       .def_rw("glow", &raisim::Visuals::glow)
@@ -240,7 +241,7 @@ void init_world(py::module_ &m) {
           [](const raisim::HeightMapVisual &self) { return convert_vec_to_np(self.color); },
           [](raisim::HeightMapVisual &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_ro("obj",
           [](raisim::HeightMapVisual &self) -> raisim::HeightMap & {
             return self.obj;
@@ -294,14 +295,14 @@ void init_world(py::module_ &m) {
           },
           [ndarray_to_vec3_list](raisim::PointCloud &self, const NDArray &array) {
             self.position = ndarray_to_vec3_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("color",
           [vec4_list_to_ndarray](const raisim::PointCloud &self) {
             return vec4_list_to_ndarray(self.color);
           },
           [ndarray_to_vec4_list](raisim::PointCloud &self, const NDArray &array) {
             self.color = ndarray_to_vec4_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def("lockMutex", &raisim::PointCloud::lockMutex)
       .def("unlockMutex", &raisim::PointCloud::unlockMutex)
       .def("lock", &raisim::PointCloud::lock)
@@ -327,7 +328,7 @@ void init_world(py::module_ &m) {
       .def("setData", &raisim::BarChart::setData, py::arg("data"));
 
   py::class_<raisim::RaisimServer>(m, "RaisimServer")
-      .def(py::init<raisim::World *>())
+      .def(py::init<raisim::World *>(), py::keep_alive<1, 2>())
       .def("setupSocket", &raisim::RaisimServer::setupSocket, py::arg("port") = 8080)
       .def("acceptConnection", &raisim::RaisimServer::acceptConnection, py::arg("microseconds"))
       .def("closeConnection", &raisim::RaisimServer::closeConnection)
@@ -335,6 +336,13 @@ void init_world(py::module_ &m) {
       .def("waitForMessageFromClient", &raisim::RaisimServer::waitForMessageFromClient, py::arg("seconds"))
       .def("waitForMessageToClient", &raisim::RaisimServer::waitForMessageToClient, py::arg("seconds"))
       .def("launchServer", &raisim::RaisimServer::launchServer, py::arg("port") = 8080)
+      .def("getPort", &raisim::RaisimServer::getPort)
+      .def("setBindLoopbackOnly", &raisim::RaisimServer::setBindLoopbackOnly, py::arg("loopbackOnly"))
+      .def("setSceneFileSharing", &raisim::RaisimServer::setSceneFileSharing, py::arg("enabled"))
+      .def("pauseSimulation", &raisim::RaisimServer::pauseSimulation)
+      .def("resumeSimulation", &raisim::RaisimServer::resumeSimulation)
+      .def("isSimulationPaused", &raisim::RaisimServer::isSimulationPaused)
+      .def("stepSimulation", &raisim::RaisimServer::stepSimulation, py::arg("n") = 1)
       .def("killServer", &raisim::RaisimServer::killServer)
       .def("integrateWorldThreadSafe",
            static_cast<void (raisim::RaisimServer::*)()>(&raisim::RaisimServer::integrateWorldThreadSafe))
@@ -739,10 +747,11 @@ void init_world(py::module_ &m) {
   /*********/
   /* World */
   /*********/
-  py::class_<raisim::World>(m,
+  py::class_<raisim::World> world(m,
                             "World",
                             "Raisim world.",
-                            py::dynamic_attr()) // enable dynamic attributes for C++ class in Python
+                            py::dynamic_attr());
+  world
       .def(py::init<>(), "Initialize the World.")
       .def(py::init<const std::string &>(), "Initialize the World from the given config file.", py::arg("configFile"))
       .def(py::init<const std::string &, const std::vector<raisim::World::ParameterContainer> &>(),
@@ -1052,7 +1061,7 @@ void init_world(py::module_ &m) {
 	        Compound: the compound body instance.
 	    )mydelimiter",
            py::arg("children"),
-           py::arg("mass") = "",
+           py::arg("mass"),
            py::arg("center_of_mass"),
            py::arg("inertia"),
            py::arg("collision_group") = 1,
@@ -1192,7 +1201,7 @@ void init_world(py::module_ &m) {
 
         Returns:
             list[Object]: list of object instances.
-        )mydelimiter")
+        )mydelimiter", py::rv_policy::reference_internal)
 
       .def("updateMaterialProp", &raisim::World::updateMaterialProp, R"mydelimiter(
         Update material property.
@@ -1266,7 +1275,7 @@ void init_world(py::module_ &m) {
             restitution (float): coefficient of restitution.
             restitution threshold (float): restitution threshold.
         )mydelimiter",
-        py::arg("friction"), py::arg("restitution"), py::arg("restitution threshold"))
+        py::arg("friction"), py::arg("restitution"), py::arg("restitution_threshold"))
 
 
       .def("getGravity", [](raisim::World &world) {
@@ -1409,12 +1418,14 @@ void init_world(py::module_ &m) {
         for (const auto& coupling : self.getTendonCouplings()) result.push_back(coupling.get());
         return result;
       }, py::rv_policy::reference_internal)
-      .def("lockMutex", &raisim::World::lockMutex)
+      .def("lockMutex", &raisim::World::lockMutex, py::call_guard<py::gil_scoped_release>())
       .def("unlockMutex", &raisim::World::unlockMutex)
-      .def("lock", &raisim::World::lock)
+      .def("lock", &raisim::World::lock, py::call_guard<py::gil_scoped_release>())
       .def("unlock", &raisim::World::unlock)
       .def("updateSelfCollisionCache", &raisim::World::updateSelfCollisionCache)
       ;
+  init_world_extensions(m, world);
+  init_particle_world(world);
 
   py::class_<RayCollisionItem>(m, "RayCollisionItem")
       .def("getPosition", &RayCollisionItem::getPosition)

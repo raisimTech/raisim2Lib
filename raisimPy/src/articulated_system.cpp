@@ -31,6 +31,7 @@
 #include "raisim/object/ArticulatedSystem/ArticulatedSystem.hpp"
 
 #include "converter.hpp"  // contains code that allows to convert between the Vec, Mat to numpy arrays.
+#include "modern_bindings.hpp"
 
 // Important note: for the above include ("ode/src/collision_kernel.h"), you have to add a `extras` folder in the
 // `$LOCAL_BUILD/include/ode/` which should contain the following header files:
@@ -110,14 +111,14 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
             }, [](raisim::CollisionDefinition &self, NDArray array) {  // setter
                 Mat<3,3> rot = convert_np_to_mat<3,3>(array);
                 self.rotOffset = rot;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("posOffset",
             [](raisim::CollisionDefinition &self) {  // getter
                 return convert_vec_to_np(self.posOffset);
             }, [](raisim::CollisionDefinition &self, NDArray array) {  // setter
                 Vec<3> pos = convert_np_to_vec<3>(array);
                 self.posOffset = pos;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_rw("localIdx", &raisim::CollisionDefinition::localIdx)
         .def_rw("shape", &raisim::CollisionDefinition::shape)
         .def_prop_rw("shapeParam",
@@ -126,14 +127,14 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
             }, [](raisim::CollisionDefinition &self, NDArray array) {  // setter
                 Vec<4> param = convert_np_to_vec<4>(array);
                 self.shapeParam = param;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("scale",
             [](raisim::CollisionDefinition &self) {  // getter
                 return convert_vec_to_np(self.scale);
             }, [](raisim::CollisionDefinition &self, NDArray array) {  // setter
                 Vec<3> scale = convert_np_to_vec<3>(array);
                 self.scale = scale;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_rw("meshIndex", &raisim::CollisionDefinition::meshIndex)
         .def_prop_rw("name",
                       [](raisim::CollisionDefinition &self) {  // getter
@@ -182,35 +183,35 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
             }, [](raisim::VisObject &self, NDArray array) {  // setter
                 Vec<4> param = convert_np_to_vec<4>(array);
                 self.visShapeParam = param;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("offset",
             [](raisim::VisObject &self) {  // getter
                 return convert_vec_to_np(self.offset);
             }, [](raisim::VisObject &self, NDArray array) {  // setter
                 Vec<3> offset = convert_np_to_vec<3>(array);
                 self.offset = offset;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("rot",
             [](raisim::VisObject &self) {  // getter
                 return convert_mat_to_np(self.rot);
             }, [](raisim::VisObject &self, NDArray array) {  // setter
                 Mat<3,3> rot = convert_np_to_mat<3,3>(array);
                 self.rot = rot;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("color",
             [](raisim::VisObject &self) {  // getter
                 return convert_vec_to_np(self.color);
             }, [](raisim::VisObject &self, NDArray array) {  // setter
                 Vec<4> color = convert_np_to_vec<4>(array);
                 self.color = color;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("scale",
             [](raisim::VisObject &self) {  // getter
                 return convert_vec_to_np(self.scale);
             }, [](raisim::VisObject &self, NDArray array) {  // setter
                 Vec<3> scale = convert_np_to_vec<3>(array);
                 self.scale = scale;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_rw("shape", &raisim::VisObject::shape)
         .def_rw("fileName", &raisim::VisObject::fileName)
         .def_rw("name", &raisim::VisObject::name)
@@ -235,14 +236,14 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
             }, [](raisim::CoordinateFrame &self, NDArray array) {  // setter
                 auto pos = convert_np_to_vec<3>(array);
                 self.position = pos;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("orientation",
             [](raisim::CoordinateFrame &self) {  // getter
                 return convert_mat_to_np(self.orientation);
             }, [](raisim::CoordinateFrame &self, NDArray array) {  // setter
                 Mat<3,3> rot = convert_np_to_mat<3,3>(array);
                 self.orientation = rot;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_rw("parentId", &raisim::CoordinateFrame::parentId)
         .def_rw("parentName", &raisim::CoordinateFrame::parentName)
         .def_rw("name", &raisim::CoordinateFrame::name)
@@ -2231,5 +2232,7 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
 	        orientation (np.array[float[3]], np.array[float[4]], np.array[float[3,3]]): orientation offset.
 	    )mydelimiter",
 	    py::arg("id_"), py::arg("orientation"));
+
+    init_articulated_extensions(m, system);
 
 }

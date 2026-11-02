@@ -377,6 +377,7 @@ if(RAISIM_EXAMPLE)
 endif()
 
 if(RAISIM_PY)
+    include(CTest)
     add_subdirectory(thirdParty/nanobind)
     add_subdirectory(raisimPy)
 endif()

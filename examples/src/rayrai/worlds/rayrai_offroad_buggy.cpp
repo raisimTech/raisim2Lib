@@ -25,7 +25,6 @@
 #include <vector>
 
 #include <glbinding/gl/gl.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "example_resources.hpp"
 #include "offroad_buggy_scene.hpp"
 #include "offroad_buggy_validation.hpp"
@@ -34,8 +33,8 @@
 #include "offroad_buggy_venue.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
+#include "rayrai_example_utils.hpp"
 #include "rayrai_loading_progress.hpp"
-#include "stb/stb_image_write.h"
 
 namespace {
 
@@ -91,17 +90,6 @@ struct Options {
   bool validate = false;
   double grassDensity = 1.0;
 };
-
-bool saveScreenshot(raisin::Camera& camera, const std::filesystem::path& path) {
-  const int width = camera.rtWidth(), height = camera.rtHeight();
-  const size_t stride = size_t(width) * 4;
-  std::vector<unsigned char> rgba(stride * height), flipped(stride * height);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  for (int y = 0; y < height; ++y) std::memcpy(&flipped[y * stride], &rgba[(height - 1 - y) * stride], stride);
-  return stbi_write_png(path.string().c_str(), width, height, 4, flipped.data(), int(stride)) != 0;
-}
 
 /// The whole window with its overlays, read from the back buffer before it is swapped.
 bool saveWindowScreenshot(SDL_Window* window, const std::filesystem::path& path) {
@@ -748,7 +736,7 @@ int runViewer(const Options& options, char* argv0) {
         std::cout << "frame time " << ms / std::max(1, captureFrames) << " ms (physics included)\n";
       }
       if (capture && ready && ++captureFrames == options.captureFrames) {
-        status = saveScreenshot(viewer.getCamera(), options.screenshot) ? 0 : 1;
+        status = raisim_examples::saveCameraPng(viewer.getCamera(), options.screenshot) ? 0 : 1;
         break;
       }
     }

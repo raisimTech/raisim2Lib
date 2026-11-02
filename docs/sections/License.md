@@ -1,6 +1,28 @@
 # License
 
-## Licensing Process
+## WebAssembly edition
+
+The publicly distributed RaiSim and Rayrai WebAssembly edition has its own
+[WebAssembly license](/web-examples/LICENSE.txt), included with the website tools
+and downloadable WebAssembly archive.
+
+- **Academic research:** free of charge, without a weekly time limit, for users
+  meeting the eligibility requirements in Clause 1 of the
+  [Academic License Agreement](https://drive.google.com/file/d/10W_9H8Ur37B6GllR0Qb3JQyj7Fh-AVlx/view?usp=sharing).
+  Academic eligibility does not authorize commercial activities under this permission.
+- **Commercial evaluation:** free of charge, solely to evaluate suitability, for
+  up to two hours per individual user per calendar week across all accounts,
+  devices, and browser sessions. Weeks start on Monday at 00:00 UTC; unused time
+  does not carry over and allowances cannot be pooled or transferred.
+- **Production use or use beyond the evaluation allowance:** requires a separate
+  commercial license. Contact [raisim@raionrobotics.com](mailto:raisim@raionrobotics.com).
+
+Users are responsible for compliance regardless of whether usage is technically
+monitored or limited. The browser tools require no account or activation key and
+provide no technical time tracking. These terms apply to commercial users of
+every company size. Third-party components and assets retain their own licenses.
+
+## Native licensing process
 
 Commercial users must contact [raisim@raionrobotics.com](mailto:raisim@raionrobotics.com) to obtain a commercial client ID before following the instructions below.
 

@@ -139,10 +139,11 @@ export default defineConfig({
       {
         text: 'Docs',
         link: '/sections/Overview.html',
-        activeMatch: '^/sections/(?!Benchmark$|Examples$|examples/|Rayrai$|rayrai/)',
+        activeMatch: '^/sections/(?!(?:Web|WebAssembly|BrowserSceneEditor)(?:\\.html)?$|Benchmark$|Examples$|examples/|Rayrai$|rayrai/)',
       },
       { text: 'Examples', link: '/sections/Examples.html', activeMatch: '^/sections/(Examples$|examples/)' },
       { text: 'Rendering', link: '/sections/Rayrai.html', activeMatch: '^/sections/(Rayrai$|rayrai/)' },
+      { text: 'Web', link: '/sections/Web.html', activeMatch: '^/sections/(?:Web|WebAssembly|BrowserSceneEditor)(?:\\.html)?$' },
       { text: 'Benchmark', link: '/sections/Benchmark.html', activeMatch: '^/sections/Benchmark$' },
       { text: 'API', link: '/api/', activeMatch: '^/api/' },
       {

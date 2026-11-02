@@ -4,13 +4,15 @@ import { withBase } from 'vitepress'
 import LazyVideo from './LazyVideo.vue'
 import { data as gallery } from '../data/examples.data'
 import { exampleCategoryIcons } from '../exampleCategoryIcons'
+import { webExamples } from '../webExamples'
 
 // The example gallery: <ExampleGallery />. Tabs select one category of
 // sections/examples/gallery.json at a time, so a page never holds more than a
 // category's few clips. A tile links to its example page and plays the clip
 // rsc/docs/video/examples/<name>.mp4; examples without a window (gallery.json's
-// "console" map) get a tile with their command instead. The chosen category is
-// kept for the browser tab, so going back from an example page returns to it.
+// "console" map) get a tile with their command instead. Server examples the
+// deployed browser viewer lists also get a Run on web link. The chosen category
+// is kept for the browser tab, so going back from an example page returns to it.
 const STORAGE_KEY = 'raisim.exampleCategory'
 const creditsLink = withBase('/sections/AssetCredits.html')
 
@@ -52,6 +54,7 @@ function tile(path: string) {
   }
   return {
     path,
+    name,
     title: shortTitle(title),
     fullTitle: title,
     kind: KINDS[path.slice(0, path.indexOf('/'))] ?? 'Example',
@@ -70,6 +73,7 @@ const categories = gallery.categories.map((category) => {
 if (!categories.length) throw new Error('ExampleGallery: gallery.json has no categories')
 
 const selected = ref(categories[0].id)
+const runnable = ref(new Map<string, string>())
 const current = computed(() => categories.find((category) => category.id === selected.value) ?? categories[0])
 
 function select(id: string): void {
@@ -88,6 +92,9 @@ onMounted(() => {
   } catch {
     // The first category stays selected.
   }
+  webExamples().then((links) => {
+    runnable.value = links
+  })
 })
 </script>
 
@@ -110,26 +117,32 @@ onMounted(() => {
     </div>
     <p class="rs-ex-description">{{ current.description }}</p>
     <div :key="current.id" class="rs-ex">
-      <a
-        v-for="(item, index) in current.tiles"
-        :key="item.path"
-        class="rs-ex-tile"
-        :href="item.link"
-        :title="item.fullTitle"
-        :style="{ '--i': index }"
-      >
-        <div class="rs-ex-media">
-          <LazyVideo v-if="item.clip" :src="item.clip" :poster="item.poster" :label="item.fullTitle" />
-          <div v-else class="rs-ex-console" aria-hidden="true">
-            <span class="rs-ex-prompt">$</span>
-            <span class="rs-ex-command">{{ item.command }}<span class="rs-ex-cursor" /></span>
+      <div v-for="(item, index) in current.tiles" :key="item.path" class="rs-ex-cell" :style="{ '--i': index }">
+        <a class="rs-ex-tile" :href="item.link" :title="item.fullTitle">
+          <div class="rs-ex-media">
+            <LazyVideo v-if="item.clip" :src="item.clip" :poster="item.poster" :label="item.fullTitle" />
+            <div v-else class="rs-ex-console" aria-hidden="true">
+              <span class="rs-ex-prompt">$</span>
+              <span class="rs-ex-command">{{ item.command }}<span class="rs-ex-cursor" /></span>
+            </div>
           </div>
-        </div>
-        <div class="rs-ex-body">
-          <span class="rs-ex-kind">{{ item.kind }}</span>
-          <span class="rs-ex-title">{{ item.title }}</span>
-        </div>
-      </a>
+          <div class="rs-ex-body">
+            <span class="rs-ex-kind">{{ item.kind }}</span>
+            <span class="rs-ex-title">{{ item.title }}</span>
+          </div>
+        </a>
+        <a
+          v-if="runnable.has(item.name)"
+          class="rs-ex-run"
+          :href="runnable.get(item.name)"
+          target="_blank"
+          rel="noopener"
+          :aria-label="`Run ${item.fullTitle} on the web`"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z" /></svg>
+          Run on web
+        </a>
+      </div>
     </div>
     <p class="rs-ex-credits">
       Some clips show third-party models licensed under CC BY 4.0; they are credited in
@@ -245,6 +258,19 @@ onMounted(() => {
   margin-top: 16px;
 }
 
+.rs-ex-cell {
+  position: relative;
+  display: grid;
+  transition: transform 0.3s ease;
+  /* Tiles of a newly chosen category rise in one after another. */
+  animation: rs-ex-in 0.5s cubic-bezier(0.2, 0.7, 0.1, 1) backwards;
+  animation-delay: calc(var(--i) * 40ms);
+}
+
+.rs-ex-cell:hover {
+  transform: translateY(-3px);
+}
+
 .rs-ex a.rs-ex-tile {
   display: flex;
   flex-direction: column;
@@ -254,14 +280,10 @@ onMounted(() => {
   text-decoration: none;
   background: var(--vp-c-bg-soft);
   border: 1px solid var(--vp-c-divider);
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  /* Tiles of a newly chosen category rise in one after another. */
-  animation: rs-ex-in 0.5s cubic-bezier(0.2, 0.7, 0.1, 1) backwards;
-  animation-delay: calc(var(--i) * 40ms);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.rs-ex a.rs-ex-tile:hover {
-  transform: translateY(-3px);
+.rs-ex-cell:hover a.rs-ex-tile {
   border-color: var(--vp-c-brand-2);
   box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.45);
 }
@@ -284,8 +306,47 @@ onMounted(() => {
   transition: transform 0.6s ease;
 }
 
-.rs-ex a.rs-ex-tile:hover .rs-ex-media :deep(video) {
+.rs-ex-cell:hover .rs-ex-media :deep(video) {
   transform: scale(1.05);
+}
+
+.rs-ex a.rs-ex-run {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  color: #0b0b10;
+  background: var(--rs-grad-warm-loop);
+  background-size: 300% 100%;
+  box-shadow: 0 6px 18px -8px rgba(242, 39, 127, 0.7);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.rs-ex a.rs-ex-run:hover {
+  color: #0b0b10;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -8px rgba(242, 39, 127, 0.85);
+}
+
+.rs-ex a.rs-ex-run:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.rs-ex-run svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
 }
 
 .rs-ex-console {
@@ -394,13 +455,15 @@ onMounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .rs-ex-tab,
   .rs-ex-tab-icon,
+  .rs-ex-cell,
   .rs-ex a.rs-ex-tile,
+  .rs-ex a.rs-ex-run,
   .rs-ex-media :deep(video) {
     transition: none;
   }
 
   .rs-ex-tab[aria-pressed='true'] .rs-ex-tab-icon,
-  .rs-ex a.rs-ex-tile,
+  .rs-ex-cell,
   .rs-ex-cursor {
     animation: none;
   }

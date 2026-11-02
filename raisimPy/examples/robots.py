@@ -1,10 +1,12 @@
+from _example_utils import (
+    setup, simulation_steps, pace, start_server, finish_example
+)
 import os
 import numpy as np
 import raisimpy as raisim
-import time
 
 
-raisim.World.setLicenseFile(os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/activation.raisim")
+args = setup(raisim)
 anymal_urdf_file = os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/anymal/urdf/anymal.urdf"
 laikago_urdf_file = os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/laikago/laikago.urdf"
 atlas_urdf_file = os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/atlas/robot.urdf"
@@ -42,14 +44,13 @@ atlas_nominal_joint_config[2] = 1.5
 atlas_nominal_joint_config[3] = 1
 atlas.setGeneralizedCoordinate(atlas_nominal_joint_config)
 
-server.launchServer(8080)
 
 for i in range(5):
     for j in range(5):
         object_type = (i + j*6) % 5
 
         if object_type == 0:
-            obj = world.addMesh(monkey_file, 5.0, dummy_inertia, np.array([0, 0, 0]), 0.3)
+            obj = world.addMesh(monkey_file, 5.0, dummy_inertia, np.array([0., 0., 0.]), 0.3, collision_mode=raisim.MeshCollisionMode.CONVEX_HULL)
             obj.setAppearance("blue")
         elif object_type == 1:
             obj = world.addCylinder(0.2, 0.3, 2.0)
@@ -66,7 +67,6 @@ for i in range(5):
 
         obj.setPosition(i-2.5, j-2.5, 5)
 
-time.sleep(2)
 world.integrate1()
 
 ### get dynamic properties
@@ -79,7 +79,11 @@ non_linearities = anymal.getNonlinearities(gravity)
 jaco_foot_lh_linear = anymal.getDenseFrameJacobian("LF_ADAPTER_TO_FOOT")
 jaco_foot_lh_angular = anymal.getDenseFrameRotationalJacobian("LF_ADAPTER_TO_FOOT")
 
-for i in range(500000):
-    server.integrateWorldThreadSafe()
+world.integrate2()
+start_server(server, args)
 
-server.killServer()
+for i in simulation_steps(args, 500000):
+    server.integrateWorldThreadSafe()
+    pace(args, world.getTimeStep())
+
+finish_example(server, world)

@@ -28,6 +28,7 @@
 #include "raisim/contact_engine/math.h"
 
 #include "converter.hpp"  // contains code that allows to convert between the Vec, Mat to numpy arrays.
+#include "modern_bindings.hpp"
 
 namespace py = nanobind;
 using namespace raisim;
@@ -67,7 +68,10 @@ void init_object(py::module_ &m) {
 	    .value("HALFSPACE", raisim::ObjectType::HALFSPACE)
 	    .value("COMPOUND", raisim::ObjectType::COMPOUND)
 	    .value("HEIGHTMAP", raisim::ObjectType::HEIGHTMAP)
-	    .value("ARTICULATED_SYSTEM", raisim::ObjectType::ARTICULATED_SYSTEM);
+	    .value("ARTICULATED_SYSTEM", raisim::ObjectType::ARTICULATED_SYSTEM)
+        .value("DEFORMABLE", raisim::ObjectType::DEFORMABLE)
+        .value("GRANULAR", raisim::ObjectType::GRANULAR)
+        .value("UNRECOGNIZED", raisim::ObjectType::UNRECOGNIZED);
 
     /*********************/
     /* MeshCollisionMode */
@@ -123,6 +127,8 @@ void init_object(py::module_ &m) {
 	    Returns:
 	        int: object index in the world.
 	    )mydelimiter")
+
+        .def("getId", &raisim::Object::getId)
 
 	    .def("getFluidForce", [](const raisim::Object &self, size_t local_idx) {
 	        return convert_vec_to_np(self.getFluidForce(local_idx));
@@ -325,5 +331,6 @@ void init_object(py::module_ &m) {
 
 	// raisim.object.terrain
 	init_terrain(m);  // object_module
+    init_particle_objects(m);
 
 }

@@ -15,38 +15,15 @@
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
-#define STB_IMAGE_WRITE_STATIC
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "example_resources.hpp"
 #include "raisim/World.hpp"
 #include "raisim/math.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-#include "stb/stb_image_write.h"
+#include "rayrai_example_utils.hpp"
 
 namespace {
-
-void flipRows(std::vector<unsigned char>& rgba, int width, int height) {
-  const size_t stride = static_cast<size_t>(width) * 4u;
-  std::vector<unsigned char> row(stride);
-  for (int y = 0; y < height / 2; ++y) {
-    auto* top = rgba.data() + static_cast<size_t>(y) * stride;
-    auto* bottom = rgba.data() + static_cast<size_t>(height - 1 - y) * stride;
-    std::memcpy(row.data(), top, stride);
-    std::memcpy(top, bottom, stride);
-    std::memcpy(bottom, row.data(), stride);
-  }
-}
-
-void saveFinalTexturePng(raisin::Camera& camera, const std::filesystem::path& path) {
-  std::vector<unsigned char> rgba(static_cast<size_t>(camera.rtWidth()) * static_cast<size_t>(camera.rtHeight()) * 4u);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  flipRows(rgba, camera.rtWidth(), camera.rtHeight());
-  stbi_write_png(path.string().c_str(), camera.rtWidth(), camera.rtHeight(), 4, rgba.data(), camera.rtWidth() * 4);
-}
 
 int wrapPixelX(int x, int width) {
   x %= width;
@@ -326,7 +303,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 3 && !app.quit; ++i) {
       renderOneFrame();
     }
-    saveFinalTexturePng(camera, screenshotPath);
+    raisim_examples::saveCameraPng(camera, screenshotPath);
     std::cout << "Saved screenshot: " << screenshotPath.string() << "\n";
     viewer.reset();
     app.shutdown();

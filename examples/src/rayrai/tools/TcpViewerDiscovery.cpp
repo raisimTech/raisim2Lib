@@ -22,6 +22,9 @@
 
 #include "rayrai/RaisimTcpCommon.hpp"
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 #if defined(__linux__) || defined(__APPLE__)
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -98,6 +101,19 @@ void sortDiscoveredServers(std::vector<DiscoveredServer>& servers) {
   });
 }
 
+#if defined(__EMSCRIPTEN__)
+EM_JS_DEPS(rayrai_discovery, "$stringToNewUTF8");
+// Lines of "source<TAB>beacon payload": the page's in-browser examples and, when the page comes
+// from serve.py, the beacons that server hears on the LAN.
+EM_JS(char*, pageBeacons, (), {
+  const discovery = Module['rayraiDiscovery'];
+  return stringToNewUTF8(discovery ? discovery['beacons']() : '');
+});
+EM_JS(int, pageListsNetworkServers, (), {
+  const discovery = Module['rayraiDiscovery'];
+  return discovery && discovery['network']() ? 1 : 0;
+});
+#endif
 } // namespace
 
 bool isCompatibleDiscoveryVersion(int version) {
@@ -233,6 +249,10 @@ class DiscoveryBeaconReceiver::Impl {
 
     status = "LAN beacon listener active";
     return true;
+#elif defined(__EMSCRIPTEN__)
+    status = pageListsNetworkServers() ? "Listing servers from this page's local web server"
+                                       : "A browser cannot hear LAN beacons; type a host and port above";
+    return true;
 #else
     status = "LAN beacon listener unavailable on this platform";
     return false;
@@ -282,52 +302,22 @@ class DiscoveryBeaconReceiver::Impl {
         continue;
       }
 
-      int port = 0;
-      int version = 0;
-      std::string hostname;
-      std::unordered_map<std::string, std::string> metadata;
-      if (!parseDiscoveryBeacon(buffer, port, version, hostname, metadata) ||
-          !isCompatibleDiscoveryVersion(version)) {
-        continue;
-      }
-
-      const std::string source = sourceHost;
-      const std::string key = source + ":" + std::to_string(port);
-      auto& record = beacons_[key];
-      const bool isNew = record.server.endpointHost.empty();
-      DiscoveredServer updated;
-      updated.endpointHost = source;
-      updated.endpointPort = port;
-      updated.bindHost = source;
-      updated.protocol = "raisim beacon";
-      updated.metadata = metadata;
-      updated.remoteBeacon = true;
-      updated.lastSeen = now;
-      const auto exeIt = metadata.find("exe");
-      const std::string serverName =
-        exeIt != metadata.end() && !exeIt->second.empty() ? exeIt->second : "RaisimServer";
-      updated.process = hostname.empty() ? serverName : serverName + " on " + hostname;
-      if (version > 0) {
-        updated.process += " (protocol " + std::to_string(version) + ")";
-      }
-      changed = changed || isNew ||
-                record.server.endpointHost != updated.endpointHost ||
-                record.server.endpointPort != updated.endpointPort ||
-                record.server.process != updated.process ||
-                record.server.metadata != updated.metadata;
-      record.server = updated;
-      record.lastSeen = now;
+      changed = record(sourceHost, buffer, now) || changed;
     }
 
-    for (auto it = beacons_.begin(); it != beacons_.end();) {
-      if (now - it->second.lastSeen > kDiscoveryBeaconTimeout) {
-        it = beacons_.erase(it);
-        changed = true;
-      } else {
-        ++it;
-      }
+    return expire(now) || changed;
+#elif defined(__EMSCRIPTEN__)
+    bool changed = false;
+    const auto now = std::chrono::steady_clock::now();
+    char* text = pageBeacons();
+    std::istringstream lines(text ? text : "");
+    std::free(text);
+    std::string line;
+    while (std::getline(lines, line)) {
+      const size_t tab = line.find('\t');
+      if (tab != std::string::npos) changed = record(line.substr(0, tab), line.substr(tab + 1), now) || changed;
     }
-    return changed;
+    return expire(now) || changed;
 #else
     return false;
 #endif
@@ -348,6 +338,56 @@ class DiscoveryBeaconReceiver::Impl {
     DiscoveredServer server;
     std::chrono::steady_clock::time_point lastSeen;
   };
+
+  // Notes a beacon from source; returns true when it changed the list.
+  bool record(const std::string& source, const std::string& payload,
+              std::chrono::steady_clock::time_point now) {
+    int port = 0;
+    int version = 0;
+    std::string hostname;
+    std::unordered_map<std::string, std::string> metadata;
+    if (!parseDiscoveryBeacon(payload, port, version, hostname, metadata) ||
+        !isCompatibleDiscoveryVersion(version)) {
+      return false;
+    }
+    auto& entry = beacons_[source + ":" + std::to_string(port)];
+    const bool isNew = entry.server.endpointHost.empty();
+    DiscoveredServer updated;
+    updated.endpointHost = source;
+    updated.endpointPort = port;
+    updated.bindHost = source;
+    updated.protocol = "raisim beacon";
+    updated.metadata = metadata;
+    updated.remoteBeacon = true;
+    updated.lastSeen = now;
+    const auto exeIt = metadata.find("exe");
+    const std::string serverName =
+      exeIt != metadata.end() && !exeIt->second.empty() ? exeIt->second : "RaisimServer";
+    updated.process = hostname.empty() ? serverName : serverName + " on " + hostname;
+    if (version > 0) {
+      updated.process += " (protocol " + std::to_string(version) + ")";
+    }
+    const bool changed = isNew || entry.server.endpointHost != updated.endpointHost ||
+                         entry.server.endpointPort != updated.endpointPort ||
+                         entry.server.process != updated.process ||
+                         entry.server.metadata != updated.metadata;
+    entry.server = updated;
+    entry.lastSeen = now;
+    return changed;
+  }
+
+  bool expire(std::chrono::steady_clock::time_point now) {
+    bool changed = false;
+    for (auto it = beacons_.begin(); it != beacons_.end();) {
+      if (now - it->second.lastSeen > kDiscoveryBeaconTimeout) {
+        it = beacons_.erase(it);
+        changed = true;
+      } else {
+        ++it;
+      }
+    }
+    return changed;
+  }
 
   void closeSocket() {
 #if defined(_WIN32)

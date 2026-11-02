@@ -39,6 +39,8 @@ __pycache__/
 # Downloaded raisim2Lib release payloads
 /raisim/
 /rayrai/
+/web/
+/.raisim-web-stage-*/
 windows-x86-*/
 linux-x86-*/
 linux-arm64-*/

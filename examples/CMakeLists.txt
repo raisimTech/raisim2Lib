@@ -104,6 +104,17 @@ function(create_executable app_name file_name)
     endif()
 
     target_include_directories(${app_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    register_server_example(${app_name} ${file_name})
+endfunction()
+
+# Viewers list the RaisimServer examples next to them from raisim_server_examples.tsv.
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ServerExamples.cmake")
+function(register_server_example app_name file_name)
+    raisim_server_example_facts("${CMAKE_CURRENT_SOURCE_DIR}" ${app_name} ${file_name} _server _category _title _signature)
+    if(_server)
+        get_property(_entries GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES)
+        set_property(GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES "${_entries}${app_name}\t${_category}\t${_title}\n")
+    endif()
 endfunction()
 
 function(create_rayrai_executable app_name file_name)
@@ -325,6 +336,8 @@ create_rayrai_executable(rayrai_swept_ccd src/rayrai/collision/rayrai_swept_ccd.
 # Tools.
 create_rayrai_executable(rayrai_tcp_viewer src/rayrai/tools/rayrai_tcp_viewer.cpp)
 target_sources(rayrai_tcp_viewer PRIVATE
+    src/rayrai/tools/TcpViewerProcess.cpp
+    src/rayrai/tools/TcpViewerExamples.cpp
     src/rayrai/tools/TcpViewerInspectorLoad.cpp
     src/rayrai/tools/TcpViewerSceneFiles.cpp
     src/rayrai/tools/TcpViewerActuators.cpp
@@ -371,11 +384,9 @@ if(WIN32)
   target_link_libraries(rayrai_tcp_viewer PRIVATE shell32 ws2_32)
 endif()
 
-# Terrain-grounded mixed forest. Assets stay in the checkout; --assets overrides this path.
+# Terrain-grounded mixed forest from rsc/forest; --assets overrides this path.
 create_rayrai_executable(rayrai_forest src/rayrai/worlds/rayrai_forest.cpp)
 target_compile_features(rayrai_forest PRIVATE cxx_std_20)
-target_compile_definitions(rayrai_forest PRIVATE
-    FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
 # The scene examples below build a raisim::World from a .rscene file (or an XML file that includes
 # one) and rely on raisin::RayraiWindow applying the world's scene itself. rayrai/RsceneVisuals.hpp
 # declares raisin::rsceneVisuals() since then; an older package would show only the physics bodies,
@@ -435,6 +446,10 @@ if(RAISIM_FOREST_COLLISION_BENCHMARK)
     target_compile_definitions(forest_collision_benchmark PRIVATE
         FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
 endif()
+
+get_property(_server_examples GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES)
+file(GENERATE OUTPUT "$<TARGET_FILE_DIR:primitive_grid>/raisim_server_examples.tsv"
+     CONTENT "# name\tcategory\ttitle\n${_server_examples}")
 
 # Manual regression and debug programs are opt-in.
 option(RAISIM_DEBUG_TOOLS "Build manual regression and debug tools" OFF)

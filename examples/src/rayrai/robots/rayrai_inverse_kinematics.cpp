@@ -53,11 +53,7 @@ glm::quat toGlm(const Eigen::Matrix3d& rotation) {
 }
 
 /// The mouse pointer over the full-window viewer image.
-struct Pointer {
-  bool hovered = false;   ///< Over the image and not over a panel.
-  double x = 0., y = 0.;  ///< Drawable pixels, y down.
-  int width = 0, height = 0;
-};
+using Pointer = ExampleApp::Viewport;
 
 /// World-space ray through a pixel of the viewer image.
 Ray pointerRay(const raisin::Camera& camera, const Pointer& pointer) {
@@ -126,41 +122,6 @@ class TargetControl {
   raisim_examples::arm_ik::TargetDrag drag_;
   bool hovered_ = false, turning_ = false, touched_ = false;
 };
-
-/// Draws the viewer image across the window, as ExampleApp::renderViewer()
-/// does, and returns the pointer over it. endViewport() renders the image.
-Pointer beginViewport(ExampleApp& app, raisin::RayraiWindow& viewer) {
-  int fbW = 0, fbH = 0, windowW = 0, windowH = 0;
-  SDL_GL_GetDrawableSize(app.window, &fbW, &fbH);
-  SDL_GetWindowSize(app.window, &windowW, &windowH);
-  const int displayW = windowW > 0 ? windowW : fbW, displayH = windowH > 0 ? windowH : fbH;
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::SetNextWindowSize(ImVec2(float(displayW), float(displayH)));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-  ImGui::Begin("Viewer", nullptr,
-               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
-                   ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
-  const ImVec2 origin = ImGui::GetCursorScreenPos();
-  ImGui::Image((ImTextureID)(intptr_t)viewer.getImageTexture(), ImVec2(float(displayW), float(displayH)), ImVec2(0, 1), ImVec2(1, 0));
-  // Window points to drawable pixels (they differ on high-DPI displays).
-  const ImVec2 mouse = ImGui::GetIO().MousePos;
-  Pointer pointer;
-  pointer.hovered = ImGui::IsItemHovered();
-  pointer.x = (mouse.x - origin.x) * (displayW > 0 ? double(fbW) / displayW : 1.);
-  pointer.y = (mouse.y - origin.y) * (displayH > 0 ? double(fbH) / displayH : 1.);
-  pointer.width = fbW;
-  pointer.height = fbH;
-  return pointer;
-}
-
-void endViewport(raisin::RayraiWindow& viewer, const Pointer& pointer, bool cameraUsesPointer) {
-  const int x = std::clamp(int(pointer.x), 0, std::max(0, pointer.width - 1));
-  const int y = std::clamp(int(pointer.y), 0, std::max(0, pointer.height - 1));
-  // Clicks would make the camera follow the clicked body; this demo orbits the bench.
-  viewer.update(pointer.width, pointer.height, pointer.hovered && cameraUsesPointer, x, y, false);
-  ImGui::End();
-  ImGui::PopStyleVar();
-}
 
 void drawPanel(Scene& scene, bool& tour, double& tourTime, int& method, bool& reset) {
   const auto& ik = scene.ik_result();
@@ -271,7 +232,7 @@ int main(int argc, char* argv[]) {
       }
 
       // The mouse moves the target before the arm reaches for it.
-      const Pointer pointer = beginViewport(app, viewer);
+      const Pointer pointer = app.beginViewport();
       const bool cameraUsesPointer = control.update(pointer, viewer.getCamera(), scene);
       if (control.touched()) tour = false;
 
@@ -298,7 +259,8 @@ int main(int argc, char* argv[]) {
       axes->enable(scene.track_orientation());
       axes->poses[0].position = glm::vec3(target.x(), target.y(), target.z());
       axes->poses[0].quaternion = toGlm(scene.target_orientation());
-      endViewport(viewer, pointer, cameraUsesPointer);
+      // Clicks would make the camera follow the clicked body; this demo orbits the bench.
+      app.endViewport(viewer, pointer, cameraUsesPointer, false);
 
       drawPanel(scene, tour, tourTime, method, reset);
       app.endFrame();

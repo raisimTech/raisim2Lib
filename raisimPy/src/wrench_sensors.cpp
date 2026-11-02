@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Raion Robotics Inc. All rights reserved.
 #include "nanobind_helpers.hpp"
+#if RAISIMPY_HAS_WRENCH_SENSORS
 #include "converter.hpp"
 #include "raisim/World.hpp"
 #include "raisim/sensors/ForceSensor.hpp"
@@ -75,3 +76,4 @@ void init_wrench_sensors(py::module_& m) {
         return result;
       });
 }
+#endif
