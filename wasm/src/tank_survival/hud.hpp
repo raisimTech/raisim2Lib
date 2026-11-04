@@ -453,7 +453,7 @@ struct QualityTuner {
 inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality,
                                const char* note = nullptr) {
   MenuResult result;
-  beginPanel("Main menu", screen, ImVec2(620, 640));
+  beginPanel("Main menu", screen, ImVec2(620, std::clamp(screen.size.y - 20.0f, 120.0f, 640.0f)));
   title(fonts, "RAISIM TANK SURVIVAL", IM_COL32(255, 210, 120, 255));
   ImGui::TextWrapped("Command a tank against armored columns. Every shell is a RaiSim projectile; every blast pushes, "
                      "flips and wrecks what it reaches.");
