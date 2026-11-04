@@ -150,9 +150,18 @@ int run(int argc, char* argv[]) {
   style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.36f, 0.42f, 0.22f, 1.0f);
   style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.5f, 0.56f, 0.28f, 1.0f);
   int status = 0;
+  // Draws one frame of the loading screen, so that the page shows it between the stages of loading.
+  const auto showLoading = [&](double fraction, const char* what) {
+    app.processEvents();
+    app.beginFrame();
+    drawLoading(fonts, fraction, what);
+    app.endFrame();
+  };
+  showLoading(0.02, "Starting the renderer");
   {
     Viewer viewer(world, 1600, 900);
     viewer.setKeyboardInputEnabled(false);
+    showLoading(0.1, "Preparing the explosion shaders");
     viewer.prepareExplosionEffects();
     auto& camera = viewer.getCamera();
     camera.nearPlane = 0.1f;
@@ -163,7 +172,8 @@ int run(int argc, char* argv[]) {
     int quality = options.quality;
 
     Game game(world, viewer, TANK_SURVIVAL_ASSETS, options.seed);
-    game.load(options.level, playing, quality);
+    game.load(options.level, playing, quality, [&](double fraction, const char* what) { showLoading(0.2 + 0.6 * fraction, what); });
+    showLoading(0.85, "Compiling shaders (faster on your next visit)");
     std::vector<int> best(levels().size(), 0);
     bool paused = false, help = true;
     std::mt19937 shakeNoise(1);
@@ -280,6 +290,11 @@ int run(int argc, char* argv[]) {
       app.endViewport(viewer, viewport, false, false);
       ImGui::PushFont(fonts.text);
       if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot);
+      if (const size_t pending = viewer.pendingAsyncMeshLoadCount(); pending > 0) {
+        ImDrawList* draw = ImGui::GetForegroundDrawList();
+        const ImVec2 at(viewport.origin.x + 18.0f, viewport.origin.y + viewport.size.y - 34.0f);
+        text(draw, fonts.text, 17.0f, at, IM_COL32(230, 220, 190, 230), "Loading models: " + std::to_string(pending) + " left");
+      }
       MenuResult choice;
       if (!scripted) {
         if (game.phase() == Phase::Menu) {

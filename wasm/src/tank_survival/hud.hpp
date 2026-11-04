@@ -45,6 +45,20 @@ inline void text(ImDrawList* draw, ImFont* font, float size, ImVec2 at, ImU32 co
   draw->AddText(font, size, at, color, value.c_str());
 }
 
+// The loading screen: the game's title over a dark field, what is being prepared and how far it has
+// come.
+inline void drawLoading(const Fonts& fonts, double fraction, const char* what) {
+  ImDrawList* draw = ImGui::GetBackgroundDrawList();
+  const ImVec2 size = ImGui::GetIO().DisplaySize;
+  draw->AddRectFilled(ImVec2(0, 0), size, IM_COL32(7, 8, 6, 255));
+  const ImVec2 center(0.5f * size.x, 0.5f * size.y);
+  text(draw, fonts.title, 46.0f, ImVec2(center.x, center.y - 90.0f), IM_COL32(240, 226, 180, 255), "TANK SURVIVAL", 0.5f);
+  const float width = std::min(520.0f, 0.7f * size.x);
+  bar(draw, ImVec2(center.x - 0.5f * width, center.y), width, 10.0f, float(std::clamp(fraction, 0.0, 1.0)),
+      IM_COL32(214, 186, 96, 255));
+  text(draw, fonts.text, 19.0f, ImVec2(center.x, center.y + 24.0f), IM_COL32(200, 200, 190, 255), what, 0.5f);
+}
+
 inline ImU32 fade(ImU32 color, float alpha) {
   return (color & 0x00FFFFFFu) | (ImU32(std::clamp(alpha, 0.0f, 1.0f) * float(color >> 24)) << 24);
 }

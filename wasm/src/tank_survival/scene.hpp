@@ -17,8 +17,13 @@ namespace tank {
 // Whether broadleaf trees grow among the pines and firs.
 inline constexpr bool kBroadleafTrees = TANK_SURVIVAL_BROADLEAF_TREES != 0;
 
-// How dense the grass is and how far the shadows reach at each render quality (Fast to Ultra).
+// How dense the grass is at each render quality (Fast to Ultra), how far it is drawn (m), and how fine
+// the tree and shrub meshes and how small plants on screen may become before they are simplified or
+// thinned out (pixels).
 inline constexpr std::array<double, 4> kGrassDensity{0.12, 0.3, 0.55, 1.0};
+inline constexpr std::array<float, 4> kFoliageReach{60.f, 90.f, 130.f, 170.f};
+inline constexpr std::array<float, 4> kFoliagePixelError{2.f, 1.25f, 0.75f, 0.5f};
+inline constexpr std::array<float, 4> kFoliageMinPixels{2.f, 1.5f, 1.f, 0.75f};
 
 // The sun, sky, haze and weather of a level, lit for photographs: ACES tone mapping, the generated sky
 // as both the background and the image-based light, and a sun casting cascaded shadows.
@@ -235,6 +240,15 @@ class TerrainVisuals {
     constexpr double kOuter = 660.0, kCell = 5.5;
     const double half = 0.5 * extent_;
     const int cells = int(2.0 * kOuter / kCell);
+    // Heights on a half-cell lattice, each computed once: the corners and the points half a cell
+    // beside them that their normals take differences of (all exact in binary, so the same numbers).
+    const int lattice = 2 * cells + 3;
+    std::vector<double> heights(size_t(lattice) * size_t(lattice), std::numeric_limits<double>::quiet_NaN());
+    const auto heightAt = [&](int hi, int hj) {
+      double& h = heights[size_t(hj + 1) * size_t(lattice) + size_t(hi + 1)];
+      if (std::isnan(h)) h = outerHeight(kind_, -kOuter + hi * 0.5 * kCell, -kOuter + hj * 0.5 * kCell);
+      return h;
+    };
     for (int slab = 0; slab < 4; ++slab) {
       std::vector<::Vertex> vertices;
       std::vector<unsigned int> indices;
@@ -252,11 +266,11 @@ class TerrainVisuals {
         const size_t k = size_t(j) * (cells + 1) + i;
         if (index[k] >= 0) return unsigned(index[k]);
         const double x = -kOuter + i * kCell, y = -kOuter + j * kCell;
-        const double z = outerHeight(kind_, x, y), d = 0.5 * kCell;
+        const double z = heightAt(2 * i, 2 * j), d = 0.5 * kCell;
         ::Vertex v;
         v.Position = glm::vec3(float(x), float(y), float(z));
-        v.Normal = glm::normalize(glm::vec3(float(-(outerHeight(kind_, x + d, y) - outerHeight(kind_, x - d, y)) / (2 * d)),
-                                            float(-(outerHeight(kind_, x, y + d) - outerHeight(kind_, x, y - d)) / (2 * d)), 1.f));
+        v.Normal = glm::normalize(glm::vec3(float(-(heightAt(2 * i + 1, 2 * j) - heightAt(2 * i - 1, 2 * j)) / (2 * d)),
+                                            float(-(heightAt(2 * i, 2 * j + 1) - heightAt(2 * i, 2 * j - 1)) / (2 * d)), 1.f));
         v.TexCoords = glm::vec2(float(x / tiles_[0]), float(y / tiles_[0]));
         v.Color = glm::vec4(groundTint(x, y), 1.f);
         index[k] = int(vertices.size());
@@ -344,9 +358,13 @@ class TerrainVisuals {
       emit(0, base);
       emit(1, patch);
     };
-    for (int j = cy * per; j < (cy + 1) * per; ++j)
-      for (int i = cx * per; i < (cx + 1) * per; ++i) {
-        const Point a = point(i, j), b = point(i + 1, j), c = point(i, j + 1), d = point(i + 1, j + 1);
+    std::vector<Point> corners(size_t(per + 1) * size_t(per + 1));
+    for (int j = 0; j <= per; ++j)
+      for (int i = 0; i <= per; ++i) corners[size_t(j) * (per + 1) + size_t(i)] = point(cx * per + i, cy * per + j);
+    const auto corner = [&](int i, int j) -> const Point& { return corners[size_t(j) * (per + 1) + size_t(i)]; };
+    for (int j = 0; j < per; ++j)
+      for (int i = 0; i < per; ++i) {
+        const Point &a = corner(i, j), &b = corner(i + 1, j), &c = corner(i, j + 1), &d = corner(i + 1, j + 1);
         triangle(a, b, d);
         triangle(a, d, c);
       }
@@ -394,6 +412,7 @@ class Scenery {
              int quality, std::mt19937& random, const std::vector<std::pair<Vec3, Vec3>>& buildings,
              const Vec3& start, std::vector<raisim::Object*>& colliders) {
     clear(viewer);
+    quality_ = size_t(std::clamp(quality, 0, 3));
     const auto unit = [&]() { return uniform(random, 0.0, 1.0); };
     const double river = riverHalfWidth(kind);
     const auto blocked = [&](double x, double y, double margin) {
@@ -555,13 +574,14 @@ class Scenery {
     }
   }
 
-  // Draws only the grass near the camera at full density.
+  // Draws the grass at full density near the camera, thinner farther out, and none beyond its reach.
   void updateGrass(const glm::vec3& camera) {
+    const float reach = kFoliageReach[quality_];
     for (auto& tile : grassTiles_) {
       const float distance = std::max(0.f, glm::length(tile.center - glm::vec2(camera)) - 22.f);
       for (auto& batch : tile.batches) {
-        batch->setMaxRenderedInstances(distance > 75.f ? 1 : 0);
-        batch->setRenderedInstanceStride(distance > 45.f ? 3 : distance > 20.f ? 2 : 1);
+        batch->setMaxRenderedInstances(distance > reach ? 1 : 0);
+        batch->setRenderedInstanceStride(distance > 0.7f * reach ? 3 : distance > 0.35f * reach ? 2 : 1);
       }
     }
   }
@@ -597,19 +617,26 @@ class Scenery {
     visual->addInstances(instances);
     visual->setAutomaticMeshLodEnabled(true);
     if (foliage) {
-      visual->setProjectedLodPolicy(true, 2, 8);
+      // Trees and shrubs keep their leaves farther out; grass simplifies unseen at the renderer's
+      // default, and the shadows keep theirs.
+      if (tile < 0) {
+        visual->setFoliageMeshLodPixelError(kFoliagePixelError[quality_]);
+        visual->setFoliageShadowMeshLodPixelError(2.5f);
+      }
+      visual->setProjectedLodPolicy(true, kFoliageMinPixels[quality_], 8);
       visual->setShadowFoliageLodPolicy(true, 2.5f, 16);
       visual->setSortTransparentInstances(false);
       visual->configureFoliageWind(0, sway, sway > 1 ? .025f : .09f, .7f, .2f);
       visual->setFoliageImpostorPolicy(false);
     }
-    if (tile >= 0) visual->setFoliageDistanceFade(55.f, 75.f, false);
+    if (tile >= 0) visual->setFoliageDistanceFade(0.75f * kFoliageReach[quality_], kFoliageReach[quality_], false);
     names_.push_back(name);
     return visual;
   }
 
   std::vector<std::string> names_;
   std::vector<GrassTile> grassTiles_;
+  size_t quality_ = 2;
 };
 
 // A box drawn with a tiled PBR texture (walls of buildings and the fortress).

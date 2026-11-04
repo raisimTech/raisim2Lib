@@ -111,14 +111,21 @@ class Game {
     }
   }
 
+  // Reports how far loading has come (0 to 1) and what it is doing.
+  using Progress = std::function<void(double, const char*)>;
+
   // Builds the arena of a level. Playing starts the waves; otherwise the arena is a quiet backdrop for
-  // the menu.
-  void load(int level, bool playing, int quality) {
+  // the menu. progress, if given, hears of each stage.
+  void load(int level, bool playing, int quality, const Progress& progress = {}) {
+    const auto report = [&](double fraction, const char* what) {
+      if (progress) progress(fraction, what);
+    };
+    report(0.0, "Clearing the battlefield");
     clear();
     level_ = level;
     const LevelSpec& spec = levels()[size_t(level)];
     applyTheme(spec, quality);
-    buildArena(spec);
+    buildArena(spec, report);
     phase_ = playing ? Phase::Playing : Phase::Menu;
     player_ = std::make_unique<Tank>(*world_, urdfs_[0], models_[0], vehicle(Role::Player),
                                      Vec3(spec.playerStart.x(), spec.playerStart.y(),
@@ -512,7 +519,7 @@ class Game {
     box->setPosition(center.x(), center.y(), center.z());
     box->setOrientation(std::cos(0.5 * yaw), 0.0, 0.0, std::sin(0.5 * yaw));
     box->setBodyType(raisim::BodyType::STATIC);
-    viewer_.setObjectHidden(box, true);
+    box->setAppearance("hidden");
     props_.push_back(box);
     if (drawn) {
       const std::string name = "building_" + std::to_string(nextName_++);
@@ -535,13 +542,14 @@ class Game {
 
   // Draws body with a model: the body's primitive is hidden and the model follows it (update()).
   void dress(raisim::SingleBodyObject* body, const std::string& model, double scale, const Vec3& offset) {
-    viewer_.setObjectHidden(body, true);
+    body->setAppearance("hidden");
     const std::string name = "dressed_" + std::to_string(nextName_++);
     auto mesh = viewer_.addVisualMesh(name, assets_ + "/tank_survival/props/" + model + "/model.gltf", glm::dvec3(scale));
     dressings_.push_back({body, name, offset, mesh});
   }
 
-  void buildArena(const LevelSpec& spec) {
+  void buildArena(const LevelSpec& spec, const std::function<void(double, const char*)>& report) {
+    report(0.1, "Shaping the ground");
     constexpr size_t kSamples = 221;
     std::vector<double> heights(kSamples * kSamples);
     for (size_t j = 0; j < kSamples; ++j)
@@ -549,13 +557,14 @@ class Game {
         heights[j * kSamples + i] = groundShape(spec.terrain, -0.5 * kExtent + kExtent * double(i) / (kSamples - 1),
                                                 -0.5 * kExtent + kExtent * double(j) / (kSamples - 1));
     terrain_ = world_->addHeightMap(kSamples, kSamples, kExtent, kExtent, 0, 0, heights);
-    viewer_.setObjectHidden(terrain_, true);
+    terrain_->setAppearance("hidden");
     props_.push_back(terrain_);
     for (int side = 0; side < 4; ++side) {
       const double along = 2.0 * kArena + 1.0, offset = side % 2 ? kArena : -kArena;
       staticBox(side < 2 ? Vec3(1.0, along, 9.0) : Vec3(along, 1.0, 9.0), side < 2 ? Vec3(offset, 0.0, -2.5) : Vec3(0.0, offset, -2.5),
                 0.0, false);
     }
+    report(0.25, "Raising buildings");
     switch (spec.terrain) {
       case Terrain::Town: buildTown(); break;
       case Terrain::Fortress: buildFortress(); break;
@@ -569,13 +578,17 @@ class Game {
     for (const auto& p : stacks) levelGround(heights, kSamples, p, 2.0);
     for (const auto& p : drums) levelGround(heights, kSamples, p, 1.4);
     terrain_->update(0.0, 0.0, kExtent, kExtent, heights);
+    report(0.35, "Laying the terrain");
     terrainVisuals_.build(viewer_, *terrain_, spec.terrain, assets_);
+    report(0.6, "Filling the river");
     addRiver(spec.terrain);
     std::vector<std::pair<Vec3, Vec3>> footprints;
     for (const auto& b : buildings_) footprints.emplace_back(b.center, b.half);
     for (const auto& p : stacks) footprints.emplace_back(p, Vec3(1.6, 1.6, 1.0));
     for (const auto& p : drums) footprints.emplace_back(p, Vec3(1.2, 1.2, 1.0));
+    report(0.65, "Planting trees and grass");
     scenery_.build(*world_, viewer_, *terrain_, spec.terrain, assets_, quality_, random_, footprints, spec.playerStart, props_);
+    report(0.9, "Stacking supplies");
     raisim::FluidCoefficients still;
     still.enabled = false;
     for (const auto& p : stacks) {
@@ -704,7 +717,7 @@ class Game {
           still.enabled = false;
           world_->setFluidCoefficients(rubble, still);
           const std::string name = "rubble_" + std::to_string(nextName_++);
-          viewer_.setObjectHidden(rubble, true);
+          rubble->setAppearance("hidden");
           const auto dim = rubble->getDim();
           dressings_.push_back({rubble, name, Vec3::Zero(), texturedBox(viewer_, name, Vec3(dim[0], dim[1], dim[2]), concrete(), 1.5)});
         }
@@ -1233,7 +1246,7 @@ class Game {
     const glm::vec4 burnt(0.22f, 0.2f, 0.19f, 1.0f);
     for (auto [body, mesh, offset] : {std::tuple<raisim::SingleBodyObject*, const char*, Vec3>{hull, "hull", -hullCenter - Vec3(0, 0, model.axleHeight)},
                                       {top, "turret", -turretCenter - model.turretPivot}}) {
-      viewer_.setObjectHidden(body, true);
+      body->setAppearance("hidden");
       const std::string name = "wreck_" + std::to_string(nextName_++);
       viewer_.addVisualMesh(name, folder + "/" + mesh + ".gltf", glm::dvec3(1.0), burnt);
       wreck.parts.push_back(body);

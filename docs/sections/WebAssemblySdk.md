@@ -95,9 +95,9 @@ Files reach a program through Emscripten's `--embed-file` (compiled into the `.w
 
 `ASSETS` takes files and folders as `<path>@<mount>`, as `--preload-file` does. They are copied next to the
 page in `<target>-assets/` and listed in `<target>.assets.json`, and the page downloads them into the
-program's file system at `<mount>` before `main()` starts, showing the progress. Each file is fetched and
-cached on its own, so assets need not fit in one file: GitHub Pages, for one, refuses files over 100 MB.
-`EXCLUDE` leaves out files whose names match a glob.
+program's file system at `<mount>` before `main()` starts. Each file is fetched and cached on its own, so
+assets need not fit in one file: GitHub Pages, for one, refuses files over 100 MB. `EXCLUDE` leaves out
+files whose names match a glob.
 
 ```cmake
 rayrai_add_web_app(my_game TITLE "My game"
@@ -137,6 +137,19 @@ LinkedIn's [Post Inspector](https://www.linkedin.com/post-inspector/) show the c
 
 The page sets `data-state` on its `<body>`: `loading`, `running`, `closed` when `main()` returns 0, and
 `error` otherwise, with the message in `data-error`.
+
+The program's WebAssembly and its assets download together, while the scripts load and the browser starts
+its GPU, and the page shows how much has arrived. The asset manifest holds the size of the WebAssembly,
+which a host that compresses it (GitHub Pages does) does not state; a page without `ASSETS` asks the server
+for it and shows an indeterminate bar when the answer is unknown. Assets that arrive before the program is
+instantiated wait in memory; the rest go straight into its file system.
+
+Rayrai's WebGPU backend compiles a shader program the first time a frame draws with it, which makes the
+first seconds of a first visit stutter. The loader keeps the compiled programs in the browser's Cache
+Storage (`rayrai-programs`), under the hash of the program's WebAssembly, so a returning visitor starts
+without compiling them again; a new build of the program starts a new set and removes the old one. Pass
+`onProgress(loaded, total, finished)` and `onStart()` to `runRayraiApp()` to show the progress on a page of
+your own: `total` is 0 while it is unknown.
 
 ## Hosting
 

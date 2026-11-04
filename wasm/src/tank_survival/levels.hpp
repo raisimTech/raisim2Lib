@@ -95,11 +95,21 @@ inline constexpr double kExtent = 220.0;
 // Small-scale relief: octaves of sine waves at incommensurate angles and phases, from 24 m swells to
 // 1.5 m bumps (sand and town ground are smoother).
 inline double roughness(Terrain terrain, double x, double y) {
+  struct Octave {
+    double cosine, sine, phase;
+  };
+  static const std::array<Octave, 7> octaves = [] {
+    std::array<Octave, 7> table{};
+    for (int octave = 0; octave < 7; ++octave) {
+      const double angle = 2.399963 * octave + 0.7;
+      table[size_t(octave)] = {std::cos(angle), std::sin(angle), 1.7 * octave * octave + 0.3};
+    }
+    return table;
+  }();
   const double amplitude = terrain == Terrain::Dunes ? 0.35 : terrain == Terrain::Town ? 0.12 : 1.0;
   double h = 0.0, a = 0.55, wavelength = 24.0;
-  for (int octave = 0; octave < 7; ++octave) {
-    const double angle = 2.399963 * octave + 0.7, phase = 1.7 * octave * octave + 0.3;
-    const double u = x * std::cos(angle) + y * std::sin(angle), v = -x * std::sin(angle) + y * std::cos(angle);
+  for (const auto& [cosine, sine, phase] : octaves) {
+    const double u = x * cosine + y * sine, v = -x * sine + y * cosine;
     h += a * std::sin(2.0 * kPi * u / wavelength + phase) * std::cos(2.0 * kPi * v / (1.37 * wavelength) + 0.5 * phase);
     a *= 0.52;
     wavelength *= 0.58;
