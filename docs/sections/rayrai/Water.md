@@ -467,8 +467,8 @@ waves of its preset.
 
 ### Diagnostics
 
-`waterDiagnostics()` describes the last color render. All fields but `bodyCount` are zero (false)
-when that render had no water in view and the camera was not under water.
+`waterDiagnostics()` describes the last color render. All fields but `bodyCount` and `skyCaptures`
+are zero (false) when that render had no water in view and the camera was not under water.
 
 | Field | Meaning |
 |---|---|
@@ -480,6 +480,7 @@ when that render had no water in view and the camera was not under water.
 | `cameraUnderwater` | The camera was inside a body. |
 | `underwaterFogDrawn` | The underwater view pass ran (needs `waterUnderwaterView`). |
 | `skyCaptureFaceSize` | Face size of the reflected sky cubemap, pixels. |
+| `skyCaptures` | Times the reflected sky cubemap was drawn since the window was created. It is drawn again only when the sky it reflects changes, except a cubemap background set by the application, which is drawn at every render. |
 | `timeSeconds` | Water time of the render. |
 | `flowBodies`, `flowSteps` | Simulated bodies updated for the render, and the steps they took. |
 | `flowTimeDropped` | Water time the simulations skipped after a stalled frame, seconds. |

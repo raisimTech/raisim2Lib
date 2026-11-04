@@ -150,8 +150,10 @@ class TerrainVisuals {
       m.useVertexColorAsAlbedo = true;
       tiles_[l] = layers[l].tile;
     }
-    chunkVisuals_.assign(size_t(kChunks * kChunks), {});
-    for (int c = 0; c < kChunks * kChunks; ++c) buildChunk(viewer, terrain, c);
+    blocks_.assign(size_t(kBlocks * kBlocks), {});
+    std::vector<int> all(size_t(kChunks * kChunks));
+    std::iota(all.begin(), all.end(), 0);
+    for (int b = 0; b < kBlocks * kBlocks; ++b) buildBlock(viewer, terrain, b, all);
     buildOuter(viewer);
   }
 
@@ -170,14 +172,18 @@ class TerrainVisuals {
   void flush(Viewer& viewer, const raisim::HeightMap& terrain) {
     std::sort(dirty_.begin(), dirty_.end());
     dirty_.erase(std::unique(dirty_.begin(), dirty_.end()), dirty_.end());
-    for (int chunk : dirty_) buildChunk(viewer, terrain, chunk);
+    std::vector<int> blocks;
+    for (int chunk : dirty_) blocks.push_back(chunk / kChunks / kBlock * kBlocks + chunk % kChunks / kBlock);
+    std::sort(blocks.begin(), blocks.end());
+    blocks.erase(std::unique(blocks.begin(), blocks.end()), blocks.end());
+    for (int b : blocks) buildBlock(viewer, terrain, b, dirty_);
     dirty_.clear();
   }
 
   void clear(Viewer& viewer) {
-    for (auto& chunk : chunkVisuals_)
-      for (const auto& name : chunk) viewer.removeVisualObject(name);
-    chunkVisuals_.clear();
+    for (auto& block : blocks_)
+      for (const auto& name : block.names) viewer.removeVisualObject(name);
+    blocks_.clear();
     dirty_.clear();
     for (const auto& name : outer_) viewer.removeVisualObject(name);
     outer_.clear();
@@ -188,6 +194,19 @@ class TerrainVisuals {
 
  private:
   static constexpr int kChunks = 10;
+  // Chunks are drawn in blocks of kBlock x kBlock, one mesh per layer, so that the ground takes few draws;
+  // a crater rebuilds its chunks and copies the others of their blocks from the meshes drawn.
+  static constexpr int kBlock = 2, kBlocks = kChunks / kBlock;
+
+  struct Range {
+    size_t vertex = 0, vertices = 0, index = 0, indices = 0;
+  };
+  struct Block {
+    std::vector<std::string> names;
+    std::array<std::shared_ptr<::OpenGLMesh>, 3> meshes;
+    std::array<std::array<Range, 3>, kBlock * kBlock> ranges;
+  };
+  using Layers = std::array<std::pair<std::vector<::Vertex>, std::vector<unsigned int>>, 3>;
 
   struct Point {
     double i, j;
@@ -295,9 +314,55 @@ class TerrainVisuals {
     }
   }
 
-  void buildChunk(Viewer& viewer, const raisim::HeightMap& terrain, int chunk) {
-    for (const auto& name : chunkVisuals_[size_t(chunk)]) viewer.removeVisualObject(name);
-    chunkVisuals_[size_t(chunk)].clear();
+  // Builds the chunks of a block listed in `rebuilt` and keeps the others' geometry, then draws the block.
+  void buildBlock(Viewer& viewer, const raisim::HeightMap& terrain, int b, const std::vector<int>& rebuilt) {
+    Block& block = blocks_[size_t(b)];
+    const int bx = b % kBlocks, by = b / kBlocks;
+    std::array<std::vector<::Vertex>, 3> vertices;
+    std::array<std::vector<unsigned int>, 3> indices;
+    std::array<std::array<Range, 3>, kBlock * kBlock> ranges{};
+    for (int k = 0; k < kBlock * kBlock; ++k) {
+      const int chunk = (by * kBlock + k / kBlock) * kChunks + bx * kBlock + k % kBlock;
+      const bool fresh = !block.meshes[0] && !block.meshes[1] && !block.meshes[2];
+      Layers built;
+      if (fresh || std::binary_search(rebuilt.begin(), rebuilt.end(), chunk)) built = meshChunk(terrain, chunk);
+      for (int l = 0; l < 3; ++l) {
+        Range& range = ranges[size_t(k)][size_t(l)];
+        range.vertex = vertices[l].size();
+        range.index = indices[l].size();
+        const auto base = unsigned(range.vertex);
+        if (fresh || std::binary_search(rebuilt.begin(), rebuilt.end(), chunk)) {
+          vertices[l].insert(vertices[l].end(), built[l].first.begin(), built[l].first.end());
+          for (unsigned int index : built[l].second) indices[l].push_back(base + index);
+        } else if (const auto& mesh = block.meshes[size_t(l)]) {
+          const Range& old = block.ranges[size_t(k)][size_t(l)];
+          vertices[l].insert(vertices[l].end(), mesh->vertices.begin() + long(old.vertex), mesh->vertices.begin() + long(old.vertex + old.vertices));
+          for (size_t i = old.index; i < old.index + old.indices; ++i) indices[l].push_back(base + mesh->indices[i] - unsigned(old.vertex));
+        }
+        range.vertices = vertices[l].size() - range.vertex;
+        range.indices = indices[l].size() - range.index;
+      }
+    }
+    for (const auto& name : block.names) viewer.removeVisualObject(name);
+    block.names.clear();
+    block.ranges = ranges;
+    for (int l = 0; l < 3; ++l) {
+      block.meshes[size_t(l)].reset();
+      if (indices[l].empty()) continue;
+      auto meshes = std::make_shared<std::vector<std::shared_ptr<::OpenGLMesh>>>();
+      // The chunks' tangents are final: derived again over the block, they would differ along the seams.
+      auto mesh = ::OpenGLMesh::createCpuGeometry(std::move(vertices[l]), std::move(indices[l]), {}, glm::vec4(1.f), false);
+      mesh->uploadPreparedGeometry(false);
+      mesh->material = materials_[l];
+      meshes->push_back(mesh);
+      block.meshes[size_t(l)] = mesh;
+      const std::string name = "ground " + std::to_string(b) + " " + std::to_string(l) + " " + std::to_string(revision_++);
+      viewer.addVisualCustomMesh(name, meshes, glm::vec4(1.f), false);
+      block.names.push_back(name);
+    }
+  }
+
+  Layers meshChunk(const raisim::HeightMap& terrain, int chunk) const {
     const int n = samples_, per = (n - 1) / kChunks, cx = chunk % kChunks, cy = chunk / kChunks;
     const double cell = extent_ / (n - 1), half = 0.5 * extent_;
     const auto& heights = terrain.getHeightVector();
@@ -371,15 +436,14 @@ class TerrainVisuals {
         triangle(a, b, d);
         triangle(a, d, c);
       }
+    // Each chunk's tangents come from its own triangles, as when every chunk was a mesh of its own.
+    Layers layers;
     for (int l = 0; l < 3; ++l) {
       if (indices[l].empty()) continue;
-      auto meshes = std::make_shared<std::vector<std::shared_ptr<::OpenGLMesh>>>();
-      meshes->push_back(std::make_shared<::OpenGLMesh>(std::move(vertices[l]), std::move(indices[l])));
-      meshes->front()->material = materials_[l];
-      const std::string name = "ground " + std::to_string(chunk) + " " + std::to_string(l) + " " + std::to_string(revision_++);
-      viewer.addVisualCustomMesh(name, meshes, glm::vec4(1.f), false);
-      chunkVisuals_[size_t(chunk)].push_back(name);
+      auto mesh = ::OpenGLMesh::createCpuGeometry(std::move(vertices[l]), std::move(indices[l]), {}, glm::vec4(1.f));
+      layers[size_t(l)] = {std::move(mesh->vertices), std::move(mesh->indices)};
     }
+    return layers;
   }
 
   Terrain kind_ = Terrain::Hills;
@@ -387,7 +451,7 @@ class TerrainVisuals {
   double extent_ = 0.0;
   std::array<raisin::Material, 3> materials_;
   std::array<double, 3> tiles_{};
-  std::vector<std::vector<std::string>> chunkVisuals_;
+  std::vector<Block> blocks_;
   std::vector<int> dirty_;
   std::vector<std::string> outer_;
   size_t revision_ = 0;
