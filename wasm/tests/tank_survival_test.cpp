@@ -86,12 +86,29 @@ void qualityStepsDownWhileFramesAreSlow() {
   check(quality == 3, "a quality the player chose is kept");
 }
 
+void riverBanksCanBeClimbed() {
+  // Across each river, from its middle to beyond the banks, the ground rises no steeper than the banks of
+  // the rivers tanks are seen to drive out of (a tank in the town's steep canal could not).
+  for (const tank::Terrain terrain : {tank::Terrain::Hills, tank::Terrain::Town, tank::Terrain::Ridges, tank::Terrain::Fortress}) {
+    const tank::River river = tank::riverOf(terrain);
+    double steepest = 0.0;
+    for (double x = -60.0; x <= 60.0; x += 7.5)
+      for (const double side : {-1.0, 1.0})
+        for (double d = 0.0; d < tank::riverHalfWidth(terrain) + 3.0; d += 0.25) {
+          const double y = tank::riverY(river, x) + side * d, step = side * 0.25;
+          steepest = std::max(steepest, std::abs(tank::groundShape(terrain, x, y + step) - tank::groundShape(terrain, x, y)) / 0.25);
+        }
+    check(steepest < 0.6, "a tank can climb out of every river");
+  }
+}
+
 }  // namespace
 
 int main() {
   arrowsPointAtEnemiesOutOfView();
   burstsOfHitsGatherPerVehicle();
   qualityStepsDownWhileFramesAreSlow();
+  riverBanksCanBeClimbed();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;
 }

@@ -134,16 +134,15 @@ inline River riverOf(Terrain terrain) {
 }
 
 // The river's bed: a flat bottom kRiverBottom to each side of the middle, kRiverDepth under the water,
-// with banks rising kRiverBank metres per metre (steeper in the town's canal). The water falls
-// kRiverSlope metres per metre downstream.
+// with banks rising kRiverBank metres per metre, which a tank climbs (the town's canal too: steeper walls
+// trapped the tanks that drove in). The water falls kRiverSlope metres per metre downstream.
 inline constexpr double kRiverDepth = 1.1, kRiverBottom = 2.5, kRiverBank = 0.55, kRiverSlope = 0.001;
 inline constexpr double kRiverFlow = 7.0, kRiverSpeed = 1.1;
 
 inline double riverY(const River& river, double x) { return river.offset + river.amplitude * std::sin(0.031 * x + 0.6); }
 inline double riverSurface(double x) { return -0.75 - kRiverSlope * x; }
-inline double riverBank(Terrain terrain) { return terrain == Terrain::Town ? 1.6 : kRiverBank; }
 // Half the width of the water's surface.
-inline double riverHalfWidth(Terrain terrain) { return kRiverBottom + kRiverDepth / riverBank(terrain); }
+inline double riverHalfWidth(Terrain) { return kRiverBottom + kRiverDepth / kRiverBank; }
 
 // How far (x, y) is from the middle of the river (across it), or infinity without one.
 inline double riverDistance(Terrain terrain, double x, double y) {
@@ -157,7 +156,7 @@ inline double carveRiver(Terrain terrain, double x, double y, double h) {
   const double d = riverDistance(terrain, x, y);
   if (!std::isfinite(d)) return h;
   const double surface = riverSurface(x);
-  const double bed = surface - kRiverDepth + std::max(0.0, d - kRiverBottom) * riverBank(terrain);
+  const double bed = surface - kRiverDepth + std::max(0.0, d - kRiverBottom) * kRiverBank;
   const double levee = surface + 0.3 + 0.02 * d - 0.5 * std::max(0.0, d - 18.0);
   return std::min(std::max(h, levee), bed);
 }
