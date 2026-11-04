@@ -55,6 +55,7 @@
   "rayrai_runtime_scene_editing": {"crop": {"cx": 0.5, "cy": 0.5, "zoom": 1.5}, "kind": "rayrai", "start": 1.5},
   "rayrai_sensor_noise": {"crop": {"dur": 6.4, "trim": 0.8}, "image": "rgb_noise.png", "kind": "comparison"},
   "rayrai_swept_ccd": {"crop": {"cx": 0.5, "cy": 0.6, "zoom": 1.6}, "kind": "rayrai", "start": 1.5},
+  "rayrai_tank_battle": {"args": ["--screenshot", "{work}/rayrai_tank_battle_last.png", "--frames", "100000"], "crop": {"dur": 6.0, "trim": 1.0}, "every_frame": true, "fps": 60, "kind": "rayrai", "load": 60, "seconds": 9, "start": 0},
   "rayrai_tcp_viewer": {"binary": "rscene_server", "crop": {"cx": 0.3, "cy": 0.3, "zoom": 1.6}, "kind": "server", "load": 90, "no_minimize": true, "size": "1600x1000", "start": 12, "viewer_args": ["--auto-frame", "--keep-overlay-open"]},
   "rayrai_visual_asset_support": {"kind": "rayrai", "start": 1.5},
   "rayrai_warehouse": {"kind": "rayrai", "load": 180, "start": 20},

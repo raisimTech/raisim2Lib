@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { defineConfig, type DefaultTheme } from 'vitepress'
+import { defineConfig, type DefaultTheme, type HeadConfig } from 'vitepress'
 import { docsSidebar } from './sidebar.mts'
 
 const docsDir = fileURLToPath(new URL('..', import.meta.url))
@@ -109,9 +109,26 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#07070b' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'RaiSim' }],
-    ['meta', { property: 'og:image', content: 'https://raisim.com/og-image.jpg' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
   ],
+
+  // The card a shared link shows on social networks and messengers: the page's title, description,
+  // address and picture (the site's, unless the page's frontmatter names an `image`).
+  transformHead({ pageData, title, description }) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '.html')
+    const url = `https://raisim.com/${path}`
+    const image = new URL(String(pageData.frontmatter.image ?? '/og-image.jpg'), url).href
+    const head: HeadConfig[] = [
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:image', content: image }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+      ['meta', { name: 'twitter:image', content: image }],
+    ]
+    return head
+  },
 
   markdown: {
     math: true,

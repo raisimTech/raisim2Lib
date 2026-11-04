@@ -1408,6 +1408,51 @@ void init_world(py::module_ &m) {
         py::arg("closestOnly") = true, py::arg("objectId") = size_t(-10),
         py::arg("localId") = size_t(-10), py::arg("collisionMask") = raisim::CollisionGroup(-1),
         py::rv_policy::reference_internal)
+      .def("addExplosion",
+           [](raisim::World& self, const NDArray& position, const raisim::ExplosionProperties& properties) {
+             return self.addExplosion(convert_np_to_vec<3>(position), properties);
+           },
+           R"mydelimiter(
+        Set off an explosion at the current world time. Its blast wave pushes every dynamic body it reaches
+        during the following steps: each patch of a body's collision geometry takes the pressure of the wave
+        when the shock arrives there, surfaces facing the charge also take the reflected pressure and the blast
+        wind, and bodies hidden behind others are spared both. A requested crater is dug at once.
+
+        Args:
+            position (np.array[float[3]]): position of the charge in the world frame (m).
+            properties (ExplosionProperties): the charge and what it affects.
+
+        Returns:
+            int: identifier of the explosion.
+        )mydelimiter", py::arg("position"), py::arg("properties") = raisim::ExplosionProperties())
+      .def("getExplosions", &raisim::World::getExplosions,
+           "The explosions set off most recently (at most 256), oldest first; identifiers increase.",
+           py::rv_policy::reference_internal)
+      .def("addProjectile",
+           [](raisim::World& self, const NDArray& position, const NDArray& velocity,
+              const raisim::ProjectileProperties& properties) {
+             return self.addProjectile(convert_np_to_vec<3>(position), convert_np_to_vec<3>(velocity), properties);
+           },
+           R"mydelimiter(
+        Launch a projectile at the current world time. Each step moves it under gravity and air drag and
+        sweeps its path with a ray, so it cannot pass through a body. At the first body on its path it
+        detonates or stops, handing its momentum to a dynamic body it hits; a time fuse detonates it in flight.
+
+        Args:
+            position (np.array[float[3]]): launch position in the world frame (m).
+            velocity (np.array[float[3]]): launch velocity in the world frame (m/s).
+            properties (ProjectileProperties): what the projectile is and does.
+
+        Returns:
+            int: identifier of the projectile.
+        )mydelimiter", py::arg("position"), py::arg("velocity"), py::arg("properties") = raisim::ProjectileProperties())
+      .def("removeProjectile", &raisim::World::removeProjectile, py::arg("id"),
+           "Remove a projectile in flight; returns whether it was in flight.")
+      .def("getProjectiles", &raisim::World::getProjectiles, "The projectiles in flight.",
+           py::rv_policy::reference_internal)
+      .def("getProjectileHits", &raisim::World::getProjectileHits,
+           "The most recent projectile hits (at most 256), oldest first; identifiers increase.",
+           py::rv_policy::reference_internal)
       .def("getTendons", [](raisim::World& self) {
         std::vector<raisim::Tendon*> result;
         for (const auto& tendon : self.getTendons()) result.push_back(tendon.get());
@@ -1429,6 +1474,8 @@ void init_world(py::module_ &m) {
 
   py::class_<RayCollisionItem>(m, "RayCollisionItem")
       .def("getPosition", &RayCollisionItem::getPosition)
+      .def("getNormal", &RayCollisionItem::getNormal,
+           "World-frame unit normal of the surface hit, pointing toward the side the ray came from.")
       .def("getObject", &RayCollisionItem::getObject, py::rv_policy::reference_internal)
       .def("getCollisionBody", &RayCollisionItem::getCollisionBody, py::rv_policy::reference_internal);
 

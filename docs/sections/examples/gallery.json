@@ -6,6 +6,7 @@
       "description": "Rendered environments, from minimal scenes to cities, forests, warehouses and off-road terrain.",
       "examples": [
         "rayrai/rayrai_offroad_buggy",
+        "rayrai/rayrai_tank_battle",
         "rayrai/rayrai_city",
         "rayrai/rayrai_forest",
         "rayrai/rayrai_water_pond",

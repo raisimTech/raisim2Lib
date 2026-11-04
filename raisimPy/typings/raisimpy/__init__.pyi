@@ -6,6 +6,7 @@ import numpy
 from numpy.typing import NDArray
 
 from . import (
+    blast as blast,
     constraints as constraints,
     contact as contact,
     rayrai as rayrai
@@ -496,6 +497,305 @@ class FluidCoefficients:
     @addedMass.setter
     def addedMass(self, arg: float, /) -> None: ...
 
+class ExplosionProperties:
+    """What an explosion is and does."""
+
+    def __init__(self) -> None: ...
+
+    @property
+    def chargeMass(self) -> float:
+        """TNT-equivalent mass of the charge (kg)."""
+
+    @chargeMass.setter
+    def chargeMass(self, arg: float, /) -> None: ...
+
+    @property
+    def surfaceBurst(self) -> bool:
+        """
+        The charge lies on the ground: it loads objects like a free-air charge 1.8 times heavier.
+        """
+
+    @surfaceBurst.setter
+    def surfaceBurst(self, arg: bool, /) -> None: ...
+
+    @property
+    def collisionMask(self) -> int:
+        """Collision groups the blast loads."""
+
+    @collisionMask.setter
+    def collisionMask(self, arg: int, /) -> None: ...
+
+    @property
+    def lineOfSight(self) -> bool:
+        """
+        Bodies hidden from the charge take only the wave that wraps around them.
+        """
+
+    @lineOfSight.setter
+    def lineOfSight(self, arg: bool, /) -> None: ...
+
+    @property
+    def craterRadius(self) -> float:
+        """
+        Radius (m) of the crater dug in each heightmap under the charge; zero digs none.
+        """
+
+    @craterRadius.setter
+    def craterRadius(self, arg: float, /) -> None: ...
+
+    @property
+    def craterDepth(self) -> float:
+        """Depth (m) of the crater at its center."""
+
+    @craterDepth.setter
+    def craterDepth(self, arg: float, /) -> None: ...
+
+class Explosion:
+    """An explosion the world has set off."""
+
+    def __init__(self) -> None: ...
+
+    @property
+    def id(self) -> int:
+        """Increasing identifier, unique within the world."""
+
+    @id.setter
+    def id(self, arg: int, /) -> None: ...
+
+    @property
+    def time(self) -> float:
+        """World time of the detonation (s)."""
+
+    @time.setter
+    def time(self, arg: float, /) -> None: ...
+
+    @property
+    def properties(self) -> ExplosionProperties:
+        """The properties it was set off with."""
+
+    @properties.setter
+    def properties(self, arg: ExplosionProperties, /) -> None: ...
+
+    @property
+    def projectileId(self) -> int:
+        """Identifier of the projectile that set it off, or -1 as size_t."""
+
+    @projectileId.setter
+    def projectileId(self, arg: int, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Position of the charge in the world frame (m)."""
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class ProjectileProperties:
+    """
+    A ballistic projectile: a shell, a bullet, a rocket after burnout.
+
+    It flies through the world's fluids: drag acts on its velocity relative to the ambient fluid (whose velocity is the wind)
+    or, below the mean surface of a volume of liquid, to the liquid. A world without an ambient fluid is a vacuum. An
+    explosive projectile (explosion.chargeMass > 0) detonates where it hits; an inert one stops there. Either hands a
+    dynamic body it hits the momentum of an inelastic impact.
+    """
+
+    def __init__(self) -> None: ...
+
+    @property
+    def mass(self) -> float:
+        """Mass (kg)."""
+
+    @mass.setter
+    def mass(self, arg: float, /) -> None: ...
+
+    @property
+    def radius(self) -> float:
+        """Radius (m) of its cross section, which sets its drag area."""
+
+    @radius.setter
+    def radius(self, arg: float, /) -> None: ...
+
+    @property
+    def dragCoefficient(self) -> float:
+        """Drag coefficient of its cross section."""
+
+    @dragCoefficient.setter
+    def dragCoefficient(self, arg: float, /) -> None: ...
+
+    @property
+    def maxLifetime(self) -> float:
+        """Seconds after launch at which it is removed."""
+
+    @maxLifetime.setter
+    def maxLifetime(self, arg: float, /) -> None: ...
+
+    @property
+    def fuseTime(self) -> float:
+        """
+        Seconds after launch at which it detonates in flight; zero or negative: no time fuse.
+        """
+
+    @fuseTime.setter
+    def fuseTime(self, arg: float, /) -> None: ...
+
+    @property
+    def detonateOnImpact(self) -> bool:
+        """It detonates where it hits something, or else stops there."""
+
+    @detonateOnImpact.setter
+    def detonateOnImpact(self, arg: bool, /) -> None: ...
+
+    @property
+    def explosion(self) -> ExplosionProperties:
+        """The explosion it sets off; a chargeMass of zero is inert."""
+
+    @explosion.setter
+    def explosion(self, arg: ExplosionProperties, /) -> None: ...
+
+    @property
+    def collisionMask(self) -> int:
+        """Collision groups the projectile hits."""
+
+    @collisionMask.setter
+    def collisionMask(self, arg: int, /) -> None: ...
+
+    @property
+    def ignoredObject(self) -> int:
+        """World index of an object it passes through."""
+
+    @ignoredObject.setter
+    def ignoredObject(self, arg: int, /) -> None: ...
+
+class Projectile:
+    """A projectile in flight."""
+
+    def __init__(self) -> None: ...
+
+    @property
+    def id(self) -> int:
+        """Increasing identifier, unique within the world."""
+
+    @id.setter
+    def id(self, arg: int, /) -> None: ...
+
+    @property
+    def launchTime(self) -> float:
+        """World time of the launch (s)."""
+
+    @launchTime.setter
+    def launchTime(self, arg: float, /) -> None: ...
+
+    @property
+    def properties(self) -> ProjectileProperties:
+        """The properties it was launched with."""
+
+    @properties.setter
+    def properties(self, arg: ProjectileProperties, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Position in the world frame (m)."""
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def velocity(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Velocity in the world frame (m/s)."""
+
+    @velocity.setter
+    def velocity(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def launchPosition(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Position at the launch (m)."""
+
+    @launchPosition.setter
+    def launchPosition(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def launchVelocity(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Velocity at the launch (m/s)."""
+
+    @launchVelocity.setter
+    def launchVelocity(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class ProjectileHit:
+    """A projectile striking an object."""
+
+    def __init__(self) -> None: ...
+
+    @property
+    def id(self) -> int:
+        """Increasing identifier, unique within the world."""
+
+    @id.setter
+    def id(self, arg: int, /) -> None: ...
+
+    @property
+    def projectileId(self) -> int:
+        """Identifier of the projectile."""
+
+    @projectileId.setter
+    def projectileId(self, arg: int, /) -> None: ...
+
+    @property
+    def objectIndex(self) -> int:
+        """World index of the object hit."""
+
+    @objectIndex.setter
+    def objectIndex(self, arg: int, /) -> None: ...
+
+    @property
+    def localIdx(self) -> int:
+        """Local body index of the body hit."""
+
+    @localIdx.setter
+    def localIdx(self, arg: int, /) -> None: ...
+
+    @property
+    def mass(self) -> float:
+        """Mass of the projectile (kg)."""
+
+    @mass.setter
+    def mass(self, arg: float, /) -> None: ...
+
+    @property
+    def time(self) -> float:
+        """World time of the impact (s)."""
+
+    @time.setter
+    def time(self, arg: float, /) -> None: ...
+
+    @property
+    def detonated(self) -> bool:
+        """The projectile detonated there."""
+
+    @detonated.setter
+    def detonated(self, arg: bool, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Point of impact in the world frame (m)."""
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def normal(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Surface normal at the point of impact."""
+
+    @normal.setter
+    def normal(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def velocity(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]:
+        """Velocity of the projectile at impact (m/s)."""
+
+    @velocity.setter
+    def velocity(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
 class SensorType(enum.IntEnum):
     UNKNOWN = 0
 
@@ -506,6 +806,10 @@ class SensorType(enum.IntEnum):
     IMU = 3
 
     SPINNING_LIDAR = 4
+
+    FORCE = 5
+
+    TACTILE = 6
 
 class SensorMeasurementSource(enum.IntEnum):
     RAISIM = 0
@@ -1217,6 +1521,196 @@ class SpinningLidar(Sensor):
     def setTimeStamp(self, arg: float, /) -> None: ...
 
     def getCurrentYaw(self) -> float: ...
+
+class WrenchSensorModel:
+    def __init__(self) -> None: ...
+
+    @property
+    def forceBias(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    @forceBias.setter
+    def forceBias(self, arg: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], /) -> None: ...
+
+    @property
+    def torqueBias(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    @torqueBias.setter
+    def torqueBias(self, arg: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], /) -> None: ...
+
+    @property
+    def forceNoiseStd(self) -> float: ...
+
+    @forceNoiseStd.setter
+    def forceNoiseStd(self, arg: float, /) -> None: ...
+
+    @property
+    def torqueNoiseStd(self) -> float: ...
+
+    @torqueNoiseStd.setter
+    def torqueNoiseStd(self, arg: float, /) -> None: ...
+
+    @property
+    def maxForce(self) -> float: ...
+
+    @maxForce.setter
+    def maxForce(self, arg: float, /) -> None: ...
+
+    @property
+    def maxTorque(self) -> float: ...
+
+    @maxTorque.setter
+    def maxTorque(self, arg: float, /) -> None: ...
+
+    @property
+    def cutoffFrequency(self) -> float: ...
+
+    @cutoffFrequency.setter
+    def cutoffFrequency(self, arg: float, /) -> None: ...
+
+    @property
+    def latency(self) -> float: ...
+
+    @latency.setter
+    def latency(self, arg: float, /) -> None: ...
+
+    @property
+    def seed(self) -> int: ...
+
+    @seed.setter
+    def seed(self, arg: int, /) -> None: ...
+
+class WrenchSensor(Sensor):
+    def getForce(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    def getTorque(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    def getAcquisitionStartTime(self) -> float: ...
+
+    def getDeliveryTimeStamp(self) -> float: ...
+
+    def getDroppedMeasurementCount(self) -> int: ...
+
+    def reset(self) -> None: ...
+
+    def resetNoise(self) -> None: ...
+
+    def update(self, arg: World, /) -> None: ...
+
+class ForceSensorProperties:
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def full_name(self) -> str: ...
+
+    @full_name.setter
+    def full_name(self, arg: str, /) -> None: ...
+
+    @property
+    def joint(self) -> str: ...
+
+    @joint.setter
+    def joint(self, arg: str, /) -> None: ...
+
+    @property
+    def model(self) -> WrenchSensorModel: ...
+
+    @model.setter
+    def model(self, arg: WrenchSensorModel, /) -> None: ...
+
+class ForceSensor(WrenchSensor):
+    @staticmethod
+    def getStaticType() -> SensorType: ...
+
+    def getProperties(self) -> ForceSensorProperties: ...
+
+    def setProperties(self, arg: ForceSensorProperties, /) -> None: ...
+
+class TactileSensorProperties:
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def full_name(self) -> str: ...
+
+    @full_name.setter
+    def full_name(self, arg: str, /) -> None: ...
+
+    @property
+    def link(self) -> str: ...
+
+    @link.setter
+    def link(self, arg: str, /) -> None: ...
+
+    @property
+    def collision(self) -> str: ...
+
+    @collision.setter
+    def collision(self, arg: str, /) -> None: ...
+
+    @property
+    def width(self) -> float: ...
+
+    @width.setter
+    def width(self, arg: float, /) -> None: ...
+
+    @property
+    def height(self) -> float: ...
+
+    @height.setter
+    def height(self, arg: float, /) -> None: ...
+
+    @property
+    def depth(self) -> float: ...
+
+    @depth.setter
+    def depth(self, arg: float, /) -> None: ...
+
+    @property
+    def columns(self) -> int: ...
+
+    @columns.setter
+    def columns(self, arg: int, /) -> None: ...
+
+    @property
+    def rows(self) -> int: ...
+
+    @rows.setter
+    def rows(self, arg: int, /) -> None: ...
+
+    @property
+    def model(self) -> WrenchSensorModel: ...
+
+    @model.setter
+    def model(self, arg: WrenchSensorModel, /) -> None: ...
+
+class TactileSensor(WrenchSensor):
+    @staticmethod
+    def getStaticType() -> SensorType: ...
+
+    def getProperties(self) -> TactileSensorProperties: ...
+
+    def setProperties(self, arg: TactileSensorProperties, /) -> None: ...
+
+    def getNormalForce(self) -> float: ...
+
+    def hasCenterOfPressure(self) -> bool: ...
+
+    def getCenterOfPressure(self) -> Annotated[NDArray[numpy.float64], dict(shape=(2), order='C')]: ...
+
+    def getTaxelForces(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    def getTaxelSlipVelocities(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class ObjectType(enum.IntEnum):
     SPHERE = 0
@@ -6513,6 +7007,52 @@ class World:
             @return A reference to the internal container which contains all ray collisions.
         """
 
+    def addExplosion(self, position: Annotated[NDArray[numpy.float64], dict(order='C')], properties: ExplosionProperties = ...) -> int:
+        """
+        Set off an explosion at the current world time. Its blast wave pushes every dynamic body it reaches
+        during the following steps: each patch of a body's collision geometry takes the pressure of the wave
+        when the shock arrives there, surfaces facing the charge also take the reflected pressure and the blast
+        wind, and bodies hidden behind others are spared both. A requested crater is dug at once.
+
+        Args:
+            position (np.array[float[3]]): position of the charge in the world frame (m).
+            properties (ExplosionProperties): the charge and what it affects.
+
+        Returns:
+            int: identifier of the explosion.
+        """
+
+    def getExplosions(self) -> list[Explosion]:
+        """
+        The explosions set off most recently (at most 256), oldest first; identifiers increase.
+        """
+
+    def addProjectile(self, position: Annotated[NDArray[numpy.float64], dict(order='C')], velocity: Annotated[NDArray[numpy.float64], dict(order='C')], properties: ProjectileProperties = ...) -> int:
+        """
+        Launch a projectile at the current world time. Each step moves it under gravity and air drag and
+        sweeps its path with a ray, so it cannot pass through a body. At the first body on its path it
+        detonates or stops, handing its momentum to a dynamic body it hits; a time fuse detonates it in flight.
+
+        Args:
+            position (np.array[float[3]]): launch position in the world frame (m).
+            velocity (np.array[float[3]]): launch velocity in the world frame (m/s).
+            properties (ProjectileProperties): what the projectile is and does.
+
+        Returns:
+            int: identifier of the projectile.
+        """
+
+    def removeProjectile(self, id: int) -> bool:
+        """Remove a projectile in flight; returns whether it was in flight."""
+
+    def getProjectiles(self) -> list[Projectile]:
+        """The projectiles in flight."""
+
+    def getProjectileHits(self) -> list[ProjectileHit]:
+        """
+        The most recent projectile hits (at most 256), oldest first; identifiers increase.
+        """
+
     def getTendons(self) -> list[Tendon]: ...
 
     def getTendonCouplings(self) -> list[TendonCoupling]: ...
@@ -6827,6 +7367,11 @@ class ContactSettings:
 
 class RayCollisionItem:
     def getPosition(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    def getNormal(self) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]:
+        """
+        World-frame unit normal of the surface hit, pointing toward the side the ray came from.
+        """
 
     def getObject(self) -> Object: ...
 

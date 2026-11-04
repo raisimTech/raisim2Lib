@@ -37,6 +37,9 @@ Quick map to the current rayrai-related targets:
   and CoACD convex approximation parts generated through `World::addMesh`.
 - `rayrai_runtime_scene_editing`: snapshots, cloning, removal, stable object
   ids, and collision-filter changes in a running world.
+- `rayrai_tank_battle`: a tracked tank fires shells (World projectiles) at crates, walls, tanks
+  and fuel barrels that set each other off; blasts, craters, wind and the explosion effects; see
+  [Tank Battle](../examples/rayrai/rayrai_tank_battle.md).
 - `rayrai_rolling_spinning_friction` / `rayrai_swept_ccd`: physics-focused
   scenes that visualize rolling/spinning friction and swept CCD.
 - `rayrai_motor_operating_region`: a randomly actuated fixed-base quadruped

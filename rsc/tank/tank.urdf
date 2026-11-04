@@ -1,0 +1,229 @@
+<?xml version="1.0" ?>
+<!--
+A small tank: a 9 t hull on two tracks, a turret that turns on the hull ("turret", about z) and a gun
+that elevates in the turret ("gun", about y; a negative angle raises the muzzle).
+
+Each track is a belt wrapped around a driven sprocket at the rear, an idler at the front and three road
+wheels; velocity control on "left_sprocket" and "right_sprocket" drives it, at 0.35 m/s per rad/s.
+The muzzle is 3.2 m along the x axis of "gun_link".
+-->
+<robot name="tank">
+  <material name="Armor">
+    <color rgba="0.36 0.40 0.24 1.0"/>
+  </material>
+  <material name="DarkArmor">
+    <color rgba="0.24 0.27 0.17 1.0"/>
+  </material>
+  <material name="Steel">
+    <color rgba="0.22 0.22 0.23 1.0"/>
+  </material>
+
+  <link name="hull">
+    <inertial>
+      <mass value="9000"/>
+      <origin xyz="0 0 0.45"/>
+      <inertia ixx="3037.5" iyy="15127.5" izz="16950" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.45"/>
+      <geometry>
+        <box size="4.4 1.8 0.9"/>
+      </geometry>
+      <material name="Armor"/>
+    </visual>
+    <visual>
+      <origin xyz="2.25 0 0.62" rpy="0 0.6 0"/>
+      <geometry>
+        <box size="0.5 1.78 0.5"/>
+      </geometry>
+      <material name="Armor"/>
+    </visual>
+    <visual>
+      <origin xyz="0 1.15 0.5"/>
+      <geometry>
+        <box size="4.6 0.6 0.06"/>
+      </geometry>
+      <material name="DarkArmor"/>
+    </visual>
+    <visual>
+      <origin xyz="0 -1.15 0.5"/>
+      <geometry>
+        <box size="4.6 0.6 0.06"/>
+      </geometry>
+      <material name="DarkArmor"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.45"/>
+      <geometry>
+        <box size="4.4 1.8 0.9"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="left_sprocket_link">
+    <inertial>
+      <mass value="200"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="10.3" iyy="12.25" izz="10.3" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="1.5708 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.52" radius="0.2"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+  </link>
+  <joint name="left_sprocket" type="continuous">
+    <parent link="hull"/>
+    <child link="left_sprocket_link"/>
+    <origin xyz="-1.95 1.15 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="right_sprocket_link">
+    <inertial>
+      <mass value="200"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="10.3" iyy="12.25" izz="10.3" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="1.5708 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.52" radius="0.2"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+  </link>
+  <joint name="right_sprocket" type="continuous">
+    <parent link="hull"/>
+    <child link="right_sprocket_link"/>
+    <origin xyz="-1.95 -1.15 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="left_idler_link">
+    <visual>
+      <origin rpy="1.5708 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.52" radius="0.2"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+  </link>
+  <joint name="left_idler" type="fixed">
+    <parent link="hull"/>
+    <child link="left_idler_link"/>
+    <origin xyz="1.95 1.15 0.05"/>
+  </joint>
+
+  <link name="right_idler_link">
+    <visual>
+      <origin rpy="1.5708 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.52" radius="0.2"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+  </link>
+  <joint name="right_idler" type="fixed">
+    <parent link="hull"/>
+    <child link="right_idler_link"/>
+    <origin xyz="1.95 -1.15 0.05"/>
+  </joint>
+
+  <link name="turret_link">
+    <inertial>
+      <mass value="2500"/>
+      <origin xyz="0 0 0.3"/>
+      <inertia ixx="677" iyy="1275" izz="1802" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.3"/>
+      <geometry>
+        <box size="2.4 1.7 0.6"/>
+      </geometry>
+      <material name="Armor"/>
+    </visual>
+    <visual>
+      <origin xyz="-0.5 0.4 0.68"/>
+      <geometry>
+        <cylinder length="0.16" radius="0.32"/>
+      </geometry>
+      <material name="DarkArmor"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.3"/>
+      <geometry>
+        <box size="2.4 1.7 0.6"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="turret" type="continuous">
+    <parent link="hull"/>
+    <child link="turret_link"/>
+    <origin xyz="0.2 0 0.9"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="gun_link">
+    <inertial>
+      <mass value="600"/>
+      <origin xyz="1.3 0 0"/>
+      <inertia ixx="3" iyy="600" izz="600" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.1 0 0"/>
+      <geometry>
+        <box size="0.5 0.8 0.5"/>
+      </geometry>
+      <material name="DarkArmor"/>
+    </visual>
+    <visual>
+      <origin xyz="1.7 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder length="3.0" radius="0.1"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <visual>
+      <origin xyz="3.1 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder length="0.2" radius="0.14"/>
+      </geometry>
+      <material name="Steel"/>
+    </visual>
+    <collision>
+      <origin xyz="1.7 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder length="3.0" radius="0.1"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="gun" type="revolute">
+    <parent link="turret_link"/>
+    <child link="gun_link"/>
+    <origin xyz="1.1 0 0.3"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.35" upper="0.15" effort="1e6" velocity="2"/>
+  </joint>
+
+  <track name="left" link="hull" width="0.5" thickness="0.06" color="0.12 0.12 0.12 1">
+    <axis xyz="0 1 0"/>
+    <wheel joint="left_sprocket" radius="0.35"/>
+    <wheel joint="left_idler" radius="0.35"/>
+    <wheel xyz="-1.0 1.15 -0.1" radius="0.3"/>
+    <wheel xyz="0 1.15 -0.1" radius="0.3"/>
+    <wheel xyz="1.0 1.15 -0.1" radius="0.3"/>
+    <drive joint="left_sprocket" gain="0.35"/>
+  </track>
+  <track name="right" link="hull" width="0.5" thickness="0.06" color="0.12 0.12 0.12 1">
+    <axis xyz="0 1 0"/>
+    <wheel joint="right_sprocket" radius="0.35"/>
+    <wheel joint="right_idler" radius="0.35"/>
+    <wheel xyz="-1.0 -1.15 -0.1" radius="0.3"/>
+    <wheel xyz="0 -1.15 -0.1" radius="0.3"/>
+    <wheel xyz="1.0 -1.15 -0.1" radius="0.3"/>
+    <drive joint="right_sprocket" gain="0.35"/>
+  </track>
+</robot>
