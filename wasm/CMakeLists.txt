@@ -52,3 +52,12 @@ else()
     target_link_libraries(tank_survival PRIVATE rayrai::rayrai)
     target_compile_definitions(tank_survival PRIVATE TANK_SURVIVAL_ASSETS="${RAISIM2LIB_RSC}")
 endif()
+
+# Checks of the game's logic that need no window (desktop only).
+if(NOT EMSCRIPTEN)
+    enable_testing()
+    add_executable(tank_survival_test tests/tank_survival_test.cpp)
+    target_include_directories(tank_survival_test PRIVATE src/tank_survival)
+    target_link_libraries(tank_survival_test PRIVATE rayrai::rayrai)
+    add_test(NAME tank_survival_test COMMAND tank_survival_test)
+endif()

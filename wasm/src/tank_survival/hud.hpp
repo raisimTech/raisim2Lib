@@ -160,6 +160,14 @@ inline bool drawHelpButton(const Screen& screen) {
 }
 
 // While a panel (help or pause) is open, the sight, the notices and the hints stay off it.
+// The direction on a screen of size pixels (y down) toward a point out of view at clip-space position clip, or
+// zero straight ahead or behind. Clip x and y are not divided by w, which would turn points behind the camera
+// around.
+inline glm::vec2 offscreenDirection(const glm::vec4& clip, const ImVec2& size) {
+  const glm::vec2 direction(clip.x * size.x, -clip.y * size.y);
+  return glm::length(direction) < 1e-6f ? glm::vec2(0.0f) : glm::normalize(direction);
+}
+
 inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help, const Tank* locked,
                     bool panel) {
   ImDrawList* draw = ImGui::GetForegroundDrawList();
@@ -188,9 +196,8 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
       const Vec3 p = enemy->position() + Vec3(0, 0, 0.6 * enemy->scale());
       const glm::vec4 clip = screen.viewProjection * glm::vec4(float(p.x()), float(p.y()), float(p.z()), 1.0f);
       if (clip.w > 1e-4f && std::abs(clip.x) < 0.97f * clip.w && std::abs(clip.y) < 0.97f * clip.w) continue;
-      glm::vec2 direction = glm::vec2(clip.x, -clip.y) * (clip.w < 0.0f ? -1.0f : 1.0f);
-      if (glm::length(direction) < 1e-6f) continue;
-      direction = glm::normalize(direction);
+      const glm::vec2 direction = offscreenDirection(clip, s);
+      if (direction == glm::vec2(0.0f)) continue;
       const float reach = std::min(halfX / std::max(std::abs(direction.x), 1e-4f), halfY / std::max(std::abs(direction.y), 1e-4f));
       const ImVec2 at(center.x + direction.x * reach, center.y + direction.y * reach);
       const glm::vec2 side(-direction.y, direction.x);

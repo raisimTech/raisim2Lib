@@ -52,6 +52,10 @@ shows the help. Drive to the supplies under the light beams to pick up ammunitio
 armor, missiles and artillery radios. Program arguments come from the page's `?arg=` parameters, for
 example `tank_survival.html?arg=--autopilot&arg=--level&arg=4` lets the tank play the fourth level by itself.
 
+On the desktop, configure without `emcmake` against the native RaiSim and Rayrai packages
+(`-DCMAKE_PREFIX_PATH=<install>`); `ctest` then runs `tank_survival_test`, which checks game logic that needs
+no window.
+
 The game reads its models and textures from `../rsc`; the page downloads them (273 files, about 110 MB)
 before the game starts, with `rayrai_add_web_app(... ASSETS ...)`. `DESCRIPTION`, `URL` and `IMAGE` give the
 page the tags that make a shared link show as a card; set `-DTANK_SURVIVAL_URL=` to the address you publish

@@ -90,10 +90,34 @@ struct Notice {
   ImU32 color;
   double time;
   Vec3 position = Vec3::Zero();
-  // A note floating over a hit: its label and the damage of the hits it gathers.
+  // A note floating over a hit: its label, the damage of the hits it gathers and the vehicle they hit (only
+  // compared, never dereferenced).
   std::string label;
   double damage = 0.0;
+  const void* target = nullptr;
 };
+
+// Adds a hit to the note of the burst it belongs to (hits of one kind on one vehicle, in one spot, each within
+// half a second of the last, as of machine-gun fire), or to a new note.
+inline Notice& gatherHit(std::vector<Notice>& notes, const void* target, const std::string& label, ImU32 color,
+                         const Vec3& at, double time, double damage) {
+  Notice* note = nullptr;
+  for (auto it = notes.rbegin(); it != notes.rend() && !note; ++it)
+    if (it->target == target && time - it->time < 0.5 && it->label == label && (it->position - at).norm() < 5.0) note = &*it;
+  if (!note) note = &notes.emplace_back(Notice{"", color, time, at, label, 0.0, target});
+  note->time = time;
+  note->damage += damage;
+  note->text = note->label;
+  if (note->damage >= 1.0) note->text += "  -" + std::to_string(int(std::round(note->damage)));
+  return *note;
+}
+
+// Lets go of a vehicle that is gone, so that hits on another one later made at its address start notes of
+// their own.
+inline void forgetTarget(std::vector<Notice>& notes, const void* target) {
+  for (auto& note : notes)
+    if (note.target == target) note.target = nullptr;
+}
 
 struct Building {
   Vec3 center, half;
@@ -391,7 +415,11 @@ class Game {
     const double t = now();
     viewer_.advanceWaterTime(frameTime);
     scenery_.animateTrees(t);
-    std::erase_if(enemies_, [](const std::unique_ptr<Tank>& tank) { return !tank->system; });
+    std::erase_if(enemies_, [&](const std::unique_ptr<Tank>& tank) {
+      if (tank->system) return false;
+      forgetTarget(floating_, tank.get());
+      return true;
+    });
     for (auto& wreck : wrecks_) {
       for (size_t i = 0; i < wreck.parts.size(); ++i) {
         if (!wreck.parts[i]) continue;
@@ -1303,20 +1331,8 @@ class Game {
       hitMarker_ = t;
       hitMarkerColor_ = result.color;
     }
-    if ((fromPlayer || isPlayer) && result.label[0]) {
-      // A burst of hits of one kind on one spot (machine-gun fire) gathers into one note.
-      Notice* note = nullptr;
-      for (auto it = floating_.rbegin(); it != floating_.rend() && !note; ++it)
-        if (t - it->time < 0.5 && it->label == result.label && (it->position - at).norm() < 5.0) note = &*it;
-      if (!note) {
-        floating_.push_back({"", isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, t, at, result.label, 0.0});
-        note = &floating_.back();
-      }
-      note->time = t;
-      note->damage += result.damage;
-      note->text = note->label;
-      if (note->damage >= 1.0) note->text += "  -" + std::to_string(int(std::round(note->damage)));
-    }
+    if ((fromPlayer || isPlayer) && result.label[0])
+      gatherHit(floating_, &target, result.label, isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, at, t, result.damage);
   }
 
   void applyDamage(Tank& target, double amount, bool fromPlayer, const Vec3& from, bool penetrating) {
