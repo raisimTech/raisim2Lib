@@ -47,10 +47,14 @@ Open <http://localhost:8000/tank_survival.html> in a recent Chrome or Edge. The 
 WebAssembly JavaScript Promise Integration and cross-origin isolation (`serve.py` sends the headers).
 
 Controls: W/S drive, A/D turn, the mouse aims the turret, click or Space fires, 1–5 pick a weapon (Q/E
-cycle), F lays smoke, the wheel zooms, a right-button drag turns the camera, P pauses, R restarts and H
+cycle), F lays smoke, the wheel zooms, a right-button drag turns the camera, P pauses, holding R restarts and H
 shows the help. Drive to the supplies under the light beams to pick up ammunition, repair kits, reactive
 armor, missiles and artillery radios. Program arguments come from the page's `?arg=` parameters, for
 example `tank_survival.html?arg=--autopilot&arg=--level&arg=4` lets the tank play the fourth level by itself.
+
+On the desktop, configure without `emcmake` against the native RaiSim and Rayrai packages
+(`-DCMAKE_PREFIX_PATH=<install>`); `ctest` then runs `tank_survival_test`, which checks game logic that needs
+no window.
 
 The game reads its models and textures from `../rsc`; the page downloads them (273 files, about 110 MB)
 before the game starts, with `rayrai_add_web_app(... ASSETS ...)`. `DESCRIPTION`, `URL` and `IMAGE` give the

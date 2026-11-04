@@ -90,7 +90,34 @@ struct Notice {
   ImU32 color;
   double time;
   Vec3 position = Vec3::Zero();
+  // A note floating over a hit: its label, the damage of the hits it gathers and the vehicle they hit (only
+  // compared, never dereferenced).
+  std::string label;
+  double damage = 0.0;
+  const void* target = nullptr;
 };
+
+// Adds a hit to the note of the burst it belongs to (hits of one kind on one vehicle, in one spot, each within
+// half a second of the last, as of machine-gun fire), or to a new note.
+inline Notice& gatherHit(std::vector<Notice>& notes, const void* target, const std::string& label, ImU32 color,
+                         const Vec3& at, double time, double damage) {
+  Notice* note = nullptr;
+  for (auto it = notes.rbegin(); it != notes.rend() && !note; ++it)
+    if (it->target == target && time - it->time < 0.5 && it->label == label && (it->position - at).norm() < 5.0) note = &*it;
+  if (!note) note = &notes.emplace_back(Notice{"", color, time, at, label, 0.0, target});
+  note->time = time;
+  note->damage += damage;
+  note->text = note->label;
+  if (note->damage >= 1.0) note->text += "  -" + std::to_string(int(std::round(note->damage)));
+  return *note;
+}
+
+// Lets go of a vehicle that is gone, so that hits on another one later made at its address start notes of
+// their own.
+inline void forgetTarget(std::vector<Notice>& notes, const void* target) {
+  for (auto& note : notes)
+    if (note.target == target) note.target = nullptr;
+}
 
 struct Building {
   Vec3 center, half;
@@ -164,6 +191,37 @@ class Game {
   const Tank* playerTank() const { return player_.get(); }
 
   void updateScenery(const glm::vec3& camera) { scenery_.updateGrass(camera); }
+  size_t treesFelled() const { return scenery_.treesFelled(); }
+
+  // Where a round of the weapon leaves the tank, and its direction: the machine gun sits beside the cannon.
+  static void roundOrigin(const Tank& shooter, WeaponId id, Vec3& position, Vec3& direction) {
+    shooter.muzzle(position, direction);
+    if (id == WeaponId::MG) {
+      const Vec3 side = direction.cross(Vec3::UnitZ()).normalized();
+      position += -direction * (0.7 * shooter.muzzleLength()) + side * (0.35 * shooter.scale());
+    }
+  }
+
+  // The first thing a round flying straight from origin along direction meets within length, as the
+  // world's projectiles do (the player's own tank aside): the point, and whether it is a vehicle.
+  bool sweep(const Vec3& origin, const Vec3& direction, double length, Vec3& point, bool& vehicle) {
+    Vec3 from = origin;
+    for (int attempt = 0; attempt < 4 && length > 0.0; ++attempt) {
+      const auto& hits = world_->rayTest(from, direction, length);
+      if (hits.size() == 0) return false;
+      const Vec3 at = hits[0].getPosition();
+      if (player_ && player_->system && hits[0].getObject() == player_->system) {
+        const double skip = (at - from).norm() + 0.05;
+        from += skip * direction;
+        length -= skip;
+        continue;
+      }
+      point = at;
+      vehicle = hits[0].getObject() && tankAt(hits[0].getObject()->getIndexInWorld()) != nullptr;
+      return true;
+    }
+    return false;
+  }
 
   double height(double x, double y) const {
     if (terrain_ && std::abs(x) < 0.5 * kExtent && std::abs(y) < 0.5 * kExtent) return terrain_->getHeight(x, y);
@@ -271,6 +329,7 @@ class Game {
                  hit.position.e(), -hit.velocity.e());
       for (auto& barrel : barrels_)
         if (barrel.body && barrel.fuse < 0 && barrel.body->getIndexInWorld() == hit.objectIndex) barrel.fuse = hit.time + 0.05;
+      if (shell && shell->weapon != WeaponId::MG) scenery_.shootTree(hit.objectIndex, hit.velocity.e());
     }
     for (const auto& explosion : world_->getExplosions()) {
       if (explosion.id < nextExplosion_) continue;
@@ -293,7 +352,13 @@ class Game {
         const double distance = (barrel.body->getPosition() - explosion.position.e()).norm();
         if (raisim::blast::wave(distance, charge).overpressure > 1.4e5) barrel.fuse = t + uniform(random_, 0.08, 0.35);
       }
+      scenery_.blastTrees(explosion.position.e(), 2.5 * std::cbrt(charge));
     }
+    scenery_.fellMarkedTrees(*world_, t);
+    for (Tank* tank : tanks())
+      if (tank->alive())
+        scenery_.crushTrees(*world_, tank->position(), tank->hullRotation(), tank->model.hullMin, tank->model.hullMax,
+                            tank->velocity(), t);
     for (auto& barrel : barrels_) {
       if (!barrel.body || barrel.fuse < 0 || t < barrel.fuse) continue;
       const Vec3 where = barrel.body->getPosition();
@@ -349,7 +414,12 @@ class Game {
   void update(double frameTime) {
     const double t = now();
     viewer_.advanceWaterTime(frameTime);
-    std::erase_if(enemies_, [](const std::unique_ptr<Tank>& tank) { return !tank->system; });
+    scenery_.animateTrees(t);
+    std::erase_if(enemies_, [&](const std::unique_ptr<Tank>& tank) {
+      if (tank->system) return false;
+      forgetTarget(floating_, tank.get());
+      return true;
+    });
     for (auto& wreck : wrecks_) {
       for (size_t i = 0; i < wreck.parts.size(); ++i) {
         if (!wreck.parts[i]) continue;
@@ -369,8 +439,13 @@ class Game {
       const Eigen::Matrix3d R = dressing.body->getRotationMatrix();
       const Vec3 at = dressing.body->getPosition() + R * dressing.offset;
       const Eigen::Quaterniond q(R);
-      dressing.mesh->setPosition(at.x(), at.y(), at.z());
-      dressing.mesh->setOrientation(q.w(), q.x(), q.y(), q.z());
+      if (dressing.mesh) {
+        dressing.mesh->setPosition(at.x(), at.y(), at.z());
+        dressing.mesh->setOrientation(q.w(), q.x(), q.y(), q.z());
+      } else if (const auto batch = dressingBatches_.find(dressing.model); batch != dressingBatches_.end()) {
+        batch->second.visual->setPosition(dressing.instance, glm::vec3(float(at.x()), float(at.y()), float(at.z())));
+        batch->second.visual->setOrientation(dressing.instance, glm::vec4(float(q.w()), float(q.x()), float(q.y()), float(q.z())));
+      }
     }
     if (terrain_) terrainVisuals_.flush(viewer_, *terrain_);
     std::erase_if(missiles_, [](const Missile& missile) { return !missile.body; });
@@ -467,11 +542,15 @@ class Game {
     pickups_.clear();
     for (auto& marker : markers_) viewer_.removeVisualObject(marker.name);
     markers_.clear();
-    for (const auto& dressing : dressings_) viewer_.removeVisualObject(dressing.visual);
+    for (const auto& dressing : dressings_)
+      if (dressing.mesh) viewer_.removeVisualObject(dressing.visual);
     dressings_.clear();
+    for (const auto& [model, batch] : dressingBatches_) viewer_.removeInstancedVisuals(batch.name);
+    dressingBatches_.clear();
     for (const auto& name : visuals_) viewer_.removeVisualObject(name);
     visuals_.clear();
     terrainVisuals_.clear(viewer_);
+    scenery_.removeTreeColliders(*world_);
     scenery_.clear(viewer_);
     viewer_.removeWaterBody("river");
     world_->clearFluids();
@@ -542,12 +621,37 @@ class Game {
     return concrete_;
   }
 
-  // Draws body with a model: the body's primitive is hidden and the model follows it (update()).
+  // Draws body with a model: the body's primitive is hidden and the model follows it (update()). The
+  // bodies that share a model are drawn as one instanced batch.
   void dress(raisim::SingleBodyObject* body, const std::string& model, double scale, const Vec3& offset) {
     body->setAppearance("hidden");
-    const std::string name = "dressed_" + std::to_string(nextName_++);
-    auto mesh = viewer_.addVisualMesh(name, assets_ + "/tank_survival/props/" + model + "/model.gltf", glm::dvec3(scale));
-    dressings_.push_back({body, name, offset, mesh});
+    auto& batch = dressingBatches_[model];
+    if (!batch.visual) {
+      batch.name = "dressed " + model + " " + std::to_string(nextName_++);
+      batch.visual = viewer_.addInstancedVisuals(batch.name, raisim::Shape::Mesh, glm::vec3(1), glm::vec4(1), glm::vec4(1),
+                                                 assets_ + "/tank_survival/props/" + model + "/model.gltf", true);
+    }
+    Dressing dressing;
+    dressing.body = body;
+    dressing.offset = offset;
+    dressing.model = model;
+    dressing.scale = scale;
+    dressing.instance = batch.visual->count();
+    dressings_.push_back(dressing);
+    batch.visual->addInstances(std::vector<raisin::InstancedVisuals::InstanceSpec>{instanceOf(dressing)});
+  }
+
+  // The instance a dressed body is drawn with, where it is now.
+  static raisin::InstancedVisuals::InstanceSpec instanceOf(const Dressing& dressing) {
+    const Eigen::Matrix3d R = dressing.body->getRotationMatrix();
+    const Vec3 at = dressing.body->getPosition() + R * dressing.offset;
+    const Eigen::Quaterniond q(R);
+    raisin::InstancedVisuals::InstanceSpec instance;
+    instance.position = glm::vec3(float(at.x()), float(at.y()), float(at.z()));
+    instance.orientation = glm::vec4(float(q.w()), float(q.x()), float(q.y()), float(q.z()));
+    instance.scale = glm::vec3(float(dressing.scale));
+    instance.colorWeight = 0.f;
+    return instance;
   }
 
   void buildArena(const LevelSpec& spec, const std::function<void(double, const char*)>& report) {
@@ -995,11 +1099,7 @@ class Game {
   void launchShell(Tank& shooter, WeaponId id, bool fromPlayer, double power, double spread) {
     const WeaponSpec& round = weapon(id);
     Vec3 position, direction;
-    shooter.muzzle(position, direction);
-    if (id == WeaponId::MG) {
-      const Vec3 side = direction.cross(Vec3::UnitZ()).normalized();
-      position += -direction * (0.7 * shooter.muzzleLength()) + side * (0.35 * shooter.scale());
-    }
+    roundOrigin(shooter, id, position, direction);
     if (spread > 0.0) {
       std::normal_distribution<double> noise(0.0, spread);
       direction = (direction + Vec3(noise(random_), noise(random_), 0.5 * noise(random_))).normalized();
@@ -1231,11 +1331,8 @@ class Game {
       hitMarker_ = t;
       hitMarkerColor_ = result.color;
     }
-    if ((fromPlayer || isPlayer) && result.label[0]) {
-      std::string text = result.label;
-      if (result.damage >= 1.0) text += "  -" + std::to_string(int(std::round(result.damage)));
-      floating_.push_back({text, isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, t, at});
-    }
+    if ((fromPlayer || isPlayer) && result.label[0])
+      gatherHit(floating_, &target, result.label, isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, at, t, result.damage);
   }
 
   void applyDamage(Tank& target, double amount, bool fromPlayer, const Vec3& from, bool penetrating) {
@@ -1328,9 +1425,25 @@ class Game {
   }
 
   void undress(raisim::SingleBodyObject* body) {
+    std::vector<std::string> models;
     for (const auto& dressing : dressings_)
-      if (dressing.body == body) viewer_.removeVisualObject(dressing.visual);
+      if (dressing.body == body) {
+        if (dressing.mesh) viewer_.removeVisualObject(dressing.visual);
+        else models.push_back(dressing.model);
+      }
     std::erase_if(dressings_, [&](const Dressing& dressing) { return dressing.body == body; });
+    // A batch loses the body's instance: the others are numbered again.
+    for (const auto& model : models) {
+      auto& batch = dressingBatches_[model];
+      std::vector<raisin::InstancedVisuals::InstanceSpec> instances;
+      for (auto& dressing : dressings_)
+        if (!dressing.mesh && dressing.model == model) {
+          dressing.instance = instances.size();
+          instances.push_back(instanceOf(dressing));
+        }
+      batch.visual->clearInstances();
+      batch.visual->addInstances(instances);
+    }
   }
 
   void removeWreck(Wreck& wreck) {
@@ -1376,6 +1489,11 @@ class Game {
   Town town_;
   Scenery scenery_;
   std::vector<Dressing> dressings_;
+  struct DressingBatch {
+    std::string name;
+    std::shared_ptr<raisin::InstancedVisuals> visual;
+  };
+  std::map<std::string, DressingBatch> dressingBatches_;
   std::vector<std::string> visuals_;
   raisin::Material concrete_;
   int quality_ = 2;

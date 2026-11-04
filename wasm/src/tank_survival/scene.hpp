@@ -39,6 +39,13 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   settings.directionalShadowCascadeCount = quality >= 2 ? 3 : 2;
   settings.directionalShadowCascadeMaxDistance = quality >= 2 ? 120.0f : 70.0f;
   if (quality >= 2) settings.highFidelityPbr = true;
+  // Fast shades its materials simply and without tone mapping, which this sun (in physical units, for the
+  // tone-mapped PBR path) washes out; it keeps the tone-mapped PBR path, with the lighter core shading.
+  if (quality == 0) {
+    settings.forceSimpleMaterialShading = false;
+    settings.pbrToneMapping = true;
+    settings.highFidelityPbr = false;
+  }
   viewer.setRenderQualitySettings(settings);
   Viewer::WeatherSettings weather;
   weather.enabled = true;
@@ -464,6 +471,11 @@ struct Dressing {
   std::string visual;
   Vec3 offset = Vec3::Zero();
   std::shared_ptr<raisin::Visuals> mesh;
+  // A model many bodies share (crates, barrels) is drawn as one instanced batch: its model, the body's
+  // instance in it and the model's scale.
+  std::string model;
+  size_t instance = 0;
+  double scale = 1.0;
 };
 
 // Plants, trees, stones and the props around the arena, placed per terrain; trees, stones and barriers
@@ -515,12 +527,25 @@ class Scenery {
     for (int t = 0; t < (kBroadleafTrees ? 3 : 2); ++t) {
       const auto collider = raisim::Rasset::load(forest + treeNames[t] + "/model.rasset");
       std::vector<Placement> group;
+      const size_t first = trees_.size();
       for (const auto& p : treePlacements)
         if (p.type == t) {
+          Tree tree;
+          tree.base = Vec3(p.x, p.y, p.z);
+          tree.yaw = p.yaw;
+          tree.instance = group.size();
+          raisim::Rasset::InstanceOptions options;
+          options.position = {p.x, p.y, p.z};
+          options.quaternion = {std::cos(0.5 * p.yaw), 0.0, 0.0, std::sin(0.5 * p.yaw)};
+          options.scale = p.scale;
+          options.material = "wood";
+          options.collisionGroup = kTreeCollisionGroup;
+          for (auto* object : collider.instantiate(world, options)) tree.colliders.push_back(object);
+          trees_.push_back(std::move(tree));
           group.push_back(p);
-          for (auto* object : collider.addStaticColliders(world, {p.x, p.y, p.z}, p.yaw, p.scale, "", "wood")) colliders.push_back(object);
         }
-      instanced(viewer, std::string("tree ") + treeNames[t], forest + treeNames[t] + "/model.gltf", group, true, 1.3f, -1, false);
+      const auto batch = instanced(viewer, std::string("tree ") + treeNames[t], forest + treeNames[t] + "/model.gltf", group, true, 1.3f, -1, false);
+      for (size_t i = first; i < trees_.size(); ++i) trees_[i].batch = batch;
     }
 
     // Woods on the hills outside the walls, which nothing reaches: drawn only.
@@ -657,9 +682,98 @@ class Scenery {
     for (const auto& name : names_) viewer.removeInstancedVisuals(name);
     names_.clear();
     grassTiles_.clear();
+    trees_.clear();
+    marked_.clear();
+  }
+
+  // Removes the colliders of the trees still standing; clear() forgets the trees.
+  void removeTreeColliders(raisim::World& world) {
+    for (auto& tree : trees_) {
+      for (auto* object : tree.colliders) world.removeObject(object);
+      tree.colliders.clear();
+    }
+  }
+
+  // Tanks break the trees in the arena as they drive into them: a tree that the moving hull (with a margin
+  // ahead of the tracks) reaches falls away along its motion and no longer blocks anything.
+  void crushTrees(raisim::World& world, const Vec3& center, const Eigen::Matrix3d& rotation, const Vec3& hullMin,
+                  const Vec3& hullMax, const Vec3& velocity, double now) {
+    const Vec3 flat(velocity.x(), velocity.y(), 0.0);
+    if (flat.norm() < 0.6) return;
+    const double reach = std::max(hullMax.head<2>().norm(), hullMin.head<2>().norm()) + 2.0;
+    for (auto& tree : trees_) {
+      if (tree.falling() || std::hypot(tree.base.x() - center.x(), tree.base.y() - center.y()) > reach) continue;
+      const Vec3 local = rotation.transpose() * (tree.base - center);
+      if (local.x() < hullMin.x() - 1.2 || local.x() > hullMax.x() + 1.2 || local.y() < hullMin.y() - 0.6 ||
+          local.y() > hullMax.y() + 0.6)
+        continue;
+      fell(world, tree, std::atan2(flat.y(), flat.x()), now);
+    }
+  }
+
+  // A blast throws down the trees within radius of it, away from it, at the next fellMarkedTrees().
+  void blastTrees(const Vec3& at, double radius) {
+    for (size_t i = 0; i < trees_.size(); ++i) {
+      const double dx = trees_[i].base.x() - at.x(), dy = trees_[i].base.y() - at.y();
+      if (!trees_[i].falling() && std::hypot(dx, dy) < radius) marked_.emplace_back(i, std::atan2(dy, dx));
+    }
+  }
+
+  // A round that strikes a tree (the world index of the object it hit) snaps it along its flight, at the
+  // next fellMarkedTrees(): world indices change as objects are removed, so the trees are found first.
+  void shootTree(size_t objectIndex, const Vec3& velocity) {
+    for (size_t i = 0; i < trees_.size(); ++i)
+      for (const auto* object : trees_[i].colliders)
+        if (object->getIndexInWorld() == objectIndex) {
+          marked_.emplace_back(i, std::atan2(velocity.y(), velocity.x()));
+          return;
+        }
+  }
+
+  void fellMarkedTrees(raisim::World& world, double now) {
+    for (const auto& [index, direction] : marked_)
+      if (!trees_[index].falling()) fell(world, trees_[index], direction, now);
+    marked_.clear();
+  }
+
+  size_t treesFelled() const {
+    return size_t(std::count_if(trees_.begin(), trees_.end(), [](const Tree& tree) { return tree.falling(); }));
+  }
+
+  // Tips the falling trees over: they fall faster and faster, as a toppling trunk does, and come to rest
+  // nearly flat.
+  void animateTrees(double now) {
+    constexpr double kFallen = 1.45;
+    for (auto& tree : trees_) {
+      if (!tree.falling() || tree.fallen || !tree.batch) continue;
+      const double t = std::max(0.0, now - tree.fallStart);
+      const double angle = std::min(kFallen, 3.0 * t * t);
+      const glm::quat yaw = glm::angleAxis(float(tree.yaw), glm::vec3(0.f, 0.f, 1.f));
+      const glm::vec3 axis(float(-std::sin(tree.direction)), float(std::cos(tree.direction)), 0.f);
+      const glm::quat q = glm::angleAxis(float(angle), axis) * yaw;
+      tree.batch->setOrientation(tree.instance, glm::vec4(q.w, q.x, q.y, q.z));
+      tree.fallen = angle >= kFallen;
+    }
   }
 
  private:
+  struct Tree {
+    Vec3 base = Vec3::Zero();
+    double yaw = 0.0, fallStart = -1.0, direction = 0.0;
+    bool fallen = false;
+    std::shared_ptr<raisin::InstancedVisuals> batch;
+    size_t instance = 0;
+    std::vector<raisim::Object*> colliders;
+    bool falling() const { return fallStart >= 0.0; }
+  };
+
+  static void fell(raisim::World& world, Tree& tree, double direction, double now) {
+    for (auto* object : tree.colliders) world.removeObject(object);
+    tree.colliders.clear();
+    tree.fallStart = now;
+    tree.direction = direction;
+  }
+
   struct GrassTile {
     glm::vec2 center;
     std::vector<std::shared_ptr<raisin::InstancedVisuals>> batches;
@@ -703,6 +817,8 @@ class Scenery {
 
   std::vector<std::string> names_;
   std::vector<GrassTile> grassTiles_;
+  std::vector<Tree> trees_;
+  std::vector<std::pair<size_t, double>> marked_;
   size_t quality_ = 2;
 };
 

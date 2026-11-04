@@ -142,7 +142,11 @@ The program's WebAssembly and its assets download together, while the scripts lo
 its GPU, and the page shows how much has arrived. The asset manifest holds the size of the WebAssembly,
 which a host that compresses it (GitHub Pages does) does not state; a page without `ASSETS` asks the server
 for it and shows an indeterminate bar when the answer is unknown. Assets that arrive before the program is
-instantiated wait in memory; the rest go straight into its file system.
+instantiated wait in memory; the rest go straight into its file system. The page copies each file into the
+program's memory at once and writes it from there with `_rayrai_web_write_file`, which
+`rayrai_add_web_app()` exports with `_malloc`, `_free` and `wasmMemory` (a program that sets
+`EXPORTED_FUNCTIONS` or `EXPORTED_RUNTIME_METHODS` itself must keep them): Emscripten's `FS.writeFile`
+copies byte by byte, which took Tank Survival's 110 MB of assets 1.6 s.
 
 Rayrai's WebGPU backend compiles a shader program the first time a frame draws with it, which makes the
 first seconds of a first visit stutter. The loader keeps the compiled programs in the browser's Cache

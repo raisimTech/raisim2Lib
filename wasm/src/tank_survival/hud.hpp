@@ -69,7 +69,113 @@ inline std::string clock(double seconds) {
   return line;
 }
 
-inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help) {
+// A horizontal circle around center, seen in perspective.
+inline void groundRing(ImDrawList* draw, const Screen& screen, const Vec3& center, double radius, ImU32 color, float thickness) {
+  std::array<ImVec2, 33> points;
+  for (int i = 0; i <= 32; ++i) {
+    const double a = 2.0 * kPi * i / 32;
+    if (!screen.project(center + radius * Vec3(std::cos(a), std::sin(a), 0.0), points[size_t(i)])) return;
+  }
+  draw->AddPolyline(points.data(), int(points.size()), color, ImDrawFlags_None, thickness);
+}
+
+// The aiming guide. The sight marks the point the cursor rests on in the world, or brackets the enemy it
+// locked on; a dotted arc shows the flight of a round fired now, from the muzzle as it points at this
+// moment (the turret takes a moment to follow the cursor), to the ring where it would strike: red when it
+// would hit a vehicle.
+inline void drawAimGuide(ImDrawList* draw, Game& game, const Screen& screen, const Fonts& fonts, const Tank* locked) {
+  const Tank* hero = game.player();
+  if (!hero) return;
+  if (locked && locked->system) {
+    const Eigen::Matrix3d R = locked->hullRotation();
+    const VehicleModel& m = locked->model;
+    ImVec2 low(1e9f, 1e9f), high(-1e9f, -1e9f);
+    for (int corner = 0; corner < 8; ++corner) {
+      const Vec3 local((corner & 1 ? m.hullMax : m.hullMin).x(), (corner & 2 ? m.hullMax : m.hullMin).y(),
+                       (corner & 4 ? m.turretMax : m.hullMin).z());
+      ImVec2 at;
+      if (!screen.project(locked->position() + R * local, at)) return;
+      low = ImVec2(std::min(low.x, at.x), std::min(low.y, at.y));
+      high = ImVec2(std::max(high.x, at.x), std::max(high.y, at.y));
+    }
+    const ImU32 color = IM_COL32(255, 80, 60, 230);
+    const float arm = std::max(8.0f, 0.25f * std::min(high.x - low.x, high.y - low.y));
+    for (const auto& [cx, cy, sx, sy] : {std::array<float, 4>{low.x, low.y, 1, 1}, std::array<float, 4>{high.x, low.y, -1, 1},
+                                         std::array<float, 4>{low.x, high.y, 1, -1}, std::array<float, 4>{high.x, high.y, -1, -1}}) {
+      draw->AddLine(ImVec2(cx, cy), ImVec2(cx + sx * arm, cy), color, 2.5f);
+      draw->AddLine(ImVec2(cx, cy), ImVec2(cx, cy + sy * arm), color, 2.5f);
+    }
+    text(draw, fonts.text, 13.0f, ImVec2(0.5f * (low.x + high.x), low.y - 18.0f), color, "LOCKED", 0.5f);
+  } else {
+    const Vec3 at = game.aim();
+    groundRing(draw, screen, Vec3(at.x(), at.y(), game.height(at.x(), at.y()) + 0.08), 0.9, IM_COL32(255, 255, 255, 150), 2.0f);
+  }
+  const WeaponId id = game.selected();
+  if (id == WeaponId::Missile || id == WeaponId::Artillery) {
+    const Vec3 at = game.aim();
+    groundRing(draw, screen, Vec3(at.x(), at.y(), game.height(at.x(), at.y()) + 0.08), id == WeaponId::Artillery ? 7.0 : 1.6,
+               rgba(weapon(id).color, 0.8f), 2.5f);
+    return;
+  }
+  const WeaponSpec& round = weapon(id);
+  Vec3 position, direction;
+  Game::roundOrigin(*hero, id, position, direction);
+  Vec3 velocity = direction * round.speed;
+  const Vec3 wind = game.levelSpec().wind;
+  const double drag = 0.5 * 1.2 * round.dragCoefficient * kPi * round.radius * round.radius / round.mass;
+  const ImU32 dots = rgba(round.color, 0.9f), outline = IM_COL32(0, 0, 0, 120);
+  double travelled = 0.0;
+  for (int i = 0; i < 120 && travelled < 320.0; ++i) {
+    const double dt = 5.0 / std::max(velocity.norm(), 1.0);
+    const Vec3 relative = velocity - wind;
+    velocity += dt * (Vec3(0.0, 0.0, -kGravity) - drag * relative.norm() * relative);
+    const Vec3 next = position + dt * velocity, step = next - position;
+    const double length = step.norm();
+    Vec3 struck;
+    bool vehicle = false;
+    if (game.sweep(position, step / length, length, struck, vehicle)) {
+      groundRing(draw, screen, struck + Vec3(0.0, 0.0, 0.08), 1.3, vehicle ? IM_COL32(255, 70, 50, 240) : IM_COL32(255, 190, 90, 230), 3.0f);
+      return;
+    }
+    ImVec2 at;
+    if (i > 0 && screen.project(next, at)) {
+      draw->AddCircleFilled(at, 3.6f, outline, 10);
+      draw->AddCircleFilled(at, 2.6f, dots, 10);
+    }
+    position = next;
+    travelled += length;
+  }
+}
+
+// A button under the status panel that opens the help.
+inline bool drawHelpButton(const Screen& screen) {
+  ImGui::SetNextWindowPos(ImVec2(screen.origin.x + 10, screen.origin.y + 176));
+  ImGui::SetNextWindowBgAlpha(0.0f);
+  ImGui::Begin("Help button", nullptr,
+               ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing);
+  const bool pressed = ImGui::Button("?  How to play  (H)", ImVec2(196, 32));
+  ImGui::End();
+  return pressed;
+}
+
+// While a panel (help or pause) is open, the sight, the notices and the hints stay off it.
+// The direction on a screen of size pixels (y down) toward a point out of view at clip-space position clip, or
+// zero straight ahead or behind. Clip x and y are not divided by w, which would turn points behind the camera
+// around.
+inline glm::vec2 offscreenDirection(const glm::vec4& clip, const ImVec2& size) {
+  const glm::vec2 direction(clip.x * size.x, -clip.y * size.y);
+  return glm::length(direction) < 1e-6f ? glm::vec2(0.0f) : glm::normalize(direction);
+}
+
+// The direction (y down) on the radar, which turns with the camera's heading, of a horizontal world vector.
+inline glm::vec2 radarDirection(double heading, const Vec3& vector) {
+  const double c = std::cos(-heading + kPi / 2), sn = std::sin(-heading + kPi / 2);
+  return {float(c * vector.x() - sn * vector.y()), float(-(sn * vector.x() + c * vector.y()))};
+}
+
+inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help, const Tank* locked,
+                    bool panel) {
   ImDrawList* draw = ImGui::GetForegroundDrawList();
   ImFont* font = fonts.text;
   const ImVec2 o = screen.origin, s = screen.size;
@@ -77,7 +183,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   char line[200];
 
   for (const auto& enemy : game.enemies()) {
-    if (!enemy->system) continue;
+    if (panel || !enemy->system) continue;
     ImVec2 at;
     if (!screen.project(enemy->position() + Vec3(0, 0, 3.2 * enemy->scale()), at)) continue;
     const float width = enemy->spec->role == Role::Boss ? 140.0f : 60.0f;
@@ -86,12 +192,36 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
       text(draw, font, 14.0f, ImVec2(at.x, at.y - 18), rgba(enemy->spec->marker, 0.9f), enemy->spec->name, 0.5f);
     if (t < enemy->tracksBrokenUntil) text(draw, font, 13.0f, ImVec2(at.x, at.y + 8), IM_COL32(255, 200, 120, 220), "IMMOBILIZED", 0.5f);
   }
+  // Enemies out of view: an arrow at the edge of the screen points at each, with its distance.
+  if (!panel && game.phase() == Phase::Playing) {
+    const ImVec2 center(o.x + 0.5f * s.x, o.y + 0.5f * s.y);
+    const float halfX = 0.5f * s.x - 70.0f, halfY = 0.5f * s.y - 110.0f;
+    const Vec3 from = game.playerTank() && game.playerTank()->system ? game.playerTank()->position() : Vec3::Zero();
+    for (const auto& enemy : game.enemies()) {
+      if (!enemy->alive()) continue;
+      const Vec3 p = enemy->position() + Vec3(0, 0, 0.6 * enemy->scale());
+      const glm::vec4 clip = screen.viewProjection * glm::vec4(float(p.x()), float(p.y()), float(p.z()), 1.0f);
+      if (clip.w > 1e-4f && std::abs(clip.x) < 0.97f * clip.w && std::abs(clip.y) < 0.97f * clip.w) continue;
+      const glm::vec2 direction = offscreenDirection(clip, s);
+      if (direction == glm::vec2(0.0f)) continue;
+      const float reach = std::min(halfX / std::max(std::abs(direction.x), 1e-4f), halfY / std::max(std::abs(direction.y), 1e-4f));
+      const ImVec2 at(center.x + direction.x * reach, center.y + direction.y * reach);
+      const glm::vec2 side(-direction.y, direction.x);
+      const ImU32 color = rgba(enemy->spec->marker, 0.9f);
+      draw->AddTriangleFilled(ImVec2(at.x + 16 * direction.x, at.y + 16 * direction.y),
+                              ImVec2(at.x - 8 * direction.x + 10 * side.x, at.y - 8 * direction.y + 10 * side.y),
+                              ImVec2(at.x - 8 * direction.x - 10 * side.x, at.y - 8 * direction.y - 10 * side.y), color);
+      std::snprintf(line, sizeof(line), "%.0f m", (enemy->position() - from).head<2>().norm());
+      text(draw, font, 13.0f, ImVec2(at.x - 18 * direction.x, at.y - 18 * direction.y - 7), color, line, 0.5f);
+    }
+  }
   for (const auto& pickup : game.pickups()) {
     ImVec2 at;
-    if (screen.project(pickup.position + Vec3(0, 0, 2.4), at))
+    if (!panel && screen.project(pickup.position + Vec3(0, 0, 2.4), at))
       text(draw, font, 15.0f, at, rgba(kBonusStyles[size_t(pickup.type)].color), kBonusStyles[size_t(pickup.type)].label, 0.5f);
   }
   for (const auto& note : game.floating()) {
+    if (panel) break;
     ImVec2 at;
     const double age = t - note.time;
     if (screen.project(note.position + Vec3(0, 0, 2.0 + 2.0 * age), at))
@@ -134,6 +264,15 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   const Vec3 wind = level.wind;
   std::snprintf(line, sizeof(line), "wind %.0f m/s", wind.norm());
   text(draw, font, 14.0f, ImVec2(o.x + 0.5f * s.x, o.y + 38), IM_COL32(200, 220, 255, 200), line, 0.5f);
+  // An arrow beside it shows where the wind blows, as the radar shows the arena.
+  if (wind.head<2>().norm() > 0.1) {
+    const glm::vec2 d = glm::normalize(radarDirection(heading, wind)), side(-d.y, d.x);
+    const ImVec2 at(o.x + 0.5f * s.x + 52.0f, o.y + 47.0f);
+    const ImU32 color = IM_COL32(200, 220, 255, 200);
+    draw->AddLine(ImVec2(at.x - 8 * d.x, at.y - 8 * d.y), ImVec2(at.x + 4 * d.x, at.y + 4 * d.y), color, 2.0f);
+    draw->AddTriangleFilled(ImVec2(at.x + 9 * d.x, at.y + 9 * d.y), ImVec2(at.x + 2 * d.x + 4 * side.x, at.y + 2 * d.y + 4 * side.y),
+                            ImVec2(at.x + 2 * d.x - 4 * side.x, at.y + 2 * d.y - 4 * side.y), color);
+  }
 
   const float radius = 92.0f;
   const ImVec2 radar(o.x + s.x - radius - 22, o.y + radius + 22);
@@ -145,9 +284,8 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   const Vec3 center = game.playerTank() && game.playerTank()->system ? game.playerTank()->position() : Vec3::Zero();
   const double c = std::cos(-heading + kPi / 2), sn = std::sin(-heading + kPi / 2);
   const auto toRadar = [&](const Vec3& p) {
-    const Vec3 d = p - center;
-    const float scale = radius / 90.0f;
-    ImVec2 at(radar.x + float(c * d.x() - sn * d.y()) * scale, radar.y - float(sn * d.x() + c * d.y()) * scale);
+    const glm::vec2 d = radarDirection(heading, p - center) * (radius / 90.0f);
+    ImVec2 at(radar.x + d.x, radar.y + d.y);
     const float r = std::hypot(at.x - radar.x, at.y - radar.y);
     if (r > radius - 4) {
       at.x = radar.x + (at.x - radar.x) * (radius - 4) / r;
@@ -181,6 +319,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
 
   float noteY = o.y + s.y * 0.2f;
   for (const auto& note : game.notices()) {
+    if (panel) break;
     const double age = t - note.time;
     if (age > 3.0) continue;
     const bool big = note.text.rfind("WAVE", 0) == 0 || note.text.find(" - ") != std::string::npos;
@@ -217,7 +356,8 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
 
   const ImVec2 mouse = ImGui::GetIO().MousePos;
-  if (game.phase() == Phase::Playing && mouse.x > o.x && mouse.y > o.y && mouse.x < o.x + s.x && mouse.y < o.y + s.y) {
+  if (game.phase() == Phase::Playing && !panel) drawAimGuide(draw, game, screen, fonts, locked);
+  if (game.phase() == Phase::Playing && !panel && mouse.x > o.x && mouse.y > o.y && mouse.x < o.x + s.x && mouse.y < o.y + s.y) {
     const double readiness = game.ready(game.selected());
     const ImU32 color = readiness >= 1.0 ? IM_COL32(255, 255, 255, 230) : IM_COL32(255, 160, 80, 230);
     draw->AddCircle(mouse, 14.0f, color, 32, 2.0f);
@@ -234,9 +374,9 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
         draw->AddLine(ImVec2(mouse.x + 18 * dx, mouse.y + 18 * dy), ImVec2(mouse.x + 28 * dx, mouse.y + 28 * dy), hit, 3.0f);
     }
   }
-  if (help) {
-    const char* rows[] = {"W/S drive   A/D turn   mouse aims", "Click/Space fire   1-5 or Q/E weapon",
-                          "F smoke screen   wheel zoom", "Hit tanks from the side or rear", "Esc/P pause   R restart"};
+  if (help && !panel) {
+    const char* rows[] = {"W/S drive   A/D turn", "Point at a target: the gun sets its own elevation", "Click/Space fire   1-5 or Q/E weapon",
+                          "Hit tanks from the side or rear", "H how to play   Esc/P pause"};
     float hy = o.y + s.y - 24.0f * 5 - 104.0f;
     for (const char* row : rows) {
       text(draw, font, 16.0f, ImVec2(o.x + 20, hy), IM_COL32(230, 230, 230, 210), row);
@@ -245,11 +385,13 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
 }
 
-enum class Choice { None, Play, Resume, Retry, Next, Menu };
+enum class Choice { None, Play, Resume, Retry, Next, Menu, Help };
 
 struct MenuResult {
   Choice choice = Choice::None;
   int level = 0;
+  // The player picked a render quality, maybe the one already set.
+  bool qualityPicked = false;
 };
 
 inline void beginPanel(const char* id, const Screen& screen, ImVec2 size) {
@@ -276,9 +418,73 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
   ImGui::Dummy(ImVec2(width, 54));
 }
 
-inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality) {
+// A key that acts once it has been held for a moment, so that a slip onto it does nothing; it acts again
+// only after it is let go.
+struct HoldToConfirm {
+  double seconds = 0.8, held = 0.0;
+  bool released = true;
+
+  // Whether the key, down (or not) for another dt seconds, has just been held long enough.
+  bool update(bool down, double dt) {
+    if (!down) {
+      held = 0.0;
+      released = true;
+      return false;
+    }
+    if (!released) return false;
+    held += dt;
+    if (held < seconds) return false;
+    held = 0.0;
+    released = false;
+    return true;
+  }
+  double fraction() const { return std::min(1.0, held / seconds); }
+};
+
+// The progress of a held key over the weapon bar, as it fills.
+inline void drawHold(const Screen& screen, const Fonts& fonts, const char* what, double fraction) {
+  ImDrawList* draw = ImGui::GetForegroundDrawList();
+  const ImVec2 at(screen.origin.x + 0.5f * screen.size.x, screen.origin.y + screen.size.y - 150.0f);
+  text(draw, fonts.text, 18.0f, ImVec2(at.x, at.y - 24.0f), IM_COL32(255, 230, 190, 240), what, 0.5f);
+  bar(draw, ImVec2(at.x - 90.0f, at.y), 180.0f, 6.0f, float(fraction), IM_COL32(255, 200, 120, 255));
+}
+
+// Lowers the render quality while the menu's backdrop draws slowly, until the player picks one: once a load
+// has settled, the median of 30 frames longer than 1/30 s steps the quality down, at most to Fast. Below 25
+// frames a second the game slows down, as a frame's physics steps stop keeping up with the clock.
+struct QualityTuner {
+  bool active = true;
+  int settle = 60;
+  std::vector<double> frames;
+
+  // The quality to draw with after a frame of frameSeconds at quality.
+  int update(int quality, double frameSeconds) {
+    if (!active || quality <= 0) return quality;
+    if (settle > 0) {
+      --settle;
+      return quality;
+    }
+    frames.push_back(frameSeconds);
+    if (frames.size() < 30) return quality;
+    std::nth_element(frames.begin(), frames.begin() + 15, frames.end());
+    const bool slow = frames[15] > 1.0 / 30.0;
+    frames.clear();
+    settle = 60;
+    active = slow;
+    return slow ? quality - 1 : quality;
+  }
+
+  // Starts timing anew once the next frames settle, after frames that are not the menu's.
+  void restart() {
+    frames.clear();
+    settle = 60;
+  }
+};
+
+inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality,
+                               const char* note = nullptr) {
   MenuResult result;
-  beginPanel("Main menu", screen, ImVec2(620, 640));
+  beginPanel("Main menu", screen, ImVec2(620, std::clamp(screen.size.y - 20.0f, 120.0f, 640.0f)));
   title(fonts, "RAISIM TANK SURVIVAL", IM_COL32(255, 210, 120, 255));
   ImGui::TextWrapped("Command a tank against armored columns. Every shell is a RaiSim projectile; every blast pushes, "
                      "flips and wrecks what it reaches.");
@@ -290,15 +496,19 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
     std::snprintf(label, sizeof(label), "%s%s\n%s", level.endless ? "" : (std::to_string(i + 1) + ".  ").c_str(), level.name,
                   level.subtitle);
     if (ImGui::Button(label, ImVec2(410, 58))) result = {Choice::Play, int(i)};
-    ImGui::SameLine();
-    if (best[i] > 0) ImGui::Text("best\n%d", best[i]);
+    if (best[i] > 0) {
+      ImGui::SameLine();
+      ImGui::Text("best\n%d", best[i]);
+    }
     ImGui::PopID();
   }
   ImGui::Spacing();
   const char* qualities[] = {"Fast", "Balanced", "High", "Ultra"};
   ImGui::SetNextItemWidth(200);
-  ImGui::Combo("Render quality", &quality, qualities, 4);
-  ImGui::TextDisabled("W/S A/D drive, mouse aims, click fires, 1-5 weapons, F smoke");
+  result.qualityPicked = ImGui::Combo("Render quality", &quality, qualities, 4);
+  ImGui::SameLine(0, 24);
+  if (ImGui::Button("How to play", ImVec2(150, 0))) result.choice = Choice::Help;
+  if (note) ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.5f, 1.0f), "%s", note);
   ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
   ImGui::TextWrapped("Vehicles by MirzaArrafiERV_45, 42manako and KojfDiscord (Sketchfab, CC BY 4.0); props, plants and "
                      "textures from Poly Haven (CC0).");
@@ -309,13 +519,91 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
 
 inline MenuResult drawPauseMenu(const Screen& screen, const Fonts& fonts) {
   MenuResult result;
-  beginPanel("Paused", screen, ImVec2(360, 270));
+  beginPanel("Paused", screen, ImVec2(360, 322));
   title(fonts, "PAUSED", IM_COL32(255, 255, 255, 255));
   if (ImGui::Button("Resume", ImVec2(-1, 44))) result.choice = Choice::Resume;
+  if (ImGui::Button("How to play", ImVec2(-1, 44))) result.choice = Choice::Help;
   if (ImGui::Button("Restart mission", ImVec2(-1, 44))) result.choice = Choice::Retry;
   if (ImGui::Button("Main menu", ImVec2(-1, 44))) result.choice = Choice::Menu;
   endPanel();
   return result;
+}
+
+// How to play: the controls, how aiming works and a few tips, in two columns on a wide screen. Returns true
+// when closed.
+inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
+  const bool wide = screen.size.x >= 1100.0f;
+  beginPanel("How to play", screen,
+             ImVec2(std::min(wide ? 1040.0f : 760.0f, screen.size.x - 40.0f), std::min(wide ? 600.0f : 700.0f, screen.size.y - 40.0f)));
+  title(fonts, "HOW TO PLAY", IM_COL32(255, 210, 120, 255));
+  const auto section = [](const char* name) {
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 210, 120, 255));
+    ImGui::TextUnformatted(name);
+    ImGui::PopStyleColor();
+    ImGui::Separator();
+  };
+  const auto row = [](const char* keys, const char* what) {
+    const float x = ImGui::GetCursorPosX();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 220, 255, 255));
+    ImGui::TextUnformatted(keys);
+    ImGui::PopStyleColor();
+    ImGui::SameLine(x + 150.0f);
+    ImGui::TextWrapped("%s", what);
+  };
+  const auto controls = [&] {
+    ImGui::TextWrapped("Destroy every enemy vehicle, wave after wave, and keep your tank alive.");
+    section("DRIVE");
+    row("W / S, arrows", "Drive forward and back.");
+    row("A / D", "Turn the hull. The turret turns on its own toward the cursor.");
+    row("", "Your tank flattens small trees: drive through the woods.");
+    section("AIM AND FIRE");
+    row("Mouse", "Point at what you want to hit: an enemy, the ground or a wall. You never aim up or down: the gun "
+                 "raises itself for the distance to the point under the cursor.");
+    row("", "Near an enemy the sight locks on it (red brackets) and leads it as it moves.");
+    row("", "The dotted arc shows where a round fired now would fly, and the ring where it strikes: red on a "
+            "vehicle. The turret takes a moment to swing round.");
+    row("Click / Space", "Fire. The ring around the cursor fills while the gun reloads.");
+  };
+  const auto more = [&] {
+    section("WEAPONS");
+    row("1 - 5,  Q / E", "Armor-piercing (AP), high explosive (HE), machine gun (MG), guided missile, artillery "
+                         "strike (lands on the cursor after a delay).");
+    section("CAMERA AND MORE");
+    row("Mouse wheel", "Zoom in and out.");
+    row("Right drag", "Look around the tank.");
+    row("F", "Smoke screen: enemies cannot see through it.");
+    row("Esc / P", "Pause.");
+    row("R (hold)", "Restart the mission.");
+    row("H", "This help.");
+    section("TIPS");
+    for (const char* tip : {"Armor is thickest in front: hit enemies in the side or rear.",
+                            "HE wrecks light vehicles, trees and crates; AP pierces heavy armor.",
+                            "Drive over supply drops for ammunition, repairs and power-ups.",
+                            "Keep moving: artillery shells land where you were."}) {
+      ImGui::Bullet();
+      ImGui::TextWrapped("%s", tip);
+    }
+  };
+  if (wide) {
+    const float half = 0.5f * (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
+    ImGui::BeginChild("help controls", ImVec2(half, -54));
+    controls();
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("help more", ImVec2(half, -54));
+    more();
+    ImGui::EndChild();
+  } else {
+    ImGui::BeginChild("help text", ImVec2(0, -54));
+    controls();
+    more();
+    ImGui::EndChild();
+  }
+  const bool close = ImGui::Button("Got it", ImVec2(-1, 44)) || ImGui::IsKeyPressed(ImGuiKey_Escape, false) ||
+                     ImGui::IsKeyPressed(ImGuiKey_Enter, false);
+  endPanel();
+  return close;
 }
 
 inline MenuResult drawResult(const Screen& screen, const Fonts& fonts, const Game& game) {

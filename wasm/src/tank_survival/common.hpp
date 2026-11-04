@@ -12,6 +12,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <memory>
 #include <optional>
@@ -21,6 +22,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <glm/gtc/quaternion.hpp>
 
 #include "rayrai/example_common.hpp"
 
@@ -35,6 +38,8 @@ using Vec3 = Eigen::Vector3d;
 inline constexpr double kPi = 3.14159265358979323846;
 inline constexpr double kTimeStep = 0.002;
 inline constexpr double kGravity = 9.81;
+// The collision group of the trees in the arena: the tanks' turrets and guns swing through them.
+inline constexpr raisim::CollisionGroup kTreeCollisionGroup = raisim::CollisionGroup(1) << 40;
 
 inline raisim::Vec<3> vec(const Vec3& value) {
   raisim::Vec<3> v;

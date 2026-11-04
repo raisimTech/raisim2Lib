@@ -21,6 +21,21 @@
 #define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
+#else
+#include <emscripten/emscripten.h>
+
+// In the browser the best scores outlive the page, in its local storage (where the browser allows it).
+EM_JS(int, storedBest, (int level), {
+  try {
+    const score = Number(localStorage.getItem('raisim-tank-survival-best-' + level));
+    return Number.isInteger(score) && score > 0 && score <= 2147483647 ? score : 0;
+  } catch (error) {
+    return 0;
+  }
+});
+EM_JS(void, storeBest, (int level, int score), {
+  try { localStorage.setItem('raisim-tank-survival-best-' + level, String(score)); } catch (error) {}
+});
 #endif
 
 namespace tank {
@@ -32,6 +47,7 @@ struct Options {
   int level = 0;
   bool autopilot = false;
   int quality = int(raisin::RenderQualityPreset::High);
+  bool qualityGiven = false;
   unsigned seed = 0;
   // A fixed camera for screenshots: its position and the point it looks at.
   std::optional<std::array<float, 6>> view;
@@ -95,7 +111,7 @@ bool autopilot(Game& game, Tank& hero, double& throttle, double& turn) {
     const double flight = (target->position() - at).norm() / speed;
     const Vec3 lead = target->position() + target->velocity() * flight + Vec3(0, 0, 0.6 * target->scale());
     game.setAim(lead);
-    const double error = hero.aimAt(lead, speed);
+    const double error = hero.aimAt(lead, speed, true);
     trigger = (target->position() - at).norm() > 9.0 && error < (choice == WeaponId::MG ? 0.06 : 0.02);
     if (game.playerHealth() < 120.0 && game.smokeCharges() > 0) game.smoke();
   }
@@ -112,7 +128,10 @@ int run(int argc, char* argv[]) {
     if (option == "--frames" && i + 1 < argc) options.frames = std::stoi(argv[++i]);
     else if (option == "--level" && i + 1 < argc) options.level = std::clamp(std::stoi(argv[++i]) - 1, 0, int(levels().size()) - 1);
     else if (option == "--autopilot") options.autopilot = true;
-    else if (option == "--quality" && i + 1 < argc) options.quality = std::clamp(std::stoi(argv[++i]), 0, 3);
+    else if (option == "--quality" && i + 1 < argc) {
+      options.quality = std::clamp(std::stoi(argv[++i]), 0, 3);
+      options.qualityGiven = true;
+    }
     else if (option == "--seed" && i + 1 < argc) options.seed = unsigned(std::stoul(argv[++i]));
     else if (option == "--screenshot" && i + 1 < argc) options.screenshot = argv[++i];
     else if (option == "--view" && i + 6 < argc) {
@@ -174,8 +193,15 @@ int run(int argc, char* argv[]) {
     Game game(world, viewer, TANK_SURVIVAL_ASSETS, options.seed);
     game.load(options.level, playing, quality, [&](double fraction, const char* what) { showLoading(0.2 + 0.6 * fraction, what); });
     showLoading(0.85, "Compiling shaders (faster on your next visit)");
+    // Rayrai draws with its core PBR program whenever no high-fidelity mesh is in view; compiled now, it does
+    // not stall the game the first time that happens (0.2 s in the browser).
+    for (const char* program : {"pbrMeshCore", "pbrMeshCoreDepthPrepass"}) viewer.compileShaderByName(program);
     std::vector<int> best(levels().size(), 0);
-    bool paused = false, help = true;
+#if defined(__EMSCRIPTEN__)
+    for (size_t i = 0; i < best.size(); ++i) best[i] = storedBest(int(i));
+#endif
+    bool paused = false, help = true, helpOpen = false, helpShown = false;
+    const Tank* locked = nullptr;
     std::mt19937 shakeNoise(1);
     auto last = std::chrono::steady_clock::now();
     int frame = 0;
@@ -186,12 +212,63 @@ int run(int argc, char* argv[]) {
     using Clock = std::chrono::steady_clock;
     const auto seconds = [](Clock::time_point from) { return std::chrono::duration<double>(Clock::now() - from).count(); };
     camera.target = glm::vec3(0.0f, 0.0f, 2.0f);
+    // Before a level is first played at a quality, it is drawn all around the player behind the loading screen
+    // once its models are in, with an explosion flashing beside it (the world's clock stands still), so that
+    // the renderer makes the pipelines the level needs then: in the browser, each takes 50-100 ms the first
+    // time it is drawn, a stall when something first comes into view or the first shell lands.
+    std::vector<std::pair<int, int>> warmed;
+    const auto warmUp = [&] {
+      const Tank* hero = game.playerTank();
+      const ImGuiIO& io = ImGui::GetIO();
+      const int width = int(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+      const int height = int(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+      const std::pair<int, int> key(game.level(), quality);
+      if (!hero || !hero->system || width <= 0 || height <= 0 || std::find(warmed.begin(), warmed.end(), key) != warmed.end())
+        return;
+      warmed.push_back(key);
+      const glm::vec3 position = camera.position, front = camera.front, target = camera.target, up = camera.up,
+                      right = camera.right;
+      const float yaw = camera.yaw, pitch = camera.pitch;
+      const Vec3 p = hero->position();
+      camera.target = glm::vec3(float(p.x()), float(p.y()), float(p.z() + 2.6));
+      camera.pitch = -19.0f;
+      viewer.addExplosionEffect({camera.target + glm::vec3(4.0f, 0.0f, -2.0f), 1.0f, true});
+      const auto start = Clock::now();
+      for (int k = 0, left = 6; left > 0; ++k) {
+        camera.yaw = 60.0f * float(k % 6);
+        setOrbitDistance(camera, distance);
+        game.updateScenery(camera.position);
+        viewer.update(width, height, false, 0, 0, false);
+        showLoading(std::min(0.99, 0.9 + 0.015 * k), "Preparing the level");
+        left = viewer.pendingAsyncMeshLoadCount() > 0 && seconds(start) < 6.0 ? 6 : left - 1;
+      }
+      viewer.clearExplosionEffects();
+      camera.position = position;
+      camera.front = front;
+      camera.target = target;
+      camera.up = up;
+      camera.right = right;
+      camera.yaw = yaw;
+      camera.pitch = pitch;
+    };
+    bool warmUpPending = playing;
+    HoldToConfirm restartKey;
+    QualityTuner tuner;
+    tuner.active = !playing && !options.qualityGiven;
+    std::string qualityNote;
 
     while (!app.quit) {
       app.processEvents();
       if (app.quit) break;
+      if (warmUpPending) {
+        warmUpPending = false;
+        warmUp();
+      }
       const auto clockNow = std::chrono::steady_clock::now();
-      const double frameTime = scripted ? 1.0 / 60 : std::min(std::chrono::duration<double>(clockNow - last).count(), 1.0 / 15);
+      const double elapsedSinceLast = std::chrono::duration<double>(clockNow - last).count();
+      const double frameTime = scripted ? 1.0 / 60 : std::min(elapsedSinceLast, 1.0 / 15);
+      // Keys held to confirm count the time on the clock, a stall at most a quarter of a second.
+      const double holdTime = scripted ? frameTime : std::min(elapsedSinceLast, 0.25);
       last = clockNow;
 
       app.beginFrame();
@@ -201,12 +278,18 @@ int run(int argc, char* argv[]) {
       screen.viewProjection = camera.getProjectionMatrix() * camera.getViewMatrix();
       screen.inverse = glm::inverse(screen.viewProjection);
 
-      const bool live = game.phase() == Phase::Playing && !paused;
+      if (!scripted && game.phase() == Phase::Playing) {
+        if (!helpOpen && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_P, false)))
+          paused = !paused;
+        else if (!paused && ImGui::IsKeyPressed(ImGuiKey_H, false))
+          helpOpen = !helpOpen;
+      }
+      const bool halted = paused || helpOpen;
+      const bool live = game.phase() == Phase::Playing && !halted;
       double throttle = 0.0, turn = 0.0;
       bool trigger = false;
       if (!scripted) {
-        if (game.phase() == Phase::Playing && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_P, false)))
-          paused = !paused;
+        if (!live) restartKey.update(false, holdTime);
         if (live) {
           const Uint8* keys = SDL_GetKeyboardState(nullptr);
           throttle = (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP] ? 1.0 : 0.0) - (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN] ? 1.0 : 0.0);
@@ -217,8 +300,11 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
           if (ImGui::IsKeyPressed(ImGuiKey_E, false)) game.cycle(1);
           if (ImGui::IsKeyPressed(ImGuiKey_F, false)) game.smoke();
-          if (ImGui::IsKeyPressed(ImGuiKey_H, false)) help = !help;
-          if (ImGui::IsKeyPressed(ImGuiKey_R, false)) game.load(game.level(), true, quality);
+          // Restarting takes a held R: E, the next weapon, is beside it.
+          if (restartKey.update(ImGui::IsKeyDown(ImGuiKey_R), holdTime)) {
+            game.load(game.level(), true, quality);
+            warmUpPending = true;
+          }
           if (throttle != 0.0 || turn != 0.0) help = help && game.elapsed() < 25.0;
         }
         if (viewport.hovered) {
@@ -227,22 +313,40 @@ int run(int argc, char* argv[]) {
         }
       }
 
-      if (Tank* hero = game.player(); hero && !paused) {
+      locked = nullptr;
+      if (Tank* hero = game.player(); hero && !halted) {
         if (options.autopilot) {
           trigger = autopilot(game, *hero, throttle, turn);
         } else if (viewport.hovered) {
           const Vec3 eye(camera.position.x, camera.position.y, camera.position.z);
-          const Vec3 aim = game.groundHit(eye, screen.ray(io.MousePos, camera.position));
-          game.setAim(aim + Vec3(0, 0, 0.4));
           const WeaponId selected = game.selected();
-          hero->aimAt(aim + Vec3(0, 0, 0.4), weapon(selected == WeaponId::HE ? WeaponId::HE : WeaponId::AP).speed);
+          const bool gunRound = selected == WeaponId::AP || selected == WeaponId::HE || selected == WeaponId::MG;
+          const double shellSpeed = weapon(gunRound ? selected : WeaponId::AP).speed;
+          Vec3 aim = game.groundHit(eye, screen.ray(io.MousePos, camera.position)) + Vec3(0, 0, 0.4);
+          // The sight locks on the enemy nearest the cursor within reach of it, and leads it.
+          float nearest = 56.0f;
+          for (const auto& enemy : game.enemies()) {
+            ImVec2 at;
+            if (!enemy->alive() || !screen.project(enemy->position() + Vec3(0, 0, 0.6 * enemy->scale()), at)) continue;
+            const float d = std::hypot(at.x - io.MousePos.x, at.y - io.MousePos.y);
+            if (d < nearest) {
+              nearest = d;
+              locked = enemy.get();
+            }
+          }
+          if (locked) {
+            const Vec3 center = locked->position() + Vec3(0, 0, 0.6 * locked->scale());
+            aim = center + locked->velocity() * ((center - hero->position()).norm() / shellSpeed);
+          }
+          game.setAim(aim);
+          hero->aimAt(aim, shellSpeed, true);
         }
         hero->command(throttle, turn, game.overdrive(), game.now());
         if (trigger) game.fire();
       }
 
-      if (!paused) {
-        const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 12);
+      if (!halted) {
+        const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 20);
         const auto physicsStart = Clock::now();
         for (int i = 0; i < steps; ++i) game.step();
         physicsTime += seconds(physicsStart);
@@ -289,23 +393,46 @@ int run(int argc, char* argv[]) {
 
       app.endViewport(viewer, viewport, false, false);
       ImGui::PushFont(fonts.text);
-      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot);
+      if (locked && std::none_of(game.enemies().begin(), game.enemies().end(), [&](const auto& enemy) { return enemy.get() == locked; }))
+        locked = nullptr;
+      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot, locked, halted);
+      if (!scripted && game.phase() == Phase::Playing && !halted && drawHelpButton(screen)) helpOpen = true;
+      if (!scripted && game.phase() == Phase::Playing && !halted && restartKey.fraction() > 0.0)
+        drawHold(screen, fonts, "Hold R to restart", restartKey.fraction());
       if (const size_t pending = viewer.pendingAsyncMeshLoadCount(); pending > 0) {
         ImDrawList* draw = ImGui::GetForegroundDrawList();
         const ImVec2 at(viewport.origin.x + 18.0f, viewport.origin.y + viewport.size.y - 34.0f);
         text(draw, fonts.text, 17.0f, at, IM_COL32(230, 220, 190, 230), "Loading models: " + std::to_string(pending) + " left");
       }
       MenuResult choice;
+      if (scripted || helpOpen || game.phase() != Phase::Menu || viewer.pendingAsyncMeshLoadCount() > 0) tuner.restart();
       if (!scripted) {
-        if (game.phase() == Phase::Menu) {
+        if (helpOpen) {
+          if (drawHelp(screen, fonts)) helpOpen = false;
+        } else if (game.phase() == Phase::Menu) {
           const int before = quality;
-          choice = drawMainMenu(screen, fonts, best, quality);
+          choice = drawMainMenu(screen, fonts, best, quality, qualityNote.empty() ? nullptr : qualityNote.c_str());
+          if (choice.qualityPicked) {
+            tuner.active = false;
+            qualityNote.clear();
+          } else if (viewer.pendingAsyncMeshLoadCount() == 0) {
+            quality = tuner.update(quality, frameTime);
+            if (quality != before) {
+              const char* names[] = {"Fast", "Balanced", "High", "Ultra"};
+              qualityNote = std::string("Render quality lowered to ") + names[quality] + " for a smoother game";
+            }
+          }
           if (quality != before) game.load(game.level(), false, quality);
         } else if (paused) {
           choice = drawPauseMenu(screen, fonts);
         } else if (game.phase() == Phase::Victory || game.phase() == Phase::Defeat) {
           endedFor += frameTime;
-          best[size_t(game.level())] = std::max(best[size_t(game.level())], game.score());
+          if (int& record = best[size_t(game.level())]; game.score() > record) {
+            record = game.score();
+#if defined(__EMSCRIPTEN__)
+            storeBest(game.level(), record);
+#endif
+          }
           if (endedFor > 1.5) choice = drawResult(screen, fonts, game);
         }
       }
@@ -314,11 +441,20 @@ int run(int argc, char* argv[]) {
         case Choice::Play:
         case Choice::Next:
           game.load(choice.level, true, quality);
+          warmUpPending = true;
           paused = false;
           endedFor = 0.0;
+          // Before the first mission, the help comes up with the game held still.
+          helpOpen = !helpShown;
+          helpShown = true;
+          break;
+        case Choice::Help:
+          helpOpen = true;
+          helpShown = true;
           break;
         case Choice::Retry:
           game.load(game.level(), true, quality);
+          warmUpPending = true;
           paused = false;
           endedFor = 0.0;
           break;
@@ -350,9 +486,9 @@ int run(int argc, char* argv[]) {
       if (scripted && frame >= options.frames) {
         const Stats& stats = game.stats();
         std::printf("tank_survival level=%d phase=%d frames=%d time=%.2f wave=%d kills=%d score=%d armor=%.0f shots=%d "
-                    "hits=%d penetrations=%d\n",
+                    "hits=%d penetrations=%d trees_felled=%zu\n",
                     game.level() + 1, int(game.phase()), frame, game.elapsed(), game.wave(), stats.kills, game.score(),
-                    game.playerHealth(), stats.shots, stats.hits, stats.penetrations);
+                    game.playerHealth(), stats.shots, stats.hits, stats.penetrations, game.treesFelled());
         std::printf("tank_survival timing: physics %.3f ms/frame (%.1f us/step), game %.3f ms/frame, render %.3f ms/frame\n",
                     1e3 * physicsTime / frame, 1e6 * physicsTime / std::max(1, physicsSteps), 1e3 * gameTime / frame,
                     1e3 * renderTime / frame);

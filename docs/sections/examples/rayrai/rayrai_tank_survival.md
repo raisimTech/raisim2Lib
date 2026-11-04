@@ -36,12 +36,25 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 | Input | Action |
 | --- | --- |
 | `W` / `S`, `A` / `D` | drive, turn |
-| mouse | aim the turret |
+| mouse | point at what to hit; the turret turns there and the gun sets its own elevation |
 | click or `Space` | fire |
 | `1`–`5`, `Q` / `E` | pick a weapon, cycle through them |
 | `F` | lay a smoke screen |
 | mouse wheel, right drag | zoom, turn the camera |
-| `P` / `R` / `H` | pause, restart, help |
+| `P` or `Esc` / hold `R` / `H` | pause, restart, how to play |
+
+Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to the
+point under the cursor, on slopes too. Near an enemy the sight locks on it (red brackets) and leads it.
+A dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
+The **How to play** button (or `H`) opens the controls; they come up before the first mission. Arrows at
+the edge of the screen point to enemies out of view, and an arrow beside the wind's speed shows where it
+blows. Tanks flatten the small trees of the arena, and
+shells and blasts fell them.
+
+The menu shows your best score on each level; in the browser it is kept between visits (in the page's
+local storage). On a slow computer the main menu lowers the render quality while the level behind it draws slowly, until
+it runs smoothly (the game itself slows down below 25 frames a second); a quality picked in the menu, or
+given with `--quality`, is kept.
 
 ## Run
 

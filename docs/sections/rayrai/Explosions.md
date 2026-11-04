@@ -6,7 +6,8 @@ with no code beyond setting them off:
 - **Explosions** (`World::addExplosion()` and explosive projectiles): a fireball that flashes white-hot,
   swells and cools through orange to dull red and into soot; a cloud of smoke that billows, rises and
   spreads for several seconds, lit by the sun from above and by the fire from within; sparks and
-  debris thrown out of it; and a flash of light on its surroundings.
+  debris thrown out of it; and a flash of light on its surroundings. Fireball and smoke are heaps of
+  uneven lobes, laid out anew for every explosion and bent by noise, with ragged, wispy rims.
 - **Ground bursts** (`surfaceBurst` or a crater) also throw up a column of earth and dust under the
   smoke, dust that rolls out along the ground, clods of earth that arc out and fall back, and leave a
   scorch mark. A charge at or under the surface of one of the window's water bodies throws up a column of
@@ -122,4 +123,8 @@ replayed after a restore gets its effect even when it reuses an identifier. Effe
 the rest of the scene.
 
 The fireball and smoke cost a ray march over the pixels they cover: at 32 steps a cloud of smoke filling
-about a third of a 1600 x 900 frame adds 1.2 ms to the frame on an RTX 5070.
+about a third of a 1600 x 900 frame adds 1.2 ms to the frame on an RTX 5070. The march fetches the noise
+only where it can change the density, so the empty reaches of a volume's bounding sphere cost less than
+its cloud. The worst case is a camera inside overlapping clouds: looking into the dust of a dozen ground
+bursts (`rayrai_explosion_volume_benchmark`) adds 10.4 ms at 1600 x 900 on an RTX 5070; fewer
+`marchSteps` make it cheaper and grainier.
