@@ -708,7 +708,7 @@ class Game {
         if (riverDistance(Terrain::Town, x, y) < 0.5 * ly + riverHalfWidth(Terrain::Town) + 3.0) continue;
         Lot lot{x - 0.5 * lx, y - 0.5 * ly, x + 0.5 * lx, y + 0.5 * ly, 0.0,
                 ruined ? int(uniform(random_, 1.0, 2.999)) : int(uniform(random_, 2.0, 4.999)), ruined,
-                int(uniform(random_, 0.0, 3.999))};
+                int(uniform(random_, 0.0, 3.999)), float(ruined ? uniform(random_, 0.8, 0.95) : uniform(random_, 0.0, 0.55))};
         lot.ground = levelRectangle(heights, samples, lot.x0, lot.y0, lot.x1, lot.y1);
         lots.push_back(lot);
         const double top = Town::height(lot);

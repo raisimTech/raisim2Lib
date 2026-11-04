@@ -2,8 +2,8 @@
 // The town's apartment blocks, assembled from Poly Haven's modular urban apartments facade (CC0)
 // as in the rayrai city example: corner pieces wrap each corner, 3 m bays of windows (and one door
 // on the ground floor) fill the faces, and base, dado, cornice and crown trims run around them.
-// Dark walls behind the glass read as unlit rooms. Burnt-out blocks have lost their crown and carry
-// rubble on their roofs.
+// Dark walls behind the glass read as unlit rooms. Each block is weathered to a shade of its own;
+// burnt-out blocks have lost their crown, carry rubble on their roofs and are darkened with soot.
 
 #include <map>
 
@@ -16,7 +16,8 @@ struct Lot {
   double ground;          // the levelled ground under it
   int floors;
   bool ruined;
-  int pattern;  // the window columns' pattern
+  int pattern;     // the window columns' pattern
+  float weathering;  // 0 keeps the plaster's color, 1 greys and darkens it (soot on burnt-out blocks)
 };
 
 class Town {
@@ -33,9 +34,10 @@ class Town {
     for (const auto& lot : lots) facades(lot, batches);
     for (auto& [module, instances] : batches) {
       const std::string name = "town " + module + " " + std::to_string(revision_++);
-      auto visual = viewer.addInstancedVisuals(name, raisim::Shape::Mesh, glm::vec3(1), glm::vec4(1), glm::vec4(1),
-                                               folder_ + "modules/" + module + ".gltf", true);
+      auto visual = viewer.addInstancedVisuals(name, raisim::Shape::Mesh, glm::vec3(1), glm::vec4(1),
+                                               glm::vec4(0.18f, 0.2f, 0.26f, 1.f), folder_ + "modules/" + module + ".gltf", true);
       visual->addInstances(instances);
+      visual->setUseMeshColor(false);
       visual->setCastsShadows(true);
       names_.push_back(name);
     }
@@ -68,6 +70,7 @@ class Town {
     instance.position = {float(face.x + face.tx * (s + 3.0)), float(face.y + face.ty * (s + 3.0)), float(lot.ground + z)};
     instance.orientation = {float(std::cos(0.5 * face.yaw)), 0.f, 0.f, float(std::sin(0.5 * face.yaw))};
     instance.scale = glm::vec3(1.f);
+    instance.colorWeight = lot.weathering;
     batches[module].push_back(instance);
   }
 

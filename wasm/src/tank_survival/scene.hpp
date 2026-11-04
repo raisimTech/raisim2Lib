@@ -58,9 +58,10 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   weather.lightningRate = level.lightning;
   weather.fogColor = level.fogColor;
   viewer.setWeatherSettings(weather);
-  // The sky behind the scene at its own brightness; the weather would dim it twice for a low sun.
+  // The sky behind the scene at its own brightness; the weather would dim it twice for a low sun. Over
+  // snow, which reflects most of the light, the sky is brightened to match, as the eye adapts.
   const auto sky = viewer.generateWeatherSkyEnvironment(256, 32, false);
-  viewer.setEnvironmentBackground(sky.environmentMap, 1.0f);
+  viewer.setEnvironmentBackground(sky.environmentMap, 1.0f + 0.9f * level.snow);
   const float azimuth = glm::radians(level.sunAzimuth), elevation = glm::radians(level.sunElevation);
   auto& sun = viewer.getLight();
   sun.type = raisin::LightType::DIRECTIONAL;
@@ -272,7 +273,9 @@ class TerrainVisuals {
         v.Normal = glm::normalize(glm::vec3(float(-(heightAt(2 * i + 1, 2 * j) - heightAt(2 * i - 1, 2 * j)) / (2 * d)),
                                             float(-(heightAt(2 * i, 2 * j + 1) - heightAt(2 * i, 2 * j - 1)) / (2 * d)), 1.f));
         v.TexCoords = glm::vec2(float(x / tiles_[0]), float(y / tiles_[0]));
-        v.Color = glm::vec4(groundTint(x, y), 1.f);
+        // Rock shows through on the steep faces of the hills around the arena.
+        const float steep = glm::smoothstep(0.99f, 0.9f, v.Normal.z);
+        v.Color = glm::vec4(groundTint(x, y) * glm::mix(glm::vec3(1.f), glm::vec3(0.5f, 0.47f, 0.45f), 0.85f * steep), 1.f);
         index[k] = int(vertices.size());
         vertices.push_back(v);
         return unsigned(index[k]);

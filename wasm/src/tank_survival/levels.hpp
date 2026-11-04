@@ -57,7 +57,7 @@ inline const std::vector<LevelSpec>& levels() {
        false},
       {"Frozen Ridge", "Snow ridges in the late afternoon",
        "Mixed armor and mortars on high ground. Use the ridges as cover and smoke when you cross open snow.",
-       Terrain::Ridges, {-6.0, 5.0, 0.0}, 255.f, 17.f, 0.3f, 2200.f, 3.0f, 0.85f, 0.f, 0.f, {0.66f, 0.64f, 0.76f}, 1.05, 0.95, {0, 0, 0},
+       Terrain::Ridges, {-6.0, 5.0, 0.0}, 255.f, 17.f, 0.3f, 2200.f, 6.0f, 0.85f, 0.f, 0.f, {0.66f, 0.64f, 0.76f}, 1.05, 0.95, {0, 0, 0},
        {0, 0, 0}, 0.0,
        {{{Role::Medium, 3}, {Role::Scout, 2}},
         {{Role::Heavy, 2}, {Role::Artillery, 2}},
