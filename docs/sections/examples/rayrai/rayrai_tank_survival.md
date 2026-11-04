@@ -46,8 +46,9 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to the
 point under the cursor, on slopes too. Near an enemy the sight locks on it (red brackets) and leads it.
 A dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
-The **How to play** button (or `H`) opens the controls; they come up before the first mission. Tanks
-flatten the small trees of the arena, and shells and blasts fell them.
+The **How to play** button (or `H`) opens the controls; they come up before the first mission. Arrows at
+the edge of the screen point to enemies out of view. Tanks flatten the small trees of the arena, and
+shells and blasts fell them.
 
 ## Run
 

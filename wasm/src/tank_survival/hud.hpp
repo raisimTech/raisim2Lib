@@ -178,6 +178,30 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
       text(draw, font, 14.0f, ImVec2(at.x, at.y - 18), rgba(enemy->spec->marker, 0.9f), enemy->spec->name, 0.5f);
     if (t < enemy->tracksBrokenUntil) text(draw, font, 13.0f, ImVec2(at.x, at.y + 8), IM_COL32(255, 200, 120, 220), "IMMOBILIZED", 0.5f);
   }
+  // Enemies out of view: an arrow at the edge of the screen points at each, with its distance.
+  if (!panel && game.phase() == Phase::Playing) {
+    const ImVec2 center(o.x + 0.5f * s.x, o.y + 0.5f * s.y);
+    const float halfX = 0.5f * s.x - 70.0f, halfY = 0.5f * s.y - 110.0f;
+    const Vec3 from = game.playerTank() && game.playerTank()->system ? game.playerTank()->position() : Vec3::Zero();
+    for (const auto& enemy : game.enemies()) {
+      if (!enemy->alive()) continue;
+      const Vec3 p = enemy->position() + Vec3(0, 0, 0.6 * enemy->scale());
+      const glm::vec4 clip = screen.viewProjection * glm::vec4(float(p.x()), float(p.y()), float(p.z()), 1.0f);
+      if (clip.w > 1e-4f && std::abs(clip.x) < 0.97f * clip.w && std::abs(clip.y) < 0.97f * clip.w) continue;
+      glm::vec2 direction = glm::vec2(clip.x, -clip.y) * (clip.w < 0.0f ? -1.0f : 1.0f);
+      if (glm::length(direction) < 1e-6f) continue;
+      direction = glm::normalize(direction);
+      const float reach = std::min(halfX / std::max(std::abs(direction.x), 1e-4f), halfY / std::max(std::abs(direction.y), 1e-4f));
+      const ImVec2 at(center.x + direction.x * reach, center.y + direction.y * reach);
+      const glm::vec2 side(-direction.y, direction.x);
+      const ImU32 color = rgba(enemy->spec->marker, 0.9f);
+      draw->AddTriangleFilled(ImVec2(at.x + 16 * direction.x, at.y + 16 * direction.y),
+                              ImVec2(at.x - 8 * direction.x + 10 * side.x, at.y - 8 * direction.y + 10 * side.y),
+                              ImVec2(at.x - 8 * direction.x - 10 * side.x, at.y - 8 * direction.y - 10 * side.y), color);
+      std::snprintf(line, sizeof(line), "%.0f m", (enemy->position() - from).head<2>().norm());
+      text(draw, font, 13.0f, ImVec2(at.x - 18 * direction.x, at.y - 18 * direction.y - 7), color, line, 0.5f);
+    }
+  }
   for (const auto& pickup : game.pickups()) {
     ImVec2 at;
     if (!panel && screen.project(pickup.position + Vec3(0, 0, 2.4), at))

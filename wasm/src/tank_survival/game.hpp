@@ -90,6 +90,9 @@ struct Notice {
   ImU32 color;
   double time;
   Vec3 position = Vec3::Zero();
+  // A note floating over a hit: its label and the damage of the hits it gathers.
+  std::string label;
+  double damage = 0.0;
 };
 
 struct Building {
@@ -1268,9 +1271,18 @@ class Game {
       hitMarkerColor_ = result.color;
     }
     if ((fromPlayer || isPlayer) && result.label[0]) {
-      std::string text = result.label;
-      if (result.damage >= 1.0) text += "  -" + std::to_string(int(std::round(result.damage)));
-      floating_.push_back({text, isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, t, at});
+      // A burst of hits of one kind on one spot (machine-gun fire) gathers into one note.
+      Notice* note = nullptr;
+      for (auto it = floating_.rbegin(); it != floating_.rend() && !note; ++it)
+        if (t - it->time < 0.5 && it->label == result.label && (it->position - at).norm() < 5.0) note = &*it;
+      if (!note) {
+        floating_.push_back({"", isPlayer ? IM_COL32(255, 90, 80, 255) : result.color, t, at, result.label, 0.0});
+        note = &floating_.back();
+      }
+      note->time = t;
+      note->damage += result.damage;
+      note->text = note->label;
+      if (note->damage >= 1.0) note->text += "  -" + std::to_string(int(std::round(note->damage)));
     }
   }
 
