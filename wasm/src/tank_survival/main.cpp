@@ -174,6 +174,9 @@ int run(int argc, char* argv[]) {
     Game game(world, viewer, TANK_SURVIVAL_ASSETS, options.seed);
     game.load(options.level, playing, quality, [&](double fraction, const char* what) { showLoading(0.2 + 0.6 * fraction, what); });
     showLoading(0.85, "Compiling shaders (faster on your next visit)");
+    // Rayrai draws with its core PBR program whenever no high-fidelity mesh is in view; compiled now, it does
+    // not stall the game the first time that happens (0.2 s in the browser).
+    for (const char* program : {"pbrMeshCore", "pbrMeshCoreDepthPrepass"}) viewer.compileShaderByName(program);
     std::vector<int> best(levels().size(), 0);
     bool paused = false, help = true, helpOpen = false, helpShown = false;
     const Tank* locked = nullptr;
@@ -187,10 +190,54 @@ int run(int argc, char* argv[]) {
     using Clock = std::chrono::steady_clock;
     const auto seconds = [](Clock::time_point from) { return std::chrono::duration<double>(Clock::now() - from).count(); };
     camera.target = glm::vec3(0.0f, 0.0f, 2.0f);
+    // Before a level is first played at a quality, it is drawn all around the player behind the loading screen
+    // once its models are in, with an explosion flashing beside it (the world's clock stands still), so that
+    // the renderer makes the pipelines the level needs then: in the browser, each takes 50-100 ms the first
+    // time it is drawn, a stall when something first comes into view or the first shell lands.
+    std::vector<std::pair<int, int>> warmed;
+    const auto warmUp = [&] {
+      const Tank* hero = game.playerTank();
+      const ImGuiIO& io = ImGui::GetIO();
+      const int width = int(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+      const int height = int(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+      const std::pair<int, int> key(game.level(), quality);
+      if (!hero || !hero->system || width <= 0 || height <= 0 || std::find(warmed.begin(), warmed.end(), key) != warmed.end())
+        return;
+      warmed.push_back(key);
+      const glm::vec3 position = camera.position, front = camera.front, target = camera.target, up = camera.up,
+                      right = camera.right;
+      const float yaw = camera.yaw, pitch = camera.pitch;
+      const Vec3 p = hero->position();
+      camera.target = glm::vec3(float(p.x()), float(p.y()), float(p.z() + 2.6));
+      camera.pitch = -19.0f;
+      viewer.addExplosionEffect({camera.target + glm::vec3(4.0f, 0.0f, -2.0f), 1.0f, true});
+      const auto start = Clock::now();
+      for (int k = 0, left = 6; left > 0; ++k) {
+        camera.yaw = 60.0f * float(k % 6);
+        setOrbitDistance(camera, distance);
+        game.updateScenery(camera.position);
+        viewer.update(width, height, false, 0, 0, false);
+        showLoading(std::min(0.99, 0.9 + 0.015 * k), "Preparing the level");
+        left = viewer.pendingAsyncMeshLoadCount() > 0 && seconds(start) < 6.0 ? 6 : left - 1;
+      }
+      viewer.clearExplosionEffects();
+      camera.position = position;
+      camera.front = front;
+      camera.target = target;
+      camera.up = up;
+      camera.right = right;
+      camera.yaw = yaw;
+      camera.pitch = pitch;
+    };
+    bool warmUpPending = playing;
 
     while (!app.quit) {
       app.processEvents();
       if (app.quit) break;
+      if (warmUpPending) {
+        warmUpPending = false;
+        warmUp();
+      }
       const auto clockNow = std::chrono::steady_clock::now();
       const double frameTime = scripted ? 1.0 / 60 : std::min(std::chrono::duration<double>(clockNow - last).count(), 1.0 / 15);
       last = clockNow;
@@ -223,7 +270,10 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
           if (ImGui::IsKeyPressed(ImGuiKey_E, false)) game.cycle(1);
           if (ImGui::IsKeyPressed(ImGuiKey_F, false)) game.smoke();
-          if (ImGui::IsKeyPressed(ImGuiKey_R, false)) game.load(game.level(), true, quality);
+          if (ImGui::IsKeyPressed(ImGuiKey_R, false)) {
+            game.load(game.level(), true, quality);
+            warmUpPending = true;
+          }
           if (throttle != 0.0 || turn != 0.0) help = help && game.elapsed() < 25.0;
         }
         if (viewport.hovered) {
@@ -342,6 +392,7 @@ int run(int argc, char* argv[]) {
         case Choice::Play:
         case Choice::Next:
           game.load(choice.level, true, quality);
+          warmUpPending = true;
           paused = false;
           endedFor = 0.0;
           // Before the first mission, the help comes up with the game held still.
@@ -354,6 +405,7 @@ int run(int argc, char* argv[]) {
           break;
         case Choice::Retry:
           game.load(game.level(), true, quality);
+          warmUpPending = true;
           paused = false;
           endedFor = 0.0;
           break;

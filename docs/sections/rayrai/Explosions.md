@@ -123,4 +123,8 @@ replayed after a restore gets its effect even when it reuses an identifier. Effe
 the rest of the scene.
 
 The fireball and smoke cost a ray march over the pixels they cover: at 32 steps a cloud of smoke filling
-about a third of a 1600 x 900 frame adds 1.2 ms to the frame on an RTX 5070.
+about a third of a 1600 x 900 frame adds 1.2 ms to the frame on an RTX 5070. The march fetches the noise
+only where it can change the density, so the empty reaches of a volume's bounding sphere cost less than
+its cloud. The worst case is a camera inside overlapping clouds: looking into the dust of a dozen ground
+bursts (`rayrai_explosion_volume_benchmark`) adds 10.4 ms at 1600 x 900 on an RTX 5070; fewer
+`marchSteps` make it cheaper and grainier.
