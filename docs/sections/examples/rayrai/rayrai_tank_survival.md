@@ -20,7 +20,8 @@ and heavily armored brutes. The same source builds for the desktop and, with the
   side, rear and roof armor of the vehicle they strike, with ricochets at shallow angles.
 - High-explosive shells, missiles, artillery and exploding barrels set off [explosions](../../Explosions.md)
   whose blast waves push tanks, wrecks, crates and barrels and dig craters in the terrain. Wrecks burn.
-- The tanks are articulated systems on [tracks](../../articulated_system/Tracks.md). A river crosses each
+- The tanks are articulated systems on [tracks](../../articulated_system/Tracks.md), each track on a carrier sprung
+  under the hull so that the tracks keep their grip on rough ground and the tanks can steer. A river crosses each
   level as a fluid volume: tanks wade through it, are slowed and buoyed by it, and push its water aside.
 - rayrai draws the explosions as fireballs, smoke, dust and debris with soft particles
   ([Explosion effects](../../rayrai/Explosions.md)), the river with its flow, the weather of each level, and
@@ -40,7 +41,8 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 | click or `Space` | fire |
 | `1`–`5`, `Q` / `E` | pick a weapon, cycle through them |
 | `F` | lay a smoke screen |
-| mouse wheel, right drag | zoom, turn the camera |
+| mouse wheel, right drag | zoom, turn the camera (it stays where you leave it while the tank turns) |
+| `C` | camera behind the tank |
 | `P` or `Esc` / hold `R` / `H` | pause, restart, how to play |
 
 Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to the

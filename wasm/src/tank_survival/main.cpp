@@ -206,7 +206,8 @@ int run(int argc, char* argv[]) {
     auto last = std::chrono::steady_clock::now();
     int frame = 0;
     Screen screen;
-    double cameraHeading = 0.0, cameraOffset = 0.0, endedFor = 0.0;
+    double endedFor = 0.0;
+    OrbitHeading orbit;
     double physicsTime = 0.0, gameTime = 0.0, renderTime = 0.0;
     int physicsSteps = 0;
     using Clock = std::chrono::steady_clock;
@@ -252,6 +253,11 @@ int run(int argc, char* argv[]) {
       camera.pitch = pitch;
     };
     bool warmUpPending = playing;
+    // A mission starts with the camera behind the hull.
+    const auto startBehindHull = [&] {
+      if (const Tank* hero = game.playerTank(); hero && hero->system) orbit.place(hero->heading());
+    };
+    if (playing) startBehindHull();
     HoldToConfirm restartKey;
     QualityTuner tuner;
     tuner.active = !playing && !options.qualityGiven;
@@ -300,16 +306,18 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
           if (ImGui::IsKeyPressed(ImGuiKey_E, false)) game.cycle(1);
           if (ImGui::IsKeyPressed(ImGuiKey_F, false)) game.smoke();
+          if (ImGui::IsKeyPressed(ImGuiKey_C, false)) orbit.behindHull = true;
           // Restarting takes a held R: E, the next weapon, is beside it.
           if (restartKey.update(ImGui::IsKeyDown(ImGuiKey_R), holdTime)) {
             game.load(game.level(), true, quality);
             warmUpPending = true;
+            startBehindHull();
           }
           if (throttle != 0.0 || turn != 0.0) help = help && game.elapsed() < 25.0;
         }
         if (viewport.hovered) {
           distance = std::clamp(distance - 2.0f * io.MouseWheel, 12.0f, 70.0f);
-          if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) cameraOffset -= 0.005 * io.MouseDelta.x;
+          if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) orbit.drag(io.MouseDelta.x);
         }
       }
 
@@ -361,33 +369,33 @@ int run(int argc, char* argv[]) {
         const Vec3 p = hero->position();
         const glm::vec3 focus(float(p.x()), float(p.y()), float(p.z() + 2.6));
         camera.target = glm::mix(camera.target, focus, float(std::min(1.0, frameTime * 8.0)));
-        cameraHeading += wrapAngle(hero->heading() + cameraOffset - cameraHeading) * std::min(1.0, frameTime * 2.5);
+        orbit.update(hero->heading(), frameTime, options.autopilot);
         camera.pitch = -19.0f;
       } else {
         const glm::vec3 center(0.0f, 0.0f, 3.0f);
         camera.target = glm::mix(camera.target, center, float(std::min(1.0, frameTime * 2.0)));
-        cameraHeading += frameTime * 0.08;
+        orbit.heading += frameTime * 0.08;
         camera.pitch = game.phase() == Phase::Menu ? -16.0f : -22.0f;
       }
       if (game.shake() > 0.01) {
         std::normal_distribution<float> noise(0.0f, float(0.35 * game.shake()));
         camera.target += glm::vec3(noise(shakeNoise), noise(shakeNoise), noise(shakeNoise));
       }
-      camera.yaw = float(cameraHeading * 180.0 / kPi);
-      float orbit = game.phase() == Phase::Menu ? 75.0f : distance;
+      camera.yaw = float(orbit.heading * 180.0 / kPi);
+      float orbitDistance = game.phase() == Phase::Menu ? 75.0f : distance;
       if (options.view) {
         const auto& v = *options.view;
         const glm::vec3 eye(v[0], v[1], v[2]), target(v[3], v[4], v[5]), d = target - eye;
         camera.target = target;
-        cameraHeading = std::atan2(d.y, d.x);
-        camera.yaw = float(cameraHeading * 180.0 / kPi);
+        orbit.heading = std::atan2(d.y, d.x);
+        camera.yaw = float(orbit.heading * 180.0 / kPi);
         camera.pitch = float(std::atan2(d.z, std::hypot(d.x, d.y)) * 180.0 / kPi);
-        orbit = glm::length(d);
+        orbitDistance = glm::length(d);
       }
-      setOrbitDistance(camera, orbit);
+      setOrbitDistance(camera, orbitDistance);
       while (!options.view && camera.pitch > -70.0f && camera.position.z < game.height(camera.position.x, camera.position.y) + 1.8) {
         camera.pitch -= 2.0f;
-        setOrbitDistance(camera, orbit);
+        setOrbitDistance(camera, orbitDistance);
       }
       game.updateScenery(camera.position);
 
@@ -395,7 +403,7 @@ int run(int argc, char* argv[]) {
       ImGui::PushFont(fonts.text);
       if (locked && std::none_of(game.enemies().begin(), game.enemies().end(), [&](const auto& enemy) { return enemy.get() == locked; }))
         locked = nullptr;
-      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot, locked, halted);
+      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, orbit.heading, help && !options.autopilot, locked, halted);
       if (!scripted && game.phase() == Phase::Playing && !halted && drawHelpButton(screen)) helpOpen = true;
       if (!scripted && game.phase() == Phase::Playing && !halted && restartKey.fraction() > 0.0)
         drawHold(screen, fonts, "Hold R to restart", restartKey.fraction());
@@ -442,6 +450,7 @@ int run(int argc, char* argv[]) {
         case Choice::Next:
           game.load(choice.level, true, quality);
           warmUpPending = true;
+          startBehindHull();
           paused = false;
           endedFor = 0.0;
           // Before the first mission, the help comes up with the game held still.
@@ -455,6 +464,7 @@ int run(int argc, char* argv[]) {
         case Choice::Retry:
           game.load(game.level(), true, quality);
           warmUpPending = true;
+          startBehindHull();
           paused = false;
           endedFor = 0.0;
           break;

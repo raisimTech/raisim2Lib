@@ -418,6 +418,32 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
   ImGui::Dummy(ImVec2(width, 54));
 }
 
+// The heading (rad) of the camera that orbits the player's tank. It turns only when the player turns it,
+// at once and as far as the mouse moves, so that the hull turns under it and the point under the cursor
+// stays put; asked to, it swings quickly behind the hull. The autopilot's camera follows the hull.
+struct OrbitHeading {
+  double heading = 0.0;
+  bool behindHull = false;
+
+  void drag(double pixels) {
+    heading -= 0.005 * pixels;
+    behindHull = false;
+  }
+  void place(double hull) {
+    heading = hull;
+    behindHull = false;
+  }
+  void update(double hull, double dt, bool follow) {
+    if (follow) {
+      heading += wrapAngle(hull - heading) * std::min(1.0, dt * 2.5);
+    } else if (behindHull) {
+      const double error = wrapAngle(hull - heading);
+      heading += error * std::min(1.0, dt * 12.0);
+      behindHull = std::abs(error) > 0.002;
+    }
+  }
+};
+
 // A key that acts once it has been held for a moment, so that a slip onto it does nothing; it acts again
 // only after it is let go.
 struct HoldToConfirm {
@@ -571,7 +597,8 @@ inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
                          "strike (lands on the cursor after a delay).");
     section("CAMERA AND MORE");
     row("Mouse wheel", "Zoom in and out.");
-    row("Right drag", "Look around the tank.");
+    row("Right drag", "Turn the camera. It stays where you leave it while the tank turns.");
+    row("C", "Camera behind the tank.");
     row("F", "Smoke screen: enemies cannot see through it.");
     row("Esc / P", "Pause.");
     row("R (hold)", "Restart the mission.");
