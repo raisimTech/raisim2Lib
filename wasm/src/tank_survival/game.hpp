@@ -411,8 +411,13 @@ class Game {
       const Eigen::Matrix3d R = dressing.body->getRotationMatrix();
       const Vec3 at = dressing.body->getPosition() + R * dressing.offset;
       const Eigen::Quaterniond q(R);
-      dressing.mesh->setPosition(at.x(), at.y(), at.z());
-      dressing.mesh->setOrientation(q.w(), q.x(), q.y(), q.z());
+      if (dressing.mesh) {
+        dressing.mesh->setPosition(at.x(), at.y(), at.z());
+        dressing.mesh->setOrientation(q.w(), q.x(), q.y(), q.z());
+      } else if (const auto batch = dressingBatches_.find(dressing.model); batch != dressingBatches_.end()) {
+        batch->second.visual->setPosition(dressing.instance, glm::vec3(float(at.x()), float(at.y()), float(at.z())));
+        batch->second.visual->setOrientation(dressing.instance, glm::vec4(float(q.w()), float(q.x()), float(q.y()), float(q.z())));
+      }
     }
     if (terrain_) terrainVisuals_.flush(viewer_, *terrain_);
     std::erase_if(missiles_, [](const Missile& missile) { return !missile.body; });
@@ -509,8 +514,11 @@ class Game {
     pickups_.clear();
     for (auto& marker : markers_) viewer_.removeVisualObject(marker.name);
     markers_.clear();
-    for (const auto& dressing : dressings_) viewer_.removeVisualObject(dressing.visual);
+    for (const auto& dressing : dressings_)
+      if (dressing.mesh) viewer_.removeVisualObject(dressing.visual);
     dressings_.clear();
+    for (const auto& [model, batch] : dressingBatches_) viewer_.removeInstancedVisuals(batch.name);
+    dressingBatches_.clear();
     for (const auto& name : visuals_) viewer_.removeVisualObject(name);
     visuals_.clear();
     terrainVisuals_.clear(viewer_);
@@ -585,12 +593,37 @@ class Game {
     return concrete_;
   }
 
-  // Draws body with a model: the body's primitive is hidden and the model follows it (update()).
+  // Draws body with a model: the body's primitive is hidden and the model follows it (update()). The
+  // bodies that share a model are drawn as one instanced batch.
   void dress(raisim::SingleBodyObject* body, const std::string& model, double scale, const Vec3& offset) {
     body->setAppearance("hidden");
-    const std::string name = "dressed_" + std::to_string(nextName_++);
-    auto mesh = viewer_.addVisualMesh(name, assets_ + "/tank_survival/props/" + model + "/model.gltf", glm::dvec3(scale));
-    dressings_.push_back({body, name, offset, mesh});
+    auto& batch = dressingBatches_[model];
+    if (!batch.visual) {
+      batch.name = "dressed " + model + " " + std::to_string(nextName_++);
+      batch.visual = viewer_.addInstancedVisuals(batch.name, raisim::Shape::Mesh, glm::vec3(1), glm::vec4(1), glm::vec4(1),
+                                                 assets_ + "/tank_survival/props/" + model + "/model.gltf", true);
+    }
+    Dressing dressing;
+    dressing.body = body;
+    dressing.offset = offset;
+    dressing.model = model;
+    dressing.scale = scale;
+    dressing.instance = batch.visual->count();
+    dressings_.push_back(dressing);
+    batch.visual->addInstances(std::vector<raisin::InstancedVisuals::InstanceSpec>{instanceOf(dressing)});
+  }
+
+  // The instance a dressed body is drawn with, where it is now.
+  static raisin::InstancedVisuals::InstanceSpec instanceOf(const Dressing& dressing) {
+    const Eigen::Matrix3d R = dressing.body->getRotationMatrix();
+    const Vec3 at = dressing.body->getPosition() + R * dressing.offset;
+    const Eigen::Quaterniond q(R);
+    raisin::InstancedVisuals::InstanceSpec instance;
+    instance.position = glm::vec3(float(at.x()), float(at.y()), float(at.z()));
+    instance.orientation = glm::vec4(float(q.w()), float(q.x()), float(q.y()), float(q.z()));
+    instance.scale = glm::vec3(float(dressing.scale));
+    instance.colorWeight = 0.f;
+    return instance;
   }
 
   void buildArena(const LevelSpec& spec, const std::function<void(double, const char*)>& report) {
@@ -1376,9 +1409,25 @@ class Game {
   }
 
   void undress(raisim::SingleBodyObject* body) {
+    std::vector<std::string> models;
     for (const auto& dressing : dressings_)
-      if (dressing.body == body) viewer_.removeVisualObject(dressing.visual);
+      if (dressing.body == body) {
+        if (dressing.mesh) viewer_.removeVisualObject(dressing.visual);
+        else models.push_back(dressing.model);
+      }
     std::erase_if(dressings_, [&](const Dressing& dressing) { return dressing.body == body; });
+    // A batch loses the body's instance: the others are numbered again.
+    for (const auto& model : models) {
+      auto& batch = dressingBatches_[model];
+      std::vector<raisin::InstancedVisuals::InstanceSpec> instances;
+      for (auto& dressing : dressings_)
+        if (!dressing.mesh && dressing.model == model) {
+          dressing.instance = instances.size();
+          instances.push_back(instanceOf(dressing));
+        }
+      batch.visual->clearInstances();
+      batch.visual->addInstances(instances);
+    }
   }
 
   void removeWreck(Wreck& wreck) {
@@ -1424,6 +1473,11 @@ class Game {
   Town town_;
   Scenery scenery_;
   std::vector<Dressing> dressings_;
+  struct DressingBatch {
+    std::string name;
+    std::shared_ptr<raisin::InstancedVisuals> visual;
+  };
+  std::map<std::string, DressingBatch> dressingBatches_;
   std::vector<std::string> visuals_;
   raisin::Material concrete_;
   int quality_ = 2;

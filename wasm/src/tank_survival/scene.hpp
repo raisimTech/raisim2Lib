@@ -464,6 +464,11 @@ struct Dressing {
   std::string visual;
   Vec3 offset = Vec3::Zero();
   std::shared_ptr<raisin::Visuals> mesh;
+  // A model many bodies share (crates, barrels) is drawn as one instanced batch: its model, the body's
+  // instance in it and the model's scale.
+  std::string model;
+  size_t instance = 0;
+  double scale = 1.0;
 };
 
 // Plants, trees, stones and the props around the arena, placed per terrain; trees, stones and barriers
