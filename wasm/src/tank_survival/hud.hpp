@@ -169,7 +169,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   char line[200];
 
   for (const auto& enemy : game.enemies()) {
-    if (!enemy->system) continue;
+    if (panel || !enemy->system) continue;
     ImVec2 at;
     if (!screen.project(enemy->position() + Vec3(0, 0, 3.2 * enemy->scale()), at)) continue;
     const float width = enemy->spec->role == Role::Boss ? 140.0f : 60.0f;
@@ -180,10 +180,11 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
   for (const auto& pickup : game.pickups()) {
     ImVec2 at;
-    if (screen.project(pickup.position + Vec3(0, 0, 2.4), at))
+    if (!panel && screen.project(pickup.position + Vec3(0, 0, 2.4), at))
       text(draw, font, 15.0f, at, rgba(kBonusStyles[size_t(pickup.type)].color), kBonusStyles[size_t(pickup.type)].label, 0.5f);
   }
   for (const auto& note : game.floating()) {
+    if (panel) break;
     ImVec2 at;
     const double age = t - note.time;
     if (screen.project(note.position + Vec3(0, 0, 2.0 + 2.0 * age), at))
@@ -384,8 +385,10 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
     std::snprintf(label, sizeof(label), "%s%s\n%s", level.endless ? "" : (std::to_string(i + 1) + ".  ").c_str(), level.name,
                   level.subtitle);
     if (ImGui::Button(label, ImVec2(410, 58))) result = {Choice::Play, int(i)};
-    ImGui::SameLine();
-    if (best[i] > 0) ImGui::Text("best\n%d", best[i]);
+    if (best[i] > 0) {
+      ImGui::SameLine();
+      ImGui::Text("best\n%d", best[i]);
+    }
     ImGui::PopID();
   }
   ImGui::Spacing();
@@ -414,9 +417,12 @@ inline MenuResult drawPauseMenu(const Screen& screen, const Fonts& fonts) {
   return result;
 }
 
-// How to play: the controls, how aiming works and a few tips. Returns true when closed.
+// How to play: the controls, how aiming works and a few tips, in two columns on a wide screen. Returns true
+// when closed.
 inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
-  beginPanel("How to play", screen, ImVec2(std::min(760.0f, screen.size.x - 40.0f), std::min(700.0f, screen.size.y - 40.0f)));
+  const bool wide = screen.size.x >= 1100.0f;
+  beginPanel("How to play", screen,
+             ImVec2(std::min(wide ? 1040.0f : 760.0f, screen.size.x - 40.0f), std::min(wide ? 600.0f : 700.0f, screen.size.y - 40.0f)));
   title(fonts, "HOW TO PLAY", IM_COL32(255, 210, 120, 255));
   const auto section = [](const char* name) {
     ImGui::Spacing();
@@ -426,38 +432,62 @@ inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
     ImGui::Separator();
   };
   const auto row = [](const char* keys, const char* what) {
+    const float x = ImGui::GetCursorPosX();
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 220, 255, 255));
     ImGui::TextUnformatted(keys);
     ImGui::PopStyleColor();
-    ImGui::SameLine(190);
+    ImGui::SameLine(x + 150.0f);
     ImGui::TextWrapped("%s", what);
   };
-  ImGui::BeginChild("help text", ImVec2(0, -54));
-  ImGui::TextWrapped("Destroy every enemy vehicle, wave after wave, and keep your tank alive.");
-  section("DRIVE");
-  row("W / S  (or arrows)", "Drive forward and back.");
-  row("A / D", "Turn the hull. The turret turns on its own toward the cursor.");
-  row("", "Your tank flattens small trees, so you can drive through the woods.");
-  section("AIM AND FIRE");
-  row("Mouse", "Point at what you want to hit: an enemy, the ground or a wall. You never aim up or down yourself: "
-               "the gun raises itself for the distance to the point under the cursor.");
-  row("", "Near an enemy the sight locks on it (red brackets) and leads it as it moves.");
-  row("", "The dotted arc shows where a round fired now would fly; the ring at its end is where it strikes, red "
-          "when it would hit a vehicle. The turret needs a moment to swing round: wait for the arc to reach the target.");
-  row("Left click / Space", "Fire. The ring around the cursor fills while the gun reloads.");
-  row("1 - 5,  Q / E", "Choose a weapon: armor-piercing (AP), high explosive (HE), machine gun (MG), guided "
-                      "missile, artillery strike (lands on the cursor after a delay).");
-  section("CAMERA AND MORE");
-  row("Mouse wheel", "Zoom in and out.");
-  row("Right drag", "Look around the tank.");
-  row("F", "Smoke screen: enemies cannot see through it.");
-  row("Esc / P", "Pause.          R  Restart the mission.          H  This help.");
-  section("TIPS");
-  ImGui::BulletText("Armor is thickest in front: hit enemies in the side or rear. Markers above them show their type.");
-  ImGui::BulletText("HE wrecks light vehicles and knocks down trees and crates; AP pierces heavy armor.");
-  ImGui::BulletText("Drive over glowing supply drops for ammunition, repairs and power-ups.");
-  ImGui::BulletText("Keep moving: artillery shells land where you were.");
-  ImGui::EndChild();
+  const auto controls = [&] {
+    ImGui::TextWrapped("Destroy every enemy vehicle, wave after wave, and keep your tank alive.");
+    section("DRIVE");
+    row("W / S, arrows", "Drive forward and back.");
+    row("A / D", "Turn the hull. The turret turns on its own toward the cursor.");
+    row("", "Your tank flattens small trees: drive through the woods.");
+    section("AIM AND FIRE");
+    row("Mouse", "Point at what you want to hit: an enemy, the ground or a wall. You never aim up or down: the gun "
+                 "raises itself for the distance to the point under the cursor.");
+    row("", "Near an enemy the sight locks on it (red brackets) and leads it as it moves.");
+    row("", "The dotted arc shows where a round fired now would fly, and the ring where it strikes: red on a "
+            "vehicle. The turret takes a moment to swing round.");
+    row("Click / Space", "Fire. The ring around the cursor fills while the gun reloads.");
+  };
+  const auto more = [&] {
+    section("WEAPONS");
+    row("1 - 5,  Q / E", "Armor-piercing (AP), high explosive (HE), machine gun (MG), guided missile, artillery "
+                         "strike (lands on the cursor after a delay).");
+    section("CAMERA AND MORE");
+    row("Mouse wheel", "Zoom in and out.");
+    row("Right drag", "Look around the tank.");
+    row("F", "Smoke screen: enemies cannot see through it.");
+    row("Esc / P", "Pause.");
+    row("R", "Restart the mission.");
+    row("H", "This help.");
+    section("TIPS");
+    for (const char* tip : {"Armor is thickest in front: hit enemies in the side or rear.",
+                            "HE wrecks light vehicles, trees and crates; AP pierces heavy armor.",
+                            "Drive over supply drops for ammunition, repairs and power-ups.",
+                            "Keep moving: artillery shells land where you were."}) {
+      ImGui::Bullet();
+      ImGui::TextWrapped("%s", tip);
+    }
+  };
+  if (wide) {
+    const float half = 0.5f * (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
+    ImGui::BeginChild("help controls", ImVec2(half, -54));
+    controls();
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("help more", ImVec2(half, -54));
+    more();
+    ImGui::EndChild();
+  } else {
+    ImGui::BeginChild("help text", ImVec2(0, -54));
+    controls();
+    more();
+    ImGui::EndChild();
+  }
   const bool close = ImGui::Button("Got it", ImVec2(-1, 44)) || ImGui::IsKeyPressed(ImGuiKey_Escape, false) ||
                      ImGui::IsKeyPressed(ImGuiKey_Enter, false);
   endPanel();
