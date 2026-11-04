@@ -32,6 +32,7 @@ namespace py = nanobind;
 void init_math(py::module_ &);
 void init_materials(py::module_ &);
 void init_fluid(py::module_ &);
+void init_explosion(py::module_ &);
 void init_sensors(py::module_ &);
 void init_object(py::module_ &);
 void init_constraints(py::module_ &);
@@ -71,6 +72,11 @@ NB_MODULE(raisimpy, m) {
     /* Fluid */
     /*********/
     init_fluid(m);
+
+    /*************************/
+    /* Explosions, projectiles */
+    /*************************/
+    init_explosion(m);
 
     /***********/
     /* Sensors */

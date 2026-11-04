@@ -6,6 +6,7 @@
       "description": "Rendered environments, from minimal scenes to cities, forests, warehouses and off-road terrain.",
       "examples": [
         "rayrai/rayrai_offroad_buggy",
+        "rayrai/rayrai_tank_survival",
         "rayrai/rayrai_city",
         "rayrai/rayrai_forest",
         "rayrai/rayrai_water_pond",
@@ -87,7 +88,8 @@
         "server/dzhanibekov_effect",
         "server/inverse_dynamics",
         "server/kinematic_platform",
-        "server/island_sleep_benchmark"
+        "server/island_sleep_benchmark",
+        "rayrai/rayrai_tank_battle"
       ]
     },
     {

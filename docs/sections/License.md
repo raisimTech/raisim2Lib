@@ -14,6 +14,10 @@ and downloadable WebAssembly archive.
   up to two hours per individual user per calendar week across all accounts,
   devices, and browser sessions. Weeks start on Monday at 00:00 UTC; unused time
   does not carry over and allowances cannot be pooled or transferred.
+- **Programs built with the [WebAssembly SDK](./WebAssemblySdk.md):** only academic users may
+  distribute them, and only for academic research or teaching. They distribute the program, never RaiSim
+  or Rayrai themselves, and every distribution must state clearly that it is built with RaiSim and Rayrai
+  under the WebAssembly license and include the license and the third-party notices.
 - **Production use or use beyond the evaluation allowance:** requires a separate
   commercial license. Contact [raisim@raionrobotics.com](mailto:raisim@raionrobotics.com).
 

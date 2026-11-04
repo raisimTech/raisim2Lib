@@ -49,6 +49,8 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Runtime Scene Editing', link: '/sections/examples/rayrai/rayrai_runtime_scene_editing.md' },
               { text: 'Sensor Noise', link: '/sections/examples/rayrai/rayrai_sensor_noise.md' },
               { text: 'Swept CCD', link: '/sections/examples/rayrai/rayrai_swept_ccd.md' },
+              { text: 'Tank Battle', link: '/sections/examples/rayrai/rayrai_tank_battle.md' },
+              { text: 'Tank Survival', link: '/sections/examples/rayrai/rayrai_tank_survival.md' },
               { text: 'TCP Viewer', link: '/sections/examples/rayrai/rayrai_tcp_viewer.md' },
               { text: 'Visual Asset Support', link: '/sections/examples/rayrai/rayrai_visual_asset_support.md' },
               { text: 'Warehouse', link: '/sections/examples/rayrai/rayrai_warehouse.md' },
@@ -134,6 +136,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         items: [
           { text: 'Rayrai TCP viewer', link: '/sections/WebAssembly.md' },
           { text: 'Browser scene editor', link: '/sections/BrowserSceneEditor.md' },
+          { text: 'WebAssembly SDK', link: '/sections/WebAssemblySdk.md' },
         ],
       },
       {
@@ -239,6 +242,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'Granular Pool Sleep', link: '/sections/GranularPoolSleep.md' },
         ],
       },
+      { text: 'Explosions and Projectiles', link: '/sections/Explosions.md' },
       { text: 'Contact and Collision', link: '/sections/Contact.md' },
       { text: 'Collision Detection and Colliders', link: '/sections/CollisionDetection.md' },
       { text: 'Material System', link: '/sections/MaterialSystem.md' },
@@ -295,6 +299,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'Post-process effects', link: '/sections/rayrai/PostProcess.md' },
           { text: 'Weather and atmospherics', link: '/sections/rayrai/Weather.md' },
           { text: 'Water', link: '/sections/rayrai/Water.md' },
+          { text: 'Explosion effects', link: '/sections/rayrai/Explosions.md' },
           { text: 'Capture, diagnostics, and headless rendering', link: '/sections/rayrai/Capture.md' },
           { text: 'Physics snapshots', link: '/sections/rayrai/PhysicsSnapshots.md' },
           { text: 'Sensors and depth/LiDAR', link: '/sections/rayrai/Sensors.md' },

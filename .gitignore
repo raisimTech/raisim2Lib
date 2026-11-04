@@ -38,6 +38,8 @@ __pycache__/
 
 # Downloaded raisim2Lib release payloads
 /raisim/
+/wasm/sdk/
+/wasm/build*/
 /rayrai/
 /web/
 /.raisim-web-stage-*/

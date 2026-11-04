@@ -25,6 +25,9 @@ cmake --build <build> -j6
 python3 docs/image_generators/example_clips/record_example_clips.py --build <build> [name ...]
 ```
 
+`rayrai_tank_survival` runs the Tank Survival game, which is built from `raisim2Lib/wasm`
+(see its page); record it on its own with `--build` set to that build.
+
 Without names it records all of them, which takes about 20 minutes. It writes into
 `rsc/docs/video/examples` (`--out` to change), and keeps the raw clips and the
 program logs only with `--work <dir>`. Server examples use port 8080, so run one

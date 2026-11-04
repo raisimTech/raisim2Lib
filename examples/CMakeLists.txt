@@ -418,6 +418,7 @@ endforeach()
 # An off-road buggy with double-wishbone suspension (URDF closed by pin, equality and mimic
 # constraints) driven with the arrow keys over an eroded meadow with a dirt track.
 create_rayrai_executable(rayrai_offroad_buggy src/rayrai/worlds/rayrai_offroad_buggy.cpp)
+create_rayrai_executable(rayrai_tank_battle src/rayrai/games/rayrai_tank_battle.cpp)
 target_compile_features(rayrai_offroad_buggy PRIVATE cxx_std_20)
 # A pond in a meadow: rayrai water with grass and trees on its banks and the sun reflected on it.
 create_rayrai_executable(rayrai_water_pond src/rayrai/worlds/rayrai_water_pond.cpp)

@@ -174,13 +174,15 @@ add_custom_command(
 
 # The static site, written to ${RAISIM_DOCS_SITE_DIR}. VitePress fails on dead
 # links, so a page that links to a missing page or API entry stops the build.
+# The browser examples (web-examples/) and the games (games/) join the site after
+# it is built, so links into them are not checked here.
 set(RAISIM_DOCS_SITE_DIR ${CMAKE_CURRENT_BINARY_DIR}/docs/site)
 add_custom_target(docs_site ALL
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${RAISIM_DOCS_SITE_DIR}
         COMMAND ${RAISIM_DOCS_NODE} ${CMAKE_CURRENT_BINARY_DIR}/node_modules/vitepress/bin/vitepress.js
                 build ${RAISIM_DOCS_STAGE_DIR}/docs --outDir ${RAISIM_DOCS_SITE_DIR}
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_links.py ${RAISIM_DOCS_SITE_DIR}
-                --ignore /web-examples/
+                --ignore /web-examples/ --ignore /games/
         DEPENDS ${RAISIM_DOCS_NPM_STAMP}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Building the documentation site with VitePress"
