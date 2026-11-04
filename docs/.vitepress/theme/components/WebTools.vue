@@ -16,13 +16,6 @@ const tools = [
     description: 'Add objects, adjust their properties and preview the physics. Export your scene as a .rscene file for desktop RaiSim.',
     action: 'Launch scene editor',
   },
-  {
-    name: 'Tank Survival',
-    link: '/games/tank-survival/',
-    kind: 'Play',
-    description: 'Hold out against waves of armored vehicles. Every shell, blast and wading tank is simulated by RaiSim and drawn by Rayrai, built with the WebAssembly SDK.',
-    action: 'Play the game',
-  },
 ]
 </script>
 

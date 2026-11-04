@@ -29,6 +29,10 @@ From [Poly Haven](https://polyhaven.com), under [CC0 1.0](https://creativecommon
   namaqualand_boulder_04 and namaqualand_boulder_05.
 - Ground textures (`ground/`): sparse_grass, brown_mud_rocks_01, aerial_sand, snow_02, burned_ground_01,
   rubble, cracked_concrete and concrete_wall_006.
+- Buildings (`buildings/apartments/`): the modules of
+  [Modular Urban Apartments Facade](https://polyhaven.com/a/modular_urban_apartments_facade) by James Ray Cock,
+  copied from `rsc/city/apartments` with their textures at 1K, and the [Bitumen](https://polyhaven.com/a/bitumen)
+  roof texture by Rob Tuytel.
 
 The game also uses the CC0 plants, trees and rocks of `rsc/forest` and the CC0 terrain textures of
 `rsc/offroad_buggy/terrain` (see their own attribution files).

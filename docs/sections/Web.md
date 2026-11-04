@@ -3,7 +3,7 @@ aside: false
 ---
 # Web tools
 
-Explore physics, build a scene or play a game directly in your browser. RaiSim handles the simulation and Rayrai renders the world. Choose a tool to get started.
+Explore physics or build a scene directly in your browser. RaiSim handles the simulation and Rayrai renders the world. Choose a tool to get started.
 
 <WebTools />
 

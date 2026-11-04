@@ -4,7 +4,7 @@ The RaiSim WebAssembly SDK lets you build your own browser programs on RaiSim an
 interactive demos, teaching tools, robot visualizations. You write ordinary C++ and compile it with
 [Emscripten](https://emscripten.org). The same source builds for the desktop against the native packages.
 
-![Tank Survival, built with the SDK, running in Chrome](../../rsc/docs/image/tank_survival.png)
+![Tank Survival, built with the SDK](../../rsc/docs/image/tank_survival.jpg)
 
 The SDK holds RaiSim and Rayrai as prebuilt WebAssembly objects, with:
 
@@ -30,7 +30,7 @@ The example project is [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2
 
 | Example | What it shows |
 | --- | --- |
-| `tank_survival` | A tank survival game drawn by Rayrai in six levels (valley, desert, town, snow ridges, fortress and an endless survival), each with its own weather. Six kinds of enemy vehicle arrive in waves around your Leopard 2; you fight them with armor-piercing and high-explosive shells, a machine gun, guided missiles and artillery strikes, and pick up ammunition, repair kits, reactive armor, missiles and radios. Shells are RaiSim projectiles that drift with the wind and slow down in water; hits are resolved against front, side, rear and roof armor with ricochets. Blasts push tanks, wrecks, crates and barrels and dig craters, wrecks burn, and a river crosses the rough, wooded terrain: tanks wade through it and push its water aside. |
+| `tank_survival` | The [Tank Survival](examples/rayrai/rayrai_tank_survival.md) game, drawn by Rayrai in six levels (valley, desert, town, snow ridges, fortress and an endless survival), each with its own weather. Six kinds of enemy vehicle arrive in waves around your Leopard 2; you fight them with armor-piercing and high-explosive shells, a machine gun, guided missiles and artillery strikes, and pick up ammunition, repair kits, reactive armor, missiles and radios. Shells are RaiSim projectiles that drift with the wind and slow down in water; hits are resolved against front, side, rear and roof armor with ricochets. Blasts push tanks, wrecks, crates and barrels and dig craters, wrecks burn, and a river crosses the rough, wooded terrain: tanks wade through it and push its water aside. |
 | `crate_blast` | RaiSim alone, run with Node.js: a shell blows a crate stack apart. |
 
 ```bash

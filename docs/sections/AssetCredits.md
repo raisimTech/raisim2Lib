@@ -49,6 +49,24 @@ README. Full notice:
 All CC BY 4.0. Each car is baked into one Z-up mesh with 1K textures and a
 plain car paint, and some get extra paint colours.
 
+## Tank Survival vehicles
+
+Seen on the [Tank Survival](./examples/rayrai/rayrai_tank_survival.md) and
+[WebAssembly SDK](./WebAssemblySdk.md) pages and in the game on this website. Full notice:
+[rsc/tank_survival/ATTRIBUTION.md](https://github.com/raisimTech/raisim2Lib/blob/HEAD/rsc/tank_survival/ATTRIBUTION.md).
+
+| Work | Author |
+| --- | --- |
+| ["Leopard 2A4M Main Battle Tank"](https://sketchfab.com/3d-models/80b589fc9c0b4720888b40d01d6e5153) | [MirzaArrafiERV_45](https://sketchfab.com/MirzaArrafiERV_45) |
+| ["T-72B3 Main Battle Tank"](https://sketchfab.com/3d-models/dfe130dfce724c30958cec51f2bd86b7) | [MirzaArrafiERV_45](https://sketchfab.com/MirzaArrafiERV_45) |
+| ["Uralvagonzavod T-90AM Main Battle Tank"](https://sketchfab.com/3d-models/619de9f0908e4c8395fe036ffe6e3884) | [MirzaArrafiERV_45](https://sketchfab.com/MirzaArrafiERV_45) |
+| ["2S19 MSTA-S Self-Propelled Artillery"](https://sketchfab.com/3d-models/c12432ada9a84859bc74c3d5ef7046f8) | [MirzaArrafiERV_45](https://sketchfab.com/MirzaArrafiERV_45) |
+| ["Russian BMD-2M"](https://sketchfab.com/3d-models/16c4113b6592474baa897902e8fbc637) | [42manako](https://sketchfab.com/42manako) |
+| ["T-14 Armata"](https://sketchfab.com/3d-models/24c9a06973a64651a8b0baedee29fd57) | [42manako](https://sketchfab.com/42manako) |
+| ["2S25 Sprut-SD (Armored Warfare)"](https://sketchfab.com/3d-models/bca9950218c545ecbd70b15704a35bf6) | [KojfDiscord](https://sketchfab.com/KojfDiscord) |
+
+All CC BY 4.0. Each vehicle is split into hull, turret and gun, rescaled, re-oriented and re-textured at 1K.
+
 ## Warehouse
 
 Seen in the [Warehouse example](./examples/rayrai/rayrai_warehouse.md). Full

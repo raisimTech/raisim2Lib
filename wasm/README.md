@@ -1,6 +1,6 @@
 # Building your own WebAssembly programs with RaiSim
 
-![Tank Survival, built with the SDK, running in Chrome](../rsc/docs/image/tank_survival.png)
+![Tank Survival, built with the SDK](../rsc/docs/image/tank_survival.jpg)
 
 This folder shows how to build browser programs on RaiSim and Rayrai with the **RaiSim WebAssembly SDK**:
 prebuilt RaiSim and Rayrai libraries for [Emscripten](https://emscripten.org), their headers, CMake packages

@@ -4,7 +4,7 @@ A `raisim::World` sets off explosions and flies projectiles. An explosion's blas
 charge and pushes the dynamic bodies it reaches. A projectile flies under gravity and the drag of the
 world's fluids, hits the first body on its path, hands it its momentum and, if it is explosive,
 detonates there. Together they make shells, grenades, bullets, rockets after burnout, demolition
-charges and exploding barrels. The [Tank Battle](examples/rayrai/rayrai_tank_battle.md) example uses
+charges and exploding barrels. The [Tank Survival](examples/rayrai/rayrai_tank_survival.md) game and the [Tank Battle](examples/rayrai/rayrai_tank_battle.md) example use
 both, and rayrai draws them ([Explosion effects](rayrai/Explosions.md)).
 
 ```cpp

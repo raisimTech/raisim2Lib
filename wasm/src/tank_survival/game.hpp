@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "buildings.hpp"
 #include "scene.hpp"
 
 namespace tank {
@@ -478,6 +479,7 @@ class Game {
     props_.clear();
     terrain_ = nullptr;
     buildings_.clear();
+    town_.clear(viewer_);
     for (auto& wreck : wrecks_) removeWreck(wreck);
     wrecks_.clear();
     for (auto& enemy : enemies_)
@@ -533,7 +535,7 @@ class Game {
 
   const raisin::Material& concrete() {
     if (!concrete_.albedoMap) {
-      concrete_ = raisin::Material::pbr("concrete", glm::vec4(0.95f, 0.93f, 0.9f, 1.f), 0.f, 0.9f);
+      concrete_ = raisin::Material::pbr("concrete", glm::vec4(0.74f, 0.72f, 0.69f, 1.f), 0.f, 0.9f);
       concrete_.albedoMap = Viewer::loadTextureWithTiling((assets_ + "/tank_survival/ground/concrete_wall_006_diffuse_1k.jpg").c_str(), true);
       concrete_.normalMap = Viewer::loadTextureWithTiling((assets_ + "/tank_survival/ground/concrete_wall_006_nor_gl_1k.jpg").c_str(), false);
     }
@@ -566,7 +568,7 @@ class Game {
     }
     report(0.25, "Raising buildings");
     switch (spec.terrain) {
-      case Terrain::Town: buildTown(); break;
+      case Terrain::Town: buildTown(heights, kSamples); break;
       case Terrain::Fortress: buildFortress(); break;
       default: break;
     }
@@ -695,23 +697,28 @@ class Game {
     world_->addFluidVolume(volume);
   }
 
-  void buildTown() {
+  void buildTown(std::vector<double>& heights, size_t samples) {
+    std::vector<Lot> lots;
     for (double cx = -60.0; cx <= 60.0; cx += 24.0)
       for (double cy = -60.0; cy <= 60.0; cy += 24.0) {
         if (std::abs(cx) < 20.0 && std::abs(cy) < 20.0) continue;
-        const bool ruined = uniform(random_, 0.0, 1.0) < 0.25;
-        const Vec3 size(uniform(random_, 9.0, 14.0), uniform(random_, 9.0, 14.0),
-                        ruined ? uniform(random_, 1.6, 2.6) : uniform(random_, 4.0, 9.0));
+        const bool ruined = uniform(random_, 0.0, 1.0) < 0.3;
+        const double lx = 3.0 * std::floor(uniform(random_, 3.0, 5.999)), ly = 3.0 * std::floor(uniform(random_, 3.0, 4.999));
         const double x = cx + uniform(random_, -2.0, 2.0), y = cy + uniform(random_, -2.0, 2.0);
-        if (riverDistance(Terrain::Town, x, y) < 0.5 * size.y() + riverHalfWidth(Terrain::Town) + 3.0) continue;
-        const Vec3 center(x, y, lowest(x, y, 0.5 * size.x(), 0.5 * size.y()) + 0.5 * size.z() - 0.2);
-        staticBox(size, center, 0.0, true);
+        if (riverDistance(Terrain::Town, x, y) < 0.5 * ly + riverHalfWidth(Terrain::Town) + 3.0) continue;
+        Lot lot{x - 0.5 * lx, y - 0.5 * ly, x + 0.5 * lx, y + 0.5 * ly, 0.0,
+                ruined ? int(uniform(random_, 1.0, 2.999)) : int(uniform(random_, 2.0, 4.999)), ruined,
+                int(uniform(random_, 0.0, 3.999))};
+        lot.ground = levelRectangle(heights, samples, lot.x0, lot.y0, lot.x1, lot.y1);
+        lots.push_back(lot);
+        const double top = Town::height(lot);
+        const Vec3 center(x, y, lot.ground + 0.5 * top - 0.5), size(lx, ly, top + 1.0);
+        staticBox(size, center, 0.0, false);
         buildings_.push_back({center, 0.5 * size});
         if (!ruined) continue;
         for (int k = 0; k < 6; ++k) {
           auto* rubble = world_->addBox(uniform(random_, 0.6, 1.4), uniform(random_, 0.6, 1.4), 0.6, 250.0);
-          rubble->setPosition(center.x() + uniform(random_, -0.8, 0.8) * size.x(),
-                              center.y() + uniform(random_, -0.8, 0.8) * size.y(), size.z() + 0.5 + 0.7 * k);
+          rubble->setPosition(x + uniform(random_, -0.35, 0.35) * lx, y + uniform(random_, -0.35, 0.35) * ly, top + lot.ground + 0.5 + 0.7 * k);
           props_.push_back(rubble);
           raisim::FluidCoefficients still;
           still.enabled = false;
@@ -722,11 +729,50 @@ class Game {
           dressings_.push_back({rubble, name, Vec3::Zero(), texturedBox(viewer_, name, Vec3(dim[0], dim[1], dim[2]), concrete(), 1.5)});
         }
       }
+    town_.build(viewer_, assets_, lots);
+  }
+
+  // Levels the ground under a footprint (and a margin around it) to its mean height, blending into
+  // the surrounding ground over a few metres; returns that height.
+  static double levelRectangle(std::vector<double>& heights, size_t samples, double x0, double y0, double x1, double y1) {
+    constexpr double kMargin = 1.5, kBlend = 4.0;
+    const double cell = kExtent / double(samples - 1), half = 0.5 * kExtent;
+    const auto outside = [&](double x, double y) {
+      return std::hypot(std::max({x0 - kMargin - x, 0.0, x - x1 - kMargin}), std::max({y0 - kMargin - y, 0.0, y - y1 - kMargin}));
+    };
+    double sum = 0.0;
+    int count = 0;
+    const int i0 = std::max(0, int((x0 - kMargin - kBlend + half) / cell)), i1 = std::min(int(samples) - 1, int((x1 + kMargin + kBlend + half) / cell) + 1);
+    const int j0 = std::max(0, int((y0 - kMargin - kBlend + half) / cell)), j1 = std::min(int(samples) - 1, int((y1 + kMargin + kBlend + half) / cell) + 1);
+    for (int j = j0; j <= j1; ++j)
+      for (int i = i0; i <= i1; ++i)
+        if (outside(-half + i * cell, -half + j * cell) == 0.0) {
+          sum += heights[size_t(j) * samples + size_t(i)];
+          ++count;
+        }
+    if (count == 0) return 0.0;
+    const double mean = sum / count;
+    for (int j = j0; j <= j1; ++j)
+      for (int i = i0; i <= i1; ++i) {
+        const double d = outside(-half + i * cell, -half + j * cell);
+        if (d >= kBlend) continue;
+        const double w = 1.0 - d / kBlend, blend = w * w * (3.0 - 2.0 * w);
+        double& h = heights[size_t(j) * samples + size_t(i)];
+        h += blend * (mean - h);
+      }
+    return mean;
   }
 
   void buildFortress() {
     const Vec3 center(0, 12, 0);
     constexpr double kRadius = 30.0;
+    std::vector<::Vertex> vertices;
+    std::vector<unsigned int> indices;
+    // Merlons along the top of a wall or tower, in the wall's own frame.
+    const auto merlon = [&](const Vec3& at, double yaw, const Vec3& local, const Vec3& size) {
+      const double c = std::cos(yaw), s = std::sin(yaw);
+      appendBox(vertices, indices, size, at + Vec3(c * local.x() - s * local.y(), s * local.x() + c * local.y(), local.z()), yaw, 1.5);
+    };
     for (int k = 0; k < 16; ++k) {
       if (k % 4 == 0) continue;
       const double a = 2.0 * kPi * (k + 0.5) / 16.0;
@@ -734,6 +780,7 @@ class Game {
       const double z = lowest(p.x(), p.y(), 5.5, 5.5) + 1.5;
       staticBox(Vec3(1.6, 11.0, 3.6), Vec3(p.x(), p.y(), z), a, true);
       buildings_.push_back({Vec3(p.x(), p.y(), z), Vec3(5.5, 5.5, 1.8)});
+      for (int m = 0; m < 6; ++m) merlon(Vec3(p.x(), p.y(), z), a, Vec3(0.0, -4.5 + 1.8 * m, 2.2), Vec3(1.6, 0.9, 0.8));
     }
     for (int k = 0; k < 4; ++k) {
       const double a = 0.25 * kPi + 0.5 * kPi * k;
@@ -741,12 +788,20 @@ class Game {
       const double z = lowest(p.x(), p.y(), 2.6, 2.6) + 3.3;
       staticBox(Vec3(5.0, 5.0, 7.0), Vec3(p.x(), p.y(), z), a, true);
       buildings_.push_back({Vec3(p.x(), p.y(), z), Vec3(2.6, 2.6, 3.5)});
+      for (int side = 0; side < 4; ++side)
+        for (int m = 0; m < 4; ++m) {
+          const double along = -1.95 + 1.3 * m, edge = side < 2 ? 2.25 : -2.25;
+          merlon(Vec3(p.x(), p.y(), z), a, side % 2 ? Vec3(along, edge, 3.95) : Vec3(edge, along, 3.95),
+                 side % 2 ? Vec3(0.7, 0.5, 0.9) : Vec3(0.5, 0.7, 0.9));
+        }
     }
     for (const auto& [x, y] : {std::array<double, 2>{-12, 22}, std::array<double, 2>{12, 22}, std::array<double, 2>{0, 0}}) {
       const double z = lowest(x, y, 3.0, 2.0) + 0.9;
       staticBox(Vec3(6, 4, 2.2), Vec3(x, y, z), 0.0, true);
       buildings_.push_back({Vec3(x, y, z), Vec3(3, 2, 1.1)});
     }
+    visuals_.push_back("fortress merlons");
+    meshVisual(viewer_, visuals_.back(), std::move(vertices), std::move(indices), concrete());
   }
 
   // The lowest ground under a rectangle, so that buildings leave no gap under their walls.
@@ -1318,6 +1373,7 @@ class Game {
   Phase phase_ = Phase::Menu;
   raisim::HeightMap* terrain_ = nullptr;
   TerrainVisuals terrainVisuals_;
+  Town town_;
   Scenery scenery_;
   std::vector<Dressing> dressings_;
   std::vector<std::string> visuals_;

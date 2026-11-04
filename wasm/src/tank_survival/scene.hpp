@@ -639,37 +639,55 @@ class Scenery {
   size_t quality_ = 2;
 };
 
-// A box drawn with a tiled PBR texture (walls of buildings and the fortress).
-inline std::shared_ptr<raisin::Visuals> texturedBox(Viewer& viewer, const std::string& name, const Vec3& size,
-                                                    const raisin::Material& material, double tile) {
-  std::vector<::Vertex> vertices;
-  std::vector<unsigned int> indices;
+// Appends a box of the given size, centred at `center` and turned by `yaw` about z, with texture
+// coordinates in metres over `tile`.
+inline void appendBox(std::vector<::Vertex>& vertices, std::vector<unsigned int>& indices, const Vec3& size, const Vec3& center,
+                      double yaw, double tile) {
   const Vec3 h = 0.5 * size;
+  const double c = std::cos(yaw), s = std::sin(yaw);
+  const auto turn = [&](const Vec3& v) { return Vec3(c * v.x() - s * v.y(), s * v.x() + c * v.y(), v.z()); };
   for (int axis = 0; axis < 3; ++axis)
     for (int sign = -1; sign <= 1; sign += 2) {
       const int u = (axis + 1) % 3, v = (axis + 2) % 3;
       Vec3 normal = Vec3::Zero();
       normal[axis] = sign;
+      const Vec3 n = turn(normal);
       const auto base = unsigned(vertices.size());
       for (const auto& [a, b] : {std::array<int, 2>{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}) {
         Vec3 p = Vec3::Zero();
         p[axis] = sign * h[axis];
         p[u] = a * h[u];
         p[v] = b * h[v];
+        const Vec3 w = center + turn(p);
         ::Vertex vertex;
-        vertex.Position = glm::vec3(float(p.x()), float(p.y()), float(p.z()));
-        vertex.Normal = glm::vec3(float(normal.x()), float(normal.y()), float(normal.z()));
-        const double s = axis == 2 ? p.x() : (axis == 0 ? p.y() : p.x()), t = axis == 2 ? p.y() : p.z();
-        vertex.TexCoords = glm::vec2(float(s / tile), float(t / tile));
+        vertex.Position = glm::vec3(float(w.x()), float(w.y()), float(w.z()));
+        vertex.Normal = glm::vec3(float(n.x()), float(n.y()), float(n.z()));
+        const double along = axis == 2 ? p.x() : (axis == 0 ? p.y() : p.x()), up = axis == 2 ? p.y() : p.z();
+        const double offset = axis == 2 ? 0.0 : center.x() * c + center.y() * s;
+        vertex.TexCoords = glm::vec2(float((along + offset) / tile), float((up + (axis == 2 ? 0.0 : center.z())) / tile));
         vertices.push_back(vertex);
       }
       if (sign > 0) indices.insert(indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
       else indices.insert(indices.end(), {base, base + 2, base + 1, base, base + 3, base + 2});
     }
+}
+
+// A mesh of the given vertices drawn with `material`.
+inline std::shared_ptr<raisin::Visuals> meshVisual(Viewer& viewer, const std::string& name, std::vector<::Vertex> vertices,
+                                                   std::vector<unsigned int> indices, const raisin::Material& material) {
   auto meshes = std::make_shared<std::vector<std::shared_ptr<::OpenGLMesh>>>();
   meshes->push_back(std::make_shared<::OpenGLMesh>(std::move(vertices), std::move(indices)));
   meshes->front()->material = material;
   return viewer.addVisualCustomMesh(name, meshes, glm::vec4(1.f), false);
+}
+
+// A box drawn with a tiled PBR texture (walls of the fortress, rubble).
+inline std::shared_ptr<raisin::Visuals> texturedBox(Viewer& viewer, const std::string& name, const Vec3& size,
+                                                    const raisin::Material& material, double tile) {
+  std::vector<::Vertex> vertices;
+  std::vector<unsigned int> indices;
+  appendBox(vertices, indices, size, Vec3::Zero(), 0.0, tile);
+  return meshVisual(viewer, name, std::move(vertices), std::move(indices), material);
 }
 
 }  // namespace tank

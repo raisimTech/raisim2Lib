@@ -50,6 +50,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Sensor Noise', link: '/sections/examples/rayrai/rayrai_sensor_noise.md' },
               { text: 'Swept CCD', link: '/sections/examples/rayrai/rayrai_swept_ccd.md' },
               { text: 'Tank Battle', link: '/sections/examples/rayrai/rayrai_tank_battle.md' },
+              { text: 'Tank Survival', link: '/sections/examples/rayrai/rayrai_tank_survival.md' },
               { text: 'TCP Viewer', link: '/sections/examples/rayrai/rayrai_tcp_viewer.md' },
               { text: 'Visual Asset Support', link: '/sections/examples/rayrai/rayrai_visual_asset_support.md' },
               { text: 'Warehouse', link: '/sections/examples/rayrai/rayrai_warehouse.md' },

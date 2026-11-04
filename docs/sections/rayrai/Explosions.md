@@ -11,8 +11,9 @@ with no code beyond setting them off:
   smoke, dust that rolls out along the ground, clods of earth that arc out and fall back, and leave a
   scorch mark. A charge at or under the surface of one of the window's water bodies throws up a column of
   spray and mist instead.
-- **Muzzle flashes** where projectiles are launched, **tracers** behind them in flight and **sparks**
-  where an inert projectile hits.
+- **Muzzle flashes** where projectiles are launched, sized by the cube root of the projectile's kinetic
+  energy (a tank gun's at full size, a machine gun's a sixth of it), **tracers** behind them in flight and
+  **sparks** where an inert projectile hits.
 - **Fires** (`addFireEffect()`): flickering flames and a column of black smoke, for a burning wreck or
   a fuel spill.
 
