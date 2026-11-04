@@ -51,7 +51,8 @@ the edge of the screen point to enemies out of view, and an arrow beside the win
 blows. Tanks flatten the small trees of the arena, and
 shells and blasts fell them.
 
-On a slow computer the main menu lowers the render quality while the level behind it draws slowly, until
+The menu shows your best score on each level; in the browser it is kept between visits (in the page's
+local storage). On a slow computer the main menu lowers the render quality while the level behind it draws slowly, until
 it runs smoothly (the game itself slows down below 25 frames a second); a quality picked in the menu, or
 given with `--quality`, is kept.
 

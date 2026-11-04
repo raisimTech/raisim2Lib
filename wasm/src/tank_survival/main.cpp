@@ -21,6 +21,21 @@
 #define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
+#else
+#include <emscripten/emscripten.h>
+
+// In the browser the best scores outlive the page, in its local storage (where the browser allows it).
+EM_JS(int, storedBest, (int level), {
+  try {
+    const score = Number(localStorage.getItem('raisim-tank-survival-best-' + level));
+    return Number.isInteger(score) && score > 0 && score <= 2147483647 ? score : 0;
+  } catch (error) {
+    return 0;
+  }
+});
+EM_JS(void, storeBest, (int level, int score), {
+  try { localStorage.setItem('raisim-tank-survival-best-' + level, String(score)); } catch (error) {}
+});
 #endif
 
 namespace tank {
@@ -182,6 +197,9 @@ int run(int argc, char* argv[]) {
     // not stall the game the first time that happens (0.2 s in the browser).
     for (const char* program : {"pbrMeshCore", "pbrMeshCoreDepthPrepass"}) viewer.compileShaderByName(program);
     std::vector<int> best(levels().size(), 0);
+#if defined(__EMSCRIPTEN__)
+    for (size_t i = 0; i < best.size(); ++i) best[i] = storedBest(int(i));
+#endif
     bool paused = false, help = true, helpOpen = false, helpShown = false;
     const Tank* locked = nullptr;
     std::mt19937 shakeNoise(1);
@@ -409,7 +427,12 @@ int run(int argc, char* argv[]) {
           choice = drawPauseMenu(screen, fonts);
         } else if (game.phase() == Phase::Victory || game.phase() == Phase::Defeat) {
           endedFor += frameTime;
-          best[size_t(game.level())] = std::max(best[size_t(game.level())], game.score());
+          if (int& record = best[size_t(game.level())]; game.score() > record) {
+            record = game.score();
+#if defined(__EMSCRIPTEN__)
+            storeBest(game.level(), record);
+#endif
+          }
           if (endedFor > 1.5) choice = drawResult(screen, fonts, game);
         }
       }
