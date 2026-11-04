@@ -77,7 +77,7 @@ Without it, the first shot stalls a frame while they compile, for about a second
 | `sizeScale` | 1 | Multiplies the size of fireballs and smoke clouds. |
 | `smokeLifetime` | 8 s | How long the smoke of a 1 kg charge lasts. |
 | `marchSteps` | 32 | Samples per pixel through fire and smoke (8 to 64): fewer cost less and look grainier. |
-| `volumeDownsample` | 2 | Fire and smoke are marched at 1/n of the image's width and height (1 to 4) and blended into it along its depth, so that they stay behind nearer objects: 2 costs about a quarter of 1. |
+| `volumeDownsample` | 2 | Fire and smoke are marched at 1/n of the image's width and height (1 to 4) and blended into it along its depth, so that they stay behind nearer objects: 2 costs about a third of 1, and 3 about half of 2. |
 | `sparks` | `true` | Throw sparks, debris and dust. |
 | `flashLight` | `true` | Light the surroundings with the brightest fireball. |
 | `scorchMarks` | `true` | Leave scorch marks under ground bursts. |
@@ -123,13 +123,23 @@ replayed after a restore gets its effect even when it reuses an identifier. Effe
 `clearExplosionEffects()` stay removed. In the browser the effects draw through the WebGPU backend like
 the rest of the scene.
 
-The fireball and smoke cost a ray march over the pixels they cover, so rayrai marches them at half the
-image's width and height (`volumeDownsample`) and blends the result into the image. Each marched pixel
-stops at the nearest scene depth among the image pixels it covers, and each image pixel takes the four
-nearest marched pixels, weighted by how close the depth each one stopped at is to its own: smoke behind a
-tank does not spill over its edges, nor over a gun barrel or a branch thinner than a marched pixel. The march fetches the noise only where it can change
-the density, so the empty reaches of a volume's bounding sphere cost less than its cloud. On an RTX 5070
-at 1600 x 900 with 32 steps, a smoke screen across half the view adds 1.1 ms to the frame (3.7 ms when
-marched at full resolution). The worst case is a camera inside overlapping clouds: looking into the dust of a
-dozen ground bursts (`rayrai_explosion_volume_benchmark`) adds 3.0 ms (10.4 ms at full resolution).
-Fewer `marchSteps` make it cheaper and grainier.
+The fireball and smoke cost a ray march over the pixels they cover, so rayrai keeps the march short and
+coarse and blends it into the image:
+
+- Each ray takes about `marchSteps` steps across the volume's bounding sphere, so rays that cross only
+  its edge or meet the scene early take fewer.
+- The march fetches the noise only where it can change the density, so the empty reaches of a volume's
+  bounding sphere cost less than its cloud.
+- It runs at half the image's width and height (`volumeDownsample`). Each marched pixel stops at the
+  nearest scene depth among the image pixels it covers, and neighbouring marched pixels start their rays
+  at interleaved fractions of a step.
+- Each image pixel blends the four by four nearest marched pixels, weighted by distance and by how close
+  the depth each one stopped at is to its own. This averages the interleaved starts into smooth smoke
+  instead of grain, and keeps smoke behind a tank from spilling over its edges or over a gun barrel or
+  branch thinner than a marched pixel.
+
+On an RTX 5070 at 1600 x 900 with 32 steps, a smoke screen across half the view adds 0.85 ms to the frame
+(0.5 ms at a third of the resolution, which Tank Survival uses). The worst case is a camera inside
+overlapping clouds: looking into the dust of a dozen ground bursts (`rayrai_explosion_volume_benchmark`)
+adds 1.8 ms, 0.9 ms at a third of the resolution and 5.9 ms at full resolution. Fewer `marchSteps` make
+it cheaper and grainier.

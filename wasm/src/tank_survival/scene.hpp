@@ -94,6 +94,9 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
     case Terrain::Hills:
     default: effects.dustColor = {0.19f, 0.13f, 0.075f}; break;
   }
+  // Smoke and fire are marched at a third of the image's resolution (half at Ultra): smoke screens and
+  // barrages cost about half as much as at half resolution and look nearly the same.
+  effects.volumeDownsample = quality >= 3 ? 2 : 3;
   viewer.setExplosionEffectSettings(effects);
 }
 
