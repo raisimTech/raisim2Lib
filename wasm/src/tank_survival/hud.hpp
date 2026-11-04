@@ -168,6 +168,12 @@ inline glm::vec2 offscreenDirection(const glm::vec4& clip, const ImVec2& size) {
   return glm::length(direction) < 1e-6f ? glm::vec2(0.0f) : glm::normalize(direction);
 }
 
+// The direction (y down) on the radar, which turns with the camera's heading, of a horizontal world vector.
+inline glm::vec2 radarDirection(double heading, const Vec3& vector) {
+  const double c = std::cos(-heading + kPi / 2), sn = std::sin(-heading + kPi / 2);
+  return {float(c * vector.x() - sn * vector.y()), float(-(sn * vector.x() + c * vector.y()))};
+}
+
 inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help, const Tank* locked,
                     bool panel) {
   ImDrawList* draw = ImGui::GetForegroundDrawList();
@@ -258,6 +264,15 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   const Vec3 wind = level.wind;
   std::snprintf(line, sizeof(line), "wind %.0f m/s", wind.norm());
   text(draw, font, 14.0f, ImVec2(o.x + 0.5f * s.x, o.y + 38), IM_COL32(200, 220, 255, 200), line, 0.5f);
+  // An arrow beside it shows where the wind blows, as the radar shows the arena.
+  if (wind.head<2>().norm() > 0.1) {
+    const glm::vec2 d = glm::normalize(radarDirection(heading, wind)), side(-d.y, d.x);
+    const ImVec2 at(o.x + 0.5f * s.x + 52.0f, o.y + 47.0f);
+    const ImU32 color = IM_COL32(200, 220, 255, 200);
+    draw->AddLine(ImVec2(at.x - 8 * d.x, at.y - 8 * d.y), ImVec2(at.x + 4 * d.x, at.y + 4 * d.y), color, 2.0f);
+    draw->AddTriangleFilled(ImVec2(at.x + 9 * d.x, at.y + 9 * d.y), ImVec2(at.x + 2 * d.x + 4 * side.x, at.y + 2 * d.y + 4 * side.y),
+                            ImVec2(at.x + 2 * d.x - 4 * side.x, at.y + 2 * d.y - 4 * side.y), color);
+  }
 
   const float radius = 92.0f;
   const ImVec2 radar(o.x + s.x - radius - 22, o.y + radius + 22);
@@ -269,9 +284,8 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   const Vec3 center = game.playerTank() && game.playerTank()->system ? game.playerTank()->position() : Vec3::Zero();
   const double c = std::cos(-heading + kPi / 2), sn = std::sin(-heading + kPi / 2);
   const auto toRadar = [&](const Vec3& p) {
-    const Vec3 d = p - center;
-    const float scale = radius / 90.0f;
-    ImVec2 at(radar.x + float(c * d.x() - sn * d.y()) * scale, radar.y - float(sn * d.x() + c * d.y()) * scale);
+    const glm::vec2 d = radarDirection(heading, p - center) * (radius / 90.0f);
+    ImVec2 at(radar.x + d.x, radar.y + d.y);
     const float r = std::hypot(at.x - radar.x, at.y - radar.y);
     if (r > radius - 4) {
       at.x = radar.x + (at.x - radar.x) * (radius - 4) / r;

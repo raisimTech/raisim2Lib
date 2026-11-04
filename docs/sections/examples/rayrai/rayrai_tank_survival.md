@@ -47,7 +47,8 @@ Aiming needs no up and down: the gun of your tank is stabilized and raises itsel
 point under the cursor, on slopes too. Near an enemy the sight locks on it (red brackets) and leads it.
 A dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
 The **How to play** button (or `H`) opens the controls; they come up before the first mission. Arrows at
-the edge of the screen point to enemies out of view. Tanks flatten the small trees of the arena, and
+the edge of the screen point to enemies out of view, and an arrow beside the wind's speed shows where it
+blows. Tanks flatten the small trees of the arena, and
 shells and blasts fell them.
 
 On a slow computer the main menu lowers the render quality while the level behind it draws slowly, until

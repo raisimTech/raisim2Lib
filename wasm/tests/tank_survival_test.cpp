@@ -86,6 +86,15 @@ void qualityStepsDownWhileFramesAreSlow() {
   check(quality == 3, "a quality the player chose is kept");
 }
 
+void windArrowTurnsWithTheCamera() {
+  // Looking along +x (heading 0), a wind blowing along +x points up on the radar and one along +y to the left.
+  const glm::vec2 ahead = tank::radarDirection(0.0, tank::Vec3(5, 0, 0)), left = tank::radarDirection(0.0, tank::Vec3(0, 5, 0));
+  check(std::abs(ahead.x) < 1e-5f && ahead.y < -4.99f, "a wind along the view points up");
+  check(left.x < -4.99f && std::abs(left.y) < 1e-5f, "a wind from the right points left");
+  const glm::vec2 turned = tank::radarDirection(0.5 * tank::kPi, tank::Vec3(0, 5, 0));
+  check(std::abs(turned.x) < 1e-5f && turned.y < -4.99f, "turning the camera turns the arrow with it");
+}
+
 void riverBanksCanBeClimbed() {
   // Across each river, from its middle to beyond the banks, the ground rises no steeper than the banks of
   // the rivers tanks are seen to drive out of (a tank in the town's steep canal could not).
@@ -109,6 +118,7 @@ int main() {
   burstsOfHitsGatherPerVehicle();
   qualityStepsDownWhileFramesAreSlow();
   riverBanksCanBeClimbed();
+  windArrowTurnsWithTheCamera();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;
 }
