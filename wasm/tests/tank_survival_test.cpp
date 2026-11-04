@@ -53,11 +53,45 @@ void burstsOfHitsGatherPerVehicle() {
   check(notes.size() == 6 && notes[4].damage == 4.0, "a vehicle made at the address of one that is gone starts a new note");
 }
 
+void qualityStepsDownWhileFramesAreSlow() {
+  tank::QualityTuner tuner;
+  int quality = 2, frames = 0;
+  while (quality == 2 && frames < 1000) {
+    quality = tuner.update(quality, 0.05);
+    ++frames;
+  }
+  check(quality == 1 && frames == 90, "slow frames lower the quality once the load has settled and 30 are timed");
+  while (quality > 0 && frames < 1000) {
+    quality = tuner.update(quality, 0.05);
+    ++frames;
+  }
+  check(quality == 0 && tuner.update(quality, 0.05) == 0, "the quality stops at Fast");
+
+  tank::QualityTuner fast;
+  quality = 2;
+  for (int i = 0; i < 200; ++i) quality = fast.update(quality, i % 4 == 0 ? 0.2 : 0.016);
+  check(quality == 2 && !fast.active, "a few slow frames among fast ones keep the quality and end the tuning");
+
+  tank::QualityTuner interrupted;
+  quality = 2;
+  for (int i = 0; i < 89; ++i) quality = interrupted.update(quality, 0.05);
+  interrupted.restart();
+  quality = interrupted.update(quality, 0.05);
+  check(quality == 2 && interrupted.frames.empty(), "frames timed before other frames are not counted after them");
+
+  tank::QualityTuner chosen;
+  chosen.active = false;
+  quality = 3;
+  for (int i = 0; i < 200; ++i) quality = chosen.update(quality, 0.05);
+  check(quality == 3, "a quality the player chose is kept");
+}
+
 }  // namespace
 
 int main() {
   arrowsPointAtEnemiesOutOfView();
   burstsOfHitsGatherPerVehicle();
+  qualityStepsDownWhileFramesAreSlow();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;
 }

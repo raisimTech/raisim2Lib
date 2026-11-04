@@ -32,6 +32,7 @@ struct Options {
   int level = 0;
   bool autopilot = false;
   int quality = int(raisin::RenderQualityPreset::High);
+  bool qualityGiven = false;
   unsigned seed = 0;
   // A fixed camera for screenshots: its position and the point it looks at.
   std::optional<std::array<float, 6>> view;
@@ -112,7 +113,10 @@ int run(int argc, char* argv[]) {
     if (option == "--frames" && i + 1 < argc) options.frames = std::stoi(argv[++i]);
     else if (option == "--level" && i + 1 < argc) options.level = std::clamp(std::stoi(argv[++i]) - 1, 0, int(levels().size()) - 1);
     else if (option == "--autopilot") options.autopilot = true;
-    else if (option == "--quality" && i + 1 < argc) options.quality = std::clamp(std::stoi(argv[++i]), 0, 3);
+    else if (option == "--quality" && i + 1 < argc) {
+      options.quality = std::clamp(std::stoi(argv[++i]), 0, 3);
+      options.qualityGiven = true;
+    }
     else if (option == "--seed" && i + 1 < argc) options.seed = unsigned(std::stoul(argv[++i]));
     else if (option == "--screenshot" && i + 1 < argc) options.screenshot = argv[++i];
     else if (option == "--view" && i + 6 < argc) {
@@ -230,6 +234,9 @@ int run(int argc, char* argv[]) {
       camera.pitch = pitch;
     };
     bool warmUpPending = playing;
+    QualityTuner tuner;
+    tuner.active = !playing && !options.qualityGiven;
+    std::string qualityNote;
 
     while (!app.quit) {
       app.processEvents();
@@ -315,7 +322,7 @@ int run(int argc, char* argv[]) {
       }
 
       if (!halted) {
-        const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 12);
+        const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 20);
         const auto physicsStart = Clock::now();
         for (int i = 0; i < steps; ++i) game.step();
         physicsTime += seconds(physicsStart);
@@ -372,12 +379,23 @@ int run(int argc, char* argv[]) {
         text(draw, fonts.text, 17.0f, at, IM_COL32(230, 220, 190, 230), "Loading models: " + std::to_string(pending) + " left");
       }
       MenuResult choice;
+      if (scripted || helpOpen || game.phase() != Phase::Menu || viewer.pendingAsyncMeshLoadCount() > 0) tuner.restart();
       if (!scripted) {
         if (helpOpen) {
           if (drawHelp(screen, fonts)) helpOpen = false;
         } else if (game.phase() == Phase::Menu) {
           const int before = quality;
-          choice = drawMainMenu(screen, fonts, best, quality);
+          choice = drawMainMenu(screen, fonts, best, quality, qualityNote.empty() ? nullptr : qualityNote.c_str());
+          if (choice.qualityPicked) {
+            tuner.active = false;
+            qualityNote.clear();
+          } else if (viewer.pendingAsyncMeshLoadCount() == 0) {
+            quality = tuner.update(quality, frameTime);
+            if (quality != before) {
+              const char* names[] = {"Fast", "Balanced", "High", "Ultra"};
+              qualityNote = std::string("Render quality lowered to ") + names[quality] + " for a smoother game";
+            }
+          }
           if (quality != before) game.load(game.level(), false, quality);
         } else if (paused) {
           choice = drawPauseMenu(screen, fonts);

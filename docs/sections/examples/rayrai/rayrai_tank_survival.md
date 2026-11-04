@@ -50,6 +50,10 @@ The **How to play** button (or `H`) opens the controls; they come up before the 
 the edge of the screen point to enemies out of view. Tanks flatten the small trees of the arena, and
 shells and blasts fell them.
 
+On a slow computer the main menu lowers the render quality while the level behind it draws slowly, until
+it runs smoothly (the game itself slows down below 25 frames a second); a quality picked in the menu, or
+given with `--quality`, is kept.
+
 ## Run
 
 The game is in [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm). On the desktop it

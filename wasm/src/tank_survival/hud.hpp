@@ -376,6 +376,8 @@ enum class Choice { None, Play, Resume, Retry, Next, Menu, Help };
 struct MenuResult {
   Choice choice = Choice::None;
   int level = 0;
+  // The player picked a render quality, maybe the one already set.
+  bool qualityPicked = false;
 };
 
 inline void beginPanel(const char* id, const Screen& screen, ImVec2 size) {
@@ -402,7 +404,40 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
   ImGui::Dummy(ImVec2(width, 54));
 }
 
-inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality) {
+// Lowers the render quality while the menu's backdrop draws slowly, until the player picks one: once a load
+// has settled, the median of 30 frames longer than 1/30 s steps the quality down, at most to Fast. Below 25
+// frames a second the game slows down, as a frame's physics steps stop keeping up with the clock.
+struct QualityTuner {
+  bool active = true;
+  int settle = 60;
+  std::vector<double> frames;
+
+  // The quality to draw with after a frame of frameSeconds at quality.
+  int update(int quality, double frameSeconds) {
+    if (!active || quality <= 0) return quality;
+    if (settle > 0) {
+      --settle;
+      return quality;
+    }
+    frames.push_back(frameSeconds);
+    if (frames.size() < 30) return quality;
+    std::nth_element(frames.begin(), frames.begin() + 15, frames.end());
+    const bool slow = frames[15] > 1.0 / 30.0;
+    frames.clear();
+    settle = 60;
+    active = slow;
+    return slow ? quality - 1 : quality;
+  }
+
+  // Starts timing anew once the next frames settle, after frames that are not the menu's.
+  void restart() {
+    frames.clear();
+    settle = 60;
+  }
+};
+
+inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality,
+                               const char* note = nullptr) {
   MenuResult result;
   beginPanel("Main menu", screen, ImVec2(620, 640));
   title(fonts, "RAISIM TANK SURVIVAL", IM_COL32(255, 210, 120, 255));
@@ -425,9 +460,10 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
   ImGui::Spacing();
   const char* qualities[] = {"Fast", "Balanced", "High", "Ultra"};
   ImGui::SetNextItemWidth(200);
-  ImGui::Combo("Render quality", &quality, qualities, 4);
+  result.qualityPicked = ImGui::Combo("Render quality", &quality, qualities, 4);
   ImGui::SameLine(0, 24);
   if (ImGui::Button("How to play", ImVec2(150, 0))) result.choice = Choice::Help;
+  if (note) ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.5f, 1.0f), "%s", note);
   ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
   ImGui::TextWrapped("Vehicles by MirzaArrafiERV_45, 42manako and KojfDiscord (Sketchfab, CC BY 4.0); props, plants and "
                      "textures from Poly Haven (CC0).");
