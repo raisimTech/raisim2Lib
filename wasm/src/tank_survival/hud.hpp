@@ -69,7 +69,99 @@ inline std::string clock(double seconds) {
   return line;
 }
 
-inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help) {
+// A horizontal circle around center, seen in perspective.
+inline void groundRing(ImDrawList* draw, const Screen& screen, const Vec3& center, double radius, ImU32 color, float thickness) {
+  std::array<ImVec2, 33> points;
+  for (int i = 0; i <= 32; ++i) {
+    const double a = 2.0 * kPi * i / 32;
+    if (!screen.project(center + radius * Vec3(std::cos(a), std::sin(a), 0.0), points[size_t(i)])) return;
+  }
+  draw->AddPolyline(points.data(), int(points.size()), color, ImDrawFlags_None, thickness);
+}
+
+// The aiming guide. The sight marks the point the cursor rests on in the world, or brackets the enemy it
+// locked on; a dotted arc shows the flight of a round fired now, from the muzzle as it points at this
+// moment (the turret takes a moment to follow the cursor), to the ring where it would strike: red when it
+// would hit a vehicle.
+inline void drawAimGuide(ImDrawList* draw, Game& game, const Screen& screen, const Fonts& fonts, const Tank* locked) {
+  const Tank* hero = game.player();
+  if (!hero) return;
+  if (locked && locked->system) {
+    const Eigen::Matrix3d R = locked->hullRotation();
+    const VehicleModel& m = locked->model;
+    ImVec2 low(1e9f, 1e9f), high(-1e9f, -1e9f);
+    for (int corner = 0; corner < 8; ++corner) {
+      const Vec3 local((corner & 1 ? m.hullMax : m.hullMin).x(), (corner & 2 ? m.hullMax : m.hullMin).y(),
+                       (corner & 4 ? m.turretMax : m.hullMin).z());
+      ImVec2 at;
+      if (!screen.project(locked->position() + R * local, at)) return;
+      low = ImVec2(std::min(low.x, at.x), std::min(low.y, at.y));
+      high = ImVec2(std::max(high.x, at.x), std::max(high.y, at.y));
+    }
+    const ImU32 color = IM_COL32(255, 80, 60, 230);
+    const float arm = std::max(8.0f, 0.25f * std::min(high.x - low.x, high.y - low.y));
+    for (const auto& [cx, cy, sx, sy] : {std::array<float, 4>{low.x, low.y, 1, 1}, std::array<float, 4>{high.x, low.y, -1, 1},
+                                         std::array<float, 4>{low.x, high.y, 1, -1}, std::array<float, 4>{high.x, high.y, -1, -1}}) {
+      draw->AddLine(ImVec2(cx, cy), ImVec2(cx + sx * arm, cy), color, 2.5f);
+      draw->AddLine(ImVec2(cx, cy), ImVec2(cx, cy + sy * arm), color, 2.5f);
+    }
+    text(draw, fonts.text, 13.0f, ImVec2(0.5f * (low.x + high.x), low.y - 18.0f), color, "LOCKED", 0.5f);
+  } else {
+    const Vec3 at = game.aim();
+    groundRing(draw, screen, Vec3(at.x(), at.y(), game.height(at.x(), at.y()) + 0.08), 0.9, IM_COL32(255, 255, 255, 150), 2.0f);
+  }
+  const WeaponId id = game.selected();
+  if (id == WeaponId::Missile || id == WeaponId::Artillery) {
+    const Vec3 at = game.aim();
+    groundRing(draw, screen, Vec3(at.x(), at.y(), game.height(at.x(), at.y()) + 0.08), id == WeaponId::Artillery ? 7.0 : 1.6,
+               rgba(weapon(id).color, 0.8f), 2.5f);
+    return;
+  }
+  const WeaponSpec& round = weapon(id);
+  Vec3 position, direction;
+  Game::roundOrigin(*hero, id, position, direction);
+  Vec3 velocity = direction * round.speed;
+  const Vec3 wind = game.levelSpec().wind;
+  const double drag = 0.5 * 1.2 * round.dragCoefficient * kPi * round.radius * round.radius / round.mass;
+  const ImU32 dots = rgba(round.color, 0.9f), outline = IM_COL32(0, 0, 0, 120);
+  double travelled = 0.0;
+  for (int i = 0; i < 120 && travelled < 320.0; ++i) {
+    const double dt = 5.0 / std::max(velocity.norm(), 1.0);
+    const Vec3 relative = velocity - wind;
+    velocity += dt * (Vec3(0.0, 0.0, -kGravity) - drag * relative.norm() * relative);
+    const Vec3 next = position + dt * velocity, step = next - position;
+    const double length = step.norm();
+    Vec3 struck;
+    bool vehicle = false;
+    if (game.sweep(position, step / length, length, struck, vehicle)) {
+      groundRing(draw, screen, struck + Vec3(0.0, 0.0, 0.08), 1.3, vehicle ? IM_COL32(255, 70, 50, 240) : IM_COL32(255, 190, 90, 230), 3.0f);
+      return;
+    }
+    ImVec2 at;
+    if (i > 0 && screen.project(next, at)) {
+      draw->AddCircleFilled(at, 3.6f, outline, 10);
+      draw->AddCircleFilled(at, 2.6f, dots, 10);
+    }
+    position = next;
+    travelled += length;
+  }
+}
+
+// A button under the status panel that opens the help.
+inline bool drawHelpButton(const Screen& screen) {
+  ImGui::SetNextWindowPos(ImVec2(screen.origin.x + 10, screen.origin.y + 176));
+  ImGui::SetNextWindowBgAlpha(0.0f);
+  ImGui::Begin("Help button", nullptr,
+               ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing);
+  const bool pressed = ImGui::Button("?  How to play  (H)", ImVec2(196, 32));
+  ImGui::End();
+  return pressed;
+}
+
+// While a panel (help or pause) is open, the sight, the notices and the hints stay off it.
+inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help, const Tank* locked,
+                    bool panel) {
   ImDrawList* draw = ImGui::GetForegroundDrawList();
   ImFont* font = fonts.text;
   const ImVec2 o = screen.origin, s = screen.size;
@@ -181,6 +273,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
 
   float noteY = o.y + s.y * 0.2f;
   for (const auto& note : game.notices()) {
+    if (panel) break;
     const double age = t - note.time;
     if (age > 3.0) continue;
     const bool big = note.text.rfind("WAVE", 0) == 0 || note.text.find(" - ") != std::string::npos;
@@ -217,7 +310,8 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
 
   const ImVec2 mouse = ImGui::GetIO().MousePos;
-  if (game.phase() == Phase::Playing && mouse.x > o.x && mouse.y > o.y && mouse.x < o.x + s.x && mouse.y < o.y + s.y) {
+  if (game.phase() == Phase::Playing && !panel) drawAimGuide(draw, game, screen, fonts, locked);
+  if (game.phase() == Phase::Playing && !panel && mouse.x > o.x && mouse.y > o.y && mouse.x < o.x + s.x && mouse.y < o.y + s.y) {
     const double readiness = game.ready(game.selected());
     const ImU32 color = readiness >= 1.0 ? IM_COL32(255, 255, 255, 230) : IM_COL32(255, 160, 80, 230);
     draw->AddCircle(mouse, 14.0f, color, 32, 2.0f);
@@ -234,9 +328,9 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
         draw->AddLine(ImVec2(mouse.x + 18 * dx, mouse.y + 18 * dy), ImVec2(mouse.x + 28 * dx, mouse.y + 28 * dy), hit, 3.0f);
     }
   }
-  if (help) {
-    const char* rows[] = {"W/S drive   A/D turn   mouse aims", "Click/Space fire   1-5 or Q/E weapon",
-                          "F smoke screen   wheel zoom", "Hit tanks from the side or rear", "Esc/P pause   R restart"};
+  if (help && !panel) {
+    const char* rows[] = {"W/S drive   A/D turn", "Point at a target: the gun sets its own elevation", "Click/Space fire   1-5 or Q/E weapon",
+                          "Hit tanks from the side or rear", "H how to play   Esc/P pause"};
     float hy = o.y + s.y - 24.0f * 5 - 104.0f;
     for (const char* row : rows) {
       text(draw, font, 16.0f, ImVec2(o.x + 20, hy), IM_COL32(230, 230, 230, 210), row);
@@ -245,7 +339,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
 }
 
-enum class Choice { None, Play, Resume, Retry, Next, Menu };
+enum class Choice { None, Play, Resume, Retry, Next, Menu, Help };
 
 struct MenuResult {
   Choice choice = Choice::None;
@@ -298,7 +392,8 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
   const char* qualities[] = {"Fast", "Balanced", "High", "Ultra"};
   ImGui::SetNextItemWidth(200);
   ImGui::Combo("Render quality", &quality, qualities, 4);
-  ImGui::TextDisabled("W/S A/D drive, mouse aims, click fires, 1-5 weapons, F smoke");
+  ImGui::SameLine(0, 24);
+  if (ImGui::Button("How to play", ImVec2(150, 0))) result.choice = Choice::Help;
   ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
   ImGui::TextWrapped("Vehicles by MirzaArrafiERV_45, 42manako and KojfDiscord (Sketchfab, CC BY 4.0); props, plants and "
                      "textures from Poly Haven (CC0).");
@@ -309,13 +404,64 @@ inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const s
 
 inline MenuResult drawPauseMenu(const Screen& screen, const Fonts& fonts) {
   MenuResult result;
-  beginPanel("Paused", screen, ImVec2(360, 270));
+  beginPanel("Paused", screen, ImVec2(360, 322));
   title(fonts, "PAUSED", IM_COL32(255, 255, 255, 255));
   if (ImGui::Button("Resume", ImVec2(-1, 44))) result.choice = Choice::Resume;
+  if (ImGui::Button("How to play", ImVec2(-1, 44))) result.choice = Choice::Help;
   if (ImGui::Button("Restart mission", ImVec2(-1, 44))) result.choice = Choice::Retry;
   if (ImGui::Button("Main menu", ImVec2(-1, 44))) result.choice = Choice::Menu;
   endPanel();
   return result;
+}
+
+// How to play: the controls, how aiming works and a few tips. Returns true when closed.
+inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
+  beginPanel("How to play", screen, ImVec2(std::min(760.0f, screen.size.x - 40.0f), std::min(700.0f, screen.size.y - 40.0f)));
+  title(fonts, "HOW TO PLAY", IM_COL32(255, 210, 120, 255));
+  const auto section = [](const char* name) {
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 210, 120, 255));
+    ImGui::TextUnformatted(name);
+    ImGui::PopStyleColor();
+    ImGui::Separator();
+  };
+  const auto row = [](const char* keys, const char* what) {
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 220, 255, 255));
+    ImGui::TextUnformatted(keys);
+    ImGui::PopStyleColor();
+    ImGui::SameLine(190);
+    ImGui::TextWrapped("%s", what);
+  };
+  ImGui::BeginChild("help text", ImVec2(0, -54));
+  ImGui::TextWrapped("Destroy every enemy vehicle, wave after wave, and keep your tank alive.");
+  section("DRIVE");
+  row("W / S  (or arrows)", "Drive forward and back.");
+  row("A / D", "Turn the hull. The turret turns on its own toward the cursor.");
+  row("", "Your tank flattens small trees, so you can drive through the woods.");
+  section("AIM AND FIRE");
+  row("Mouse", "Point at what you want to hit: an enemy, the ground or a wall. You never aim up or down yourself: "
+               "the gun raises itself for the distance to the point under the cursor.");
+  row("", "Near an enemy the sight locks on it (red brackets) and leads it as it moves.");
+  row("", "The dotted arc shows where a round fired now would fly; the ring at its end is where it strikes, red "
+          "when it would hit a vehicle. The turret needs a moment to swing round: wait for the arc to reach the target.");
+  row("Left click / Space", "Fire. The ring around the cursor fills while the gun reloads.");
+  row("1 - 5,  Q / E", "Choose a weapon: armor-piercing (AP), high explosive (HE), machine gun (MG), guided "
+                      "missile, artillery strike (lands on the cursor after a delay).");
+  section("CAMERA AND MORE");
+  row("Mouse wheel", "Zoom in and out.");
+  row("Right drag", "Look around the tank.");
+  row("F", "Smoke screen: enemies cannot see through it.");
+  row("Esc / P", "Pause.          R  Restart the mission.          H  This help.");
+  section("TIPS");
+  ImGui::BulletText("Armor is thickest in front: hit enemies in the side or rear. Markers above them show their type.");
+  ImGui::BulletText("HE wrecks light vehicles and knocks down trees and crates; AP pierces heavy armor.");
+  ImGui::BulletText("Drive over glowing supply drops for ammunition, repairs and power-ups.");
+  ImGui::BulletText("Keep moving: artillery shells land where you were.");
+  ImGui::EndChild();
+  const bool close = ImGui::Button("Got it", ImVec2(-1, 44)) || ImGui::IsKeyPressed(ImGuiKey_Escape, false) ||
+                     ImGui::IsKeyPressed(ImGuiKey_Enter, false);
+  endPanel();
+  return close;
 }
 
 inline MenuResult drawResult(const Screen& screen, const Fonts& fonts, const Game& game) {

@@ -95,7 +95,7 @@ bool autopilot(Game& game, Tank& hero, double& throttle, double& turn) {
     const double flight = (target->position() - at).norm() / speed;
     const Vec3 lead = target->position() + target->velocity() * flight + Vec3(0, 0, 0.6 * target->scale());
     game.setAim(lead);
-    const double error = hero.aimAt(lead, speed);
+    const double error = hero.aimAt(lead, speed, true);
     trigger = (target->position() - at).norm() > 9.0 && error < (choice == WeaponId::MG ? 0.06 : 0.02);
     if (game.playerHealth() < 120.0 && game.smokeCharges() > 0) game.smoke();
   }
@@ -175,7 +175,8 @@ int run(int argc, char* argv[]) {
     game.load(options.level, playing, quality, [&](double fraction, const char* what) { showLoading(0.2 + 0.6 * fraction, what); });
     showLoading(0.85, "Compiling shaders (faster on your next visit)");
     std::vector<int> best(levels().size(), 0);
-    bool paused = false, help = true;
+    bool paused = false, help = true, helpOpen = false, helpShown = false;
+    const Tank* locked = nullptr;
     std::mt19937 shakeNoise(1);
     auto last = std::chrono::steady_clock::now();
     int frame = 0;
@@ -201,12 +202,17 @@ int run(int argc, char* argv[]) {
       screen.viewProjection = camera.getProjectionMatrix() * camera.getViewMatrix();
       screen.inverse = glm::inverse(screen.viewProjection);
 
-      const bool live = game.phase() == Phase::Playing && !paused;
+      if (!scripted && game.phase() == Phase::Playing) {
+        if (!helpOpen && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_P, false)))
+          paused = !paused;
+        else if (!paused && ImGui::IsKeyPressed(ImGuiKey_H, false))
+          helpOpen = !helpOpen;
+      }
+      const bool halted = paused || helpOpen;
+      const bool live = game.phase() == Phase::Playing && !halted;
       double throttle = 0.0, turn = 0.0;
       bool trigger = false;
       if (!scripted) {
-        if (game.phase() == Phase::Playing && (ImGui::IsKeyPressed(ImGuiKey_Escape, false) || ImGui::IsKeyPressed(ImGuiKey_P, false)))
-          paused = !paused;
         if (live) {
           const Uint8* keys = SDL_GetKeyboardState(nullptr);
           throttle = (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP] ? 1.0 : 0.0) - (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN] ? 1.0 : 0.0);
@@ -217,7 +223,6 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
           if (ImGui::IsKeyPressed(ImGuiKey_E, false)) game.cycle(1);
           if (ImGui::IsKeyPressed(ImGuiKey_F, false)) game.smoke();
-          if (ImGui::IsKeyPressed(ImGuiKey_H, false)) help = !help;
           if (ImGui::IsKeyPressed(ImGuiKey_R, false)) game.load(game.level(), true, quality);
           if (throttle != 0.0 || turn != 0.0) help = help && game.elapsed() < 25.0;
         }
@@ -227,21 +232,39 @@ int run(int argc, char* argv[]) {
         }
       }
 
-      if (Tank* hero = game.player(); hero && !paused) {
+      locked = nullptr;
+      if (Tank* hero = game.player(); hero && !halted) {
         if (options.autopilot) {
           trigger = autopilot(game, *hero, throttle, turn);
         } else if (viewport.hovered) {
           const Vec3 eye(camera.position.x, camera.position.y, camera.position.z);
-          const Vec3 aim = game.groundHit(eye, screen.ray(io.MousePos, camera.position));
-          game.setAim(aim + Vec3(0, 0, 0.4));
           const WeaponId selected = game.selected();
-          hero->aimAt(aim + Vec3(0, 0, 0.4), weapon(selected == WeaponId::HE ? WeaponId::HE : WeaponId::AP).speed);
+          const bool gunRound = selected == WeaponId::AP || selected == WeaponId::HE || selected == WeaponId::MG;
+          const double shellSpeed = weapon(gunRound ? selected : WeaponId::AP).speed;
+          Vec3 aim = game.groundHit(eye, screen.ray(io.MousePos, camera.position)) + Vec3(0, 0, 0.4);
+          // The sight locks on the enemy nearest the cursor within reach of it, and leads it.
+          float nearest = 56.0f;
+          for (const auto& enemy : game.enemies()) {
+            ImVec2 at;
+            if (!enemy->alive() || !screen.project(enemy->position() + Vec3(0, 0, 0.6 * enemy->scale()), at)) continue;
+            const float d = std::hypot(at.x - io.MousePos.x, at.y - io.MousePos.y);
+            if (d < nearest) {
+              nearest = d;
+              locked = enemy.get();
+            }
+          }
+          if (locked) {
+            const Vec3 center = locked->position() + Vec3(0, 0, 0.6 * locked->scale());
+            aim = center + locked->velocity() * ((center - hero->position()).norm() / shellSpeed);
+          }
+          game.setAim(aim);
+          hero->aimAt(aim, shellSpeed, true);
         }
         hero->command(throttle, turn, game.overdrive(), game.now());
         if (trigger) game.fire();
       }
 
-      if (!paused) {
+      if (!halted) {
         const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 12);
         const auto physicsStart = Clock::now();
         for (int i = 0; i < steps; ++i) game.step();
@@ -289,7 +312,10 @@ int run(int argc, char* argv[]) {
 
       app.endViewport(viewer, viewport, false, false);
       ImGui::PushFont(fonts.text);
-      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot);
+      if (locked && std::none_of(game.enemies().begin(), game.enemies().end(), [&](const auto& enemy) { return enemy.get() == locked; }))
+        locked = nullptr;
+      if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot, locked, halted);
+      if (!scripted && game.phase() == Phase::Playing && !halted && drawHelpButton(screen)) helpOpen = true;
       if (const size_t pending = viewer.pendingAsyncMeshLoadCount(); pending > 0) {
         ImDrawList* draw = ImGui::GetForegroundDrawList();
         const ImVec2 at(viewport.origin.x + 18.0f, viewport.origin.y + viewport.size.y - 34.0f);
@@ -297,7 +323,9 @@ int run(int argc, char* argv[]) {
       }
       MenuResult choice;
       if (!scripted) {
-        if (game.phase() == Phase::Menu) {
+        if (helpOpen) {
+          if (drawHelp(screen, fonts)) helpOpen = false;
+        } else if (game.phase() == Phase::Menu) {
           const int before = quality;
           choice = drawMainMenu(screen, fonts, best, quality);
           if (quality != before) game.load(game.level(), false, quality);
@@ -316,6 +344,13 @@ int run(int argc, char* argv[]) {
           game.load(choice.level, true, quality);
           paused = false;
           endedFor = 0.0;
+          // Before the first mission, the help comes up with the game held still.
+          helpOpen = !helpShown;
+          helpShown = true;
+          break;
+        case Choice::Help:
+          helpOpen = true;
+          helpShown = true;
           break;
         case Choice::Retry:
           game.load(game.level(), true, quality);
@@ -350,9 +385,9 @@ int run(int argc, char* argv[]) {
       if (scripted && frame >= options.frames) {
         const Stats& stats = game.stats();
         std::printf("tank_survival level=%d phase=%d frames=%d time=%.2f wave=%d kills=%d score=%d armor=%.0f shots=%d "
-                    "hits=%d penetrations=%d\n",
+                    "hits=%d penetrations=%d trees_felled=%zu\n",
                     game.level() + 1, int(game.phase()), frame, game.elapsed(), game.wave(), stats.kills, game.score(),
-                    game.playerHealth(), stats.shots, stats.hits, stats.penetrations);
+                    game.playerHealth(), stats.shots, stats.hits, stats.penetrations, game.treesFelled());
         std::printf("tank_survival timing: physics %.3f ms/frame (%.1f us/step), game %.3f ms/frame, render %.3f ms/frame\n",
                     1e3 * physicsTime / frame, 1e6 * physicsTime / std::max(1, physicsSteps), 1e3 * gameTime / frame,
                     1e3 * renderTime / frame);

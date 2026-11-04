@@ -164,6 +164,37 @@ class Game {
   const Tank* playerTank() const { return player_.get(); }
 
   void updateScenery(const glm::vec3& camera) { scenery_.updateGrass(camera); }
+  size_t treesFelled() const { return scenery_.treesFelled(); }
+
+  // Where a round of the weapon leaves the tank, and its direction: the machine gun sits beside the cannon.
+  static void roundOrigin(const Tank& shooter, WeaponId id, Vec3& position, Vec3& direction) {
+    shooter.muzzle(position, direction);
+    if (id == WeaponId::MG) {
+      const Vec3 side = direction.cross(Vec3::UnitZ()).normalized();
+      position += -direction * (0.7 * shooter.muzzleLength()) + side * (0.35 * shooter.scale());
+    }
+  }
+
+  // The first thing a round flying straight from origin along direction meets within length, as the
+  // world's projectiles do (the player's own tank aside): the point, and whether it is a vehicle.
+  bool sweep(const Vec3& origin, const Vec3& direction, double length, Vec3& point, bool& vehicle) {
+    Vec3 from = origin;
+    for (int attempt = 0; attempt < 4 && length > 0.0; ++attempt) {
+      const auto& hits = world_->rayTest(from, direction, length);
+      if (hits.size() == 0) return false;
+      const Vec3 at = hits[0].getPosition();
+      if (player_ && player_->system && hits[0].getObject() == player_->system) {
+        const double skip = (at - from).norm() + 0.05;
+        from += skip * direction;
+        length -= skip;
+        continue;
+      }
+      point = at;
+      vehicle = hits[0].getObject() && tankAt(hits[0].getObject()->getIndexInWorld()) != nullptr;
+      return true;
+    }
+    return false;
+  }
 
   double height(double x, double y) const {
     if (terrain_ && std::abs(x) < 0.5 * kExtent && std::abs(y) < 0.5 * kExtent) return terrain_->getHeight(x, y);
@@ -271,6 +302,7 @@ class Game {
                  hit.position.e(), -hit.velocity.e());
       for (auto& barrel : barrels_)
         if (barrel.body && barrel.fuse < 0 && barrel.body->getIndexInWorld() == hit.objectIndex) barrel.fuse = hit.time + 0.05;
+      if (shell && shell->weapon != WeaponId::MG) scenery_.shootTree(hit.objectIndex, hit.velocity.e());
     }
     for (const auto& explosion : world_->getExplosions()) {
       if (explosion.id < nextExplosion_) continue;
@@ -293,7 +325,13 @@ class Game {
         const double distance = (barrel.body->getPosition() - explosion.position.e()).norm();
         if (raisim::blast::wave(distance, charge).overpressure > 1.4e5) barrel.fuse = t + uniform(random_, 0.08, 0.35);
       }
+      scenery_.blastTrees(explosion.position.e(), 2.5 * std::cbrt(charge));
     }
+    scenery_.fellMarkedTrees(*world_, t);
+    for (Tank* tank : tanks())
+      if (tank->alive())
+        scenery_.crushTrees(*world_, tank->position(), tank->hullRotation(), tank->model.hullMin, tank->model.hullMax,
+                            tank->velocity(), t);
     for (auto& barrel : barrels_) {
       if (!barrel.body || barrel.fuse < 0 || t < barrel.fuse) continue;
       const Vec3 where = barrel.body->getPosition();
@@ -349,6 +387,7 @@ class Game {
   void update(double frameTime) {
     const double t = now();
     viewer_.advanceWaterTime(frameTime);
+    scenery_.animateTrees(t);
     std::erase_if(enemies_, [](const std::unique_ptr<Tank>& tank) { return !tank->system; });
     for (auto& wreck : wrecks_) {
       for (size_t i = 0; i < wreck.parts.size(); ++i) {
@@ -472,6 +511,7 @@ class Game {
     for (const auto& name : visuals_) viewer_.removeVisualObject(name);
     visuals_.clear();
     terrainVisuals_.clear(viewer_);
+    scenery_.removeTreeColliders(*world_);
     scenery_.clear(viewer_);
     viewer_.removeWaterBody("river");
     world_->clearFluids();
@@ -995,11 +1035,7 @@ class Game {
   void launchShell(Tank& shooter, WeaponId id, bool fromPlayer, double power, double spread) {
     const WeaponSpec& round = weapon(id);
     Vec3 position, direction;
-    shooter.muzzle(position, direction);
-    if (id == WeaponId::MG) {
-      const Vec3 side = direction.cross(Vec3::UnitZ()).normalized();
-      position += -direction * (0.7 * shooter.muzzleLength()) + side * (0.35 * shooter.scale());
-    }
+    roundOrigin(shooter, id, position, direction);
     if (spread > 0.0) {
       std::normal_distribution<double> noise(0.0, spread);
       direction = (direction + Vec3(noise(random_), noise(random_), 0.5 * noise(random_))).normalized();

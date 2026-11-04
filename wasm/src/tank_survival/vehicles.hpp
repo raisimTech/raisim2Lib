@@ -194,6 +194,9 @@ struct Tank {
     hullBody = system->getBodyIdx("hull");
     turretBody = system->getBodyIdx("turret_link");
     gunBody = system->getBodyIdx("gun_link");
+    // The turret and gun swing through trees instead of jamming against them.
+    for (auto& body : system->getCollisionBodies())
+      if (body.localIdx == turretBody || body.localIdx == gunBody) body.setCollisionMask(~kTreeCollisionGroup);
     Eigen::VectorXd gc = Eigen::VectorXd::Zero(system->getGeneralizedCoordinateDim());
     gc.head<3>() = position;
     gc[3] = std::cos(0.5 * yaw);
@@ -257,20 +260,35 @@ struct Tank {
     return p.e() + Vec3(0, 0, 0.5 * (model.turretMax.z() - model.turretPivot.z()));
   }
 
+  Vec3 gunPivot() const {
+    raisim::Vec<3> p;
+    raisim::Mat<3, 3> R;
+    system->getLink("gun_link").getPose(p, R);
+    return p.e();
+  }
+
   double turretAngle() const { return system->getGeneralizedCoordinate()[turretCoordinate]; }
 
   // Points the gun at target for a shell of the given speed (on the flat arc) and returns the
-  // remaining aiming error (rad) of the turret, or of the hull for a fixed casemate.
-  double aimAt(const Vec3& target, double shellSpeed) {
-    const Vec3 offset = target - turretPivot();
+  // remaining aiming error (rad) of the turret, or of the hull for a fixed casemate. A stabilized gun
+  // (the player's) sets the direction in the hull's frame, where the turret turns about the hull's up
+  // axis and the gun about the turret's side axis: on a slope, or while the hull pitches, it still
+  // points where the shell must go. The enemies' guns take bearing and elevation as if the hull were
+  // level.
+  double aimAt(const Vec3& target, double shellSpeed, bool stabilized = false) {
+    const Vec3 offset = target - (stabilized ? gunPivot() : turretPivot());
     const double distance = std::max(1.0, offset.head<2>().norm());
     const double v2 = shellSpeed * shellSpeed;
     const double root = v2 * v2 - kGravity * (kGravity * distance * distance + 2.0 * offset.z() * v2);
     const double elevation = root > 0.0 ? std::atan((v2 - std::sqrt(root)) / (kGravity * distance)) : 0.25 * kPi;
-    const double bearing = wrapAngle(std::atan2(offset.y(), offset.x()) - heading());
-    turretAim = spec->fixedTurret ? 0.0 : bearing;
-    gunAim = std::clamp(-elevation, -0.35, 0.15);
-    return std::abs(wrapAngle(bearing - (spec->fixedTurret ? 0.0 : turretAngle())));
+    const double bearing = std::atan2(offset.y(), offset.x());
+    const Vec3 direction(std::cos(elevation) * std::cos(bearing), std::cos(elevation) * std::sin(bearing), std::sin(elevation));
+    const Vec3 local = stabilized ? Vec3(hullRotation().transpose() * direction)
+                                  : Vec3(Eigen::AngleAxisd(-heading(), Vec3::UnitZ()) * direction);
+    const double azimuth = std::atan2(local.y(), local.x());
+    turretAim = spec->fixedTurret ? 0.0 : azimuth;
+    gunAim = std::clamp(-std::atan2(local.z(), local.head<2>().norm()), -0.35, 0.15);
+    return std::abs(wrapAngle(azimuth - (spec->fixedTurret ? 0.0 : turretAngle())));
   }
 
   // A tank that a blast left on its side or roof for a while is set back on its tracks, facing the way
