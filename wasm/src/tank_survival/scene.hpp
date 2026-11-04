@@ -39,6 +39,13 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   settings.directionalShadowCascadeCount = quality >= 2 ? 3 : 2;
   settings.directionalShadowCascadeMaxDistance = quality >= 2 ? 120.0f : 70.0f;
   if (quality >= 2) settings.highFidelityPbr = true;
+  // Fast shades its materials simply and without tone mapping, which this sun (in physical units, for the
+  // tone-mapped PBR path) washes out; it keeps the tone-mapped PBR path, with the lighter core shading.
+  if (quality == 0) {
+    settings.forceSimpleMaterialShading = false;
+    settings.pbrToneMapping = true;
+    settings.highFidelityPbr = false;
+  }
   viewer.setRenderQualitySettings(settings);
   Viewer::WeatherSettings weather;
   weather.enabled = true;
