@@ -41,7 +41,7 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 | `1`–`5`, `Q` / `E` | pick a weapon, cycle through them |
 | `F` | lay a smoke screen |
 | mouse wheel, right drag | zoom, turn the camera |
-| `P` or `Esc` / `R` / `H` | pause, restart, how to play |
+| `P` or `Esc` / hold `R` / `H` | pause, restart, how to play |
 
 Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to the
 point under the cursor, on slopes too. Near an enemy the sight locks on it (red brackets) and leads it.

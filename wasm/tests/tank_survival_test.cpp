@@ -95,6 +95,20 @@ void windArrowTurnsWithTheCamera() {
   check(std::abs(turned.x) < 1e-5f && turned.y < -4.99f, "turning the camera turns the arrow with it");
 }
 
+void restartNeedsAHeldKey() {
+  tank::HoldToConfirm key;
+  bool acted = false;
+  for (int i = 0; i < 6; ++i) acted = key.update(true, 0.1) || acted;
+  acted = key.update(false, 0.1) || acted;
+  check(!acted, "a tap on the key does nothing");
+  int times = 0;
+  for (int i = 0; i < 30; ++i) times += key.update(true, 0.1);
+  check(times == 1, "holding the key acts once, however long it is held");
+  key.update(false, 0.1);
+  for (int i = 0; i < 9; ++i) times += key.update(true, 0.1);
+  check(times == 2, "after the key is let go, holding it acts again");
+}
+
 void riverBanksCanBeClimbed() {
   // Across each river, from its middle to beyond the banks, the ground rises no steeper than the banks of
   // the rivers tanks are seen to drive out of (a tank in the town's steep canal could not).
@@ -119,6 +133,7 @@ int main() {
   qualityStepsDownWhileFramesAreSlow();
   riverBanksCanBeClimbed();
   windArrowTurnsWithTheCamera();
+  restartNeedsAHeldKey();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;
 }

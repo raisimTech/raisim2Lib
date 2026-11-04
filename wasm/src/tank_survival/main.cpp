@@ -234,6 +234,7 @@ int run(int argc, char* argv[]) {
       camera.pitch = pitch;
     };
     bool warmUpPending = playing;
+    HoldToConfirm restartKey;
     QualityTuner tuner;
     tuner.active = !playing && !options.qualityGiven;
     std::string qualityNote;
@@ -246,7 +247,10 @@ int run(int argc, char* argv[]) {
         warmUp();
       }
       const auto clockNow = std::chrono::steady_clock::now();
-      const double frameTime = scripted ? 1.0 / 60 : std::min(std::chrono::duration<double>(clockNow - last).count(), 1.0 / 15);
+      const double elapsedSinceLast = std::chrono::duration<double>(clockNow - last).count();
+      const double frameTime = scripted ? 1.0 / 60 : std::min(elapsedSinceLast, 1.0 / 15);
+      // Keys held to confirm count the time on the clock, a stall at most a quarter of a second.
+      const double holdTime = scripted ? frameTime : std::min(elapsedSinceLast, 0.25);
       last = clockNow;
 
       app.beginFrame();
@@ -267,6 +271,7 @@ int run(int argc, char* argv[]) {
       double throttle = 0.0, turn = 0.0;
       bool trigger = false;
       if (!scripted) {
+        if (!live) restartKey.update(false, holdTime);
         if (live) {
           const Uint8* keys = SDL_GetKeyboardState(nullptr);
           throttle = (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP] ? 1.0 : 0.0) - (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN] ? 1.0 : 0.0);
@@ -277,7 +282,8 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
           if (ImGui::IsKeyPressed(ImGuiKey_E, false)) game.cycle(1);
           if (ImGui::IsKeyPressed(ImGuiKey_F, false)) game.smoke();
-          if (ImGui::IsKeyPressed(ImGuiKey_R, false)) {
+          // Restarting takes a held R: E, the next weapon, is beside it.
+          if (restartKey.update(ImGui::IsKeyDown(ImGuiKey_R), holdTime)) {
             game.load(game.level(), true, quality);
             warmUpPending = true;
           }
@@ -373,6 +379,8 @@ int run(int argc, char* argv[]) {
         locked = nullptr;
       if (game.phase() != Phase::Menu) drawHud(game, screen, fonts, cameraHeading, help && !options.autopilot, locked, halted);
       if (!scripted && game.phase() == Phase::Playing && !halted && drawHelpButton(screen)) helpOpen = true;
+      if (!scripted && game.phase() == Phase::Playing && !halted && restartKey.fraction() > 0.0)
+        drawHold(screen, fonts, "Hold R to restart", restartKey.fraction());
       if (const size_t pending = viewer.pendingAsyncMeshLoadCount(); pending > 0) {
         ImDrawList* draw = ImGui::GetForegroundDrawList();
         const ImVec2 at(viewport.origin.x + 18.0f, viewport.origin.y + viewport.size.y - 34.0f);

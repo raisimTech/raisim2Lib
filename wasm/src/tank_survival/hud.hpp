@@ -418,6 +418,37 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
   ImGui::Dummy(ImVec2(width, 54));
 }
 
+// A key that acts once it has been held for a moment, so that a slip onto it does nothing; it acts again
+// only after it is let go.
+struct HoldToConfirm {
+  double seconds = 0.8, held = 0.0;
+  bool released = true;
+
+  // Whether the key, down (or not) for another dt seconds, has just been held long enough.
+  bool update(bool down, double dt) {
+    if (!down) {
+      held = 0.0;
+      released = true;
+      return false;
+    }
+    if (!released) return false;
+    held += dt;
+    if (held < seconds) return false;
+    held = 0.0;
+    released = false;
+    return true;
+  }
+  double fraction() const { return std::min(1.0, held / seconds); }
+};
+
+// The progress of a held key over the weapon bar, as it fills.
+inline void drawHold(const Screen& screen, const Fonts& fonts, const char* what, double fraction) {
+  ImDrawList* draw = ImGui::GetForegroundDrawList();
+  const ImVec2 at(screen.origin.x + 0.5f * screen.size.x, screen.origin.y + screen.size.y - 150.0f);
+  text(draw, fonts.text, 18.0f, ImVec2(at.x, at.y - 24.0f), IM_COL32(255, 230, 190, 240), what, 0.5f);
+  bar(draw, ImVec2(at.x - 90.0f, at.y), 180.0f, 6.0f, float(fraction), IM_COL32(255, 200, 120, 255));
+}
+
 // Lowers the render quality while the menu's backdrop draws slowly, until the player picks one: once a load
 // has settled, the median of 30 frames longer than 1/30 s steps the quality down, at most to Fast. Below 25
 // frames a second the game slows down, as a frame's physics steps stop keeping up with the clock.
@@ -543,7 +574,7 @@ inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
     row("Right drag", "Look around the tank.");
     row("F", "Smoke screen: enemies cannot see through it.");
     row("Esc / P", "Pause.");
-    row("R", "Restart the mission.");
+    row("R (hold)", "Restart the mission.");
     row("H", "This help.");
     section("TIPS");
     for (const char* tip : {"Armor is thickest in front: hit enemies in the side or rear.",
