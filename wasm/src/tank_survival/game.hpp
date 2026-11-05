@@ -406,7 +406,9 @@ class Game {
       const double charge = explosion.properties.chargeMass * (explosion.properties.surfaceBurst ? 1.8 : 1.0);
       if (explosion.properties.craterRadius > 0.0) {
         terrainVisuals_.dig(explosion.position[0], explosion.position[1], explosion.properties.craterRadius);
-        throwClods(explosion.position.e(), charge);
+        // A vehicle that blows up throws its own pieces, not the ground under it; clods piled on a wreck
+        // also kept the contact solver from converging.
+        if (!std::erase(vehicleBlasts_, explosion.id)) throwClods(explosion.position.e(), charge);
       }
       const Shell* shell = findShell(explosion.projectileId);
       const bool fromPlayer = !shell || shell->fromPlayer;
@@ -452,7 +454,7 @@ class Game {
       blast.chargeMass = pending_[i].charge;
       blast.craterRadius = 0.8;
       blast.craterDepth = 0.25;
-      world_->addExplosion(vec(pending_[i].position), blast);
+      vehicleBlasts_.push_back(world_->addExplosion(vec(pending_[i].position), blast));
       pending_.erase(pending_.begin() + long(i));
     }
     for (size_t i = 0; i < strikes_.size();) {
@@ -653,6 +655,7 @@ class Game {
     missiles_.clear();
     shells_.clear();
     pending_.clear();
+    vehicleBlasts_.clear();
     strikes_.clear();
     smoke_.clear();
     notices_.clear();
@@ -1496,7 +1499,7 @@ class Game {
     blast.chargeMass = 4.0 * s;
     blast.craterRadius = 1.5 * s;
     blast.craterDepth = 0.5;
-    world_->addExplosion(vec(position + Vec3(0, 0, 0.8 * s)), blast);
+    vehicleBlasts_.push_back(world_->addExplosion(vec(position + Vec3(0, 0, 0.8 * s)), blast));
     for (double delay : {0.3, 0.7, 1.1, 1.6, 2.2})
       pending_.push_back({now() + delay, position + Vec3(uniform(random_, -1.5, 1.5), uniform(random_, -1.5, 1.5), 0.6), 1.0});
     if (!isPlayer && uniform(random_, 0.0, 1.0) < 0.4) {
@@ -1628,6 +1631,8 @@ class Game {
   std::vector<Strike> strikes_;
   std::vector<Marker> markers_;
   std::vector<PendingBlast> pending_;
+  // Explosions of vehicles and their ammunition still to be reported by the world.
+  std::vector<size_t> vehicleBlasts_;
   std::vector<SmokeZone> smoke_;
   std::vector<Notice> notices_, floating_, killFeed_;
   std::vector<Role> queue_;
