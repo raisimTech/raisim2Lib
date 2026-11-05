@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_047(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"resolution", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::resolution);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"drawVisualizationObjects", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::drawVisualizationObjects);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"drawCoordinateFrames", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::drawCoordinateFrames);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"drawPointClouds", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::drawPointClouds);}
@@ -56,6 +57,5 @@ void define_047(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); default_constructor(c);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"valid", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::valid);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"position", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::position);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"radius", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::radius);}
 }
 }

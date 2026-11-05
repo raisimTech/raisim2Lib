@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_046(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionDepthBuilds);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionComputeDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionComputeDepthBuilds);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionRasterDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionRasterDepthBuilds);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneGpuOcclusionFilteredDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneGpuOcclusionFilteredDrawCalls);}
@@ -56,6 +57,5 @@ void define_046(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"up", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::up);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"right", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::right);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"resolution", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::resolution);}
 }
 }

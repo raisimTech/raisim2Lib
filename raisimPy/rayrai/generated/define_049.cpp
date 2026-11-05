@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_049(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"localProbeSelectionActive", &raisin::RayraiWindow::RenderPassAccounting::localProbeSelectionActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"additionalShadowActive", &raisin::RayraiWindow::RenderPassAccounting::additionalShadowActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"mainShadowPassesPerFrame", &raisin::RayraiWindow::RenderPassAccounting::mainShadowPassesPerFrame);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"additional2dShadowPassesPerFrame", &raisin::RayraiWindow::RenderPassAccounting::additional2dShadowPassesPerFrame);}
@@ -56,6 +57,5 @@ void define_049(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"valid", &raisin::RayraiWindow::RgbaCalibrationRecommendation::valid);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"changed", &raisin::RayraiWindow::RgbaCalibrationRecommendation::changed);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"neutralPatchCount", &raisin::RayraiWindow::RgbaCalibrationRecommendation::neutralPatchCount);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"saturatedPatchCount", &raisin::RayraiWindow::RgbaCalibrationRecommendation::saturatedPatchCount);}
 }
 }

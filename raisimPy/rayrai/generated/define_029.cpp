@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_029(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomSourceClamp", &raisin::RenderQualitySettings::bloomSourceClamp);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomAnamorphic", &raisin::RenderQualitySettings::bloomAnamorphic);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomDirtStrength", &raisin::RenderQualitySettings::bloomDirtStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomDirtScale", &raisin::RenderQualitySettings::bloomDirtScale);}
@@ -56,6 +57,5 @@ void define_029(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowedLightBudget", &raisin::RenderQualitySettings::shadowedLightBudget);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowPolicy", &raisin::RenderQualitySettings::pointShadowPolicy);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"maxPointShadowLights", &raisin::RenderQualitySettings::maxPointShadowLights);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowResolutionScale", &raisin::RenderQualitySettings::additionalShadowResolutionScale);}
 }
 }

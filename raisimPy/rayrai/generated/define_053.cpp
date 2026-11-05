@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_053(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"radius", &raisin::RayraiWindow::TransparentDrawItem::radius);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"distanceSquared", &raisin::RayraiWindow::TransparentDrawItem::distanceSquared);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"sortOffset", &raisin::RayraiWindow::TransparentDrawItem::sortOffset);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"renderPriority", &raisin::RayraiWindow::TransparentDrawItem::renderPriority);}
@@ -56,6 +57,5 @@ bound_class<Handle<raisin::RayraiWindow::VisualMeshBuilder>>(m.attr("RayraiWindo
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricEnabled", &raisin::RenderQualitySettings::FogSettings::volumetricEnabled);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricDensity", &raisin::RenderQualitySettings::FogSettings::volumetricDensity);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseScale", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseScale);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseStrength", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseStrength);}
 }
 }

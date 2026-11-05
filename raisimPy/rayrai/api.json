@@ -27194,6 +27194,14 @@
         "comment": ""
       },
       {
+        "name": "launches",
+        "kind": "FieldDecl",
+        "type": "std::vector<raisim::Projectile>",
+        "canonical": "std::vector<raisim::Projectile>",
+        "source": "std::vector<raisim::Projectile> launches",
+        "comment": ""
+      },
+      {
         "name": "wind",
         "kind": "FieldDecl",
         "type": "glm::vec3",
@@ -27215,7 +27223,7 @@
     "name": "raisin::PhysicsSnapshotCapture",
     "kind": "ClassDecl",
     "file": "rayrai/include/rayrai/PhysicsSnapshot.hpp",
-    "line": 108,
+    "line": 110,
     "public": true,
     "members": [
       {

@@ -7234,6 +7234,13 @@
   },
   {
     "class": "raisin::PhysicsSnapshot",
+    "name": "launches",
+    "kind": "FieldDecl",
+    "signature": "std::vector<raisim::Projectile>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsSnapshot",
     "name": "wind",
     "kind": "FieldDecl",
     "signature": "glm::vec<3, float>",

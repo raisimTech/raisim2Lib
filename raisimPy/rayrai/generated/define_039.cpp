@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_039(py::module_& m) {
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletStrength", &raisin::WeatherSettings::lensDropletStrength);}
 {auto c=bound_class<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment"); default_constructor(c);}
 {auto c=bound_class<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment"); field(c,"environmentMap", &raisin::WeatherSkyEnvironment::environmentMap);}
 {auto c=bound_class<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment"); field(c,"irradianceMap", &raisin::WeatherSkyEnvironment::irradianceMap);}
@@ -56,6 +57,5 @@ void define_039(py::module_& m) {
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); default_constructor(c);}
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::FoliageWindDiagnostics::enabled);}
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"rootHeight", &raisin::InstancedVisuals::FoliageWindDiagnostics::rootHeight);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"tipHeight", &raisin::InstancedVisuals::FoliageWindDiagnostics::tipHeight);}
 }
 }

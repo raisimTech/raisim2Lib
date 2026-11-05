@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_026(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); default_constructor(c);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"backgroundColorRgb255", &raisin::RenderQualitySettings::backgroundColorRgb255);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"mainLightAmbient", &raisin::RenderQualitySettings::mainLightAmbient);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"mainLightDiffuse", &raisin::RenderQualitySettings::mainLightDiffuse);}
@@ -56,6 +57,5 @@ void define_026(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureMaxFactor", &raisin::RenderQualitySettings::autoExposureMaxFactor);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerWhiteBalance", &raisin::RenderQualitySettings::viewerWhiteBalance);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSaturation", &raisin::RenderQualitySettings::viewerSaturation);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerColorGradePreset", &raisin::RenderQualitySettings::viewerColorGradePreset);}
 }
 }

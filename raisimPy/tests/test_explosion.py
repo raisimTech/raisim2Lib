@@ -60,6 +60,35 @@ class ExplosionTests(unittest.TestCase):
         self.assertEqual(len(self.world.getExplosions()), 1)
         self.assertGreater(plate.getLinearVelocity()[0], 0.0)
 
+    def test_results_survive_later_events(self):
+        # Getters return copies: what they returned stays as it was while the world sets off more.
+        properties = r.ExplosionProperties()
+        properties.chargeMass = 1e-3
+        self.world.addExplosion(np.array([0.0, 0.0, 100.0]), properties)
+        first = self.world.getExplosions()[0]
+        round_ = r.ProjectileProperties()
+        round_.explosion.chargeMass = 0.0
+        self.world.addProjectile(np.array([0.0, 0.0, 1.0]), np.array([1.0, 0.0, 0.0]), round_)
+        flying = self.world.getProjectiles()[0]
+        launch = self.world.getProjectileLaunches()[0]
+        for i in range(300):
+            self.world.addExplosion(np.array([0.0, 0.0, 200.0 + i]), properties)
+            self.world.addProjectile(np.array([0.0, 0.0, 1.0]), np.array([2.0 + i, 0.0, 0.0]), round_)
+        self.assertEqual(first.id, 0)
+        self.assertEqual(first.position[2], 100.0)
+        self.assertEqual(flying.id, 0)
+        self.assertEqual(flying.velocity[0], 1.0)
+        self.assertEqual(launch.launchVelocity[0], 1.0)
+
+    def test_launches_stay_listed(self):
+        round_ = r.ProjectileProperties()
+        round_.explosion.chargeMass = 0.0
+        identifier = self.world.addProjectile(np.zeros(3), np.array([0.0, 0.0, 5.0]), round_)
+        self.assertTrue(self.world.removeProjectile(identifier))
+        launches = self.world.getProjectileLaunches()
+        self.assertEqual([launch.id for launch in launches], [identifier])
+        self.assertEqual(launches[0].launchVelocity[2], 5.0)
+
     def test_wind_carries_projectiles(self):
         air = r.FluidMedium.air()
         air.velocity = np.array([0.0, 15.0, 0.0])

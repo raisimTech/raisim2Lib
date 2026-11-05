@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_052(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasTileCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasTileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasNonPointTileCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasNonPointTileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"pointShadowFaceTileCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::pointShadowFaceTileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"selectedAdditionalShadowLights", &raisin::RayraiWindow::ShadowDebugOverlaySummary::selectedAdditionalShadowLights);}
@@ -56,6 +57,5 @@ bound_class<Handle<raisin::RayraiWindow::SynchronousMeshLoadingScope>>(m.attr("R
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"source", &raisin::RayraiWindow::TransparentDrawItem::source);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"name", &raisin::RayraiWindow::TransparentDrawItem::name);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"center", &raisin::RayraiWindow::TransparentDrawItem::center);}
-{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"radius", &raisin::RayraiWindow::TransparentDrawItem::radius);}
 }
 }

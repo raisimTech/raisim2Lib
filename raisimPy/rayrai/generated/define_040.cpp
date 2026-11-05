@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_040(py::module_& m) {
+{auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"tipHeight", &raisin::InstancedVisuals::FoliageWindDiagnostics::tipHeight);}
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"windStrength", &raisin::InstancedVisuals::FoliageWindDiagnostics::windStrength);}
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"stiffness", &raisin::InstancedVisuals::FoliageWindDiagnostics::stiffness);}
 {auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"flutterWeight", &raisin::InstancedVisuals::FoliageWindDiagnostics::flutterWeight);}
@@ -56,6 +57,5 @@ void define_040(py::module_& m) {
 {auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"candidateInstanceCount", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::candidateInstanceCount);}
 {auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"drawStride", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::drawStride);}
 {auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"fallbackCode", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::fallbackCode);}
-{auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); default_constructor(c);}
 }
 }

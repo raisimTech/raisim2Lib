@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_050(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"saturatedPatchCount", &raisin::RayraiWindow::RgbaCalibrationRecommendation::saturatedPatchCount);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"averageRgbErrorBefore", &raisin::RayraiWindow::RgbaCalibrationRecommendation::averageRgbErrorBefore);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"outputTransform", &raisin::RayraiWindow::RgbaCalibrationRecommendation::outputTransform);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"reason", &raisin::RayraiWindow::RgbaCalibrationRecommendation::reason);}
@@ -56,6 +57,5 @@ void define_050(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"tileCount", &raisin::RayraiWindow::ShadowAtlasPlan::tileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"nonPointTileCount", &raisin::RayraiWindow::ShadowAtlasPlan::nonPointTileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"pointShadowFaceTileCount", &raisin::RayraiWindow::ShadowAtlasPlan::pointShadowFaceTileCount);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"occupancy", &raisin::RayraiWindow::ShadowAtlasPlan::occupancy);}
 }
 }

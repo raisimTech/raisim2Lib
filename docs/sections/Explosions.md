@@ -44,8 +44,9 @@ its identifier. `ExplosionProperties` holds:
 | `lineOfSight` | Bodies hidden from the charge take only the wave that wraps around them (default on). |
 | `craterRadius`, `craterDepth` | A bowl-shaped crater dug in each heightmap under the charge (zero digs none). |
 
-`World::getExplosions()` lists the last 256 explosions, oldest first, with increasing identifiers, so a
-renderer or a game can act on those newer than the last it saw. Each records its position, world
+`World::getExplosions()` lists the last 256 explosions, and older ones whose blast still spreads,
+oldest first, with increasing identifiers, so a renderer or a game can act on those newer than the last
+it saw. Each records its position, world
 time, properties and the projectile that set it off, if any.
 
 ### The blast wave
@@ -99,10 +100,11 @@ the time step, even from a pulse shorter than a step; the step applies the resul
 at the body's center of mass. A body is pushed only while the wave passes it, and a sleeping body
 wakes.
 
-With `lineOfSight`, five rays from the charge to the center of a body and around it decide how much of
-it the charge sees; the reflected pressure and the blast wind scale with that fraction. A body behind a
-wall, a hill or another body then takes only the incident pressure, whose net push comes from the
-difference in arrival times across it.
+With `lineOfSight`, five rays from the charge to the center of a collision body and around it decide
+how much of it the charge sees; the reflected pressure and the blast wind scale with that fraction. A
+body behind a wall, a hill, another body or another part of its own object (a link of the same robot)
+then takes only the incident pressure, whose net push comes from the difference in arrival times across
+it. The fraction is found when the wave reaches the body and kept while it passes.
 
 Static and kinematic objects are not pushed. Deformable objects and granular particles are not loaded
 yet.
@@ -152,22 +154,26 @@ perfectly inelastic impact at the point it hits: the impulse that leaves that po
 with the projectile. It depends on the projectile's velocity relative to that point, so a shell
 overtaking a moving target pushes it less, and on the mass the body presents there, which includes its
 rotation and, for a link of an articulated system, the links and joints behind it; an off-center hit
-spins the body. An explosive projectile then detonates there, just off the surface. A time fuse
-detonates it where it has flown when the fuse runs out, part way through a step if need be.
+spins the body. Projectiles that hit the same body in one step take turns: each meets it moving as the
+earlier ones left it. The time and velocity of a hit follow the projectile's path through the step,
+which gravity and drag bend. An explosive projectile then detonates there, just off the surface. A
+time fuse detonates it where it has flown when the fuse runs out, part way through a step if need be.
 
 `World::getProjectiles()` lists the projectiles in flight with their positions and velocities and
 where, when and how fast they were launched.
 `World::getProjectileHits()` lists the last 256 hits, oldest first, with increasing identifiers: the
 object and body hit, the point of impact, the surface normal there, the projectile's velocity and mass,
-the time, and whether it detonated. `World::removeProjectile(id)` removes one in flight.
+the time, and whether it detonated. `World::getProjectileLaunches()` lists the last 256 projectiles
+launched, as they were launched, whatever became of them: a renderer draws a muzzle flash from it also
+for a round that came down before it looked. `World::removeProjectile(id)` removes one in flight.
 
 `RayCollisionItem::getNormal()` gives the normal of the surface a ray test hits; projectile hits use
 it.
 
 ## Checkpoints and performance
 
-`World::captureCheckpoint()` captures the blasts still spreading, the projectiles in flight, the event
-lists and the heightmaps; `restoreCheckpoint()` restores them, craters included, so replays are
+`World::captureCheckpoint()` captures the blasts still spreading, the projectiles in flight, the
+explosion, hit and launch lists and the heightmaps; `restoreCheckpoint()` restores them, craters included, so replays are
 reproducible.
 
 The `explosion` benchmark compares RaiSim with MuJoCo, which has neither explosions nor projectiles and
@@ -179,7 +185,10 @@ gets the same face-on blast load through `xfrc_applied` and rounds flown with `m
 
 It reports the momentum a blast hands a free crate against the panel integral of the model, the cost of
 a step of a yard of 200 crates with a 2 kg charge going off among them every 0.25 s, the cost of a
-round in flight, and the cost of a volley of 100 rounds at the crates.
+round in flight, the cost of a volley of 100 rounds at the crates, and the cost of sustained fire: two
+rounds a step for a second, swept across the crates, so that dozens fly at once and crates take several
+in a step. MuJoCo's blast is the face-on approximation and its rounds hand over the momentum of a crate at
+rest, so its timings come from less work than RaiSim's panel loads, line of sight and impacts.
 
 ## Python
 

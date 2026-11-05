@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_030(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowResolutionScale", &raisin::RenderQualitySettings::additionalShadowResolutionScale);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowResolutionScale", &raisin::RenderQualitySettings::pointShadowResolutionScale);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"minAdditionalShadowResolution", &raisin::RenderQualitySettings::minAdditionalShadowResolution);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowSlopeBiasScale", &raisin::RenderQualitySettings::shadowSlopeBiasScale);}
@@ -56,6 +57,5 @@ void define_030(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionMinSamples", &raisin::RenderQualitySettings::geometryRefractionMinSamples);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionRelativeError", &raisin::RenderQualitySettings::geometryRefractionRelativeError);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionAbsoluteError", &raisin::RenderQualitySettings::geometryRefractionAbsoluteError);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionSeed", &raisin::RenderQualitySettings::geometryRefractionSeed);}
 }
 }

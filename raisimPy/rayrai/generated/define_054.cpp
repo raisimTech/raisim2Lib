@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_054(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseStrength", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricColor", &raisin::RenderQualitySettings::FogSettings::volumetricColor);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricAnisotropy", &raisin::RenderQualitySettings::FogSettings::volumetricAnisotropy);}
 {auto c=bound_class<raisin::RenderQualitySettings::ShadowsSettings>(m.attr("RenderQualitySettings"), "ShadowsSettings"); default_constructor(c);}
@@ -56,6 +57,5 @@ bound_class<raisin::Visuals::FrameCacheMaterialStateMemo>(m.attr("Visuals"), "Fr
 {auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"all", &raisin::Visuals::MaterialSortKeys::all);}
 {auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"simpleOnly", &raisin::Visuals::MaterialSortKeys::simpleOnly);}
 {auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"pbrOnly", &raisin::Visuals::MaterialSortKeys::pbrOnly);}
-{auto c=bound_class<raisin::assimp::AsyncModelLoadResult>(m.attr("assimp"), "AsyncModelLoadResult"); default_constructor(c);}
 }
 }

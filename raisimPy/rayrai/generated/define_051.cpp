@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_051(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"occupancy", &raisin::RayraiWindow::ShadowAtlasPlan::occupancy);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"tiles", &raisin::RayraiWindow::ShadowAtlasPlan::tiles);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasTile>(m.attr("RayraiWindow"), "ShadowAtlasTile"); default_constructor(c);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasTile>(m.attr("RayraiWindow"), "ShadowAtlasTile"); field(c,"shadowIndex", &raisin::RayraiWindow::ShadowAtlasTile::shadowIndex);}
@@ -56,6 +57,5 @@ void define_051(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasOverflow", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasOverflow);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"splitOverridesEnabled", &raisin::RayraiWindow::ShadowDebugOverlaySummary::splitOverridesEnabled);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"cascadeCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::cascadeCount);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasTileCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasTileCount);}
 }
 }

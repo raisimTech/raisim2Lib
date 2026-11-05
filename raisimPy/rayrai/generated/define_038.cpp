@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_038(py::module_& m) {
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentMap", &raisin::WeatherDiagnostics::skyEnvironmentMap);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyIrradianceMap", &raisin::WeatherDiagnostics::skyIrradianceMap);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentFaceSize", &raisin::WeatherDiagnostics::skyEnvironmentFaceSize);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyIrradianceFaceSize", &raisin::WeatherDiagnostics::skyIrradianceFaceSize);}
@@ -56,6 +57,5 @@ void define_038(py::module_& m) {
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudScale", &raisin::WeatherSettings::cloudScale);}
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudAnimationSpeed", &raisin::WeatherSettings::cloudAnimationSpeed);}
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletsEnabled", &raisin::WeatherSettings::lensDropletsEnabled);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletStrength", &raisin::WeatherSettings::lensDropletStrength);}
 }
 }

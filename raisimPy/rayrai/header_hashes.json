@@ -13,7 +13,7 @@
   "rayrai/include/rayrai/MeshPreprocessCache.hpp": "ed16140d9d7601950cb1519f2b26d1dcecf0445e2b52bf9112184cc2dda90923",
   "rayrai/include/rayrai/OpenGLMesh.hpp": "bd24093b39591ec5364580514ed8741f4a9da92d433156d411c5d9a02656917c",
   "rayrai/include/rayrai/PbrEnvironment.hpp": "fe1498076ae7391b2cf76dbd45da4db1aeac96f275a2e603c7ef99c6d150a29a",
-  "rayrai/include/rayrai/PhysicsSnapshot.hpp": "ee482e5ddecd1c257af24574ad3549658a20079c8507e9cdef35d51064574dce",
+  "rayrai/include/rayrai/PhysicsSnapshot.hpp": "0e900dd8008b5e5e54e7e37540ee9325bd6286919a99816e4b22ef71c129b9c9",
   "rayrai/include/rayrai/PointCloud.hpp": "cc03f0303df7c989a42989936b2efac7732ea018f1d8d50c2fe3bfff1c3644bc",
   "rayrai/include/rayrai/PostFxRenderTargets.hpp": "54e4f6e1e62d45dceca5b49d92fc6c2160c8a6166309afc0df1a20af8a75ec1b",
   "rayrai/include/rayrai/RaisimObject.hpp": "960c36dbc3ba663f9c83c438cc59085650128b3220d3d762b710e94052e66700",

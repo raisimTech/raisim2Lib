@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_028(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurEnabled", &raisin::RenderQualitySettings::motionBlurEnabled);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurDirection", &raisin::RenderQualitySettings::motionBlurDirection);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurStrength", &raisin::RenderQualitySettings::motionBlurStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"ssrEnabled", &raisin::RenderQualitySettings::ssrEnabled);}
@@ -56,6 +57,5 @@ void define_028(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomRadius", &raisin::RenderQualitySettings::bloomRadius);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomKnee", &raisin::RenderQualitySettings::bloomKnee);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomQuality", &raisin::RenderQualitySettings::bloomQuality);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomSourceClamp", &raisin::RenderQualitySettings::bloomSourceClamp);}
 }
 }

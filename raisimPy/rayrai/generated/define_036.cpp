@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_036(py::module_& m) {
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"seed", &raisin::WeatherDiagnostics::seed);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"timeOfDayHours", &raisin::WeatherDiagnostics::timeOfDayHours);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"latitude", &raisin::WeatherDiagnostics::latitude);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"longitude", &raisin::WeatherDiagnostics::longitude);}
@@ -56,6 +57,5 @@ void define_036(py::module_& m) {
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetMaterialStrength", &raisin::WeatherDiagnostics::wetMaterialStrength);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"puddleStrength", &raisin::WeatherDiagnostics::puddleStrength);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainRippleStrength", &raisin::WeatherDiagnostics::rainRippleStrength);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetAlbedoDarkening", &raisin::WeatherDiagnostics::wetAlbedoDarkening);}
 }
 }

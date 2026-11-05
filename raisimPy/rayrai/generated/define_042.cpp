@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_042(py::module_& m) {
+{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"shadow", &raisin::RaisimObject::Changes::shadow);}
 bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGlobalAsset"), "MeshLodChain").def("__init__", [](Handle<raisin::RayraiGlobalAsset::MeshLodChain>* self, const Viewer& viewer) { Guard guard(viewer.state); new(self) Handle<raisin::RayraiGlobalAsset::MeshLodChain>(own(viewer.state, std::make_shared<raisin::RayraiGlobalAsset::MeshLodChain>())); }, py::arg("viewer"));
 {auto c=bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGlobalAsset"), "MeshLodChain"); field(c,"levels", &raisin::RayraiGlobalAsset::MeshLodChain::levels);}
 {auto c=bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGlobalAsset"), "MeshLodChain"); field(c,"triangleCounts", &raisin::RayraiGlobalAsset::MeshLodChain::triangleCounts);}
@@ -56,6 +57,5 @@ bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGloba
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"splitDepth", &raisin::RayraiWindow::DirectionalShadowCascade::splitDepth);}
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"texelWorldSize", &raisin::RayraiWindow::DirectionalShadowCascade::texelWorldSize);}
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"center", &raisin::RayraiWindow::DirectionalShadowCascade::center);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"lightSpaceMin", &raisin::RayraiWindow::DirectionalShadowCascade::lightSpaceMin);}
 }
 }

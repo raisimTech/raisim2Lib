@@ -13,8 +13,9 @@ with no code beyond setting them off:
   scorch mark. A charge at or under the surface of one of the window's water bodies throws up a column of
   spray and mist instead.
 - **Muzzle flashes** where projectiles are launched, sized by the cube root of the projectile's kinetic
-  energy (a tank gun's at full size, a machine gun's a sixth of it), **tracers** behind them in flight and
-  **sparks** where an inert projectile hits.
+  energy (a tank gun's at full size, a machine gun's a sixth of it), also for a round that launched and
+  came down between two frames, **tracers** behind them in flight and **sparks** where an inert
+  projectile hits.
 - **Fires** (`addFireEffect()`): flickering flames and a column of black smoke, for a burning wreck or
   a fuel spill.
 
@@ -115,11 +116,14 @@ each render and takes them away when the render ends, so the application's lists
 change. They count toward the limits of 16 lights and 8 decals and are skipped when those are full.
 
 The effects follow the physics snapshots the window shows (`PhysicsSnapshot::explosions`, `projectiles`,
-`projectileHits` and `wind`), so they also work with `applyPhysicsSnapshot()` on a render thread. Each
-effect belongs to the explosion, hit or launch that caused it and is drawn from it alone, sparks and
-puffs included, so a replay draws the same picture. A checkpoint restored to before an explosion drops
-its effect, one restored to while it was still burning or smoking draws it again, and an explosion
-replayed after a restore gets its effect even when it reuses an identifier. Effects removed with
+`projectileHits`, `launches` and `wind`), so they also work with `applyPhysicsSnapshot()` on a render
+thread. Each effect belongs to the explosion, hit or launch that caused it and is drawn from it alone,
+sparks and puffs included, so a replay draws the same picture. A checkpoint restored to before an
+explosion drops its effect, one restored to while it was still burning or smoking draws it again, and an
+explosion replayed after a restore gets its effect even when it reuses an identifier, at its own place.
+Changing `useWorldTime` keeps the effects in progress at the age they had. Positions, charges, sizes and
+durations that are not finite are refused with `std::invalid_argument`; orthographic cameras draw the
+fire and smoke along parallel rays like the rest of the scene. Effects removed with
 `clearExplosionEffects()` stay removed. In the browser the effects draw through the WebGPU backend like
 the rest of the scene.
 

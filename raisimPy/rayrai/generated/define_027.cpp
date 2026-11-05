@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_027(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerColorGradePreset", &raisin::RenderQualitySettings::viewerColorGradePreset);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerColorGradeStrength", &raisin::RenderQualitySettings::viewerColorGradeStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pbrEnvironmentMaxLod", &raisin::RenderQualitySettings::pbrEnvironmentMaxLod);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pbrEnvironmentMipLodBias", &raisin::RenderQualitySettings::pbrEnvironmentMipLodBias);}
@@ -56,6 +57,5 @@ void define_027(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsLength", &raisin::RenderQualitySettings::contactShadowsLength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsStrength", &raisin::RenderQualitySettings::contactShadowsStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsThickness", &raisin::RenderQualitySettings::contactShadowsThickness);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurEnabled", &raisin::RenderQualitySettings::motionBlurEnabled);}
 }
 }

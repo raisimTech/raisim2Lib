@@ -281,7 +281,7 @@ The current bindings also expose:
 | Deformable soil | `World.addDeformableTerrain`; nested material/state types, pressure, reset and contact statistics |
 | Replay and reset | `World.captureCheckpoint`, `restoreCheckpoint`, single-body snapshots and primitive cloning |
 | World controls | Sleeping/waking, contact/broadphase settings, swept CCD, collision counters, stable object IDs, material and collision-filter edits |
-| Explosions and projectiles | `World.addExplosion`, `addProjectile`, `getExplosions`, `raisimpy.blast.wave()`; with rayrai, `RayraiWindow.addExplosionEffect`, `addFireEffect`, `setExplosionEffectSettings` and the snapshot's `explosions`, `projectiles` and `wind` |
+| Explosions and projectiles | `World.addExplosion`, `addProjectile`, `getExplosions`, `getProjectileHits` and `getProjectileLaunches` (copies), `raisimpy.blast.wave()`; with rayrai, `RayraiWindow.addExplosionEffect`, `addFireEffect`, `setExplosionEffectSettings` and the snapshot's `explosions`, `projectiles` and `wind` |
 | Import | `World.addUsdArticulatedSystem`, URDF modules, MJCF loading and mesh asset export |
 | Server controls | Pause/resume/single-step, actual bound port, loopback binding and scene-file sharing |
 

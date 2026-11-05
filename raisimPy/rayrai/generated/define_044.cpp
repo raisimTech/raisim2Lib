@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_044(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"hasBackgroundMapPath", &raisin::RayraiWindow::EnvironmentSidecarSettings::hasBackgroundMapPath);}
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"backgroundMapPath", &raisin::RayraiWindow::EnvironmentSidecarSettings::backgroundMapPath);}
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"hasBackgroundMapExposure", &raisin::RayraiWindow::EnvironmentSidecarSettings::hasBackgroundMapExposure);}
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"backgroundMapExposure", &raisin::RayraiWindow::EnvironmentSidecarSettings::backgroundMapExposure);}
@@ -56,6 +57,5 @@ void define_044(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); default_constructor(c);}
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"valid", &raisin::RayraiWindow::ExposureRecommendation::valid);}
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"changed", &raisin::RayraiWindow::ExposureRecommendation::changed);}
-{auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"underexposed", &raisin::RayraiWindow::ExposureRecommendation::underexposed);}
 }
 }

@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_037(py::module_& m) {
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetAlbedoDarkening", &raisin::WeatherDiagnostics::wetAlbedoDarkening);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetRoughnessScale", &raisin::WeatherDiagnostics::wetRoughnessScale);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetSpecularBoost", &raisin::WeatherDiagnostics::wetSpecularBoost);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"snowCoverage", &raisin::WeatherDiagnostics::snowCoverage);}
@@ -56,6 +57,5 @@ void define_037(py::module_& m) {
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionActive", &raisin::WeatherDiagnostics::transitionActive);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionAlpha", &raisin::WeatherDiagnostics::transitionAlpha);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentValid", &raisin::WeatherDiagnostics::skyEnvironmentValid);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentMap", &raisin::WeatherDiagnostics::skyEnvironmentMap);}
 }
 }

@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_048(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"radius", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::radius);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"boxProjection", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::boxProjection);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"boxMin", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::boxMin);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"boxMax", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::boxMax);}
@@ -56,6 +57,5 @@ void define_048(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"msaaActive", &raisin::RayraiWindow::RenderPassAccounting::msaaActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"renderScaleActive", &raisin::RayraiWindow::RenderPassAccounting::renderScaleActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"probeFilteringActive", &raisin::RayraiWindow::RenderPassAccounting::probeFilteringActive);}
-{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"localProbeSelectionActive", &raisin::RayraiWindow::RenderPassAccounting::localProbeSelectionActive);}
 }
 }

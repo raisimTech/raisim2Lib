@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_045(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"underexposed", &raisin::RayraiWindow::ExposureRecommendation::underexposed);}
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"overexposed", &raisin::RayraiWindow::ExposureRecommendation::overexposed);}
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"clippingRisk", &raisin::RayraiWindow::ExposureRecommendation::clippingRisk);}
 {auto c=bound_class<raisin::RayraiWindow::ExposureRecommendation>(m.attr("RayraiWindow"), "ExposureRecommendation"); field(c,"currentExposure", &raisin::RayraiWindow::ExposureRecommendation::currentExposure);}
@@ -56,6 +57,5 @@ void define_045(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"hizOcclusionOccluded", &raisin::RayraiWindow::FoliageRenderDiagnostics::hizOcclusionOccluded);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"hizOcclusionDepthReadbacks", &raisin::RayraiWindow::FoliageRenderDiagnostics::hizOcclusionDepthReadbacks);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionDrawCalls);}
-{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionDepthBuilds);}
 }
 }

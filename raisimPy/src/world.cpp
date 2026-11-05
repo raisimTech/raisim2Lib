@@ -1425,9 +1425,9 @@ void init_world(py::module_ &m) {
         Returns:
             int: identifier of the explosion.
         )mydelimiter", py::arg("position"), py::arg("properties") = raisim::ExplosionProperties())
-      .def("getExplosions", &raisim::World::getExplosions,
-           "The explosions set off most recently (at most 256), oldest first; identifiers increase.",
-           py::rv_policy::reference_internal)
+      .def("getExplosions", [](const raisim::World& self) { return self.getExplosions(); },
+           "Copies of the explosions set off most recently, oldest first: at most the last 256 and every one whose "
+           "blast still spreads; identifiers increase.")
       .def("addProjectile",
            [](raisim::World& self, const NDArray& position, const NDArray& velocity,
               const raisim::ProjectileProperties& properties) {
@@ -1448,11 +1448,13 @@ void init_world(py::module_ &m) {
         )mydelimiter", py::arg("position"), py::arg("velocity"), py::arg("properties") = raisim::ProjectileProperties())
       .def("removeProjectile", &raisim::World::removeProjectile, py::arg("id"),
            "Remove a projectile in flight; returns whether it was in flight.")
-      .def("getProjectiles", &raisim::World::getProjectiles, "The projectiles in flight.",
-           py::rv_policy::reference_internal)
-      .def("getProjectileHits", &raisim::World::getProjectileHits,
-           "The most recent projectile hits (at most 256), oldest first; identifiers increase.",
-           py::rv_policy::reference_internal)
+      .def("getProjectiles", [](const raisim::World& self) { return self.getProjectiles(); },
+           "Copies of the projectiles in flight.")
+      .def("getProjectileHits", [](const raisim::World& self) { return self.getProjectileHits(); },
+           "Copies of the most recent projectile hits (at most 256), oldest first; identifiers increase.")
+      .def("getProjectileLaunches", [](const raisim::World& self) { return self.getProjectileLaunches(); },
+           "Copies of the projectiles launched most recently, as launched (at most 256), oldest first, whatever "
+           "became of them.")
       .def("getTendons", [](raisim::World& self) {
         std::vector<raisim::Tendon*> result;
         for (const auto& tendon : self.getTendons()) result.push_back(tendon.get());

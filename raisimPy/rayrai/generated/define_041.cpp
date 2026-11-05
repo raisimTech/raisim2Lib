@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_041(py::module_& m) {
+{auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); default_constructor(c);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); field(c,"mode", &raisin::Material::AlphaSettings::mode);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); field(c,"blend", &raisin::Material::AlphaSettings::blend);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); field(c,"antiAliasing", &raisin::Material::AlphaSettings::antiAliasing);}
@@ -56,6 +57,5 @@ void define_041(py::module_& m) {
 {auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); default_constructor(c);}
 {auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"revision", &raisin::RaisimObject::Changes::revision);}
 {auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"candidate", &raisin::RaisimObject::Changes::candidate);}
-{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"shadow", &raisin::RaisimObject::Changes::shadow);}
 }
 }

@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_035(py::module_& m) {
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"skyCaptureFaceSize", &raisin::WaterDiagnostics::skyCaptureFaceSize);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"skyCaptures", &raisin::WaterDiagnostics::skyCaptures);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"timeSeconds", &raisin::WaterDiagnostics::timeSeconds);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"flowBodies", &raisin::WaterDiagnostics::flowBodies);}
@@ -56,6 +57,5 @@ void define_035(py::module_& m) {
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"affectsSensors", &raisin::WeatherDiagnostics::affectsSensors);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"preset", &raisin::WeatherDiagnostics::preset);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"quality", &raisin::WeatherDiagnostics::quality);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"seed", &raisin::WeatherDiagnostics::seed);}
 }
 }

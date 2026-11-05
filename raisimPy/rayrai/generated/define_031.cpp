@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_031(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionSeed", &raisin::RenderQualitySettings::geometryRefractionSeed);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionRevision", &raisin::RenderQualitySettings::geometryRefractionRevision);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentFogAlphaWeighted", &raisin::RenderQualitySettings::transparentFogAlphaWeighted);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentFogStrength", &raisin::RenderQualitySettings::transparentFogStrength);}
@@ -56,6 +57,5 @@ bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings").def_stati
 {auto c=bound_class<raisin::SkyVisibilityGrid>(m, "SkyVisibilityGrid"); field(c,"dimensions", &raisin::SkyVisibilityGrid::dimensions);}
 {auto c=bound_class<raisin::SkyVisibilityGrid>(m, "SkyVisibilityGrid"); field(c,"minimum", &raisin::SkyVisibilityGrid::minimum);}
 {auto c=bound_class<raisin::SkyVisibilityGrid>(m, "SkyVisibilityGrid"); field(c,"maximum", &raisin::SkyVisibilityGrid::maximum);}
-{auto c=bound_class<raisin::SkyVisibilityGrid>(m, "SkyVisibilityGrid"); field(c,"values", &raisin::SkyVisibilityGrid::values);}
 }
 }

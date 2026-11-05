@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_043(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"lightSpaceMin", &raisin::RayraiWindow::DirectionalShadowCascade::lightSpaceMin);}
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"lightSpaceMax", &raisin::RayraiWindow::DirectionalShadowCascade::lightSpaceMax);}
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"lightSpaceHalfExtents", &raisin::RayraiWindow::DirectionalShadowCascade::lightSpaceHalfExtents);}
 {auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"lightSpaceMatrix", &raisin::RayraiWindow::DirectionalShadowCascade::lightSpaceMatrix);}
@@ -56,6 +57,5 @@ void define_043(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"backgroundTint", &raisin::RayraiWindow::EnvironmentSidecarSettings::backgroundTint);}
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"hasBackgroundExposureScale", &raisin::RayraiWindow::EnvironmentSidecarSettings::hasBackgroundExposureScale);}
 {auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"backgroundExposureScale", &raisin::RayraiWindow::EnvironmentSidecarSettings::backgroundExposureScale);}
-{auto c=bound_class<raisin::RayraiWindow::EnvironmentSidecarSettings>(m.attr("RayraiWindow"), "EnvironmentSidecarSettings"); field(c,"hasBackgroundMapPath", &raisin::RayraiWindow::EnvironmentSidecarSettings::hasBackgroundMapPath);}
 }
 }
