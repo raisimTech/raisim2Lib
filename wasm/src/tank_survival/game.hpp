@@ -250,6 +250,37 @@ class Game {
     }
   }
 
+  // The direction a round leaves the shooter's gun in, from `position`: along the path that reaches target
+  // when the barrel points within 0.2 rad of it, along the barrel otherwise; `onTarget` says which.
+  static Vec3 roundPath(const Tank& shooter, WeaponId id, const Vec3* target, const Vec3& wind, Vec3& position,
+                        bool* onTarget = nullptr) {
+    Vec3 direction;
+    roundOrigin(shooter, id, position, direction);
+    bool reaches = false;
+    if (target) {
+      const Vec3 path = launchDirection(position, *target, weapon(id), wind);
+      reaches = path.dot(direction) > std::cos(0.2);
+      if (reaches) direction = path;
+    }
+    if (onTarget) *onTarget = reaches;
+    return direction;
+  }
+
+  // Whether the shooter's gun can put a round of `id` on target now: it points within reach of the path there,
+  // or it has turned as far as it can (to a point below its depression). Missiles and artillery do not leave
+  // the gun.
+  static bool gunReadyFor(const Tank& shooter, WeaponId id, const Vec3& target, const Vec3& wind) {
+    if (id != WeaponId::AP && id != WeaponId::HE && id != WeaponId::MG) return true;
+    Vec3 position;
+    bool onTarget = false;
+    roundPath(shooter, id, &target, wind, position, &onTarget);
+    return onTarget || shooter.gunSettled();
+  }
+  bool gunReady() const {
+    const Tank* hero = playerTank();
+    return hero && hero->system && gunReadyFor(*hero, selected_, aim_, levelSpec().wind);
+  }
+
   // How far the camera can be from `from` along the unit `direction`, up to `length`, before the ground,
   // a wall or a building; vehicles, props and trees do not stop it.
   double wallReach(const Vec3& from, const Vec3& direction, double length) {
@@ -348,13 +379,14 @@ class Game {
       return false;
     }
     switch (id) {
+      // The player's rounds fly to the point under the sight.
       case WeaponId::AP:
       case WeaponId::HE:
-        launchShell(*hero, id, true, 1.0, 0.0006);
+        launchShell(*hero, id, true, 1.0, 0.0, &aim_);
         shake_ = std::max(shake_, 0.35);
         break;
       case WeaponId::MG:
-        launchShell(*hero, id, true, 1.0, 0.004);
+        launchShell(*hero, id, true, 1.0, 0.004, &aim_);
         break;
       case WeaponId::Missile:
         launchMissile(*hero);
@@ -1124,6 +1156,8 @@ class Game {
     pickup.beam = viewer_.addVisualCylinder(pickup.name + "_beam", 0.09, 14.0,
                                             glm::vec4(style.color.r, style.color.g, style.color.b, 0.2f));
     pickup.beam->setPosition(p.x(), p.y(), p.z() + 7.0);
+    // A light, not a thing: under a low sun its shadow was a dark line tens of metres long.
+    pickup.beam->setCastsShadows(false);
     pickups_.push_back(pickup);
   }
 
@@ -1139,6 +1173,7 @@ class Game {
     Marker marker{"marker_" + std::to_string(nextName_++), until};
     auto disk = viewer_.addVisualCylinder(marker.name, 4.5, 0.06, color);
     disk->setPosition(p.x(), p.y(), height(p.x(), p.y()) + 0.12);
+    disk->setCastsShadows(false);
     markers_.push_back(marker);
   }
 
@@ -1178,10 +1213,12 @@ class Game {
     notify(text, rgba(kBonusStyles[size_t(type)].color));
   }
 
-  void launchShell(Tank& shooter, WeaponId id, bool fromPlayer, double power, double spread) {
+  // A round from the shooter's gun; with a target, along the path that reaches it, unless the gun still
+  // points well away from it.
+  void launchShell(Tank& shooter, WeaponId id, bool fromPlayer, double power, double spread, const Vec3* target = nullptr) {
     const WeaponSpec& round = weapon(id);
-    Vec3 position, direction;
-    roundOrigin(shooter, id, position, direction);
+    Vec3 position;
+    Vec3 direction = roundPath(shooter, id, target, levelSpec().wind, position);
     if (spread > 0.0) {
       std::normal_distribution<double> noise(0.0, spread);
       direction = (direction + Vec3(noise(random_), noise(random_), 0.5 * noise(random_))).normalized();

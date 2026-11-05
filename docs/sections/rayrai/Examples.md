@@ -37,6 +37,9 @@ Quick map to the current rayrai-related targets:
   and CoACD convex approximation parts generated through `World::addMesh`.
 - `rayrai_runtime_scene_editing`: snapshots, cloning, removal, stable object
   ids, and collision-filter changes in a running world.
+- `rayrai_explosion_projectile`: the smallest use of projectiles and explosions: a gun fires a solid
+  round and an explosive shell at a wall of crates, and a charge goes off beside it; see
+  [Explosion and Projectile](../examples/rayrai/rayrai_explosion_projectile.md).
 - `rayrai_tank_battle`: a tracked tank fires shells (World projectiles) at crates, walls, tanks
   and fuel barrels that set each other off; blasts, craters, wind and the explosion effects; see
   [Tank Battle](../examples/rayrai/rayrai_tank_battle.md).

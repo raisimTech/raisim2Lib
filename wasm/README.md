@@ -46,11 +46,11 @@ python3 sdk/share/rayrai/web/serve.py --directory build
 Open <http://localhost:8000/tank_survival.html> in a recent Chrome or Edge. The page needs WebGPU,
 WebAssembly JavaScript Promise Integration and cross-origin isolation (`serve.py` sends the headers).
 
-Controls follow World of Tanks: click the view to capture the mouse, which then turns the camera while the
-turret aims at the sight in the middle; W/S drive, A/D turn, a left click or Space fires, a right click
-auto-aims at the enemy under the sight, holding the right button keeps the gun's aim, Shift or the wheel turned
-in enters the sniper sight (the wheel steps ×2/×4/×8), 1–5 pick a weapon (Q/E cycle), F lays smoke, C puts the
-camera behind the tank, Esc frees the mouse and pauses, holding R restarts and H shows the help. Drive to the supplies under the light beams to pick up ammunition, repair
+Aiming works as in a third-person shooter: click the view to capture the mouse, which then looks over the
+tank's shoulder, and every round lands where the crosshair in the middle is; W/S drive, A/D turn, a left
+click or Space fires, holding the right button aims down the sight (×3; the wheel zooms ×2–×8), the wheel
+otherwise moves the camera, 1–5 pick a weapon (Q/E cycle), F lays smoke, C puts the camera behind the tank,
+Esc frees the mouse and pauses, holding R restarts and H shows the help. Drive to the supplies under the light beams to pick up ammunition, repair
 kits, reactive armor, missiles and artillery radios. Program arguments come from the page's `?arg=` parameters, for
 example `tank_survival.html?arg=--autopilot&arg=--level&arg=4` lets the tank play the fourth level by itself.
 

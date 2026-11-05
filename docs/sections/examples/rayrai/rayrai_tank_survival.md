@@ -34,26 +34,27 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 
 ## Controls
 
-The controls follow World of Tanks. Click the view once to capture the mouse (`Esc` frees it and pauses).
+Aiming works as in a third-person shooter. Click the view once to capture the mouse (`Esc` frees it
+and pauses).
 
 | Input | Action |
 | --- | --- |
 | `W` / `S`, `A` / `D` | drive, turn the hull |
-| mouse | look around; the turret turns to what the sight in the middle of the view rests on |
+| mouse | look and aim over the tank's shoulder; every round lands where the crosshair in the middle of the view is |
 | left click or `Space` | fire |
-| right click | auto-aim: lock on the enemy nearest the sight and lead it; right click again to let go |
-| hold the right button | keep the gun's aim and look around freely |
-| `Shift`, mouse wheel | sniper sight from the gun, magnified ×2, ×4 or ×8 by the wheel; the wheel also moves the camera closer or farther |
+| hold the right button | aim down the sight: the view from the gun, ×3; the wheel zooms from ×2 to ×8 |
+| mouse wheel | move the camera closer or farther |
 | `1`–`5`, `Q` / `E` | pick a weapon, cycle through them |
 | `F` | lay a smoke screen |
 | `C` | camera behind the tank |
 | `P` or `Esc` / hold `R` / `H` | pause, restart, how to play |
 
-Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to what
-the sight rests on (a vehicle, a wall, a tree or the ground), and the sight turns red over an enemy. A
-dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
-On a touch screen, where the mouse cannot be captured, tap where to aim; the sight locks on an enemy near
-the tap.
+The gun of your tank is stabilized, and each round leaves the muzzle on the path that reaches the point
+under the crosshair (a vehicle, a wall, a tree or the ground): the game flies it ahead of time as the
+world will, with gravity, the air's drag and the wind. After a quick turn of the view, a click fires as
+soon as the turret has swung round to the crosshair. The crosshair turns red over an enemy. On a touch
+screen, where the mouse cannot be captured, tap where to aim: the sight locks on an enemy near the tap,
+and a dotted arc shows where a round would fly, to a ring where it would strike.
 The **How to play** button (or `H`) opens the controls; they come up before the first mission. Arrows at
 the edge of the screen point to enemies out of view, and an arrow beside the wind's speed shows where it
 blows. Tanks flatten the small trees of the arena, and

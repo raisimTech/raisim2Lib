@@ -120,8 +120,8 @@ inline void drawAimGuide(ImDrawList* draw, Game& game, const Screen& screen, con
     return;
   }
   const WeaponSpec& round = weapon(id);
-  Vec3 position, direction;
-  Game::roundOrigin(*hero, id, position, direction);
+  Vec3 position;
+  const Vec3 direction = Game::roundPath(*hero, id, &game.aim(), game.levelSpec().wind, position);
   Vec3 velocity = direction * round.speed;
   const Vec3 wind = game.levelSpec().wind;
   const double drag = 0.5 * 1.2 * round.dragCoefficient * kPi * round.radius * round.radius / round.mass;
@@ -185,23 +185,18 @@ struct Sight {
   double magnification = 1.0;
 };
 
-// The sniper sight, as in World of Tanks: Shift toggles it, the wheel turned in with the camera at its
-// closest enters it, steps its magnification and, turned out past the first step, leaves it.
-struct SniperSight {
-  static constexpr std::array<double, 3> kMagnifications{2.0, 4.0, 8.0};
-  bool active = false;
+// Aiming down the sight, as in a shooter: while the right button is held the view looks from the gun,
+// magnified, and the wheel steps the magnification (it starts at the step last used).
+struct AimDownSights {
+  static constexpr std::array<double, 4> kMagnifications{2.0, 3.0, 5.0, 8.0};
+  bool held = false;
   int step = 1;
   double notches = 0.0;
 
-  void toggle() {
-    active = !active;
-    notches = 0.0;
-  }
-  // Turns the wheel by `wheel` notches (fractions from a touchpad add up); outside the sight it moves the
-  // camera between `closest` and `farthest`.
-  void scroll(double wheel, float& distance, float closest, float farthest) {
-    if (!active && (wheel < 0.0 || distance > closest)) {
-      distance = std::clamp(distance - 2.0f * float(wheel), closest, farthest);
+  // Follows the button and the wheel (fractions of a notch from a touchpad add up).
+  void update(bool down, double wheel) {
+    held = down;
+    if (!held) {
       notches = 0.0;
       return;
     }
@@ -210,39 +205,10 @@ struct SniperSight {
     while (std::abs(notches) >= 1.0) {
       const bool in = notches > 0.0;
       notches -= in ? 1.0 : -1.0;
-      if (!active) {
-        active = true;
-        step = 0;
-      } else if (in) {
-        step = std::min(step + 1, int(kMagnifications.size()) - 1);
-      } else if (--step < 0) {
-        active = false;
-        step = 0;
-        notches = 0.0;
-        return;
-      }
+      step = std::clamp(step + (in ? 1 : -1), 0, int(kMagnifications.size()) - 1);
     }
   }
-  double magnification() const { return active ? kMagnifications[size_t(step)] : 1.0; }
-};
-
-// The right mouse button as World of Tanks reads it: a click locks the aim on an enemy, and the gun keeps
-// its aim while the button is down, so that the view can look around.
-struct ClickOrHold {
-  static constexpr double kClick = 0.3;
-  double held = -1.0;
-
-  // Follows the button; returns true as a click ends.
-  bool update(bool down, double dt) {
-    if (down) {
-      held = held < 0.0 ? 0.0 : held + dt;
-      return false;
-    }
-    const bool click = held >= 0.0 && held < kClick;
-    held = -1.0;
-    return click;
-  }
-  bool down() const { return held >= 0.0; }
+  double magnification() const { return held ? kMagnifications[size_t(step)] : 1.0; }
 };
 
 // Index of the point nearest `to` within `radius`, or -1.
@@ -440,7 +406,9 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
 
   const ImVec2 mouse = sight.at;
-  if (game.phase() == Phase::Playing && !panel) drawAimGuide(draw, game, screen, fonts, locked);
+  // With the mouse captured the sight alone aims, as in a shooter; aiming at the cursor shows where a round
+  // would fly.
+  if (game.phase() == Phase::Playing && !panel && !sight.centered) drawAimGuide(draw, game, screen, fonts, locked);
   if (game.phase() == Phase::Playing && !panel && sight.offerMouse)
     text(draw, font, 15.0f, ImVec2(o.x + 0.5f * s.x, o.y + 0.5f * s.y + 44.0f), IM_COL32(255, 255, 255, 210),
          "Click to aim with the mouse", 0.5f);
@@ -475,7 +443,7 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
   }
   if (help && !panel) {
     const char* rows[] = {"W/S drive   A/D turn   Mouse aims   Click/Space fire",
-                          "Right click: auto-aim   Hold right: hold the gun   Shift/wheel: sniper sight",
+                          "Hold right: aim down the sight   Wheel: zoom",
                           "1-5 or Q/E weapon", "Hit tanks from the side or rear", "H how to play   Esc/P pause"};
     float hy = o.y + s.y - 24.0f * 5 - 104.0f;
     for (const char* row : rows) {
@@ -524,8 +492,18 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
 // (radians). The captured mouse turns it, as in World of Tanks; without it a drag turns the heading. It
 // stays put while the hull turns under it; asked to, it swings quickly behind the hull. The autopilot's
 // camera follows the hull.
+struct OrbitHeading;
+
+// The kick of a shot on the view: it turns the view up and settles back by as much as it turned (at the top
+// of the view's range, by nothing).
+struct Recoil {
+  double left = 0.0;
+  void kick(OrbitHeading& orbit, double angle);
+  void settle(OrbitHeading& orbit, double dt);
+};
+
 struct OrbitHeading {
-  static constexpr double kPitch = -0.25, kLowest = -1.0, kHighest = 0.3;
+  static constexpr double kPitch = -0.12, kLowest = -1.0, kHighest = 0.35;
   // Radians the view turns per pixel the mouse moves.
   static constexpr double kSensitivity = 0.0022;
   double heading = 0.0, pitch = kPitch;
@@ -556,6 +534,19 @@ struct OrbitHeading {
     }
   }
 };
+
+inline void Recoil::kick(OrbitHeading& orbit, double angle) {
+  const double before = orbit.pitch;
+  orbit.look(0.0, -angle / OrbitHeading::kSensitivity, 1.0);
+  left += orbit.pitch - before;
+}
+
+inline void Recoil::settle(OrbitHeading& orbit, double dt) {
+  if (left <= 0.0) return;
+  const double back = left * std::min(1.0, dt * 12.0);
+  orbit.look(0.0, back / OrbitHeading::kSensitivity, 1.0);
+  left -= back;
+}
 
 // A key that acts once it has been held for a moment, so that a slip onto it does nothing; it acts again
 // only after it is let go.
@@ -752,26 +743,21 @@ inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
     row("W / S, arrows", "Drive forward and back.");
     row("A / D", "Turn the hull. The turret keeps aiming where you look.");
     row("", "Your tank flattens small trees: drive through the woods.");
-    section("AIM AND FIRE (AS IN WORLD OF TANKS)");
-    row("Mouse", "Click the view once, then move the mouse to look around: the gun aims at what the sight in the "
-                 "middle of the view rests on, an enemy, a wall or the ground, and raises itself for its distance. "
-                 "The sight turns red over an enemy.");
-    row("", "The dotted arc shows where a round fired now would fly, and the ring where it strikes: red on a "
-            "vehicle. The turret takes a moment to swing round: fire when the ring sits on the target.");
-    row("Click / Space", "Fire. The ring around the sight fills while the gun reloads.");
-    row("Right click", "Auto-aim: lock on the enemy nearest the sight (red brackets). The gun tracks and leads it "
-                       "while you look elsewhere. Right click again to let go.");
-    row("Right (hold)", "Hold the gun's aim and look around freely.");
-    row("Shift / wheel", "Sniper sight: the view from the gun, magnified two, four or eight times as the wheel turns. "
-                         "Shift, or the wheel turned out, leaves it.");
-    row("Esc", "Free the mouse and pause. On a touch screen, tap where to aim.");
+    section("AIM AND FIRE");
+    row("Mouse", "Click the view once, then move the mouse to look and aim, as in a shooter: every round lands "
+                 "where the crosshair in the middle of the view is, near or far. It turns red over an enemy.");
+    row("Click / Space", "Fire. The ring around the crosshair fills while the gun reloads.");
+    row("Right (hold)", "Aim down the sight: the view from the gun, magnified three times; the wheel zooms from "
+                        "two to eight times.");
+    row("Esc", "Free the mouse and pause. On a touch screen, tap where to aim: a dotted arc shows where a round "
+               "would fly.");
   };
   const auto more = [&] {
     section("WEAPONS");
     row("1 - 5,  Q / E", "Armor-piercing (AP), high explosive (HE), machine gun (MG), guided missile, artillery "
                          "strike (lands under the sight after a delay).");
     section("CAMERA AND MORE");
-    row("Mouse wheel", "Move the camera closer or farther; turned in further, it enters the sniper sight.");
+    row("Mouse wheel", "Move the camera closer or farther.");
     row("C", "Camera behind the tank. The view stays where you leave it while the tank turns.");
     row("F", "Smoke screen: enemies cannot see through it.");
     row("Esc / P", "Pause.");

@@ -119,7 +119,9 @@ Vec3 viewDirection(const OrbitHeading& orbit) {
           std::sin(orbit.pitch)};
 }
 
-// How close and how far the camera can be from the player's tank (m).
+// How close and how far the camera can be from the player's tank (m): over the shoulder while the mouse
+// aims, and watching from above while the cursor does.
+constexpr float kShoulderClosest = 5.0f, kShoulderFarthest = 16.0f;
 constexpr float kClosest = 12.0f, kFarthest = 70.0f;
 
 void setOrbitDistance(raisin::Camera& camera, float distance) {
@@ -251,7 +253,7 @@ int run(int argc, char* argv[]) {
     camera.pitch = -19.0f;
     camera.setCameraFixedTarget(true);
     const float fieldOfView = camera.zoom;
-    float distance = 24.0f, sightBlend = 0.0f, clearDistance = distance;
+    float distance = 24.0f, shoulderDistance = 8.0f, sightBlend = 0.0f, clearDistance = shoulderDistance;
     int quality = options.quality;
 
     Game game(world, viewer, TANK_SURVIVAL_ASSETS, options.seed);
@@ -267,14 +269,12 @@ int run(int argc, char* argv[]) {
     bool paused = false, help = true, helpOpen = false, helpShown = false;
     const Tank* locked = nullptr;
     double lockedBorn = 0.0;
-    const Tank* tracked = nullptr;
-    double trackedBorn = 0.0;
     MouseCapture capture;
     bool captureClick = false;
     double sinceLockLost = 1e9;
-    SniperSight sniper;
-    ClickOrHold rightButton;
-    double magnification = 1.0;
+    AimDownSights sights;
+    double magnification = 1.0, shotAsked = -1e9;
+    Recoil recoil;
     std::mt19937 shakeNoise(1);
     auto last = std::chrono::steady_clock::now();
     int frame = 0;
@@ -382,11 +382,12 @@ int run(int argc, char* argv[]) {
       const bool halted = paused || helpOpen;
       const bool live = game.phase() == Phase::Playing && !halted;
       if (capture.requested && (!live || options.autopilot)) capture.release();
-      if (game.phase() != Phase::Playing) sniper.active = false;
+      sights.update(live && capture.held && ImGui::IsMouseDown(ImGuiMouseButton_Right),
+                    live && capture.held ? io.MouseWheel : 0.0);
       int mouseX = 0, mouseY = 0;
       SDL_GetRelativeMouseState(&mouseX, &mouseY);
       double throttle = 0.0, turn = 0.0;
-      bool trigger = false, autoAim = false;
+      bool trigger = false;
       if (!scripted) {
         if (!live) restartKey.update(false, holdTime);
         if (live) {
@@ -402,9 +403,6 @@ int run(int argc, char* argv[]) {
           if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) captureClick = false;
           const bool mouseFires = !captureClick && (capture.held || (capture.unavailable && viewport.hovered));
           trigger = keys[SDL_SCANCODE_SPACE] || (mouseFires && ImGui::IsMouseDown(ImGuiMouseButton_Left));
-          autoAim = rightButton.update(capture.held && ImGui::IsMouseDown(ImGuiMouseButton_Right), holdTime);
-          if (capture.held && (ImGui::IsKeyPressed(ImGuiKey_LeftShift, false) || ImGui::IsKeyPressed(ImGuiKey_RightShift, false)))
-            sniper.toggle();
           for (int i = 0; i < kWeaponCount; ++i)
             if (ImGui::IsKeyPressed(ImGuiKey(int(ImGuiKey_1) + i), false)) game.select(WeaponId(i));
           if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) game.cycle(-1);
@@ -413,8 +411,6 @@ int run(int argc, char* argv[]) {
           if (ImGui::IsKeyPressed(ImGuiKey_C, false)) orbit.behindHull = true;
           // Restarting takes a held R: E, the next weapon, is beside it.
           if (restartKey.update(ImGui::IsKeyDown(ImGuiKey_R), holdTime)) {
-            tracked = nullptr;
-            sniper.active = false;
             game.load(game.level(), true, quality);
             warmUpPending = true;
             startBehindHull();
@@ -422,8 +418,9 @@ int run(int argc, char* argv[]) {
           if (throttle != 0.0 || turn != 0.0) help = help && game.elapsed() < 25.0;
         }
         if (capture.held) {
-          if (live) sniper.scroll(io.MouseWheel, distance, kClosest, kFarthest);
-          orbit.look(mouseX, mouseY, 1.0 / sniper.magnification());
+          if (live && !sights.held)
+            shoulderDistance = std::clamp(shoulderDistance - io.MouseWheel, kShoulderClosest, kShoulderFarthest);
+          orbit.look(mouseX, mouseY, 1.0 / sights.magnification());
         } else if (viewport.hovered) {
           distance = std::clamp(distance - 2.0f * io.MouseWheel, kClosest, kFarthest);
           if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) orbit.drag(io.MouseDelta.x);
@@ -453,11 +450,8 @@ int run(int argc, char* argv[]) {
           }
           Vec3 aim;
           if (capture.held) {
-            // The sight in the middle of the view aims exactly at what its ray meets first: a vehicle, a wall,
-            // a tree or the ground. While the right button is down the gun keeps its aim; a click locks the
-            // aim on the enemy nearest the sight (or lets the lock go) and leads it.
-            const ImVec2 middle(screen.origin.x + 0.5f * screen.size.x, screen.origin.y + 0.5f * screen.size.y);
-            // From where the camera is about to look along the turned view, which the sight is drawn on.
+            // Every round goes where the crosshair in the middle of the view is: to what its ray meets first,
+            // a vehicle, a wall, a tree or the ground.
             const Vec3 ray = viewDirection(orbit);
             const Vec3 focus(camera.target.x, camera.target.y, camera.target.z);
             const Vec3 eye = focus - double(glm::length(camera.position - camera.target)) * ray;
@@ -465,22 +459,10 @@ int run(int argc, char* argv[]) {
             bool vehicle = false;
             const bool hit = game.sweep(eye, ray, 1500.0, struck, vehicle);
             onEnemy = hit && vehicle;
-            aim = rightButton.down() ? game.aim() : hit ? struck : Vec3(eye + 1500.0 * ray);
-            if (autoAim) {
-              const int nearest = nearestWithin(points, middle, 80.0f);
-              tracked = nearest >= 0 && enemies[size_t(nearest)] != tracked ? enemies[size_t(nearest)] : nullptr;
-              trackedBorn = tracked ? tracked->born : 0.0;
-            }
-            // A vehicle made where a destroyed one was is another vehicle: the lock goes with the first.
-            if (tracked && std::none_of(game.enemies().begin(), game.enemies().end(), [&](const auto& enemy) {
-                  return enemy.get() == tracked && enemy->alive() && enemy->born == trackedBorn;
-                }))
-              tracked = nullptr;
-            locked = tracked;
+            aim = hit ? struck : Vec3(eye + 1500.0 * ray);
           } else {
             // Where the mouse cannot be captured (a touch screen), the sight is the cursor and locks on the
             // enemy nearest it.
-            tracked = nullptr;
             aim = game.groundHit(cameraAt, screen.ray(io.MousePos, camera.position)) + Vec3(0, 0, 0.4);
             if (const int nearest = nearestWithin(points, io.MousePos, 56.0f); nearest >= 0) locked = enemies[size_t(nearest)];
           }
@@ -493,7 +475,15 @@ int run(int argc, char* argv[]) {
           hero->aimAt(aim, shellSpeed, true);
         }
         hero->command(throttle, turn, game.overdrive(), game.now());
-        if (trigger) game.fire();
+        // Aiming with the mouse, a click fires as soon as the gun can put the round on the crosshair (the
+        // turret takes a moment to swing round after a quick turn of the view), within 0.4 s. A shot kicks
+        // the view up a little; it settles back over a fifth of a second.
+        if (trigger) shotAsked = game.now();
+        const bool shoot = options.autopilot || !capture.held ? trigger : game.now() - shotAsked < 0.4 && game.gunReady();
+        if (shoot && game.fire()) {
+          shotAsked = -1e9;
+          if (capture.held) recoil.kick(orbit, game.selected() == WeaponId::MG ? 0.002 : 0.03);
+        }
       }
 
       if (!halted) {
@@ -508,17 +498,24 @@ int run(int argc, char* argv[]) {
       }
       const auto renderStart = Clock::now();
 
-      // The sniper sight looks from just above the gun and magnifies the view.
-      const bool sighting = capture.held && sniper.active;
-      sightBlend = std::clamp(sightBlend + float(frameTime / 0.15) * (sighting ? 1.0f : -1.0f), 0.0f, 1.0f);
+      recoil.settle(orbit, frameTime);
+      // Aiming down the sight looks from just above the gun and magnifies the view.
+      const bool sighting = sights.held;
+      sightBlend = std::clamp(sightBlend + float(frameTime / 0.12) * (sighting ? 1.0f : -1.0f), 0.0f, 1.0f);
       magnification = std::exp(std::log(magnification) +
-                               (std::log(sighting ? sniper.magnification() : 1.0) - std::log(magnification)) *
+                               (std::log(sights.magnification() > 1.0 ? sights.magnification() : 1.0) - std::log(magnification)) *
                                    std::min(1.0, frameTime * 14.0));
       if (const Tank* hero = game.playerTank(); hero && hero->system && game.phase() != Phase::Menu) {
-        // The camera turns about a point above the tank, higher the farther it is, so that the tank sits below
-        // the sight and the view passes over what is around it.
+        // With the mouse aiming, the camera looks over the tank's shoulder: it turns about a point beside and
+        // above the turret, so that the tank sits low and to the left of the crosshair. Watching the cursor,
+        // it turns about a point above the tank, higher the farther it is.
         const Vec3 p = hero->position();
         glm::vec3 focus(float(p.x()), float(p.y()), float(p.z() + 2.6 + 0.12 * distance));
+        if (capture.held) {
+          const Vec3 right(std::sin(orbit.heading), -std::cos(orbit.heading), 0.0);
+          const Vec3 shoulder = hero->turretPivot() + hero->scale() * (Vec3(0.0, 0.0, 1.7) + 1.6 * right);
+          focus = glm::vec3(float(shoulder.x()), float(shoulder.y()), float(shoulder.z()));
+        }
         if (sightBlend > 0.0f) {
           const Vec3 gun = hero->gunPivot() + Vec3(0.0, 0.0, 1.1 * hero->scale());
           focus = glm::mix(focus, glm::vec3(float(gun.x()), float(gun.y()), float(gun.z())), sightBlend);
@@ -536,7 +533,8 @@ int run(int argc, char* argv[]) {
         camera.target += glm::vec3(noise(shakeNoise), noise(shakeNoise), noise(shakeNoise));
       }
       camera.yaw = float(orbit.heading * 180.0 / kPi);
-      float orbitDistance = game.phase() == Phase::Menu ? 75.0f : distance * (1.0f - sightBlend) + 0.05f * sightBlend;
+      float orbitDistance = game.phase() == Phase::Menu ? 75.0f
+                            : (capture.held ? shoulderDistance : distance) * (1.0f - sightBlend) + 0.05f * sightBlend;
       camera.zoom = float(fieldOfView / magnification);
       if (options.view) {
         const auto& v = *options.view;
@@ -590,7 +588,7 @@ int run(int argc, char* argv[]) {
                                 : io.MousePos;
         sight.onEnemy = onEnemy;
         sight.offerMouse = live && !capture.requested && !capture.unavailable && !options.autopilot && !scripted;
-        sight.magnification = sightBlend > 0.5f ? sniper.magnification() : 1.0;
+        sight.magnification = sightBlend > 0.5f ? sights.magnification() : 1.0;
         drawHud(game, screen, fonts, orbit.heading, help && !options.autopilot, locked, halted, sight);
       }
       if (!scripted && game.phase() == Phase::Playing && !halted && !capture.requested && drawHelpButton(screen))

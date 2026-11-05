@@ -164,43 +164,66 @@ void mouseLooksAround() {
   check(orbit.heading == 1.0 && orbit.pitch == tank::OrbitHeading::kPitch, "a new mission looks from behind the hull");
 }
 
-void sniperSightStepsWithTheWheel() {
-  tank::SniperSight sight;
-  float distance = 30.0f;
-  sight.scroll(2.0, distance, 12.0f, 70.0f);
-  check(!sight.active && distance == 26.0f, "outside the sight the wheel moves the camera closer");
-  sight.scroll(20.0, distance, 12.0f, 70.0f);
-  check(!sight.active && distance == 12.0f, "the camera stops at its closest");
-  sight.scroll(0.4, distance, 12.0f, 70.0f);
-  sight.scroll(0.4, distance, 12.0f, 70.0f);
-  check(!sight.active, "part of a notch does not enter the sight");
-  sight.scroll(0.4, distance, 12.0f, 70.0f);
-  check(sight.active && sight.magnification() == 2.0, "a notch more at the closest enters the sight at x2");
-  sight.scroll(1.0, distance, 12.0f, 70.0f);
-  sight.scroll(1.0, distance, 12.0f, 70.0f);
-  sight.scroll(1.0, distance, 12.0f, 70.0f);
-  check(sight.magnification() == 8.0, "the wheel steps the magnification up to x8");
-  sight.scroll(-2.0, distance, 12.0f, 70.0f);
-  check(sight.active && sight.magnification() == 2.0, "and back down");
-  sight.scroll(-3.0, distance, 12.0f, 70.0f);
-  check(!sight.active && distance == 12.0f && sight.magnification() == 1.0, "turned out past x2 it leaves the sight");
-  sight.scroll(-1.0, distance, 12.0f, 70.0f);
-  check(distance == 14.0f, "the wheel turned out moves the camera back");
-  sight.step = 1;
-  sight.toggle();
-  check(sight.active && sight.magnification() == 4.0, "Shift enters the sight at its last magnification");
-  sight.toggle();
-  check(!sight.active && distance == 14.0f, "Shift leaves it, with the camera where it was");
+void aimingDownTheSightZooms() {
+  tank::AimDownSights sights;
+  sights.update(false, 3.0);
+  check(!sights.held && sights.magnification() == 1.0, "without the right button the view is not magnified");
+  sights.update(true, 0.0);
+  check(sights.magnification() == 3.0, "holding the right button magnifies three times");
+  sights.update(true, 0.5);
+  sights.update(true, 0.4);
+  check(sights.magnification() == 3.0, "part of a notch does not change the magnification");
+  sights.update(true, 0.2);
+  check(sights.magnification() == 5.0, "a notch in steps it up");
+  sights.update(true, 5.0);
+  check(sights.magnification() == 8.0, "it stops at eight times");
+  sights.update(true, -0.5);
+  sights.update(true, -0.6);
+  check(sights.magnification() == 5.0, "turned out it steps down");
+  sights.update(false, 0.0);
+  sights.update(true, 0.0);
+  check(sights.magnification() == 5.0, "aiming again keeps the last magnification");
+  sights.update(true, -9.0);
+  check(sights.magnification() == 2.0, "it stops at two times");
 }
 
-void rightButtonClicksOrHolds() {
-  tank::ClickOrHold button;
-  check(!button.update(true, 0.0) && button.down(), "the gun holds its aim from the moment the button goes down");
-  check(!button.update(true, 0.1), "nothing is clicked while the button is down");
-  check(button.update(false, 0.016) && !button.down(), "a short press is a click");
-  for (int frame = 0; frame < 30; ++frame) button.update(true, 1.0 / 60.0);
-  check(!button.update(false, 0.016), "a held button is not a click");
-  check(!button.update(false, 0.016), "a button that stays up clicks nothing");
+// A round fired from the muzzle along launchDirection() passes through the point under the sight, as the
+// world flies it: gravity, the air's drag and the wind.
+void roundsReachThePointUnderTheSight() {
+  for (const tank::WeaponId id : {tank::WeaponId::AP, tank::WeaponId::HE, tank::WeaponId::MG}) {
+    const tank::WeaponSpec& round = tank::weapon(id);
+    for (const tank::Vec3 target : {tank::Vec3(30.0, 4.0, 1.0), tank::Vec3(150.0, -40.0, 6.0), tank::Vec3(-280.0, 260.0, -3.0)}) {
+      raisim::World world;
+      world.setTimeStep(tank::kTimeStep);
+      raisim::FluidMedium air = raisim::FluidMedium::air();
+      const tank::Vec3 wind(-6.0, 5.0, 0.0);
+      air.velocity = tank::vec(wind);
+      world.setAmbientFluid(air);
+      const tank::Vec3 muzzle(0.0, 0.0, 2.0);
+      const tank::Vec3 direction = tank::launchDirection(muzzle, target, round, wind);
+      raisim::ProjectileProperties properties;
+      properties.mass = round.mass;
+      properties.radius = round.radius;
+      properties.dragCoefficient = round.dragCoefficient;
+      world.addProjectile(tank::vec(muzzle), tank::vec(direction * round.speed), properties);
+      const tank::Vec3 axis = (target - muzzle).normalized();
+      const double range = (target - muzzle).norm();
+      double miss = 1e9;
+      tank::Vec3 last = muzzle;
+      for (int step = 0; step < 5000 && !world.getProjectiles().empty(); ++step) {
+        world.integrate();
+        const tank::Vec3 now = world.getProjectiles().front().position.e();
+        const double before = (last - muzzle).dot(axis), after = (now - muzzle).dot(axis);
+        if (after >= range) {
+          const tank::Vec3 passed = last + (range - before) / (after - before) * (now - last);
+          miss = (passed - target).norm();
+          break;
+        }
+        last = now;
+      }
+      check(miss < 0.02, "a round passes within 2 cm of the point under the sight");
+    }
+  }
 }
 
 void sightPicksTheNearestEnemy() {
@@ -208,6 +231,74 @@ void sightPicksTheNearestEnemy() {
   check(tank::nearestWithin(points, ImVec2(120.0f, 100.0f), 40.0f) == 1, "the sight picks the enemy nearest it");
   check(tank::nearestWithin(points, ImVec2(200.0f, 200.0f), 40.0f) == -1, "no enemy within reach, none is picked");
   check(tank::nearestWithin({}, ImVec2(0.0f, 0.0f), 40.0f) == -1, "no enemies, none is picked");
+}
+
+// A shot kicks the view up and it settles back where it was. At the top of the view's range the kick turns
+// nothing, and settling pulled the view down by the whole kick, shot after shot.
+void recoilSettlesWhereTheViewWas() {
+  for (const double start : {0.0, tank::OrbitHeading::kHighest}) {
+    tank::OrbitHeading orbit;
+    orbit.pitch = start;
+    tank::Recoil recoil;
+    recoil.kick(orbit, 0.03);
+    check(start == tank::OrbitHeading::kHighest || std::abs(orbit.pitch - (start + 0.03)) < 1e-9, "a shot kicks the view up");
+    for (int shot = 0; shot < 5; ++shot) {
+      for (int frame = 0; frame < 6; ++frame) recoil.settle(orbit, 1.0 / 60.0);
+      recoil.kick(orbit, 0.03);
+    }
+    for (int frame = 0; frame < 240; ++frame) recoil.settle(orbit, 1.0 / 60.0);
+    check(std::abs(orbit.pitch - start) < 1e-6, "the view settles back where it was after a burst of shots");
+  }
+}
+
+// The player's gun fires where the crosshair is. Just after the view turns away, a round would leave along
+// the barrel, far off the crosshair, so the gun is not ready; it is once the turret has swung round. A point
+// below the gun's depression is never on a round's path, and the gun is ready once it has turned as far as
+// it can.
+void gunFiresOnceItCanReachTheSight() {
+  const tank::VehicleSpec& spec = tank::vehicle(tank::Role::Player);
+  const std::string folder = std::string(TANK_SURVIVAL_ASSETS) + "/tank_survival/vehicles/" + spec.model;
+  const tank::VehicleModel model = tank::loadVehicleModel(folder);
+  raisim::World world;
+  world.setTimeStep(tank::kTimeStep);
+  world.addGround();
+  tank::Tank vehicle(world, tank::vehicleUrdf(spec, model, folder), model, spec,
+                     tank::Vec3(0.0, 0.0, model.axleHeight + 0.3), 0.0, 0.0);
+  const tank::Vec3 wind(3.0, -2.0, 0.0);
+  const double speed = tank::weapon(tank::WeaponId::AP).speed;
+  // Aimed every frame, as the game does: the turret's swing turns the hull a little.
+  const auto settle = [&](const tank::Vec3& target, double seconds) {
+    for (int i = 0; i < int(seconds / tank::kTimeStep); ++i) {
+      if (i % 8 == 0) {
+        vehicle.aimAt(target, speed, true);
+        vehicle.command(0.0, 0.0, 1.0, world.getWorldTime());
+      }
+      world.integrate();
+    }
+  };
+  settle(tank::Vec3(300.0, 0.0, 2.0), 2.0);
+  check(tank::Game::gunReadyFor(vehicle, tank::WeaponId::AP, tank::Vec3(300.0, 0.0, 2.0), wind),
+        "the gun is ready on the point it has turned to");
+  const tank::Vec3 side = vehicle.position() + tank::Vec3(0.0, 300.0, 2.0);
+  vehicle.aimAt(side, speed, true);
+  check(!tank::Game::gunReadyFor(vehicle, tank::WeaponId::AP, side, wind) &&
+            !tank::Game::gunReadyFor(vehicle, tank::WeaponId::MG, side, wind),
+        "the gun is not ready on a point it has yet to turn to");
+  check(tank::Game::gunReadyFor(vehicle, tank::WeaponId::Missile, side, wind), "missiles do not wait for the gun");
+  settle(side, 1.0);
+  check(tank::Game::gunReadyFor(vehicle, tank::WeaponId::AP, side, wind), "the gun is ready once the turret swung round");
+  tank::Vec3 muzzle, barrel;
+  vehicle.muzzle(muzzle, barrel);
+  const tank::Vec3 below = vehicle.gunPivot() + 4.0 * tank::Vec3(barrel.x(), barrel.y(), 0.0).normalized() -
+                           tank::Vec3(0.0, 0.0, 2.0);
+  vehicle.aimAt(below, speed, true);
+  bool onTarget = true;
+  tank::Vec3 origin;
+  tank::Game::roundPath(vehicle, tank::WeaponId::AP, &below, wind, origin, &onTarget);
+  check(!onTarget, "a point below the gun's depression is off the barrel");
+  settle(below, 1.0);
+  check(tank::Game::gunReadyFor(vehicle, tank::WeaponId::AP, below, wind),
+        "the gun is ready below its depression once it has turned as far as it can");
 }
 
 // Each vehicle on rough ground at full throttle, then steered: a rigid hull bounced from bump to bump with
@@ -256,9 +347,11 @@ int main() {
   restartNeedsAHeldKey();
   cameraStaysWhereItIsTurned();
   mouseLooksAround();
-  sniperSightStepsWithTheWheel();
-  rightButtonClicksOrHolds();
+  aimingDownTheSightZooms();
+  roundsReachThePointUnderTheSight();
   sightPicksTheNearestEnemy();
+  recoilSettlesWhereTheViewWas();
+  gunFiresOnceItCanReachTheSight();
   tanksTurnWhileDriving();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;
