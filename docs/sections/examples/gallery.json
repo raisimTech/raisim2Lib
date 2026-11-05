@@ -89,8 +89,7 @@
         "server/inverse_dynamics",
         "server/kinematic_platform",
         "server/island_sleep_benchmark",
-        "rayrai/rayrai_explosion_projectile",
-        "rayrai/rayrai_tank_battle"
+        "rayrai/rayrai_explosion_projectile"
       ]
     },
     {

@@ -67,20 +67,20 @@ given with `--quality`, is kept.
 
 ## Run
 
-The game is in [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm). On the desktop it
-builds against the installed RaiSim and rayrai packages:
+The game is one program, [`raisim2Lib/wasm/src/tank_survival`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm/src/tank_survival),
+built for the desktop with the other examples and for the browser with the WebAssembly SDK; both builds
+play and look the same. On the desktop:
 
 ```bash
-cmake -S wasm -B build-wasm-native -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$PWD/raisim;$PWD/rayrai"
-cmake --build build-wasm-native --target tank_survival
-./build-wasm-native/tank_survival
-./build-wasm-native/tank_survival --autopilot --level 3 --quality 3
+cmake --build build-examples --target rayrai_tank_survival
+./build-examples/examples/rayrai_tank_survival
+./build-examples/examples/rayrai_tank_survival --autopilot --level 3 --quality 3
 ```
 
 `--level N` starts the Nth level, `--autopilot` lets the tank play itself, `--quality 0-3` picks Fast,
 Balanced, High or Ultra rendering, and `--frames N --screenshot file.png` saves the Nth frame. For the
-browser, build the same project with Emscripten and the SDK as the [WebAssembly SDK](../../WebAssemblySdk.md#quick-start)
-page describes, or [play it on this website](https://raisim.com/games/tank-survival/).
-
-The smaller [Tank Battle](rayrai_tank_battle.md) example drives one tank of boxes and cylinders in a
-single file, to show the explosion and projectile API on its own.
+browser, build [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm) with Emscripten and
+the SDK as the [WebAssembly SDK](../../WebAssemblySdk.md#quick-start) page describes, or
+[play it on this website](https://raisim.com/games/tank-survival/). The
+[Explosion and Projectile](rayrai_explosion_projectile.md) example shows the explosion and projectile API on its
+own.

@@ -56,16 +56,16 @@ example `tank_survival.html?arg=--autopilot&arg=--level&arg=4` lets the tank pla
 
 On the desktop, configure without `emcmake` against the native RaiSim and Rayrai packages
 (`-DCMAKE_PREFIX_PATH=<install>`); `ctest` then runs `tank_survival_test`, which checks game logic that needs
-no window.
+no window. The examples in `../examples` build the same game as `rayrai_tank_survival`.
 
 The game reads its models and textures from `../rsc`; the page downloads them (273 files, about 110 MB)
 before the game starts, with `rayrai_add_web_app(... ASSETS ...)`. `DESCRIPTION`, `URL` and `IMAGE` give the
 page the tags that make a shared link show as a card; set `-DTANK_SURVIVAL_URL=` to the address you publish
 it at. You can also play it on [raisim.com](https://raisim.com/games/tank-survival/). The
 vehicles are Sketchfab models under CC BY 4.0, credited in
-[`rsc/tank_survival/ATTRIBUTION.md`](../rsc/tank_survival/ATTRIBUTION.md); the rest is CC0. On the desktop
-the same source plants broadleaf trees too; the web page leaves them out, since their mesh alone is a
-95 MB download.
+[`rsc/tank_survival/ATTRIBUTION.md`](../rsc/tank_survival/ATTRIBUTION.md); the rest is CC0. The desktop and
+the web page build the same game: both plant pines and firs only (a broadleaf tree's mesh alone would be a
+95 MB download).
 
 ## Your own program
 

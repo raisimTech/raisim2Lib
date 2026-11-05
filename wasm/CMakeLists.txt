@@ -28,8 +28,8 @@ endif()
 # A tank survival game drawn by Rayrai. It reads its models, textures and font from raisim2Lib/rsc. On the
 # web page they are files next to the page (tank_survival-assets/, about 110 MB without Rayrai's local
 # mesh caches) that it downloads into /assets before the game starts; the page is tank_survival.html,
-# and TANK_SURVIVAL_URL is the address it is published at, for the card a shared link shows. The web
-# page plants conifers only: the broadleaf tree's mesh alone is a 95 MB download.
+# and TANK_SURVIVAL_URL is the address it is published at, for the card a shared link shows. The same
+# source builds the desktop game, which raisim2Lib/examples also builds as rayrai_tank_survival.
 set(tank_survival_assets tank_survival fonts/roboto/Roboto-SemiBold.ttf offroad_buggy/terrain/textures
     forest/pine_sapling_small forest/fir_sapling forest/rock_moss_set_01 forest/grass_medium_01
     forest/grass_medium_02 forest/grass_bermuda_01 forest/dandelion_01 forest/fern_02)
@@ -47,7 +47,7 @@ if(EMSCRIPTEN)
         DESCRIPTION "Hold out against waves of armored vehicles in a tank battle that runs in your browser. Every shell, blast and wading tank is simulated by RaiSim and drawn by Rayrai."
         URL "${TANK_SURVIVAL_URL}" IMAGE "${RAISIM2LIB_RSC}/docs/image/tank_survival_card.jpg"
         ASSETS ${mounts} EXCLUDE "rayrai_cache_*")
-    target_compile_definitions(tank_survival PRIVATE TANK_SURVIVAL_ASSETS="/assets" TANK_SURVIVAL_BROADLEAF_TREES=0)
+    target_compile_definitions(tank_survival PRIVATE TANK_SURVIVAL_ASSETS="/assets")
 else()
     target_link_libraries(tank_survival PRIVATE rayrai::rayrai)
     target_compile_definitions(tank_survival PRIVATE TANK_SURVIVAL_ASSETS="${RAISIM2LIB_RSC}")

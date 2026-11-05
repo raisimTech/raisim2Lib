@@ -418,7 +418,11 @@ endforeach()
 # An off-road buggy with double-wishbone suspension (URDF closed by pin, equality and mimic
 # constraints) driven with the arrow keys over an eroded meadow with a dirt track.
 create_rayrai_executable(rayrai_offroad_buggy src/rayrai/worlds/rayrai_offroad_buggy.cpp)
-create_rayrai_executable(rayrai_tank_battle src/rayrai/games/rayrai_tank_battle.cpp)
+# Tank Survival, the game the website runs: one source (raisim2Lib/wasm/src/tank_survival) builds this
+# desktop executable and the browser page (raisim2Lib/wasm with the WebAssembly SDK).
+create_rayrai_executable(rayrai_tank_survival ${CMAKE_CURRENT_SOURCE_DIR}/../wasm/src/tank_survival/main.cpp)
+target_compile_features(rayrai_tank_survival PRIVATE cxx_std_20)
+target_compile_definitions(rayrai_tank_survival PRIVATE TANK_SURVIVAL_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/../rsc")
 # A gun firing a solid round and an explosive shell at a wall of crates, and a charge going off beside it.
 create_rayrai_executable(rayrai_explosion_projectile src/rayrai/dynamics/rayrai_explosion_projectile.cpp)
 target_compile_features(rayrai_offroad_buggy PRIVATE cxx_std_20)

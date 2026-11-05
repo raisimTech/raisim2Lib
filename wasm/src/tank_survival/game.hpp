@@ -134,6 +134,11 @@ struct Stats {
   double damageTaken = 0.0;
 };
 
+// The share of their top speed the enemies drive at, and the sideways acceleration (m/s^2) their turns at
+// speed reach: at full speed and full steer, light vehicles rolled over on rough ground.
+inline constexpr double kEnemySpeedScale = 0.7;
+inline constexpr double kEnemyTurnAcceleration = 3.0;
+
 class Game {
  public:
   Game(std::shared_ptr<raisim::World> world, Viewer& viewer, const std::string& assets, unsigned seed)
@@ -1436,7 +1441,8 @@ class Game {
       throttle = -0.8;
       turnError = enemy.strafe;
     }
-    enemy.command(throttle, 1.8 * turnError, 1.0, t);
+    const double steer = enemy.steerLimit(kEnemyTurnAcceleration);
+    enemy.command(throttle, std::clamp(1.8 * turnError, -steer, steer), kEnemySpeedScale, t);
   }
 
   void applyHit(Tank& target, const HitResult& result, bool fromPlayer, const Vec3& at, const Vec3& from) {

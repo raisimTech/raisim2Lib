@@ -5,7 +5,7 @@ charge and pushes the dynamic bodies it reaches. A projectile flies under gravit
 world's fluids, hits the first body on its path, hands it its momentum and, if it is explosive,
 detonates there. Together they make shells, grenades, bullets, rockets after burnout, demolition
 charges and exploding barrels. The [Explosion and Projectile](examples/rayrai/rayrai_explosion_projectile.md)
-example shows the least code that uses both; the [Tank Survival](examples/rayrai/rayrai_tank_survival.md) game and the [Tank Battle](examples/rayrai/rayrai_tank_battle.md) example use
+example shows the least code that uses both; the [Tank Survival](examples/rayrai/rayrai_tank_survival.md) game uses
 them at length, and rayrai draws them ([Explosion effects](rayrai/Explosions.md)).
 
 ```cpp

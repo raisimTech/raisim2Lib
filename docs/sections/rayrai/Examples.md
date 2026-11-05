@@ -40,9 +40,9 @@ Quick map to the current rayrai-related targets:
 - `rayrai_explosion_projectile`: the smallest use of projectiles and explosions: a gun fires a solid
   round and an explosive shell at a wall of crates, and a charge goes off beside it; see
   [Explosion and Projectile](../examples/rayrai/rayrai_explosion_projectile.md).
-- `rayrai_tank_battle`: a tracked tank fires shells (World projectiles) at crates, walls, tanks
-  and fuel barrels that set each other off; blasts, craters, wind and the explosion effects; see
-  [Tank Battle](../examples/rayrai/rayrai_tank_battle.md).
+- `rayrai_tank_survival`: the Tank Survival game, from the same source as its web page
+  (`raisim2Lib/wasm/src/tank_survival`): waves of armored vehicles, shells, blasts, craters and wind;
+  see [Tank Survival](../examples/rayrai/rayrai_tank_survival.md).
 - `rayrai_rolling_spinning_friction` / `rayrai_swept_ccd`: physics-focused
   scenes that visualize rolling/spinning friction and swept CCD.
 - `rayrai_motor_operating_region`: a randomly actuated fixed-base quadruped
