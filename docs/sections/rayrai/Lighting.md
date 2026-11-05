@@ -249,9 +249,13 @@ ignored unless they increase and lie between the camera near plane and the
 shadowed distance. Each
 cascade is padded for the filter footprint and snapped to a world-anchored
 texel grid, so it stays stable while the camera moves. The light's depth bias
-holds for the first cascade; a farther cascade, whose texels cover more ground,
-multiplies it by how much more depth one of its texels spans, so terrain under a
-low sun does not shadow itself in the distance. Cascades also work on
+and `shadowNormalOffset` are set for the first cascade. A farther cascade, whose
+texels cover more ground, also moves each receiver along its normal by the
+filter footprint plus one texel, times how much wider its texels are (a few
+centimetres to a few tens of centimetres), so surfaces under a low sun do not
+shadow themselves in the distance while shadows stay attached to their casters.
+The tips of long shadows in a far cascade are shorter by about that offset
+divided by the tangent of the sun's elevation. Cascades also work on
 macOS and other GPUs limited to 16 fragment texture units.
 
 Soft shadows search the shadow map for blockers and widen the filter with the

@@ -38,4 +38,42 @@ inline const std::array<WeaponSpec, kWeaponCount> kWeapons{{
 
 inline const WeaponSpec& weapon(WeaponId id) { return kWeapons[size_t(id)]; }
 
+// The direction to fire a round from `origin` so that it passes through `target` as the world flies it:
+// raisim's projectile step (gravity, and the drag of air of `density` moving at `wind`), replayed at the
+// game's time step. The straight line is corrected, a few times, by where a round fired along the last
+// guess passes the target. A target out of reach keeps the last guess.
+inline Vec3 launchDirection(const Vec3& origin, const Vec3& target, const WeaponSpec& round, const Vec3& wind,
+                            double density = 1.205) {
+  const Vec3 line = target - origin;
+  const double range = line.norm();
+  if (!(range > 1e-6) || !(round.speed > 0.0)) return line.normalized();
+  const Vec3 axis = line / range, gravity(0.0, 0.0, -kGravity);
+  const double drag = 0.5 * density * round.dragCoefficient * kPi * round.radius * round.radius / round.mass;
+  Vec3 aimAt = target, direction = axis;
+  for (int iteration = 0; iteration < 6; ++iteration) {
+    direction = (aimAt - origin).normalized();
+    Vec3 x = origin, v = direction * round.speed, passed = origin;
+    bool reached = false;
+    for (int step = 0; step < 20000; ++step) {
+      const Vec3 relative = v - wind;
+      const Vec3 v1 = wind + (relative + gravity * kTimeStep) / (1.0 + drag * relative.norm() * kTimeStep);
+      const Vec3 x1 = x + 0.5 * kTimeStep * (v + v1);
+      const double before = (x - origin).dot(axis), after = (x1 - origin).dot(axis);
+      if (after >= range) {
+        passed = x + (after > before ? (range - before) / (after - before) : 1.0) * (x1 - x);
+        reached = true;
+        break;
+      }
+      if (after < before) break;
+      x = x1;
+      v = v1;
+    }
+    if (!reached) break;
+    const Vec3 miss = target - passed;
+    if (miss.norm() < 1e-4) break;
+    aimAt += miss - miss.dot(axis) * axis;
+  }
+  return direction;
+}
+
 }  // namespace tank

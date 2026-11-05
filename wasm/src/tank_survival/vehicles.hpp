@@ -319,6 +319,14 @@ struct Tank {
     return std::abs(wrapAngle(azimuth - (spec->fixedTurret ? 0.0 : turretAngle())));
   }
 
+  // Whether the turret and gun have come to the angles aimAt() last asked for, and stopped there.
+  bool gunSettled() const {
+    const auto& q = system->getGeneralizedCoordinate();
+    const auto& u = system->getGeneralizedVelocity();
+    return std::abs(wrapAngle((spec->fixedTurret ? 0.0 : turretAim) - turretAngle())) < 0.03 &&
+           std::abs(gunAim - q[gunCoordinate]) < 0.03 && std::abs(u[turret]) < 0.1 && std::abs(u[gun]) < 0.1;
+  }
+
   // A tank that a blast left on its side or roof for a while is set back on its tracks, facing the way
   // it faced.
   void selfRight(double dt) {
