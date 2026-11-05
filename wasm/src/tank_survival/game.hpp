@@ -43,6 +43,12 @@ struct Barrel {
   double fuse = -1.0;
 };
 
+// A clod of earth or a stone a ground burst throws, until it is cleared away.
+struct Clod {
+  raisim::Box* body = nullptr;
+  double removeAt = 0.0;
+};
+
 // A destroyed vehicle: its hull and turret as loose bodies, drawn burnt with the vehicle's meshes.
 struct Wreck {
   std::vector<raisim::SingleBodyObject*> parts;
@@ -187,6 +193,48 @@ class Game {
   Phase phase() const { return phase_; }
   int level() const { return level_; }
   const LevelSpec& levelSpec() const { return levels()[size_t(level_)]; }
+
+  // Wrecks of every kind of vehicle the level fields and a clod of earth, set out around `at` while the
+  // loading screen draws a few frames and taken away after: the first wreck of a kind then neither builds
+  // the levels of detail of its meshes nor (in the browser) its render pipelines in the middle of a
+  // battle, which stalled a frame by 10-20 ms natively and several times that in the browser. Rayrai keeps
+  // meshes and their levels of detail only while a visual uses them, so one visual of each is kept, out
+  // of the scene.
+  void showWreckModels(const Vec3& at) {
+    std::vector<Role> roles{Role::Player};
+    if (levelSpec().endless) {
+      for (int role = 0; role < int(kVehicles.size()); ++role) roles.push_back(Role(role));
+    } else {
+      for (const auto& wave : levelSpec().waves)
+        for (const Squad& squad : wave) roles.push_back(squad.role);
+      if (std::find(roles.begin(), roles.end(), Role::Boss) != roles.end()) roles.push_back(Role::Medium);
+    }
+    std::sort(roles.begin(), roles.end());
+    roles.erase(std::unique(roles.begin(), roles.end()), roles.end());
+    Viewer::SynchronousMeshLoadingScope loading(viewer_);
+    for (size_t i = 0; i < 2 * roles.size(); ++i) {
+      const std::string name = "wreck model " + std::to_string(i);
+      const std::string mesh = assets_ + "/tank_survival/vehicles/" + vehicle(roles[i / 2]).model + (i % 2 ? "/turret.gltf" : "/hull.gltf");
+      const double angle = 2.0 * kPi * double(i) / double(2 * roles.size());
+      const Vec3 where = at + Vec3(9.0 * std::cos(angle), 9.0 * std::sin(angle), 0.0);
+      auto visual = viewer_.addVisualMesh(name, mesh, glm::dvec3(1.0), kWreckColor);
+      visual->setPosition(where.x(), where.y(), height(where.x(), where.y()));
+      wreckModels_.push_back(name);
+      preparedWrecks_[mesh] = std::move(visual);
+    }
+    auto* clod = world_->addBox(0.3, 0.3, 0.2, 1.0, "default", kDebrisCollisionGroup, ~kDebrisCollisionGroup);
+    clod->setBodyType(raisim::BodyType::STATIC);
+    clod->setPosition(at + Vec3(0.0, 0.0, 3.0));
+    clod->setAppearance("0.3,0.25,0.2,1");
+    wreckClod_ = clod;
+  }
+
+  void hideWreckModels() {
+    for (const auto& name : wreckModels_) viewer_.removeVisualObject(name);
+    wreckModels_.clear();
+    if (wreckClod_) world_->removeObject(wreckClod_);
+    wreckClod_ = nullptr;
+  }
   Tank* player() { return phase_ == Phase::Playing && player_ && player_->alive() ? player_.get() : nullptr; }
   const Tank* playerTank() const { return player_.get(); }
 
@@ -202,12 +250,33 @@ class Game {
     }
   }
 
+  // How far the camera can be from `from` along the unit `direction`, up to `length`, before the ground,
+  // a wall or a building; vehicles, props and trees do not stop it.
+  double wallReach(const Vec3& from, const Vec3& direction, double length) {
+    double travelled = 0.0;
+    for (int attempt = 0; attempt < 6 && travelled < length; ++attempt) {
+      const auto& hits = world_->rayTest(from + travelled * direction, direction, length - travelled, size_t(-10), size_t(-10),
+                                         ~kTreeCollisionGroup);
+      if (hits.size() == 0) break;
+      const double along = (hits[0].getPosition() - from).dot(direction);
+      if (hits[0].getObject()->getBodyType() == raisim::BodyType::STATIC) return along;
+      travelled = along + 0.05;
+    }
+    return length;
+  }
+
+  // How far the camera can be from `from` along the unit `direction`, up to `length`, without sitting in
+  // the crown of a tree.
+  double crownReach(const Vec3& from, const Vec3& direction, double length) const {
+    return scenery_.crownReach(from, direction, length);
+  }
+
   // The first thing a round flying straight from origin along direction meets within length, as the
   // world's projectiles do (the player's own tank aside): the point, and whether it is a vehicle.
   bool sweep(const Vec3& origin, const Vec3& direction, double length, Vec3& point, bool& vehicle) {
     Vec3 from = origin;
     for (int attempt = 0; attempt < 4 && length > 0.0; ++attempt) {
-      const auto& hits = world_->rayTest(from, direction, length);
+      const auto& hits = world_->rayTest(from, direction, length, size_t(-10), size_t(-10), ~kDebrisCollisionGroup);
       if (hits.size() == 0) return false;
       const Vec3 at = hits[0].getPosition();
       if (player_ && player_->system && hits[0].getObject() == player_->system) {
@@ -335,8 +404,10 @@ class Game {
       if (explosion.id < nextExplosion_) continue;
       nextExplosion_ = explosion.id + 1;
       const double charge = explosion.properties.chargeMass * (explosion.properties.surfaceBurst ? 1.8 : 1.0);
-      if (explosion.properties.craterRadius > 0.0)
+      if (explosion.properties.craterRadius > 0.0) {
         terrainVisuals_.dig(explosion.position[0], explosion.position[1], explosion.properties.craterRadius);
+        throwClods(explosion.position.e(), charge);
+      }
       const Shell* shell = findShell(explosion.projectileId);
       const bool fromPlayer = !shell || shell->fromPlayer;
       for (Tank* tank : tanks()) {
@@ -345,7 +416,7 @@ class Game {
         const double damage = std::clamp((pressure - 15e3) / 5e3, 0.0, 50.0) *
                               std::clamp(70.0 / tank->spec->sideArmor, 0.2, 2.0);
         if (damage > 0.0) applyDamage(*tank, damage, fromPlayer, explosion.position.e() - center, false);
-        if (tank == player_.get()) shake_ = std::max(shake_, std::clamp(pressure / 6e4, 0.0, 1.0));
+        if (tank == player_.get()) shake_ = std::max(shake_, std::clamp(pressure / 4e4, 0.0, 1.0));
       }
       for (auto& barrel : barrels_) {
         if (!barrel.body || barrel.fuse >= 0) continue;
@@ -390,6 +461,7 @@ class Game {
         continue;
       }
       raisim::ProjectileProperties shell;
+      shell.collisionMask = ~kDebrisCollisionGroup;
       shell.mass = weapon(WeaponId::Artillery).mass;
       shell.radius = weapon(WeaponId::Artillery).radius;
       shell.dragCoefficient = 0.0;
@@ -435,6 +507,11 @@ class Game {
     }
     std::erase_if(wrecks_, [](const Wreck& wreck) { return wreck.parts.empty(); });
     std::erase_if(barrels_, [](const Barrel& barrel) { return !barrel.body; });
+    std::erase_if(clods_, [&](const Clod& clod) {
+      if (t < clod.removeAt) return false;
+      world_->removeObject(clod.body);
+      return true;
+    });
     for (const auto& dressing : dressings_) {
       const Eigen::Matrix3d R = dressing.body->getRotationMatrix();
       const Vec3 at = dressing.body->getPosition() + R * dressing.offset;
@@ -561,6 +638,8 @@ class Game {
     town_.clear(viewer_);
     for (auto& wreck : wrecks_) removeWreck(wreck);
     wrecks_.clear();
+    for (const auto& clod : clods_) world_->removeObject(clod.body);
+    clods_.clear();
     for (auto& enemy : enemies_)
       if (enemy->system) world_->removeObject(enemy->system);
     enemies_.clear();
@@ -1105,6 +1184,7 @@ class Game {
       direction = (direction + Vec3(noise(random_), noise(random_), 0.5 * noise(random_))).normalized();
     }
     raisim::ProjectileProperties shell;
+    shell.collisionMask = ~kDebrisCollisionGroup;
     shell.mass = round.mass;
     shell.radius = round.radius;
     shell.dragCoefficient = round.dragCoefficient;
@@ -1130,6 +1210,7 @@ class Game {
     const Vec3 horizontal = Vec3(offset.x(), offset.y(), 0.0).normalized();
     const Vec3 velocity = speed * (std::cos(angle) * horizontal + std::sin(angle) * Vec3::UnitZ());
     raisim::ProjectileProperties shell;
+    shell.collisionMask = ~kDebrisCollisionGroup;
     shell.mass = 12.0;
     shell.radius = 0.06;
     shell.dragCoefficient = 0.05;
@@ -1147,7 +1228,7 @@ class Game {
     Vec3 position, direction;
     shooter.muzzle(position, direction);
     Missile missile;
-    missile.body = world_->addCylinder(0.07, 0.9, weapon(WeaponId::Missile).mass);
+    missile.body = world_->addCylinder(0.07, 0.9, weapon(WeaponId::Missile).mass, "default", 1, ~kDebrisCollisionGroup);
     const Vec3 start = position + direction * 1.2 + Vec3(0, 0, 0.6);
     missile.body->setPosition(start.x(), start.y(), start.z());
     missile.body->setOrientation(Eigen::Quaterniond::FromTwoVectors(Vec3::UnitZ(), direction));
@@ -1392,15 +1473,15 @@ class Game {
     world_->setFluidCoefficients(top, still);
     top->setPosition(turretPosition.e() + turretRot * turretCenter + Vec3(0, 0, 0.15));
     top->setOrientation(Eigen::Matrix3d(turretRot));
-    top->setVelocity(velocity + Vec3(uniform(random_, -2, 2), uniform(random_, -2, 2), uniform(random_, 6, 9)),
-                     Vec3(uniform(random_, -2.5, 2.5), uniform(random_, -2.5, 2.5), uniform(random_, -2, 2)));
+    // The ammunition cooks off and throws the turret high, spinning.
+    top->setVelocity(velocity + Vec3(uniform(random_, -3, 3), uniform(random_, -3, 3), uniform(random_, 10, 14)),
+                     Vec3(uniform(random_, -6, 6), uniform(random_, -6, 6), uniform(random_, -4, 4)));
     const std::string folder = assets_ + "/tank_survival/vehicles/" + tank.spec->model;
-    const glm::vec4 burnt(0.22f, 0.2f, 0.19f, 1.0f);
     for (auto [body, mesh, offset] : {std::tuple<raisim::SingleBodyObject*, const char*, Vec3>{hull, "hull", -hullCenter - Vec3(0, 0, model.axleHeight)},
                                       {top, "turret", -turretCenter - model.turretPivot}}) {
       body->setAppearance("hidden");
       const std::string name = "wreck_" + std::to_string(nextName_++);
-      viewer_.addVisualMesh(name, folder + "/" + mesh + ".gltf", glm::dvec3(1.0), burnt);
+      viewer_.addVisualMesh(name, folder + "/" + mesh + ".gltf", glm::dvec3(1.0), kWreckColor);
       wreck.parts.push_back(body);
       wreck.visuals.push_back(name);
       wreck.offsets.push_back(offset);
@@ -1412,12 +1493,12 @@ class Game {
     const Vec3 fire = hullPosition + orientation * Vec3(model.hullMin.x() * 0.3, 0.0, hullSize.z() - model.axleHeight);
     viewer_.addFireEffect({glm::vec3(fire.x(), fire.y(), fire.z()), float(0.9 * s), 28.0f});
     raisim::ExplosionProperties blast;
-    blast.chargeMass = 2.5 * s;
+    blast.chargeMass = 4.0 * s;
     blast.craterRadius = 1.5 * s;
     blast.craterDepth = 0.5;
     world_->addExplosion(vec(position + Vec3(0, 0, 0.8 * s)), blast);
-    for (double delay : {0.35, 0.8, 1.3})
-      pending_.push_back({now() + delay, position + Vec3(uniform(random_, -1.5, 1.5), uniform(random_, -1.5, 1.5), 0.6), 0.7});
+    for (double delay : {0.3, 0.7, 1.1, 1.6, 2.2})
+      pending_.push_back({now() + delay, position + Vec3(uniform(random_, -1.5, 1.5), uniform(random_, -1.5, 1.5), 0.6), 1.0});
     if (!isPlayer && uniform(random_, 0.0, 1.0) < 0.4) {
       const Vec3 drop(position.x() + uniform(random_, -3, 3), position.y() + uniform(random_, -3, 3), 0.0);
       spawnPickupAt(randomBonus(), Vec3(drop.x(), drop.y(), height(drop.x(), drop.y())));
@@ -1443,6 +1524,39 @@ class Game {
         }
       batch.visual->clearInstances();
       batch.visual->addInstances(instances);
+    }
+  }
+
+  // Clods of the ground a burst of `charge` kg throws up and out, more and faster for larger charges:
+  // soil, sand, rubble or snow and stone. They bounce and roll for a few seconds and are cleared away.
+  void throwClods(const Vec3& at, double charge) {
+    static const std::map<Terrain, std::array<const char*, 2>> kColors{
+        {Terrain::Hills, {"0.2,0.14,0.08,1", "0.32,0.3,0.27,1"}}, {Terrain::Dunes, {"0.55,0.42,0.28,1", "0.45,0.34,0.22,1"}},
+        {Terrain::Town, {"0.42,0.38,0.34,1", "0.45,0.24,0.18,1"}}, {Terrain::Ridges, {"0.82,0.82,0.86,1", "0.34,0.32,0.31,1"}},
+        {Terrain::Fortress, {"0.3,0.21,0.13,1", "0.36,0.34,0.31,1"}}};
+    const auto& colors = kColors.at(levelSpec().terrain);
+    const double scale = std::cbrt(std::max(charge, 0.1));
+    const int count = std::clamp(int(1.0 + 2.0 * scale), 2, 7);
+    while (!clods_.empty() && clods_.size() + size_t(count) > 40) {
+      world_->removeObject(clods_.front().body);
+      clods_.erase(clods_.begin());
+    }
+    for (int i = 0; i < count; ++i) {
+      const double a = uniform(random_, 0.0, 2.0 * kPi), up = uniform(random_, 0.6, 1.35);
+      const double speed = uniform(random_, 5.0, 10.0) * std::min(scale, 2.2);
+      const Vec3 direction(std::cos(up) * std::cos(a), std::cos(up) * std::sin(a), std::sin(up));
+      const Vec3 size(uniform(random_, 0.16, 0.42), uniform(random_, 0.16, 0.42), uniform(random_, 0.12, 0.3));
+      auto* clod = world_->addBox(size.x(), size.y(), size.z(), 1500.0 * size.prod(), "default", kDebrisCollisionGroup,
+                                  ~kDebrisCollisionGroup);
+      const Vec3 start = Vec3(at.x(), at.y(), height(at.x(), at.y()) + 0.35) + 0.4 * scale * Vec3(direction.x(), direction.y(), 0.0);
+      clod->setPosition(start);
+      clod->setOrientation(Eigen::Matrix3d(Eigen::AngleAxisd(a, Vec3::UnitZ()) * Eigen::AngleAxisd(up, Vec3::UnitX())));
+      clod->setVelocity(speed * direction, Vec3(uniform(random_, -9, 9), uniform(random_, -9, 9), uniform(random_, -9, 9)));
+      clod->setAppearance(colors[size_t(i % 2)]);
+      raisim::FluidCoefficients still;
+      still.enabled = false;
+      world_->setFluidCoefficients(clod, still);
+      clods_.push_back({clod, now() + uniform(random_, 3.0, 4.0)});
     }
   }
 
@@ -1502,7 +1616,12 @@ class Game {
   std::unique_ptr<Tank> player_;
   std::vector<std::unique_ptr<Tank>> enemies_;
   std::vector<Barrel> barrels_;
+  std::vector<Clod> clods_;
   std::vector<Wreck> wrecks_;
+  std::vector<std::string> wreckModels_;
+  raisim::Box* wreckClod_ = nullptr;
+  std::map<std::string, std::shared_ptr<raisin::Visuals>> preparedWrecks_;
+  static inline const glm::vec4 kWreckColor{0.22f, 0.2f, 0.19f, 1.0f};
   std::vector<Pickup> pickups_;
   std::vector<Shell> shells_;
   std::vector<Missile> missiles_;

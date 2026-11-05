@@ -142,6 +142,74 @@ void cameraStaysWhereItIsTurned() {
   check(orbit.heading > 2.01, "the autopilot's camera follows the hull");
 }
 
+void mouseLooksAround() {
+  tank::OrbitHeading orbit;
+  orbit.place(0.0);
+  orbit.look(100.0, 0.0, 1.0);
+  check(std::abs(orbit.heading + 100.0 * tank::OrbitHeading::kSensitivity) < 1e-12, "the mouse moved right turns the view right");
+  orbit.look(100.0, 0.0, 0.25);
+  check(std::abs(orbit.heading + 125.0 * tank::OrbitHeading::kSensitivity) < 1e-12, "the sniper sight turns slower");
+  orbit.look(0.0, -1e5, 1.0);
+  check(orbit.pitch == tank::OrbitHeading::kHighest, "the view looks up no higher than its limit");
+  orbit.look(0.0, 1e5, 1.0);
+  check(orbit.pitch == tank::OrbitHeading::kLowest, "the view looks down no lower than its limit");
+  orbit.behindHull = true;
+  orbit.look(0.0, 10.0, 1.0);
+  check(orbit.behindHull, "looking up and down keeps the camera swinging behind the hull");
+  orbit.look(5.0, 0.0, 1.0);
+  check(!orbit.behindHull, "turning the view stops the swing behind the hull");
+  for (int turn = 0; turn < 1000; ++turn) orbit.look(500.0, 0.0, 1.0);
+  check(std::abs(orbit.heading) <= tank::kPi, "the heading stays within a turn");
+  orbit.place(1.0);
+  check(orbit.heading == 1.0 && orbit.pitch == tank::OrbitHeading::kPitch, "a new mission looks from behind the hull");
+}
+
+void sniperSightStepsWithTheWheel() {
+  tank::SniperSight sight;
+  float distance = 30.0f;
+  sight.scroll(2.0, distance, 12.0f, 70.0f);
+  check(!sight.active && distance == 26.0f, "outside the sight the wheel moves the camera closer");
+  sight.scroll(20.0, distance, 12.0f, 70.0f);
+  check(!sight.active && distance == 12.0f, "the camera stops at its closest");
+  sight.scroll(0.4, distance, 12.0f, 70.0f);
+  sight.scroll(0.4, distance, 12.0f, 70.0f);
+  check(!sight.active, "part of a notch does not enter the sight");
+  sight.scroll(0.4, distance, 12.0f, 70.0f);
+  check(sight.active && sight.magnification() == 2.0, "a notch more at the closest enters the sight at x2");
+  sight.scroll(1.0, distance, 12.0f, 70.0f);
+  sight.scroll(1.0, distance, 12.0f, 70.0f);
+  sight.scroll(1.0, distance, 12.0f, 70.0f);
+  check(sight.magnification() == 8.0, "the wheel steps the magnification up to x8");
+  sight.scroll(-2.0, distance, 12.0f, 70.0f);
+  check(sight.active && sight.magnification() == 2.0, "and back down");
+  sight.scroll(-3.0, distance, 12.0f, 70.0f);
+  check(!sight.active && distance == 12.0f && sight.magnification() == 1.0, "turned out past x2 it leaves the sight");
+  sight.scroll(-1.0, distance, 12.0f, 70.0f);
+  check(distance == 14.0f, "the wheel turned out moves the camera back");
+  sight.step = 1;
+  sight.toggle();
+  check(sight.active && sight.magnification() == 4.0, "Shift enters the sight at its last magnification");
+  sight.toggle();
+  check(!sight.active && distance == 14.0f, "Shift leaves it, with the camera where it was");
+}
+
+void rightButtonClicksOrHolds() {
+  tank::ClickOrHold button;
+  check(!button.update(true, 0.0) && button.down(), "the gun holds its aim from the moment the button goes down");
+  check(!button.update(true, 0.1), "nothing is clicked while the button is down");
+  check(button.update(false, 0.016) && !button.down(), "a short press is a click");
+  for (int frame = 0; frame < 30; ++frame) button.update(true, 1.0 / 60.0);
+  check(!button.update(false, 0.016), "a held button is not a click");
+  check(!button.update(false, 0.016), "a button that stays up clicks nothing");
+}
+
+void sightPicksTheNearestEnemy() {
+  const std::vector<ImVec2> points{{100.0f, 100.0f}, {130.0f, 100.0f}, {300.0f, 300.0f}};
+  check(tank::nearestWithin(points, ImVec2(120.0f, 100.0f), 40.0f) == 1, "the sight picks the enemy nearest it");
+  check(tank::nearestWithin(points, ImVec2(200.0f, 200.0f), 40.0f) == -1, "no enemy within reach, none is picked");
+  check(tank::nearestWithin({}, ImVec2(0.0f, 0.0f), 40.0f) == -1, "no enemies, none is picked");
+}
+
 // Each vehicle on rough ground at full throttle, then steered: a rigid hull bounced from bump to bump with
 // its tracks mostly in the air and went on straight (the player's tank turned 5 degrees in 3 s); on sprung
 // track carriers it turns.
@@ -187,6 +255,10 @@ int main() {
   windArrowTurnsWithTheCamera();
   restartNeedsAHeldKey();
   cameraStaysWhereItIsTurned();
+  mouseLooksAround();
+  sniperSightStepsWithTheWheel();
+  rightButtonClicksOrHolds();
+  sightPicksTheNearestEnemy();
   tanksTurnWhileDriving();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;

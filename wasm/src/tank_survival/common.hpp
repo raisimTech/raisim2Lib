@@ -40,6 +40,8 @@ inline constexpr double kTimeStep = 0.002;
 inline constexpr double kGravity = 9.81;
 // The collision group of the trees in the arena: the tanks' turrets and guns swing through them.
 inline constexpr raisim::CollisionGroup kTreeCollisionGroup = raisim::CollisionGroup(1) << 40;
+// The collision group of the clods ground bursts throw: rounds and the sight pass through them.
+inline constexpr raisim::CollisionGroup kDebrisCollisionGroup = raisim::CollisionGroup(1) << 41;
 
 inline raisim::Vec<3> vec(const Vec3& value) {
   raisim::Vec<3> v;

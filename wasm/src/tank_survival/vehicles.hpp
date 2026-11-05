@@ -27,20 +27,20 @@ struct VehicleSpec {
 };
 
 inline const std::array<VehicleSpec, 7> kVehicles{{
-    {"Leopard 2A4", "your tank", Role::Player, "leopard_2a4", 55000, 240, 140, 70, 40, 25, 10.0, 3.8, false,
+    {"Leopard 2A4", "your tank", Role::Player, "leopard_2a4", 55000, 240, 140, 70, 40, 25, 15.0, 5.1, false,
      WeaponId::AP, 1.0, 3.0, 0.0, 0, 0, {1, 1, 1, 1}},
     {"BMD-2", "airborne fighting vehicle: fast, thin armor, autocannon", Role::Scout, "bmd2", 8000, 45, 18, 12, 10, 8,
-     15.0, 5.0, false, WeaponId::MG, 1.6, 0.09, 0.03, 22, 60, {1.0f, 0.85f, 0.3f, 1}},
-    {"T-72B3", "main battle tank: balanced", Role::Medium, "t72b3", 45000, 120, 110, 60, 35, 20, 9.0, 3.4, false,
+     18.0, 6.0, false, WeaponId::MG, 1.6, 0.09, 0.03, 22, 60, {1.0f, 0.85f, 0.3f, 1}},
+    {"T-72B3", "main battle tank: balanced", Role::Medium, "t72b3", 45000, 120, 110, 60, 35, 20, 13.5, 4.6, false,
      WeaponId::AP, 0.85, 3.6, 0.03, 28, 120, {1.0f, 0.3f, 0.2f, 1}},
     {"T-90AM", "heavy main battle tank: thick front, weak rear: flank it", Role::Heavy, "t90am", 48000, 260, 260, 120,
-     60, 35, 6.5, 2.6, false, WeaponId::AP, 1.25, 5.0, 0.035, 32, 260, {0.75f, 0.5f, 1.0f, 1}},
+     60, 35, 10.0, 3.5, false, WeaponId::AP, 1.25, 5.0, 0.035, 32, 260, {0.75f, 0.5f, 1.0f, 1}},
     {"2S25 Sprut-SD", "tank destroyer: long-range gun, light armor", Role::Destroyer, "sprut_sd", 18000, 150, 190, 50,
-     30, 20, 8.0, 3.0, false, WeaponId::AP, 1.45, 6.5, 0.012, 62, 220, {1.0f, 0.6f, 0.1f, 1}},
+     30, 20, 12.0, 4.0, false, WeaponId::AP, 1.45, 6.5, 0.012, 62, 220, {1.0f, 0.6f, 0.1f, 1}},
     {"2S19 Msta-S", "self-propelled howitzer: shells land where you will be", Role::Artillery, "msta_s", 42000, 90, 40,
-     25, 15, 10, 6.0, 3.0, false, WeaponId::HE, 1.0, 7.0, 4.0, 85, 180, {0.3f, 1.0f, 0.5f, 1}},
+     25, 15, 10, 9.0, 4.0, false, WeaponId::HE, 1.0, 7.0, 4.0, 85, 180, {0.3f, 1.0f, 0.5f, 1}},
     {"T-14 Armata", "boss: salvos of AP and HE, armor everywhere but the rear", Role::Boss, "t14_armata", 55000, 1100,
-     320, 180, 80, 50, 5.5, 2.2, false, WeaponId::AP, 1.6, 2.8, 0.03, 40, 1500, {1.0f, 0.15f, 0.4f, 1}},
+     320, 180, 80, 50, 8.5, 3.0, false, WeaponId::AP, 1.6, 2.8, 0.03, 40, 1500, {1.0f, 0.15f, 0.4f, 1}},
 }};
 
 inline const VehicleSpec& vehicle(Role role) { return kVehicles[size_t(role)]; }

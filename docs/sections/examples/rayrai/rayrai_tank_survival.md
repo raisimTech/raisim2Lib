@@ -34,20 +34,26 @@ and heavily armored brutes. The same source builds for the desktop and, with the
 
 ## Controls
 
+The controls follow World of Tanks. Click the view once to capture the mouse (`Esc` frees it and pauses).
+
 | Input | Action |
 | --- | --- |
-| `W` / `S`, `A` / `D` | drive, turn |
-| mouse | point at what to hit; the turret turns there and the gun sets its own elevation |
-| click or `Space` | fire |
+| `W` / `S`, `A` / `D` | drive, turn the hull |
+| mouse | look around; the turret turns to what the sight in the middle of the view rests on |
+| left click or `Space` | fire |
+| right click | auto-aim: lock on the enemy nearest the sight and lead it; right click again to let go |
+| hold the right button | keep the gun's aim and look around freely |
+| `Shift`, mouse wheel | sniper sight from the gun, magnified ×2, ×4 or ×8 by the wheel; the wheel also moves the camera closer or farther |
 | `1`–`5`, `Q` / `E` | pick a weapon, cycle through them |
 | `F` | lay a smoke screen |
-| mouse wheel, right drag | zoom, turn the camera (it stays where you leave it while the tank turns) |
 | `C` | camera behind the tank |
 | `P` or `Esc` / hold `R` / `H` | pause, restart, how to play |
 
-Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to the
-point under the cursor, on slopes too. Near an enemy the sight locks on it (red brackets) and leads it.
-A dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
+Aiming needs no up and down: the gun of your tank is stabilized and raises itself for the range to what
+the sight rests on (a vehicle, a wall, a tree or the ground), and the sight turns red over an enemy. A
+dotted arc shows where a round fired now would fly, to a ring where it would strike: red on a vehicle.
+On a touch screen, where the mouse cannot be captured, tap where to aim; the sight locks on an enemy near
+the tap.
 The **How to play** button (or `H`) opens the controls; they come up before the first mission. Arrows at
 the edge of the screen point to enemies out of view, and an arrow beside the wind's speed shows where it
 blows. Tanks flatten the small trees of the arena, and

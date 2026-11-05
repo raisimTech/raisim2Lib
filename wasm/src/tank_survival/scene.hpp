@@ -97,6 +97,8 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   // Smoke and fire are marched at a third of the image's resolution (half at Ultra): smoke screens and
   // barrages cost about half as much as at half resolution and look nearly the same.
   effects.volumeDownsample = quality >= 3 ? 2 : 3;
+  // Fireballs a third larger than a bare charge's, for the scale of a tank battle.
+  effects.sizeScale = 1.35f;
   viewer.setExplosionEffectSettings(effects);
 }
 
@@ -536,6 +538,11 @@ class Scenery {
           Tree tree;
           tree.base = Vec3(p.x, p.y, p.z);
           tree.yaw = p.yaw;
+          const Crown& crown = kCrowns[size_t(t)];
+          tree.crown = tree.base + p.scale * Vec3(std::cos(p.yaw) * crown.x - std::sin(p.yaw) * crown.y,
+                                                  std::sin(p.yaw) * crown.x + std::cos(p.yaw) * crown.y, crown.low);
+          tree.crownRadius = p.scale * crown.radius;
+          tree.crownHeight = p.scale * (crown.high - crown.low);
           tree.instance = group.size();
           raisim::Rasset::InstanceOptions options;
           options.position = {p.x, p.y, p.z};
@@ -714,6 +721,47 @@ class Scenery {
     }
   }
 
+  // How far a ray from `from` along the unit `direction` can go, up to `length`, and still end outside the
+  // crowns of the standing trees: where it would end in a crown, the point where it enters that crown, and
+  // so on while that point is in another one. Crowns that hold `from` are passed through.
+  double crownReach(const Vec3& from, const Vec3& direction, double length) const {
+    for (double entry = crownEntry(from, direction, length); entry < length; entry = crownEntry(from, direction, length))
+      length = entry;
+    return length;
+  }
+
+  // Where a ray from `from` along the unit `direction` enters a crown that holds its end at `length`,
+  // the nearest such entry; `length` when the end is in no crown.
+  double crownEntry(const Vec3& from, const Vec3& direction, double length) const {
+    const double end = length;
+    for (const auto& tree : trees_) {
+      if (tree.falling()) continue;
+      const double px = from.x() - tree.crown.x(), py = from.y() - tree.crown.y();
+      const double a = direction.x() * direction.x() + direction.y() * direction.y();
+      const double b = px * direction.x() + py * direction.y();
+      const double c = px * px + py * py - tree.crownRadius * tree.crownRadius;
+      double enter = -1e9, leave = 1e9;
+      if (a > 1e-12) {
+        const double discriminant = b * b - a * c;
+        if (discriminant <= 0.0) continue;
+        enter = (-b - std::sqrt(discriminant)) / a;
+        leave = (-b + std::sqrt(discriminant)) / a;
+      } else if (c > 0.0) {
+        continue;
+      }
+      const double low = tree.crown.z() - from.z(), high = low + tree.crownHeight;
+      if (std::abs(direction.z()) > 1e-12) {
+        const double t0 = low / direction.z(), t1 = high / direction.z();
+        enter = std::max(enter, std::min(t0, t1));
+        leave = std::min(leave, std::max(t0, t1));
+      } else if (low > 0.0 || high < 0.0) {
+        continue;
+      }
+      if (enter > 0.0 && enter < end && end < leave) length = std::min(length, enter);
+    }
+    return length;
+  }
+
   // A blast throws down the trees within radius of it, away from it, at the next fellMarkedTrees().
   void blastTrees(const Vec3& at, double radius) {
     for (size_t i = 0; i < trees_.size(); ++i) {
@@ -760,8 +808,18 @@ class Scenery {
   }
 
  private:
+  // The crown of each kind of tree, as an upright cylinder in the unscaled model: its axis's offset from
+  // the trunk, its radius and the heights it spans (from the bounds of the models' foliage).
+  struct Crown {
+    double x, y, radius, low, high;
+  };
+  static constexpr std::array<Crown, 3> kCrowns{{{0.03, 0.0, 0.4, 0.22, 1.28},
+                                                 {-0.01, 0.015, 0.43, 0.02, 1.29},
+                                                 {0.15, -0.77, 1.8, 1.46, 4.53}}};
+
   struct Tree {
-    Vec3 base = Vec3::Zero();
+    Vec3 base = Vec3::Zero(), crown = Vec3::Zero();
+    double crownRadius = 0.0, crownHeight = 0.0;
     double yaw = 0.0, fallStart = -1.0, direction = 0.0;
     bool fallen = false;
     std::shared_ptr<raisin::InstancedVisuals> batch;
