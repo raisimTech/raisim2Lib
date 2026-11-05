@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_002(py::module_& m) {
+py::class_<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics");
+py::enum_<raisin::WeatherPreset>(m, "WeatherPreset").value("Clear", raisin::WeatherPreset::Clear).value("Hazy", raisin::WeatherPreset::Hazy).value("Overcast", raisin::WeatherPreset::Overcast).value("Fog", raisin::WeatherPreset::Fog).value("Rain", raisin::WeatherPreset::Rain).value("HeavyRain", raisin::WeatherPreset::HeavyRain).value("Snow", raisin::WeatherPreset::Snow).value("Storm", raisin::WeatherPreset::Storm).value("NightClear", raisin::WeatherPreset::NightClear).value("NightRain", raisin::WeatherPreset::NightRain).value("Custom", raisin::WeatherPreset::Custom);
+py::enum_<raisin::WeatherQuality>(m, "WeatherQuality").value("Low", raisin::WeatherQuality::Low).value("Medium", raisin::WeatherQuality::Medium).value("High", raisin::WeatherQuality::High).value("Ultra", raisin::WeatherQuality::Ultra);
 py::class_<raisin::WeatherSettings>(m, "WeatherSettings");
 py::class_<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment");
 py::enum_<raisin::Camera::ProjectionMode>(m.attr("Camera"), "ProjectionMode").value("PERSPECTIVE", raisin::Camera::ProjectionMode::PERSPECTIVE).value("ORTHOGRAPHIC", raisin::Camera::ProjectionMode::ORTHOGRAPHIC);
@@ -34,8 +37,5 @@ py::class_<raisin::Material::ParallaxSettings>(m.attr("Material"), "ParallaxSett
 py::enum_<raisin::Material::ShadingModel>(m.attr("Material"), "ShadingModel").value("Standard", raisin::Material::ShadingModel::Standard).value("Lambert", raisin::Material::ShadingModel::Lambert).value("Toon", raisin::Material::ShadingModel::Toon).value("Unlit", raisin::Material::ShadingModel::Unlit);
 py::enum_<raisin::Material::SpecularMode>(m.attr("Material"), "SpecularMode").value("SchlickGgx", raisin::Material::SpecularMode::SchlickGgx).value("Toon", raisin::Material::SpecularMode::Toon).value("Disabled", raisin::Material::SpecularMode::Disabled);
 py::enum_<raisin::Material::StencilCompare>(m.attr("Material"), "StencilCompare").value("Always", raisin::Material::StencilCompare::Always).value("Less", raisin::Material::StencilCompare::Less).value("Equal", raisin::Material::StencilCompare::Equal).value("LessOrEqual", raisin::Material::StencilCompare::LessOrEqual).value("Greater", raisin::Material::StencilCompare::Greater).value("NotEqual", raisin::Material::StencilCompare::NotEqual).value("GreaterOrEqual", raisin::Material::StencilCompare::GreaterOrEqual);
-py::enum_<raisin::Material::StencilEffectMode>(m.attr("Material"), "StencilEffectMode").value("Disabled", raisin::Material::StencilEffectMode::Disabled).value("Outline", raisin::Material::StencilEffectMode::Outline).value("Xray", raisin::Material::StencilEffectMode::Xray).value("Custom", raisin::Material::StencilEffectMode::Custom);
-py::class_<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo");
-py::enum_<raisin::Material::TextureChannel>(m.attr("Material"), "TextureChannel").value("Red", raisin::Material::TextureChannel::Red).value("Green", raisin::Material::TextureChannel::Green).value("Blue", raisin::Material::TextureChannel::Blue).value("Alpha", raisin::Material::TextureChannel::Alpha).value("Gray", raisin::Material::TextureChannel::Gray);
 }
 }

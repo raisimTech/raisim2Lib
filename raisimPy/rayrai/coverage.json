@@ -2989,6 +2989,167 @@
     "status": "generated"
   },
   {
+    "class": "raisin::ExplosionEffect",
+    "name": "position",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffect",
+    "name": "chargeMass",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffect",
+    "name": "onGround",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffect",
+    "name": "smokeColor",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffect",
+    "name": "dustColor",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffect",
+    "name": "inWater",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "enabled",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "sizeScale",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "smokeLifetime",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "marchSteps",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "volumeDownsample",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "sparks",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "flashLight",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "scorchMarks",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "scorchLifetime",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "tracers",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "useWorldTime",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "smokeColor",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::ExplosionEffectSettings",
+    "name": "dustColor",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FireEffect",
+    "name": "position",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FireEffect",
+    "name": "size",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FireEffect",
+    "name": "duration",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FireEffect",
+    "name": "smokeColor",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
     "class": "raisin::GeometryRefractionDiagnostics",
     "name": "triangles",
     "kind": "FieldDecl",
@@ -3537,6 +3698,20 @@
   {
     "class": "raisin::InstancedVisuals",
     "name": "foliageMeshLodPixelError",
+    "kind": "CXXMethod",
+    "signature": "float () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "setFoliageShadowMeshLodPixelError",
+    "kind": "CXXMethod",
+    "signature": "void (float)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "foliageShadowMeshLodPixelError",
     "kind": "CXXMethod",
     "signature": "float () const",
     "status": "generated"
@@ -7038,6 +7213,34 @@
   },
   {
     "class": "raisin::PhysicsSnapshot",
+    "name": "explosions",
+    "kind": "FieldDecl",
+    "signature": "std::vector<raisim::Explosion>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsSnapshot",
+    "name": "projectiles",
+    "kind": "FieldDecl",
+    "signature": "std::vector<raisim::Projectile>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsSnapshot",
+    "name": "projectileHits",
+    "kind": "FieldDecl",
+    "signature": "std::vector<raisim::ProjectileHit>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsSnapshot",
+    "name": "wind",
+    "kind": "FieldDecl",
+    "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsSnapshot",
     "name": "scene",
     "kind": "FieldDecl",
     "signature": "std::shared_ptr<const raisim::rscene::Scene>",
@@ -9444,6 +9647,55 @@
   {
     "class": "raisin::RayraiWindow",
     "name": "clearPhysicsSnapshot",
+    "kind": "CXXMethod",
+    "signature": "void ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "setExplosionEffectSettings",
+    "kind": "CXXMethod",
+    "signature": "void (const raisin::ExplosionEffectSettings &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "getExplosionEffectSettings",
+    "kind": "CXXMethod",
+    "signature": "const raisin::ExplosionEffectSettings &() const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "addExplosionEffect",
+    "kind": "CXXMethod",
+    "signature": "void (const raisin::ExplosionEffect &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "addFireEffect",
+    "kind": "CXXMethod",
+    "signature": "void (const raisin::FireEffect &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "clearExplosionEffects",
+    "kind": "CXXMethod",
+    "signature": "void ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "activeExplosionEffectCount",
+    "kind": "CXXMethod",
+    "signature": "unsigned long () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "prepareExplosionEffects",
     "kind": "CXXMethod",
     "signature": "void ()",
     "status": "generated"
@@ -13541,6 +13793,13 @@
     "name": "skyCaptureFaceSize",
     "kind": "FieldDecl",
     "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::WaterDiagnostics",
+    "name": "skyCaptures",
+    "kind": "FieldDecl",
+    "signature": "unsigned long",
     "status": "generated"
   },
   {

@@ -9685,9 +9685,66 @@ class RayraiWindow:
         C++: void ()
         """
 
+    def setExplosionEffectSettings(self, settings: ExplosionEffectSettings) -> None:
+        """
+        /** @name Explosions
+           *  The window draws the explosions, projectiles and projectile hits of the world it shows
+           *  (World::addExplosion(), World::addProjectile()): a fireball and smoke for each explosion, a
+           *  muzzle flash where a projectile was launched, a tracer behind it in flight, and sparks where an
+           *  inert projectile hits. addExplosionEffect() draws an explosion that is not in the world and
+           *  addFireEffect() a fire. See ExplosionEffectSettings for what is drawn and the clock effects follow. */
+          ///@{
+          /// Choose how explosions are drawn (values are clamped to their documented ranges).
+        C++: void (const ExplosionEffectSettings &)
+        """
+
+    def getExplosionEffectSettings(self) -> ExplosionEffectSettings:
+        """
+        /// @return How explosions are drawn.
+        C++: const ExplosionEffectSettings &() const
+        """
+
+    def addExplosionEffect(self, effect: ExplosionEffect) -> None:
+        """
+        /// Draw an explosion starting now (by the clock of ExplosionEffectSettings::useWorldTime).
+          /// @param effect Where it is and how large.
+        C++: void (const ExplosionEffect &)
+        """
+
+    def addFireEffect(self, effect: FireEffect) -> None:
+        """
+        /// Start a fire burning now (by the clock of ExplosionEffectSettings::useWorldTime).
+          /// @param effect Where it burns, how large and for how long.
+        C++: void (const FireEffect &)
+        """
+
+    def clearExplosionEffects(self) -> None:
+        """
+        /// Stop drawing every explosion, fire, muzzle flash and impact now in progress.
+        C++: void ()
+        """
+
+    def activeExplosionEffectCount(self) -> int:
+        """
+        /// @return Number of explosions, fires, muzzle flashes and impacts in progress, scorch marks included.
+        C++: size_t () const
+        """
+
+    def prepareExplosionEffects(self) -> None:
+        """
+        /// Compile the shaders and create the textures explosions draw with now, so that the first explosion
+          /// does not stall a frame (most noticeably in the browser): the effects' own shaders and, with scorch
+          /// marks, the post-processing variants that projected decals select for the main camera, which the
+          /// next post-processed renders also draw once each with hidden decals, so that the browser builds their
+          /// pipelines. From then on, foliage drawn with a sun-only program also links the program an
+          /// explosion's light selects, when it is first drawn. Requires a current GL context.
+        C++: void ()
+        """
+
     def setObjectHidden(self, object: raisimpy.Object | None, hidden: bool) -> None:
         """
-        /// Change render visibility without removing an object's physics collision.
+        ///@}
+          /// Change render visibility without removing an object's physics collision.
           /// @param object Object in this renderer's world; throws std::invalid_argument
           ///        when null or not part of the world.
           /// @param hidden True to stop drawing it.
@@ -14053,6 +14110,153 @@ class CoordinateFrame:
         C++: bool () const
         """
 
+class ExplosionEffect:
+    def __init__(self) -> None: ...
+
+    @property
+    def position(self) -> numpy.ndarray: ...
+
+    @position.setter
+    def position(self, arg: numpy.ndarray, /) -> None: ...
+
+    @property
+    def chargeMass(self) -> float: ...
+
+    @chargeMass.setter
+    def chargeMass(self, arg: float, /) -> None: ...
+
+    @property
+    def onGround(self) -> bool: ...
+
+    @onGround.setter
+    def onGround(self, arg: bool, /) -> None: ...
+
+    @property
+    def smokeColor(self) -> numpy.ndarray: ...
+
+    @smokeColor.setter
+    def smokeColor(self, arg: numpy.ndarray, /) -> None: ...
+
+    @property
+    def dustColor(self) -> numpy.ndarray: ...
+
+    @dustColor.setter
+    def dustColor(self, arg: numpy.ndarray, /) -> None: ...
+
+    @property
+    def inWater(self) -> bool: ...
+
+    @inWater.setter
+    def inWater(self, arg: bool, /) -> None: ...
+
+class ExplosionEffectSettings:
+    def __init__(self) -> None: ...
+
+    @property
+    def enabled(self) -> bool: ...
+
+    @enabled.setter
+    def enabled(self, arg: bool, /) -> None: ...
+
+    @property
+    def sizeScale(self) -> float: ...
+
+    @sizeScale.setter
+    def sizeScale(self, arg: float, /) -> None: ...
+
+    @property
+    def smokeLifetime(self) -> float: ...
+
+    @smokeLifetime.setter
+    def smokeLifetime(self, arg: float, /) -> None: ...
+
+    @property
+    def marchSteps(self) -> int: ...
+
+    @marchSteps.setter
+    def marchSteps(self, arg: int, /) -> None: ...
+
+    @property
+    def volumeDownsample(self) -> int: ...
+
+    @volumeDownsample.setter
+    def volumeDownsample(self, arg: int, /) -> None: ...
+
+    @property
+    def sparks(self) -> bool: ...
+
+    @sparks.setter
+    def sparks(self, arg: bool, /) -> None: ...
+
+    @property
+    def flashLight(self) -> bool: ...
+
+    @flashLight.setter
+    def flashLight(self, arg: bool, /) -> None: ...
+
+    @property
+    def scorchMarks(self) -> bool: ...
+
+    @scorchMarks.setter
+    def scorchMarks(self, arg: bool, /) -> None: ...
+
+    @property
+    def scorchLifetime(self) -> float: ...
+
+    @scorchLifetime.setter
+    def scorchLifetime(self, arg: float, /) -> None: ...
+
+    @property
+    def tracers(self) -> bool: ...
+
+    @tracers.setter
+    def tracers(self, arg: bool, /) -> None: ...
+
+    @property
+    def useWorldTime(self) -> bool: ...
+
+    @useWorldTime.setter
+    def useWorldTime(self, arg: bool, /) -> None: ...
+
+    @property
+    def smokeColor(self) -> numpy.ndarray: ...
+
+    @smokeColor.setter
+    def smokeColor(self, arg: numpy.ndarray, /) -> None: ...
+
+    @property
+    def dustColor(self) -> numpy.ndarray: ...
+
+    @dustColor.setter
+    def dustColor(self, arg: numpy.ndarray, /) -> None: ...
+
+class FireEffect:
+    def __init__(self) -> None: ...
+
+    @property
+    def position(self) -> numpy.ndarray: ...
+
+    @position.setter
+    def position(self, arg: numpy.ndarray, /) -> None: ...
+
+    @property
+    def size(self) -> float: ...
+
+    @size.setter
+    def size(self, arg: float, /) -> None: ...
+
+    @property
+    def duration(self) -> float: ...
+
+    @duration.setter
+    def duration(self, arg: float, /) -> None: ...
+
+    @property
+    def smokeColor(self) -> numpy.ndarray: ...
+
+    @smokeColor.setter
+    def smokeColor(self, arg: numpy.ndarray, /) -> None: ...
+
 class GeometryRefractionBackend(enum.Enum):
     Automatic = 0
 
@@ -15187,6 +15391,22 @@ class InstancedVisuals:
     def foliageMeshLodPixelError(self) -> float:
         """
         /// @return Foliage LOD pixel-error budget (0 = renderer default).
+        C++: float () const
+        """
+
+    def setFoliageShadowMeshLodPixelError(self, pixelError: float) -> None:
+        """
+        /// Set the projected geometric-error budget of the foliage LODs drawn into shadow maps, where
+          /// coarser meshes rarely show. Zero leaves shadows to setFoliageMeshLodPixelError(), or to the
+          /// renderer's shadow default when that is zero too.
+          /// @param pixelError Error budget in pixels, in [0, 8].
+          /// @throws std::invalid_argument outside [0, 8] or for non-finite values.
+        C++: void (float)
+        """
+
+    def foliageShadowMeshLodPixelError(self) -> float:
+        """
+        /// @return Shadow foliage LOD pixel-error budget (0 = as the color budget).
         C++: float () const
         """
 
@@ -19069,6 +19289,30 @@ class PhysicsSnapshot:
 
     @tendons.setter
     def tendons(self, arg: Sequence[PhysicsTendonSnapshot], /) -> None: ...
+
+    @property
+    def explosions(self) -> list[raisimpy.Explosion]: ...
+
+    @explosions.setter
+    def explosions(self, arg: Sequence[raisimpy.Explosion], /) -> None: ...
+
+    @property
+    def projectiles(self) -> list[raisimpy.Projectile]: ...
+
+    @projectiles.setter
+    def projectiles(self, arg: Sequence[raisimpy.Projectile], /) -> None: ...
+
+    @property
+    def projectileHits(self) -> list[raisimpy.ProjectileHit]: ...
+
+    @projectileHits.setter
+    def projectileHits(self, arg: Sequence[raisimpy.ProjectileHit], /) -> None: ...
+
+    @property
+    def wind(self) -> numpy.ndarray: ...
+
+    @wind.setter
+    def wind(self, arg: numpy.ndarray, /) -> None: ...
 
 class PhysicsSnapshotCapture:
     def __init__(self) -> None: ...
@@ -24150,6 +24394,12 @@ class WaterDiagnostics:
 
     @skyCaptureFaceSize.setter
     def skyCaptureFaceSize(self, arg: int, /) -> None: ...
+
+    @property
+    def skyCaptures(self) -> int: ...
+
+    @skyCaptures.setter
+    def skyCaptures(self, arg: int, /) -> None: ...
 
     @property
     def timeSeconds(self) -> float: ...

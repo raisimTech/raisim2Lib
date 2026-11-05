@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_001(py::module_& m) {
+py::enum_<raisin::MeshPreprocessLodFlavor>(m, "MeshPreprocessLodFlavor").value("Visual", raisin::MeshPreprocessLodFlavor::Visual).value("Instanced", raisin::MeshPreprocessLodFlavor::Instanced).value("FoliagePartitioned", raisin::MeshPreprocessLodFlavor::FoliagePartitioned).value("Foliage", raisin::MeshPreprocessLodFlavor::Foliage);
+py::class_<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata");
+py::class_<raisin::PbrEnvironment>(m, "PbrEnvironment");
 py::class_<raisin::PhysicsLinkPose>(m, "PhysicsLinkPose");
 py::class_<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot");
 py::class_<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot");
@@ -34,8 +37,5 @@ py::class_<raisin::WaterFlowSource>(m, "WaterFlowSource");
 py::enum_<raisin::WaterPreset>(m, "WaterPreset").value("Ocean", raisin::WaterPreset::Ocean).value("CalmLake", raisin::WaterPreset::CalmLake).value("Pool", raisin::WaterPreset::Pool).value("MurkyPond", raisin::WaterPreset::MurkyPond);
 py::class_<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample");
 py::class_<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum");
-py::class_<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics");
-py::enum_<raisin::WeatherPreset>(m, "WeatherPreset").value("Clear", raisin::WeatherPreset::Clear).value("Hazy", raisin::WeatherPreset::Hazy).value("Overcast", raisin::WeatherPreset::Overcast).value("Fog", raisin::WeatherPreset::Fog).value("Rain", raisin::WeatherPreset::Rain).value("HeavyRain", raisin::WeatherPreset::HeavyRain).value("Snow", raisin::WeatherPreset::Snow).value("Storm", raisin::WeatherPreset::Storm).value("NightClear", raisin::WeatherPreset::NightClear).value("NightRain", raisin::WeatherPreset::NightRain).value("Custom", raisin::WeatherPreset::Custom);
-py::enum_<raisin::WeatherQuality>(m, "WeatherQuality").value("Low", raisin::WeatherQuality::Low).value("Medium", raisin::WeatherQuality::Medium).value("High", raisin::WeatherQuality::High).value("Ultra", raisin::WeatherQuality::Ultra);
 }
 }

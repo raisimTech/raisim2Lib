@@ -2,6 +2,38 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_018(py::module_& m) {
+{auto c=bound_class<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot"); field(c,"links", &raisin::PhysicsObjectSnapshot::links);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); default_constructor(c);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometryRevision", &raisin::PhysicsRenderDescription::geometryRevision);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearanceRevision", &raisin::PhysicsRenderDescription::appearanceRevision);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearance", &raisin::PhysicsRenderDescription::appearance);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"visualCount", &raisin::PhysicsRenderDescription::visualCount);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometry", &raisin::PhysicsRenderDescription::geometry);}
+bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription").def("shapes", [](raisin::PhysicsRenderDescription& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.shapes(); return wrap(state,result); }, "\nC++: const std::vector<PhysicsShapeSnapshot> &() const");
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"colors", &raisin::PhysicsRenderDescription::colors);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); default_constructor(c);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"shape", &raisin::PhysicsShapeSnapshot::shape);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"dimensions", &raisin::PhysicsShapeSnapshot::dimensions);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"scale", &raisin::PhysicsShapeSnapshot::scale);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"offset", &raisin::PhysicsShapeSnapshot::offset);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"rotation", &raisin::PhysicsShapeSnapshot::rotation);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localModel", &raisin::PhysicsShapeSnapshot::localModel);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localIdx", &raisin::PhysicsShapeSnapshot::localIdx);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"fileName", &raisin::PhysicsShapeSnapshot::fileName);}
+{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"resourceDirectory", &raisin::PhysicsShapeSnapshot::resourceDirectory);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); default_constructor(c);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"simTime", &raisin::PhysicsSnapshot::simTime);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"configuration", &raisin::PhysicsSnapshot::configuration);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"topologyRevision", &raisin::PhysicsSnapshot::topologyRevision);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"objects", &raisin::PhysicsSnapshot::objects);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"tendons", &raisin::PhysicsSnapshot::tendons);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"explosions", &raisin::PhysicsSnapshot::explosions);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"projectiles", &raisin::PhysicsSnapshot::projectiles);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"projectileHits", &raisin::PhysicsSnapshot::projectileHits);}
+{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"wind", &raisin::PhysicsSnapshot::wind);}
+bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("__init__", [](raisin::PhysicsSnapshotCapture* self){ auto state=current_state(); Guard guard(state,false);  new(self) raisin::PhysicsSnapshotCapture(); });
+bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("capture", [](raisin::PhysicsSnapshotCapture& self, Arg<raisim::World &> a0) { auto state=current_state(); Guard guard(state,false); decltype(auto) n0=unwrap<raisim::World &>(a0,state); decltype(auto) result=self.capture(n0); return wrap(state,result); }, py::arg("world"), "\nC++: std::shared_ptr<const PhysicsSnapshot> (raisim::World &)");
+{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); default_constructor(c);}
 {auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"name", &raisin::PhysicsTendonSnapshot::name);}
 {auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"color", &raisin::PhysicsTendonSnapshot::color);}
 {auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"instances", &raisin::PhysicsTendonSnapshot::instances);}
@@ -25,37 +57,5 @@ bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("maxRenderedPoints"
 bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("setRenderedPointStride", [](Handle<raisin::PointCloud>& self, Arg<std::size_t> a0) { auto state=self.state; Guard guard(state); decltype(auto) n0=unwrap<std::size_t>(a0,state); self.get().setRenderedPointStride(n0); return py::none(); }, py::arg("stride"), "/**\n   * @brief Draw every Nth point for cheap point-cloud LOD.\n   * @param stride Point stride; 0 is treated as 1 (draw contiguous points).\n   */\nC++: void (size_t)");
 bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("renderedPointStride", [](Handle<raisin::PointCloud>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().renderedPointStride(); return wrap(state,result); }, "/// @return Current point stride (>= 1).\nC++: size_t () const");
 bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("enable", [](Handle<raisin::PointCloud>& self, Arg<bool> a0) { auto state=self.state; Guard guard(state); decltype(auto) n0=unwrap<bool>(a0,state); self.get().enable(n0); return py::none(); }, py::arg("enable"), "/**\n   * @brief Enable or disable rendering.\n   * @param enable True to enable.\n   */\nC++: void (bool)");
-bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("notifyDataChanged", [](Handle<raisin::PointCloud>& self) { auto state=self.state; Guard guard(state);  self.get().notifyDataChanged(); return py::none(); }, "/**\n   * @brief Bump the render revision after a direct mutation of `positions` or `colors`.\n   *\n   * `setCategory()`, `enable()`, `setMaxRenderedPoints()` already bump the\n   * revision themselves; this method is for the public `positions` /\n   * `colors` vectors, which the setter pattern does not cover.\n   */\nC++: void ()");
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); default_constructor(c);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"center", &raisin::ProjectedDecal::center);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"halfExtents", &raisin::ProjectedDecal::halfExtents);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"orientation", &raisin::ProjectedDecal::orientation);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"color", &raisin::ProjectedDecal::color);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"edgeFade", &raisin::ProjectedDecal::edgeFade);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"normalFade", &raisin::ProjectedDecal::normalFade);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"upperFade", &raisin::ProjectedDecal::upperFade);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"lowerFade", &raisin::ProjectedDecal::lowerFade);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"albedoMap", &raisin::ProjectedDecal::albedoMap);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"emissionMap", &raisin::ProjectedDecal::emissionMap);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"normalMap", &raisin::ProjectedDecal::normalMap);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"ormMap", &raisin::ProjectedDecal::ormMap);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"textureUvScaleOffset", &raisin::ProjectedDecal::textureUvScaleOffset);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"albedoMix", &raisin::ProjectedDecal::albedoMix);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"emissionEnergy", &raisin::ProjectedDecal::emissionEnergy);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"normalStrength", &raisin::ProjectedDecal::normalStrength);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"ormStrength", &raisin::ProjectedDecal::ormStrength);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"distanceFadeEnabled", &raisin::ProjectedDecal::distanceFadeEnabled);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"distanceFadeBegin", &raisin::ProjectedDecal::distanceFadeBegin);}
-{auto c=bound_class<raisin::ProjectedDecal>(m, "ProjectedDecal"); field(c,"distanceFadeLength", &raisin::ProjectedDecal::distanceFadeLength);}
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("__init__", [](Handle<raisin::RaisimObject>* self, const Viewer& viewer, Arg<const raisin::PhysicsObjectSnapshot &> a0, Arg<raisin::RayraiWindow *> a1, Arg<std::shared_ptr<raisin::RayraiGlobalAsset>> a2){ auto state=viewer.state; Guard guard(state); decltype(auto) n0=unwrap<const raisin::PhysicsObjectSnapshot &>(a0,state); decltype(auto) n1=unwrap<raisin::RayraiWindow *>(a1,state); decltype(auto) n2=unwrap<std::shared_ptr<raisin::RayraiGlobalAsset>>(a2,state); auto value=std::shared_ptr<raisin::RaisimObject>(new raisin::RaisimObject(n0, n1, n2)); new(self) Handle<raisin::RaisimObject>(own(state,std::move(value))); }, py::arg("viewer"), py::arg("snapshot"), py::arg("parent").none(), py::arg("asset"));
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("apply", [](Handle<raisin::RaisimObject>& self, Arg<const raisin::PhysicsObjectSnapshot &> a0) { auto state=self.state; Guard guard(state); decltype(auto) n0=unwrap<const raisin::PhysicsObjectSnapshot &>(a0,state); decltype(auto) result=self.get().apply(n0); return wrap(state,result); }, py::arg("snapshot"), "/**\n   * @brief Advance to a newer snapshot of the same object.\n   *\n   * Uploads changed mesh vertices (a vertex delta when the snapshot provides\n   * one) and rebuilds meshes whose shapes changed. An unchanged revision costs a\n   * comparison. Requires a current GL context.\n   * @param snapshot Object state with the same object identity, copied when it changed.\n   * @return What changed.\n   */\nC++: Changes (const PhysicsObjectSnapshot &)");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("sourceObject", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().sourceObject(); return wrap(state,result); }, "/// @name Snapshot state\n  ///@{\n  /// @return The source object, as an identity key only; it may no longer exist.\nC++: raisim::Object *() const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("instanceId", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().instanceId(); return wrap(state,result); }, "/// @return An id no other RaisimObject in the process had, so a drawable built for another\n  ///         object at the same address is told apart.\nC++: uint64_t () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("objectType", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().objectType(); return wrap(state,result); }, "\nC++: raisim::ObjectType () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("bodyType", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().bodyType(); return wrap(state,result); }, "\nC++: raisim::BodyType () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("objectId", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().objectId(); return wrap(state,result); }, "\nC++: raisim::Object::Id () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("renderRevision", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().renderRevision(); return wrap(state,result); }, "/// @return Revision that advances whenever the drawn state changes.\nC++: uint64_t () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("worldPosition", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().worldPosition(); return wrap(state,result); }, "/// @return World position of the object origin (the plane height for a ground).\nC++: glm::vec3 () const");
-bound_class<Handle<raisin::RaisimObject>>(m, "RaisimObject").def("worldRotation", [](Handle<raisin::RaisimObject>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().worldRotation(); return wrap(state,result); }, "/// @return World rotation of the object frame.\nC++: glm::mat3 () const");
 }
 }

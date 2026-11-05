@@ -63,6 +63,7 @@ void define_052(py::module_&);
 void define_053(py::module_&);
 void define_054(py::module_&);
 void define_055(py::module_&);
+void define_056(py::module_&);
 void declare_generated(py::module_& m){
 declare_000(m);
 declare_001(m);
@@ -192,5 +193,6 @@ define_052(m);
 define_053(m);
 define_054(m);
 define_055(m);
+define_056(m);
 }
 }

@@ -22,6 +22,9 @@ py::class_<Handle<raisin::CameraFrustum>>(m, "CameraFrustum");
 py::enum_<raisin::CloudQuality>(m, "CloudQuality").value("Off", raisin::CloudQuality::Off).value("Texture", raisin::CloudQuality::Texture).value("Volumetric", raisin::CloudQuality::Volumetric);
 py::enum_<raisin::ColorGradePreset>(m, "ColorGradePreset").value("Neutral", raisin::ColorGradePreset::Neutral).value("Warm", raisin::ColorGradePreset::Warm).value("Cool", raisin::ColorGradePreset::Cool).value("Cinematic", raisin::ColorGradePreset::Cinematic).value("Bleach", raisin::ColorGradePreset::Bleach);
 py::class_<Handle<raisin::CoordinateFrame>>(m, "CoordinateFrame");
+py::class_<raisin::ExplosionEffect>(m, "ExplosionEffect");
+py::class_<raisin::ExplosionEffectSettings>(m, "ExplosionEffectSettings");
+py::class_<raisin::FireEffect>(m, "FireEffect");
 py::enum_<raisin::GeometryRefractionBackend>(m, "GeometryRefractionBackend").value("Automatic", raisin::GeometryRefractionBackend::Automatic).value("Portable", raisin::GeometryRefractionBackend::Portable).value("VulkanRayQuery", raisin::GeometryRefractionBackend::VulkanRayQuery);
 py::class_<raisin::GeometryRefractionDiagnostics>(m, "GeometryRefractionDiagnostics");
 py::class_<raisin::GeometryRefractionSamplingStatistics>(m, "GeometryRefractionSamplingStatistics");
@@ -34,8 +37,5 @@ py::enum_<raisin::LightType>(m, "LightType").value("DIRECTIONAL", raisin::LightT
 py::class_<raisin::LocalFogVolume>(m, "LocalFogVolume");
 py::class_<raisin::Material>(m, "Material");
 py::class_<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats");
-py::enum_<raisin::MeshPreprocessLodFlavor>(m, "MeshPreprocessLodFlavor").value("Visual", raisin::MeshPreprocessLodFlavor::Visual).value("Instanced", raisin::MeshPreprocessLodFlavor::Instanced).value("FoliagePartitioned", raisin::MeshPreprocessLodFlavor::FoliagePartitioned).value("Foliage", raisin::MeshPreprocessLodFlavor::Foliage);
-py::class_<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata");
-py::class_<raisin::PbrEnvironment>(m, "PbrEnvironment");
 }
 }
