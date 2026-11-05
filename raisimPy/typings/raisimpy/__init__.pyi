@@ -7024,7 +7024,7 @@ class World:
 
     def getExplosions(self) -> list[Explosion]:
         """
-        The explosions set off most recently (at most 256), oldest first; identifiers increase.
+        Copies of the explosions set off most recently, oldest first: at most the last 256 and every one whose blast still spreads; identifiers increase.
         """
 
     def addProjectile(self, position: Annotated[NDArray[numpy.float64], dict(order='C')], velocity: Annotated[NDArray[numpy.float64], dict(order='C')], properties: ProjectileProperties = ...) -> int:
@@ -7046,11 +7046,16 @@ class World:
         """Remove a projectile in flight; returns whether it was in flight."""
 
     def getProjectiles(self) -> list[Projectile]:
-        """The projectiles in flight."""
+        """Copies of the projectiles in flight."""
 
     def getProjectileHits(self) -> list[ProjectileHit]:
         """
-        The most recent projectile hits (at most 256), oldest first; identifiers increase.
+        Copies of the most recent projectile hits (at most 256), oldest first; identifiers increase.
+        """
+
+    def getProjectileLaunches(self) -> list[Projectile]:
+        """
+        Copies of the projectiles launched most recently, as launched (at most 256), oldest first, whatever became of them.
         """
 
     def getTendons(self) -> list[Tendon]: ...

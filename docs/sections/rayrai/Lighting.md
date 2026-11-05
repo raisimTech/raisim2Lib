@@ -248,7 +248,10 @@ distances in metres. Only the first `count - 1` entries are used, and they are
 ignored unless they increase and lie between the camera near plane and the
 shadowed distance. Each
 cascade is padded for the filter footprint and snapped to a world-anchored
-texel grid, so it stays stable while the camera moves. Cascades also work on
+texel grid, so it stays stable while the camera moves. The light's depth bias
+holds for the first cascade; a farther cascade, whose texels cover more ground,
+multiplies it by how much more depth one of its texels spans, so terrain under a
+low sun does not shadow itself in the distance. Cascades also work on
 macOS and other GPUs limited to 16 fragment texture units.
 
 Soft shadows search the shadow map for blockers and widen the filter with the

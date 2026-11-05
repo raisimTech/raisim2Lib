@@ -2,6 +2,34 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_014(py::module_& m) {
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"iridescenceThickness", &raisin::Material::iridescenceThickness);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenFactor", &raisin::Material::sheenFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenColorFactor", &raisin::Material::sheenColorFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenRoughnessFactor", &raisin::Material::sheenRoughnessFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"anisotropyFactor", &raisin::Material::anisotropyFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"anisotropyRotation", &raisin::Material::anisotropyRotation);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"unlit", &raisin::Material::unlit);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"proceduralGroundChecker", &raisin::Material::proceduralGroundChecker);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"usePlanarReflection", &raisin::Material::usePlanarReflection);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"planarReflectionStrength", &raisin::Material::planarReflectionStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"dontReceiveShadows", &raisin::Material::dontReceiveShadows);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"disableAmbientLight", &raisin::Material::disableAmbientLight);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"disableFog", &raisin::Material::disableFog);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"disableSpecularOcclusion", &raisin::Material::disableSpecularOcclusion);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"shadowToOpacity", &raisin::Material::shadowToOpacity);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"doubleSided", &raisin::Material::doubleSided);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"cullMode", &raisin::Material::cullMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"thinTwoSidedLighting", &raisin::Material::thinTwoSidedLighting);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"thinBackDiffuseScale", &raisin::Material::thinBackDiffuseScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"thinTransmissionStrength", &raisin::Material::thinTransmissionStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"thinTransmissionColor", &raisin::Material::thinTransmissionColor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageType", &raisin::Material::foliageType);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageWindStrength", &raisin::Material::foliageWindStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageRootHeight", &raisin::Material::foliageRootHeight);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageTipHeight", &raisin::Material::foliageTipHeight);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageStiffness", &raisin::Material::foliageStiffness);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageFlutterWeight", &raisin::Material::foliageFlutterWeight);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageTwoSidedLighting", &raisin::Material::foliageTwoSidedLighting);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageDepthLodViewCount", &raisin::Material::foliageDepthLodViewCount);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageDepthLodBlendWidth", &raisin::Material::foliageDepthLodBlendWidth);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageTransmissionStrength", &raisin::Material::foliageTransmissionStrength);}
@@ -29,33 +57,5 @@ void define_014(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapFlip", &raisin::Material::heightmapFlip);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapInvert", &raisin::Material::heightmapInvert);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailAlbedoBlend", &raisin::Material::detailAlbedoBlend);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailUvLayer", &raisin::Material::detailUvLayer);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailAlbedoBlendMode", &raisin::Material::detailAlbedoBlendMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailNormalStrength", &raisin::Material::detailNormalStrength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoUsesUv2", &raisin::Material::aoUsesUv2);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissiveUsesUv2", &raisin::Material::emissiveUsesUv2);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"lightmapUsesUv2", &raisin::Material::lightmapUsesUv2);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"lightmapStrength", &raisin::Material::lightmapStrength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"lightmapTint", &raisin::Material::lightmapTint);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"decalDepthBias", &raisin::Material::decalDepthBias);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"tinySurfaceDetail", &raisin::Material::tinySurfaceDetail);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"depthTest", &raisin::Material::depthTest);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"depthWrite", &raisin::Material::depthWrite);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilReference", &raisin::Material::stencilReference);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilRead", &raisin::Material::stencilRead);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilWrite", &raisin::Material::stencilWrite);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilWriteDepthFail", &raisin::Material::stencilWriteDepthFail);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilCompare", &raisin::Material::stencilCompare);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilMask", &raisin::Material::stencilMask);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilEffectMode", &raisin::Material::stencilEffectMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilEffectColor", &raisin::Material::stencilEffectColor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"stencilOutlineThickness", &raisin::Material::stencilOutlineThickness);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"albedoMap", &raisin::Material::albedoMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageTextureAtlasApplied", &raisin::Material::foliageTextureAtlasApplied);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"foliageTextureAtlasUvRect", &raisin::Material::foliageTextureAtlasUvRect);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureBlendMap", &raisin::Material::textureBlendMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"terrainSplatAlbedoMap", &raisin::Material::terrainSplatAlbedoMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"terrainSplatControlMap", &raisin::Material::terrainSplatControlMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"terrainSplatPrimaryUvScale", &raisin::Material::terrainSplatPrimaryUvScale);}
 }
 }

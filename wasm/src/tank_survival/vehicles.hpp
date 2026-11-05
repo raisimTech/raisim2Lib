@@ -27,20 +27,20 @@ struct VehicleSpec {
 };
 
 inline const std::array<VehicleSpec, 7> kVehicles{{
-    {"Leopard 2A4", "your tank", Role::Player, "leopard_2a4", 55000, 240, 140, 70, 40, 25, 10.0, 3.8, false,
+    {"Leopard 2A4", "your tank", Role::Player, "leopard_2a4", 55000, 240, 140, 70, 40, 25, 15.0, 5.1, false,
      WeaponId::AP, 1.0, 3.0, 0.0, 0, 0, {1, 1, 1, 1}},
     {"BMD-2", "airborne fighting vehicle: fast, thin armor, autocannon", Role::Scout, "bmd2", 8000, 45, 18, 12, 10, 8,
-     15.0, 5.0, false, WeaponId::MG, 1.6, 0.09, 0.03, 22, 60, {1.0f, 0.85f, 0.3f, 1}},
-    {"T-72B3", "main battle tank: balanced", Role::Medium, "t72b3", 45000, 120, 110, 60, 35, 20, 9.0, 3.4, false,
+     18.0, 6.0, false, WeaponId::MG, 1.6, 0.09, 0.03, 22, 60, {1.0f, 0.85f, 0.3f, 1}},
+    {"T-72B3", "main battle tank: balanced", Role::Medium, "t72b3", 45000, 120, 110, 60, 35, 20, 13.5, 4.6, false,
      WeaponId::AP, 0.85, 3.6, 0.03, 28, 120, {1.0f, 0.3f, 0.2f, 1}},
     {"T-90AM", "heavy main battle tank: thick front, weak rear: flank it", Role::Heavy, "t90am", 48000, 260, 260, 120,
-     60, 35, 6.5, 2.6, false, WeaponId::AP, 1.25, 5.0, 0.035, 32, 260, {0.75f, 0.5f, 1.0f, 1}},
+     60, 35, 10.0, 3.5, false, WeaponId::AP, 1.25, 5.0, 0.035, 32, 260, {0.75f, 0.5f, 1.0f, 1}},
     {"2S25 Sprut-SD", "tank destroyer: long-range gun, light armor", Role::Destroyer, "sprut_sd", 18000, 150, 190, 50,
-     30, 20, 8.0, 3.0, false, WeaponId::AP, 1.45, 6.5, 0.012, 62, 220, {1.0f, 0.6f, 0.1f, 1}},
+     30, 20, 12.0, 4.0, false, WeaponId::AP, 1.45, 6.5, 0.012, 62, 220, {1.0f, 0.6f, 0.1f, 1}},
     {"2S19 Msta-S", "self-propelled howitzer: shells land where you will be", Role::Artillery, "msta_s", 42000, 90, 40,
-     25, 15, 10, 6.0, 3.0, false, WeaponId::HE, 1.0, 7.0, 4.0, 85, 180, {0.3f, 1.0f, 0.5f, 1}},
+     25, 15, 10, 9.0, 4.0, false, WeaponId::HE, 1.0, 7.0, 4.0, 85, 180, {0.3f, 1.0f, 0.5f, 1}},
     {"T-14 Armata", "boss: salvos of AP and HE, armor everywhere but the rear", Role::Boss, "t14_armata", 55000, 1100,
-     320, 180, 80, 50, 5.5, 2.2, false, WeaponId::AP, 1.6, 2.8, 0.03, 40, 1500, {1.0f, 0.15f, 0.4f, 1}},
+     320, 180, 80, 50, 8.5, 3.0, false, WeaponId::AP, 1.6, 2.8, 0.03, 40, 1500, {1.0f, 0.15f, 0.4f, 1}},
 }};
 
 inline const VehicleSpec& vehicle(Role role) { return kVehicles[size_t(role)]; }
@@ -89,9 +89,13 @@ inline VehicleModel loadVehicleModel(const std::string& folder) {
   return model;
 }
 
-// The vehicle's URDF: the hull riding on two driven tracks, the turret turning on its ring and the gun
+// The vehicle's URDF: the hull sprung on two driven tracks, the turret turning on its ring and the gun
 // elevating at its trunnions, each drawn with its part of the model and colliding as a box (the gun as
-// a cylinder). The tracks' belts are the contact surface; the model draws its own tracks.
+// a cylinder). The tracks' belts are the contact surface; the model draws its own tracks. Each track
+// runs on a carrier that rises and pitches under the hull on springs (Tank sets them), so that the belts
+// follow the ground instead of a rigid hull bouncing from bump to bump, which leaves the tracks no grip
+// to steer with. The sprocket and idler at the ends of a belt ride above its road wheels, as on a real
+// tank: only the run under the road wheels takes the load, which a skid turn can twist.
 inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, const std::string& folder) {
   std::ostringstream u;
   u.precision(6);
@@ -119,8 +123,8 @@ inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, c
   const Vec3 turretCenter(0.5 * (m.turretMin.x() + m.turretMax.x()), 0.5 * (m.turretMin.y() + m.turretMax.y()),
                           m.turretPivot.z() + 0.5 * turretSize.z());
   const double barrel = m.muzzle - m.gunPivot.x();
-  const double hullMass = 0.7 * spec.mass, turretMass = 0.24 * spec.mass, gunMass = 0.05 * spec.mass;
-  const double sprocketMass = 0.005 * spec.mass;
+  const double hullMass = 0.596 * spec.mass, turretMass = 0.24 * spec.mass, gunMass = 0.05 * spec.mass;
+  const double carrierMass = 0.05 * spec.mass, mountMass = 0.002 * spec.mass, sprocketMass = 0.005 * spec.mass;
   const Vec3 origin(0, 0, axle);
   u << "<?xml version=\"1.0\"?><robot name=\"" << spec.model << "\">";
   u << "<link name=\"hull\">" << box(hullMass, hullSize, hullCenter - origin)
@@ -128,15 +132,23 @@ inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, c
     << "/hull.gltf\"/></geometry></visual><collision><origin xyz=\"" << v3(hullCenter - origin)
     << "\"/><geometry><box size=\"" << v3(hullSize) << "\"/></geometry></collision></link>";
   const double trackY = 0.5 * width - 0.3 * width / 3.6;
-  const double rear = m.hullMin.x() + r + 0.25, front = m.hullMax.x() - r - 0.3;
+  const double rear = m.hullMin.x() + r + 0.25, front = m.hullMax.x() - r - 0.3, middle = 0.5 * (rear + front);
   for (const char* side : {"left", "right"}) {
-    const double y = std::string(side) == "left" ? trackY : -trackY;
-    u << "<link name=\"" << side << "_sprocket_link\">" << box(sprocketMass, Vec3(2 * r, 0.5, 2 * r), Vec3::Zero())
-      << "</link><joint name=\"" << side << "_sprocket\" type=\"continuous\"><parent link=\"hull\"/><child link=\""
-      << side << "_sprocket_link\"/><origin xyz=\"" << rear << ' ' << y << " 0\"/><axis xyz=\"0 1 0\"/></joint>";
-    u << "<link name=\"" << side << "_idler_link\"/><joint name=\"" << side << "_idler\" type=\"fixed\"><parent "
-      << "link=\"hull\"/><child link=\"" << side << "_idler_link\"/><origin xyz=\"" << front << ' ' << y
-      << " 0.05\"/></joint>";
+    const std::string s = side, carrier = s + "_carrier";
+    const double y = s == "left" ? trackY : -trackY;
+    u << "<link name=\"" << s << "_mount\">" << box(mountMass, Vec3(0.3, 0.3, 0.3), Vec3::Zero())
+      << "</link><joint name=\"" << s << "_heave\" type=\"prismatic\"><parent link=\"hull\"/><child link=\"" << s
+      << "_mount\"/><origin xyz=\"" << middle << ' ' << y << " 0\"/><axis xyz=\"0 0 1\"/><limit lower=\"-0.2\" "
+      << "upper=\"0.2\" effort=\"1e9\" velocity=\"20\"/></joint>";
+    u << "<link name=\"" << carrier << "\">" << box(carrierMass, Vec3(front - rear, 0.5, 2 * r), Vec3::Zero())
+      << "</link><joint name=\"" << s << "_pitch\" type=\"revolute\"><parent link=\"" << s << "_mount\"/><child link=\""
+      << carrier << "\"/><axis xyz=\"0 1 0\"/><limit lower=\"-0.3\" upper=\"0.3\" effort=\"1e9\" velocity=\"20\"/></joint>";
+    u << "<link name=\"" << s << "_sprocket_link\">" << box(sprocketMass, Vec3(2 * r, 0.5, 2 * r), Vec3::Zero())
+      << "</link><joint name=\"" << s << "_sprocket\" type=\"continuous\"><parent link=\"" << carrier << "\"/><child link=\""
+      << s << "_sprocket_link\"/><origin xyz=\"" << rear - middle << " 0 " << 0.45 * r << "\"/><axis xyz=\"0 1 0\"/></joint>";
+    u << "<link name=\"" << s << "_idler_link\"/><joint name=\"" << s << "_idler\" type=\"fixed\"><parent link=\""
+      << carrier << "\"/><child link=\"" << s << "_idler_link\"/><origin xyz=\"" << front - middle << " 0 " << 0.6 * r
+      << "\"/></joint>";
   }
   const Vec3 turretOrigin = m.turretPivot - origin;
   u << "<link name=\"turret_link\">" << box(turretMass, turretSize, turretCenter - m.turretPivot)
@@ -153,12 +165,11 @@ inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, c
     << "<child link=\"gun_link\"/><origin xyz=\"" << v3(m.gunPivot - m.turretPivot) << "\"/><axis xyz=\"0 1 0\"/>"
     << "<limit lower=\"-0.35\" upper=\"0.15\" effort=\"1e7\" velocity=\"2\"/></joint>";
   for (const char* side : {"left", "right"}) {
-    const double y = std::string(side) == "left" ? trackY : -trackY;
-    u << "<track name=\"" << side << "\" link=\"hull\" width=\"" << 0.55 * width / 3.6
+    u << "<track name=\"" << side << "\" link=\"" << side << "_carrier\" width=\"" << 0.55 * width / 3.6
       << "\" thickness=\"0.06\" visual=\"false\"><axis xyz=\"0 1 0\"/><wheel joint=\"" << side << "_sprocket\" radius=\""
       << r << "\"/><wheel joint=\"" << side << "_idler\" radius=\"" << r << "\"/>";
     for (int k = 1; k <= 3; ++k)
-      u << "<wheel xyz=\"" << rear + (front - rear) * k / 4.0 << ' ' << y << " -0.05\" radius=\"" << r - 0.03 << "\"/>";
+      u << "<wheel xyz=\"" << (front - rear) * (k / 4.0 - 0.5) << " 0 -0.05\" radius=\"" << r - 0.03 << "\"/>";
     u << "<drive joint=\"" << side << "_sprocket\" gain=\"" << r << "\"/></track>";
   }
   u << "</robot>";
@@ -213,6 +224,23 @@ struct Tank {
     dGain[turret] = 4e4 * turretInertia;
     pGain[gun] = 1e6 * gunInertia;
     dGain[gun] = 6e4 * gunInertia;
+    // Each track's carrier is sprung under the hull: the hull's weight sets it 8 cm into its springs
+    // (preloaded, so that it rides at the model's height), at about 2 Hz and half the critical damping;
+    // in pitch the springs act as if spread over a quarter of the track's length either side.
+    const double load = 0.89 * kind.mass * 9.81 / 2.0, sag = 0.08, stiffness = load / sag;
+    const double damping = std::sqrt(stiffness * 0.89 * kind.mass / 2.0);
+    const double arm = 0.25 * (shape.hullMax.x() - shape.hullMin.x() - 2.0 * shape.wheelRadius - 0.55);
+    for (const std::string side : {"left", "right"}) {
+      const size_t heave = system->getGeneralizedVelocityIndex(side + "_heave");
+      const size_t pitch = system->getGeneralizedVelocityIndex(side + "_pitch");
+      pGain[heave] = stiffness;
+      dGain[heave] = damping;
+      pGain[pitch] = stiffness * arm * arm;
+      dGain[pitch] = damping * arm * arm;
+      pTarget[system->getJoint(side + "_heave").getIdxInGeneralizedCoordinate()] = -sag;
+      system->ignoreCollisionBetween(hullBody, system->getBodyIdx(side + "_carrier"));
+    }
+    system->updateSelfCollisionCache(world);
     system->setPdGains(pGain, dGain);
     command(0.0, 0.0, 1.0, now);
   }

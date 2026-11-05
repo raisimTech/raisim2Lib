@@ -2,6 +2,34 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_017(py::module_& m) {
+{auto c=bound_class<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats"); field(c,"metadataMisses", &raisin::MeshPreprocessCacheStats::metadataMisses);}
+{auto c=bound_class<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats"); field(c,"lodLoads", &raisin::MeshPreprocessCacheStats::lodLoads);}
+{auto c=bound_class<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats"); field(c,"lodStores", &raisin::MeshPreprocessCacheStats::lodStores);}
+{auto c=bound_class<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats"); field(c,"lodMisses", &raisin::MeshPreprocessCacheStats::lodMisses);}
+{auto c=bound_class<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats"); field(c,"fallbackWarnings", &raisin::MeshPreprocessCacheStats::fallbackWarnings);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); default_constructor(c);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"valid", &raisin::MeshPreprocessMetadata::valid);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"vertexCount", &raisin::MeshPreprocessMetadata::vertexCount);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"triangleCount", &raisin::MeshPreprocessMetadata::triangleCount);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localAabbValid", &raisin::MeshPreprocessMetadata::localAabbValid);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localAabbMin", &raisin::MeshPreprocessMetadata::localAabbMin);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localAabbMax", &raisin::MeshPreprocessMetadata::localAabbMax);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localBoundsValid", &raisin::MeshPreprocessMetadata::localBoundsValid);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localBoundsCenter", &raisin::MeshPreprocessMetadata::localBoundsCenter);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localBoundsRadius", &raisin::MeshPreprocessMetadata::localBoundsRadius);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasAlphaMaskedOrFoliageMaterial", &raisin::MeshPreprocessMetadata::hasAlphaMaskedOrFoliageMaterial);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasTransparentMaterial", &raisin::MeshPreprocessMetadata::hasTransparentMaterial);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasSpecialBlendMode", &raisin::MeshPreprocessMetadata::hasSpecialBlendMode);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasPlanarReflectionMeshes", &raisin::MeshPreprocessMetadata::hasPlanarReflectionMeshes);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"maxRenderPriority", &raisin::MeshPreprocessMetadata::maxRenderPriority);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); default_constructor(c);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"environmentCubemap", &raisin::PbrEnvironment::environmentCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"irradianceCubemap", &raisin::PbrEnvironment::irradianceCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"prefilteredCubemap", &raisin::PbrEnvironment::prefilteredCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"splitSumBrdfLut", &raisin::PbrEnvironment::splitSumBrdfLut);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"prefilteredMipCount", &raisin::PbrEnvironment::prefilteredMipCount);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"strength", &raisin::PbrEnvironment::strength);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxProjection", &raisin::PbrEnvironment::boxProjection);}
 {auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"probePosition", &raisin::PbrEnvironment::probePosition);}
 {auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxMin", &raisin::PbrEnvironment::boxMin);}
 {auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxMax", &raisin::PbrEnvironment::boxMax);}
@@ -29,33 +57,5 @@ bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot").def("vertices
 {auto c=bound_class<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot"); field(c,"rotation", &raisin::PhysicsObjectSnapshot::rotation);}
 {auto c=bound_class<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot"); field(c,"description", &raisin::PhysicsObjectSnapshot::description);}
 {auto c=bound_class<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot"); field(c,"geometry", &raisin::PhysicsObjectSnapshot::geometry);}
-{auto c=bound_class<raisin::PhysicsObjectSnapshot>(m, "PhysicsObjectSnapshot"); field(c,"links", &raisin::PhysicsObjectSnapshot::links);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); default_constructor(c);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometryRevision", &raisin::PhysicsRenderDescription::geometryRevision);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearanceRevision", &raisin::PhysicsRenderDescription::appearanceRevision);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearance", &raisin::PhysicsRenderDescription::appearance);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"visualCount", &raisin::PhysicsRenderDescription::visualCount);}
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometry", &raisin::PhysicsRenderDescription::geometry);}
-bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription").def("shapes", [](raisin::PhysicsRenderDescription& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.shapes(); return wrap(state,result); }, "\nC++: const std::vector<PhysicsShapeSnapshot> &() const");
-{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"colors", &raisin::PhysicsRenderDescription::colors);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); default_constructor(c);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"shape", &raisin::PhysicsShapeSnapshot::shape);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"dimensions", &raisin::PhysicsShapeSnapshot::dimensions);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"scale", &raisin::PhysicsShapeSnapshot::scale);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"offset", &raisin::PhysicsShapeSnapshot::offset);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"rotation", &raisin::PhysicsShapeSnapshot::rotation);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localModel", &raisin::PhysicsShapeSnapshot::localModel);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localIdx", &raisin::PhysicsShapeSnapshot::localIdx);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"fileName", &raisin::PhysicsShapeSnapshot::fileName);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"resourceDirectory", &raisin::PhysicsShapeSnapshot::resourceDirectory);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); default_constructor(c);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"simTime", &raisin::PhysicsSnapshot::simTime);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"configuration", &raisin::PhysicsSnapshot::configuration);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"topologyRevision", &raisin::PhysicsSnapshot::topologyRevision);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"objects", &raisin::PhysicsSnapshot::objects);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"tendons", &raisin::PhysicsSnapshot::tendons);}
-bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("__init__", [](raisin::PhysicsSnapshotCapture* self){ auto state=current_state(); Guard guard(state,false);  new(self) raisin::PhysicsSnapshotCapture(); });
-bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("capture", [](raisin::PhysicsSnapshotCapture& self, Arg<raisim::World &> a0) { auto state=current_state(); Guard guard(state,false); decltype(auto) n0=unwrap<raisim::World &>(a0,state); decltype(auto) result=self.capture(n0); return wrap(state,result); }, py::arg("world"), "\nC++: std::shared_ptr<const PhysicsSnapshot> (raisim::World &)");
-{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); default_constructor(c);}
 }
 }

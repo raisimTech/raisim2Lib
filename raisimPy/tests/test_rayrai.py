@@ -77,6 +77,35 @@ class RayraiApiTests(unittest.TestCase):
         self.assertGreater(frame.objects[0].id, 0)
         self.assertIsNotNone(frame.objects[0].description)
 
+    def test_explosion_effect_values_and_snapshot(self):
+        rr = self.rr
+        settings = rr.ExplosionEffectSettings()
+        self.assertTrue(settings.enabled)
+        self.assertEqual(settings.volumeDownsample, 2)
+        settings.volumeDownsample = 3
+        settings.smokeColor = [.2, .3, .4]
+        self.assertEqual(settings.volumeDownsample, 3)
+        np.testing.assert_allclose(settings.smokeColor, [.2, .3, .4], rtol=1e-6)
+        effect = rr.ExplosionEffect()
+        effect.position = [1., 2., 3.]
+        effect.chargeMass = 4.
+        effect.onGround = True
+        np.testing.assert_allclose(effect.position, [1., 2., 3.])
+        self.assertTrue(effect.onGround)
+        fire = rr.FireEffect()
+        fire.duration = 5.
+        self.assertAlmostEqual(fire.duration, 5.)
+        world = raisim.World()
+        world.addGround()
+        properties = raisim.ExplosionProperties()
+        properties.chargeMass = 1.
+        world.addExplosion(np.array([0., 0., .5]), properties)
+        frame = rr.PhysicsSnapshotCapture().capture(world)
+        self.assertEqual(len(frame.explosions), 1)
+        self.assertAlmostEqual(frame.explosions[0].properties.chargeMass, 1.)
+        self.assertEqual(len(frame.projectiles), 0)
+        np.testing.assert_allclose(frame.wind, [0., 0., 0.])
+
     def test_missing_numpy_is_an_import_error(self):
         env = os.environ.copy()
         env['PYTHONPATH'] = str(Path(raisim.__file__).parent)
@@ -308,6 +337,29 @@ class RayraiRenderTests(unittest.TestCase):
         self.assertEqual(len(v.printWeatherDiagnostics()), 1)
         v.removeWaterBody('python-water')
         v.setWeatherPreset(rr.WeatherPreset.Clear)
+
+    def test_explosion_and_fire_effects_render(self):
+        rr, v = self.rr, self.viewer
+        original = v.getExplosionEffectSettings()
+        settings = v.getExplosionEffectSettings()
+        settings.useWorldTime = False
+        v.setExplosionEffectSettings(settings)
+        self.assertTrue(v.render())
+        before = v.readRgba().astype(np.int32)
+        effect = rr.ExplosionEffect()
+        effect.position = [0., 0., 1.]
+        effect.chargeMass = 2.
+        v.addExplosionEffect(effect)
+        fire = rr.FireEffect()
+        fire.position = [0., 1., 0.]
+        v.addFireEffect(fire)
+        self.assertEqual(v.activeExplosionEffectCount(), 2)
+        self.assertTrue(v.render())
+        after = v.readRgba().astype(np.int32)
+        self.assertGreater(np.abs(after[..., :3] - before[..., :3]).mean(), 1.)
+        v.clearExplosionEffects()
+        self.assertEqual(v.activeExplosionEffectCount(), 0)
+        v.setExplosionEffectSettings(original)
 
     def test_removed_physics_object_invalidates_debug_handle(self):
         world = self.world

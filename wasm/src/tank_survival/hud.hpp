@@ -30,6 +30,8 @@ struct Screen {
 struct Fonts {
   ImFont* text = nullptr;
   ImFont* title = nullptr;
+  ImFont* heading = nullptr;
+  ImFont* small = nullptr;
 };
 
 inline void bar(ImDrawList* draw, ImVec2 at, float width, float height, float fraction, ImU32 color) {
@@ -174,8 +176,90 @@ inline glm::vec2 radarDirection(double heading, const Vec3& vector) {
   return {float(c * vector.x() - sn * vector.y()), float(-(sn * vector.x() + c * vector.y()))};
 }
 
+// Where the sight is drawn: the middle of the view when the mouse turns the camera, or the cursor; whether
+// it is over an enemy, whether to offer the mouse for aiming, and the sniper sight's magnification (1 when
+// it is not in use).
+struct Sight {
+  ImVec2 at;
+  bool centered = false, onEnemy = false, offerMouse = false;
+  double magnification = 1.0;
+};
+
+// The sniper sight, as in World of Tanks: Shift toggles it, the wheel turned in with the camera at its
+// closest enters it, steps its magnification and, turned out past the first step, leaves it.
+struct SniperSight {
+  static constexpr std::array<double, 3> kMagnifications{2.0, 4.0, 8.0};
+  bool active = false;
+  int step = 1;
+  double notches = 0.0;
+
+  void toggle() {
+    active = !active;
+    notches = 0.0;
+  }
+  // Turns the wheel by `wheel` notches (fractions from a touchpad add up); outside the sight it moves the
+  // camera between `closest` and `farthest`.
+  void scroll(double wheel, float& distance, float closest, float farthest) {
+    if (!active && (wheel < 0.0 || distance > closest)) {
+      distance = std::clamp(distance - 2.0f * float(wheel), closest, farthest);
+      notches = 0.0;
+      return;
+    }
+    if (wheel * notches < 0.0) notches = 0.0;
+    notches += wheel;
+    while (std::abs(notches) >= 1.0) {
+      const bool in = notches > 0.0;
+      notches -= in ? 1.0 : -1.0;
+      if (!active) {
+        active = true;
+        step = 0;
+      } else if (in) {
+        step = std::min(step + 1, int(kMagnifications.size()) - 1);
+      } else if (--step < 0) {
+        active = false;
+        step = 0;
+        notches = 0.0;
+        return;
+      }
+    }
+  }
+  double magnification() const { return active ? kMagnifications[size_t(step)] : 1.0; }
+};
+
+// The right mouse button as World of Tanks reads it: a click locks the aim on an enemy, and the gun keeps
+// its aim while the button is down, so that the view can look around.
+struct ClickOrHold {
+  static constexpr double kClick = 0.3;
+  double held = -1.0;
+
+  // Follows the button; returns true as a click ends.
+  bool update(bool down, double dt) {
+    if (down) {
+      held = held < 0.0 ? 0.0 : held + dt;
+      return false;
+    }
+    const bool click = held >= 0.0 && held < kClick;
+    held = -1.0;
+    return click;
+  }
+  bool down() const { return held >= 0.0; }
+};
+
+// Index of the point nearest `to` within `radius`, or -1.
+inline int nearestWithin(const std::vector<ImVec2>& points, ImVec2 to, float radius) {
+  int best = -1;
+  for (size_t i = 0; i < points.size(); ++i) {
+    const float d = std::hypot(points[i].x - to.x, points[i].y - to.y);
+    if (d < radius) {
+      radius = d;
+      best = int(i);
+    }
+  }
+  return best;
+}
+
 inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double heading, bool help, const Tank* locked,
-                    bool panel) {
+                    bool panel, const Sight& sight) {
   ImDrawList* draw = ImGui::GetForegroundDrawList();
   ImFont* font = fonts.text;
   const ImVec2 o = screen.origin, s = screen.size;
@@ -355,11 +439,26 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
     draw->AddRectFilledMultiColor(ImVec2(o.x, o.y + s.y - h), ImVec2(o.x + s.x, o.y + s.y), clear, clear, edge, edge);
   }
 
-  const ImVec2 mouse = ImGui::GetIO().MousePos;
+  const ImVec2 mouse = sight.at;
   if (game.phase() == Phase::Playing && !panel) drawAimGuide(draw, game, screen, fonts, locked);
+  if (game.phase() == Phase::Playing && !panel && sight.offerMouse)
+    text(draw, font, 15.0f, ImVec2(o.x + 0.5f * s.x, o.y + 0.5f * s.y + 44.0f), IM_COL32(255, 255, 255, 210),
+         "Click to aim with the mouse", 0.5f);
+  if (game.phase() == Phase::Playing && !panel && sight.magnification > 1.5) {
+    const ImU32 lens = IM_COL32(0, 0, 0, 150);
+    const float radius = 0.46f * std::min(s.x, s.y);
+    draw->AddCircle(mouse, radius, lens, 96, 6.0f);
+    draw->AddLine(ImVec2(mouse.x - radius, mouse.y), ImVec2(mouse.x - 30.0f, mouse.y), lens, 2.0f);
+    draw->AddLine(ImVec2(mouse.x + 30.0f, mouse.y), ImVec2(mouse.x + radius, mouse.y), lens, 2.0f);
+    draw->AddLine(ImVec2(mouse.x, mouse.y + 30.0f), ImVec2(mouse.x, mouse.y + radius), lens, 2.0f);
+    std::snprintf(line, sizeof(line), "x%.0f", sight.magnification);
+    text(draw, font, 18.0f, ImVec2(mouse.x + 0.7f * radius, mouse.y + 0.7f * radius), IM_COL32(255, 255, 255, 200), line, 0.5f);
+  }
   if (game.phase() == Phase::Playing && !panel && mouse.x > o.x && mouse.y > o.y && mouse.x < o.x + s.x && mouse.y < o.y + s.y) {
     const double readiness = game.ready(game.selected());
-    const ImU32 color = readiness >= 1.0 ? IM_COL32(255, 255, 255, 230) : IM_COL32(255, 160, 80, 230);
+    const ImU32 color = sight.onEnemy       ? IM_COL32(255, 80, 60, 240)
+                        : readiness >= 1.0 ? IM_COL32(255, 255, 255, 230)
+                                           : IM_COL32(255, 160, 80, 230);
     draw->AddCircle(mouse, 14.0f, color, 32, 2.0f);
     draw->PathArcTo(mouse, 19.0f, float(-kPi / 2), float(-kPi / 2 + 2 * kPi * readiness), 32);
     draw->PathStroke(color, 0, 3.0f);
@@ -375,8 +474,9 @@ inline void drawHud(Game& game, const Screen& screen, const Fonts& fonts, double
     }
   }
   if (help && !panel) {
-    const char* rows[] = {"W/S drive   A/D turn", "Point at a target: the gun sets its own elevation", "Click/Space fire   1-5 or Q/E weapon",
-                          "Hit tanks from the side or rear", "H how to play   Esc/P pause"};
+    const char* rows[] = {"W/S drive   A/D turn   Mouse aims   Click/Space fire",
+                          "Right click: auto-aim   Hold right: hold the gun   Shift/wheel: sniper sight",
+                          "1-5 or Q/E weapon", "Hit tanks from the side or rear", "H how to play   Esc/P pause"};
     float hy = o.y + s.y - 24.0f * 5 - 104.0f;
     for (const char* row : rows) {
       text(draw, font, 16.0f, ImVec2(o.x + 20, hy), IM_COL32(230, 230, 230, 210), row);
@@ -397,7 +497,9 @@ struct MenuResult {
 inline void beginPanel(const char* id, const Screen& screen, ImVec2 size) {
   ImGui::SetNextWindowPos(ImVec2(screen.origin.x + 0.5f * screen.size.x, screen.origin.y + 0.5f * screen.size.y),
                           ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  // A height of 0 fits the panel to what it holds, at most the height of the view.
   ImGui::SetNextWindowSize(size);
+  ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(FLT_MAX, std::max(120.0f, screen.size.y - 20.0f)));
   ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(10, 12, 14, 215));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(22, 18));
@@ -417,6 +519,43 @@ inline void title(const Fonts& fonts, const std::string& value, ImU32 color) {
   text(draw, fonts.title, 44.0f, ImVec2(at.x + 0.5f * width, at.y), color, value, 0.5f);
   ImGui::Dummy(ImVec2(width, 54));
 }
+
+// The direction the camera looks at the player's tank from: its heading and how far it looks down
+// (radians). The captured mouse turns it, as in World of Tanks; without it a drag turns the heading. It
+// stays put while the hull turns under it; asked to, it swings quickly behind the hull. The autopilot's
+// camera follows the hull.
+struct OrbitHeading {
+  static constexpr double kPitch = -0.25, kLowest = -1.0, kHighest = 0.3;
+  // Radians the view turns per pixel the mouse moves.
+  static constexpr double kSensitivity = 0.0022;
+  double heading = 0.0, pitch = kPitch;
+  bool behindHull = false;
+
+  void drag(double pixels) {
+    heading -= 0.005 * pixels;
+    behindHull = false;
+  }
+  // Turns the view by a mouse movement; `scale` slows it down in the sniper sight.
+  void look(double dx, double dy, double scale) {
+    heading = wrapAngle(heading - kSensitivity * scale * dx);
+    pitch = std::clamp(pitch - kSensitivity * scale * dy, kLowest, kHighest);
+    if (dx != 0.0) behindHull = false;
+  }
+  void place(double hull) {
+    heading = hull;
+    pitch = kPitch;
+    behindHull = false;
+  }
+  void update(double hull, double dt, bool follow) {
+    if (follow) {
+      heading += wrapAngle(hull - heading) * std::min(1.0, dt * 2.5);
+    } else if (behindHull) {
+      const double error = wrapAngle(hull - heading);
+      heading += error * std::min(1.0, dt * 12.0);
+      behindHull = std::abs(error) > 0.002;
+    }
+  }
+};
 
 // A key that acts once it has been held for a moment, so that a slip onto it does nothing; it acts again
 // only after it is let go.
@@ -481,38 +620,94 @@ struct QualityTuner {
   }
 };
 
+// Text wrapped to the panel's width, each line centered.
+inline void centeredText(const char* value, ImU32 color) {
+  ImFont* font = ImGui::GetFont();
+  const float width = ImGui::GetContentRegionAvail().x, size = ImGui::GetFontSize(), left = ImGui::GetCursorPosX();
+  const char* end = value + std::strlen(value);
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  while (value < end) {
+    const char* cut = font->CalcWordWrapPositionA(size / font->FontSize, value, end, width);
+    if (cut == value) cut = value + 1;
+    ImGui::SetCursorPosX(left + 0.5f * (width - font->CalcTextSizeA(size, FLT_MAX, 0.0f, value, cut).x));
+    ImGui::TextUnformatted(value, cut);
+    for (value = cut; value < end && *value == ' ';) ++value;
+  }
+  ImGui::PopStyleColor();
+}
+
+// A mission on the main menu: its number, name and setting on the left, its waves and the best score on
+// the right. Returns true when picked.
+inline bool missionCard(const Fonts& fonts, int index, const LevelSpec& level, int best) {
+  constexpr float kHeight = 66.0f, kBadge = 46.0f, kPad = 10.0f;
+  const ImVec2 at = ImGui::GetCursorScreenPos();
+  const float width = ImGui::GetContentRegionAvail().x;
+  ImGui::PushID(index);
+  const bool picked = ImGui::InvisibleButton("mission", ImVec2(width, kHeight));
+  ImGui::PopID();
+  const bool hovered = ImGui::IsItemHovered(), pressed = ImGui::IsItemActive();
+  ImDrawList* draw = ImGui::GetWindowDrawList();
+  const ImVec2 end(at.x + width, at.y + kHeight);
+  draw->AddRectFilled(at, end, pressed ? IM_COL32(78, 88, 48, 250) : hovered ? IM_COL32(58, 66, 38, 245) : IM_COL32(32, 36, 27, 235),
+                      8.0f);
+  draw->AddRect(at, end, hovered ? IM_COL32(255, 210, 120, 210) : IM_COL32(255, 255, 255, 22), 8.0f, 0, hovered ? 1.5f : 1.0f);
+  const ImVec2 badge(at.x + kPad, at.y + 0.5f * (kHeight - kBadge));
+  draw->AddRectFilled(badge, ImVec2(badge.x + kBadge, badge.y + kBadge), IM_COL32(10, 12, 9, 230), 6.0f);
+  const std::string mark = level.endless ? "\xE2\x88\x9E" : std::to_string(index + 1);
+  const float markSize = level.endless ? 38.0f : 28.0f;
+  const ImVec2 markExtent = fonts.title->CalcTextSizeA(markSize, FLT_MAX, 0.0f, mark.c_str());
+  draw->AddText(fonts.title, markSize,
+                ImVec2(badge.x + 0.5f * (kBadge - markExtent.x), badge.y + 0.5f * (kBadge - markExtent.y)),
+                IM_COL32(255, 210, 120, 255), mark.c_str());
+  const float left = badge.x + kBadge + 14.0f, right = end.x - 14.0f;
+  draw->AddText(fonts.heading, 24.0f, ImVec2(left, at.y + 9.0f), IM_COL32(244, 240, 226, 255), level.name);
+  draw->AddText(fonts.text, 19.0f, ImVec2(left, at.y + 37.0f), IM_COL32(186, 192, 170, 255), level.subtitle);
+  const std::string waves = level.endless ? "ENDLESS" : std::to_string(level.waves.size()) + " WAVES";
+  const float wavesWidth = fonts.small->CalcTextSizeA(15.0f, FLT_MAX, 0.0f, waves.c_str()).x;
+  if (best > 0) {
+    const std::string score = std::to_string(best);
+    const float scoreWidth = fonts.heading->CalcTextSizeA(24.0f, FLT_MAX, 0.0f, score.c_str()).x;
+    draw->AddText(fonts.small, 15.0f, ImVec2(right - wavesWidth, at.y + 11.0f), IM_COL32(150, 156, 138, 255), waves.c_str());
+    draw->AddText(fonts.small, 15.0f, ImVec2(right - 112.0f, at.y + 39.0f), IM_COL32(150, 156, 138, 255), "BEST");
+    draw->AddText(fonts.heading, 24.0f, ImVec2(right - scoreWidth, at.y + 33.0f), IM_COL32(255, 210, 120, 255), score.c_str());
+  } else {
+    draw->AddText(fonts.small, 15.0f, ImVec2(right - wavesWidth, at.y + 0.5f * (kHeight - 15.0f)), IM_COL32(150, 156, 138, 255),
+                  waves.c_str());
+  }
+  return picked;
+}
+
 inline MenuResult drawMainMenu(const Screen& screen, const Fonts& fonts, const std::vector<int>& best, int& quality,
                                const char* note = nullptr) {
   MenuResult result;
-  beginPanel("Main menu", screen, ImVec2(620, std::clamp(screen.size.y - 20.0f, 120.0f, 640.0f)));
+  beginPanel("Main menu", screen, ImVec2(std::min(640.0f, screen.size.x - 24.0f), 0.0f));
   title(fonts, "RAISIM TANK SURVIVAL", IM_COL32(255, 210, 120, 255));
-  ImGui::TextWrapped("Command a tank against armored columns. Every shell is a RaiSim projectile; every blast pushes, "
-                     "flips and wrecks what it reaches.");
-  ImGui::Spacing();
-  for (size_t i = 0; i < levels().size(); ++i) {
-    const LevelSpec& level = levels()[i];
-    ImGui::PushID(int(i));
-    char label[160];
-    std::snprintf(label, sizeof(label), "%s%s\n%s", level.endless ? "" : (std::to_string(i + 1) + ".  ").c_str(), level.name,
-                  level.subtitle);
-    if (ImGui::Button(label, ImVec2(410, 58))) result = {Choice::Play, int(i)};
-    if (best[i] > 0) {
-      ImGui::SameLine();
-      ImGui::Text("best\n%d", best[i]);
-    }
-    ImGui::PopID();
-  }
-  ImGui::Spacing();
+  centeredText("Command a tank against armored columns. Every shell is a RaiSim projectile; every blast pushes, flips "
+               "and wrecks what it reaches.",
+               IM_COL32(214, 216, 204, 255));
+  ImGui::Dummy(ImVec2(0.0f, 10.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+  for (size_t i = 0; i < levels().size(); ++i)
+    if (missionCard(fonts, int(i), levels()[i], best[i])) result = {Choice::Play, int(i)};
+  ImGui::PopStyleVar();
+  ImGui::Dummy(ImVec2(0.0f, 4.0f));
   const char* qualities[] = {"Fast", "Balanced", "High", "Ultra"};
-  ImGui::SetNextItemWidth(200);
-  result.qualityPicked = ImGui::Combo("Render quality", &quality, qualities, 4);
-  ImGui::SameLine(0, 24);
-  if (ImGui::Button("How to play", ImVec2(150, 0))) result.choice = Choice::Help;
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Render quality");
+  ImGui::SameLine(0.0f, 12.0f);
+  ImGui::SetNextItemWidth(150.0f);
+  result.qualityPicked = ImGui::Combo("##quality", &quality, qualities, 4);
+  constexpr float kHelpWidth = 150.0f;
+  ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - kHelpWidth);
+  if (ImGui::Button("How to play", ImVec2(kHelpWidth, 0.0f))) result.choice = Choice::Help;
   if (note) ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.5f, 1.0f), "%s", note);
-  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+  ImGui::Dummy(ImVec2(0.0f, 2.0f));
+  ImGui::PushFont(fonts.small);
+  ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(140, 144, 132, 255));
   ImGui::TextWrapped("Vehicles by MirzaArrafiERV_45, 42manako and KojfDiscord (Sketchfab, CC BY 4.0); props, plants and "
                      "textures from Poly Haven (CC0).");
   ImGui::PopStyleColor();
+  ImGui::PopFont();
   endPanel();
   return result;
 }
@@ -555,23 +750,29 @@ inline bool drawHelp(const Screen& screen, const Fonts& fonts) {
     ImGui::TextWrapped("Destroy every enemy vehicle, wave after wave, and keep your tank alive.");
     section("DRIVE");
     row("W / S, arrows", "Drive forward and back.");
-    row("A / D", "Turn the hull. The turret turns on its own toward the cursor.");
+    row("A / D", "Turn the hull. The turret keeps aiming where you look.");
     row("", "Your tank flattens small trees: drive through the woods.");
-    section("AIM AND FIRE");
-    row("Mouse", "Point at what you want to hit: an enemy, the ground or a wall. You never aim up or down: the gun "
-                 "raises itself for the distance to the point under the cursor.");
-    row("", "Near an enemy the sight locks on it (red brackets) and leads it as it moves.");
+    section("AIM AND FIRE (AS IN WORLD OF TANKS)");
+    row("Mouse", "Click the view once, then move the mouse to look around: the gun aims at what the sight in the "
+                 "middle of the view rests on, an enemy, a wall or the ground, and raises itself for its distance. "
+                 "The sight turns red over an enemy.");
     row("", "The dotted arc shows where a round fired now would fly, and the ring where it strikes: red on a "
-            "vehicle. The turret takes a moment to swing round.");
-    row("Click / Space", "Fire. The ring around the cursor fills while the gun reloads.");
+            "vehicle. The turret takes a moment to swing round: fire when the ring sits on the target.");
+    row("Click / Space", "Fire. The ring around the sight fills while the gun reloads.");
+    row("Right click", "Auto-aim: lock on the enemy nearest the sight (red brackets). The gun tracks and leads it "
+                       "while you look elsewhere. Right click again to let go.");
+    row("Right (hold)", "Hold the gun's aim and look around freely.");
+    row("Shift / wheel", "Sniper sight: the view from the gun, magnified two, four or eight times as the wheel turns. "
+                         "Shift, or the wheel turned out, leaves it.");
+    row("Esc", "Free the mouse and pause. On a touch screen, tap where to aim.");
   };
   const auto more = [&] {
     section("WEAPONS");
     row("1 - 5,  Q / E", "Armor-piercing (AP), high explosive (HE), machine gun (MG), guided missile, artillery "
-                         "strike (lands on the cursor after a delay).");
+                         "strike (lands under the sight after a delay).");
     section("CAMERA AND MORE");
-    row("Mouse wheel", "Zoom in and out.");
-    row("Right drag", "Look around the tank.");
+    row("Mouse wheel", "Move the camera closer or farther; turned in further, it enters the sniper sight.");
+    row("C", "Camera behind the tank. The view stays where you leave it while the tank turns.");
     row("F", "Smoke screen: enemies cannot see through it.");
     row("Esc / P", "Pause.");
     row("R (hold)", "Restart the mission.");

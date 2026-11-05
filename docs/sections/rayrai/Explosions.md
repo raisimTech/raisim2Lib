@@ -13,8 +13,9 @@ with no code beyond setting them off:
   scorch mark. A charge at or under the surface of one of the window's water bodies throws up a column of
   spray and mist instead.
 - **Muzzle flashes** where projectiles are launched, sized by the cube root of the projectile's kinetic
-  energy (a tank gun's at full size, a machine gun's a sixth of it), **tracers** behind them in flight and
-  **sparks** where an inert projectile hits.
+  energy (a tank gun's at full size, a machine gun's a sixth of it), also for a round that launched and
+  came down between two frames, **tracers** behind them in flight and **sparks** where an inert
+  projectile hits.
 - **Fires** (`addFireEffect()`): flickering flames and a column of black smoke, for a burning wreck or
   a fuel spill.
 
@@ -77,6 +78,7 @@ Without it, the first shot stalls a frame while they compile, for about a second
 | `sizeScale` | 1 | Multiplies the size of fireballs and smoke clouds. |
 | `smokeLifetime` | 8 s | How long the smoke of a 1 kg charge lasts. |
 | `marchSteps` | 32 | Samples per pixel through fire and smoke (8 to 64): fewer cost less and look grainier. |
+| `volumeDownsample` | 2 | Fire and smoke are marched at 1/n of the image's width and height (1 to 4) and blended into it along its depth, so that they stay behind nearer objects: 2 costs about a third of 1, and 3 about half of 2. |
 | `sparks` | `true` | Throw sparks, debris and dust. |
 | `flashLight` | `true` | Light the surroundings with the brightest fireball. |
 | `scorchMarks` | `true` | Leave scorch marks under ground bursts. |
@@ -114,17 +116,34 @@ each render and takes them away when the render ends, so the application's lists
 change. They count toward the limits of 16 lights and 8 decals and are skipped when those are full.
 
 The effects follow the physics snapshots the window shows (`PhysicsSnapshot::explosions`, `projectiles`,
-`projectileHits` and `wind`), so they also work with `applyPhysicsSnapshot()` on a render thread. Each
-effect belongs to the explosion, hit or launch that caused it and is drawn from it alone, sparks and
-puffs included, so a replay draws the same picture. A checkpoint restored to before an explosion drops
-its effect, one restored to while it was still burning or smoking draws it again, and an explosion
-replayed after a restore gets its effect even when it reuses an identifier. Effects removed with
+`projectileHits`, `launches` and `wind`), so they also work with `applyPhysicsSnapshot()` on a render
+thread. Each effect belongs to the explosion, hit or launch that caused it and is drawn from it alone,
+sparks and puffs included, so a replay draws the same picture. A checkpoint restored to before an
+explosion drops its effect, one restored to while it was still burning or smoking draws it again, and an
+explosion replayed after a restore gets its effect even when it reuses an identifier, at its own place.
+Changing `useWorldTime` keeps the effects in progress at the age they had. Positions, charges, sizes and
+durations that are not finite are refused with `std::invalid_argument`; orthographic cameras draw the
+fire and smoke along parallel rays like the rest of the scene. Effects removed with
 `clearExplosionEffects()` stay removed. In the browser the effects draw through the WebGPU backend like
 the rest of the scene.
 
-The fireball and smoke cost a ray march over the pixels they cover: at 32 steps a cloud of smoke filling
-about a third of a 1600 x 900 frame adds 1.2 ms to the frame on an RTX 5070. The march fetches the noise
-only where it can change the density, so the empty reaches of a volume's bounding sphere cost less than
-its cloud. The worst case is a camera inside overlapping clouds: looking into the dust of a dozen ground
-bursts (`rayrai_explosion_volume_benchmark`) adds 10.4 ms at 1600 x 900 on an RTX 5070; fewer
-`marchSteps` make it cheaper and grainier.
+The fireball and smoke cost a ray march over the pixels they cover, so rayrai keeps the march short and
+coarse and blends it into the image:
+
+- Each ray takes about `marchSteps` steps across the volume's bounding sphere, so rays that cross only
+  its edge or meet the scene early take fewer.
+- The march fetches the noise only where it can change the density, so the empty reaches of a volume's
+  bounding sphere cost less than its cloud.
+- It runs at half the image's width and height (`volumeDownsample`). Each marched pixel stops at the
+  nearest scene depth among the image pixels it covers, and neighbouring marched pixels start their rays
+  at interleaved fractions of a step.
+- Each image pixel blends the four by four nearest marched pixels, weighted by distance and by how close
+  the depth each one stopped at is to its own. This averages the interleaved starts into smooth smoke
+  instead of grain, and keeps smoke behind a tank from spilling over its edges or over a gun barrel or
+  branch thinner than a marched pixel.
+
+On an RTX 5070 at 1600 x 900 with 32 steps, a smoke screen across half the view adds 0.85 ms to the frame
+(0.5 ms at a third of the resolution, which Tank Survival uses). The worst case is a camera inside
+overlapping clouds: looking into the dust of a dozen ground bursts (`rayrai_explosion_volume_benchmark`)
+adds 1.8 ms, 0.9 ms at a third of the resolution and 5.9 ms at full resolution. Fewer `marchSteps` make
+it cheaper and grainier.

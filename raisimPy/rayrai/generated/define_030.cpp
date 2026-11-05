@@ -2,6 +2,46 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_030(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowResolutionScale", &raisin::RenderQualitySettings::additionalShadowResolutionScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowResolutionScale", &raisin::RenderQualitySettings::pointShadowResolutionScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"minAdditionalShadowResolution", &raisin::RenderQualitySettings::minAdditionalShadowResolution);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowSlopeBiasScale", &raisin::RenderQualitySettings::shadowSlopeBiasScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowNormalOffset", &raisin::RenderQualitySettings::shadowNormalOffset);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"directionalShadowCascadeCount", &raisin::RenderQualitySettings::directionalShadowCascadeCount);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"directionalShadowCascadeLambda", &raisin::RenderQualitySettings::directionalShadowCascadeLambda);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"directionalShadowCascadeMaxDistance", &raisin::RenderQualitySettings::directionalShadowCascadeMaxDistance);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"directionalShadowCascadeSplitOverrides", &raisin::RenderQualitySettings::directionalShadowCascadeSplitOverrides);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowBiasScale", &raisin::RenderQualitySettings::additionalShadowBiasScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowStrengthScale", &raisin::RenderQualitySettings::additionalShadowStrengthScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowPcfRadiusScale", &raisin::RenderQualitySettings::additionalShadowPcfRadiusScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowNormalOffsetScale", &raisin::RenderQualitySettings::additionalShadowNormalOffsetScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowAtlasPlanningEnabled", &raisin::RenderQualitySettings::additionalShadowAtlasPlanningEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowAtlasResolution", &raisin::RenderQualitySettings::additionalShadowAtlasResolution);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowAtlasPadding", &raisin::RenderQualitySettings::additionalShadowAtlasPadding);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowBiasScale", &raisin::RenderQualitySettings::pointShadowBiasScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowFar", &raisin::RenderQualitySettings::pointShadowFar);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"updateShadowsEveryFrame", &raisin::RenderQualitySettings::updateShadowsEveryFrame);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"maxAdditionalLightsPerFrame", &raisin::RenderQualitySettings::maxAdditionalLightsPerFrame);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"minAdditionalLightInfluence", &raisin::RenderQualitySettings::minAdditionalLightInfluence);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalLightContributionThreshold", &raisin::RenderQualitySettings::additionalLightContributionThreshold);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"maxReflectionProbesPerSelection", &raisin::RenderQualitySettings::maxReflectionProbesPerSelection);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"minReflectionProbeWeight", &raisin::RenderQualitySettings::minReflectionProbeWeight);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeDebugOverlayEnabled", &raisin::RenderQualitySettings::reflectionProbeDebugOverlayEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeFilteringEnabled", &raisin::RenderQualitySettings::reflectionProbeFilteringEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeIrradianceResolution", &raisin::RenderQualitySettings::reflectionProbeIrradianceResolution);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeIrradianceSamples", &raisin::RenderQualitySettings::reflectionProbeIrradianceSamples);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbePrefilteredResolution", &raisin::RenderQualitySettings::reflectionProbePrefilteredResolution);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbePrefilteredMipLevels", &raisin::RenderQualitySettings::reflectionProbePrefilteredMipLevels);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbePrefilteredSamples", &raisin::RenderQualitySettings::reflectionProbePrefilteredSamples);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeBrdfLutSize", &raisin::RenderQualitySettings::reflectionProbeBrdfLutSize);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeBrdfLutSamples", &raisin::RenderQualitySettings::reflectionProbeBrdfLutSamples);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"localDiffuseIrradianceIntensity", &raisin::RenderQualitySettings::localDiffuseIrradianceIntensity);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"localDiffuseIrradianceSaturation", &raisin::RenderQualitySettings::localDiffuseIrradianceSaturation);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoSelectImportedShadowLight", &raisin::RenderQualitySettings::autoSelectImportedShadowLight);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"sortTransparentInstances", &raisin::RenderQualitySettings::sortTransparentInstances);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weightedBlendedOit", &raisin::RenderQualitySettings::weightedBlendedOit);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentDepthPrepass", &raisin::RenderQualitySettings::transparentDepthPrepass);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentShadowDithering", &raisin::RenderQualitySettings::transparentShadowDithering);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentShadowOpacityScale", &raisin::RenderQualitySettings::transparentShadowOpacityScale);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"screenSpaceRefraction", &raisin::RenderQualitySettings::screenSpaceRefraction);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"screenSpaceRefractionStrength", &raisin::RenderQualitySettings::screenSpaceRefractionStrength);}
@@ -17,45 +57,5 @@ void define_030(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionMinSamples", &raisin::RenderQualitySettings::geometryRefractionMinSamples);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionRelativeError", &raisin::RenderQualitySettings::geometryRefractionRelativeError);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionAbsoluteError", &raisin::RenderQualitySettings::geometryRefractionAbsoluteError);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionSeed", &raisin::RenderQualitySettings::geometryRefractionSeed);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionRevision", &raisin::RenderQualitySettings::geometryRefractionRevision);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentFogAlphaWeighted", &raisin::RenderQualitySettings::transparentFogAlphaWeighted);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentFogStrength", &raisin::RenderQualitySettings::transparentFogStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterEnabled", &raisin::RenderQualitySettings::waterEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterTileResolution", &raisin::RenderQualitySettings::waterTileResolution);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterLodDistanceScale", &raisin::RenderQualitySettings::waterLodDistanceScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterScreenSpaceReflections", &raisin::RenderQualitySettings::waterScreenSpaceReflections);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterReflectionSteps", &raisin::RenderQualitySettings::waterReflectionSteps);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterReflectionMaxDistance", &raisin::RenderQualitySettings::waterReflectionMaxDistance);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterCaustics", &raisin::RenderQualitySettings::waterCaustics);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterUnderwaterView", &raisin::RenderQualitySettings::waterUnderwaterView);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"waterSkyCaptureResolution", &raisin::RenderQualitySettings::waterSkyCaptureResolution);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherWetMaterialEnabled", &raisin::RenderQualitySettings::weatherWetMaterialEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherWetness", &raisin::RenderQualitySettings::weatherWetness);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherPuddleStrength", &raisin::RenderQualitySettings::weatherPuddleStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherRainRippleStrength", &raisin::RenderQualitySettings::weatherRainRippleStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherRainRippleScale", &raisin::RenderQualitySettings::weatherRainRippleScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherRainRipplePhase", &raisin::RenderQualitySettings::weatherRainRipplePhase);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherWetAlbedoDarkening", &raisin::RenderQualitySettings::weatherWetAlbedoDarkening);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherWetRoughnessScale", &raisin::RenderQualitySettings::weatherWetRoughnessScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherWetSpecularBoost", &raisin::RenderQualitySettings::weatherWetSpecularBoost);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowMaterialEnabled", &raisin::RenderQualitySettings::weatherSnowMaterialEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowCoverage", &raisin::RenderQualitySettings::weatherSnowCoverage);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowAccumulationStrength", &raisin::RenderQualitySettings::weatherSnowAccumulationStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowAlbedoBlend", &raisin::RenderQualitySettings::weatherSnowAlbedoBlend);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowRoughness", &raisin::RenderQualitySettings::weatherSnowRoughness);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowMetallicScale", &raisin::RenderQualitySettings::weatherSnowMetallicScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weatherSnowNormalSoftening", &raisin::RenderQualitySettings::weatherSnowNormalSoftening);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindEnabled", &raisin::RenderQualitySettings::foliageWindEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindDirection", &raisin::RenderQualitySettings::foliageWindDirection);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindSpeed", &raisin::RenderQualitySettings::foliageWindSpeed);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindTimeSeconds", &raisin::RenderQualitySettings::foliageWindTimeSeconds);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindGustStrength", &raisin::RenderQualitySettings::foliageWindGustStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindGustScale", &raisin::RenderQualitySettings::foliageWindGustScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindBranchBend", &raisin::RenderQualitySettings::foliageWindBranchBend);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"foliageWindLeafFlutter", &raisin::RenderQualitySettings::foliageWindLeafFlutter);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"addViewerFillLights", &raisin::RenderQualitySettings::addViewerFillLights);}
-bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings").def("shadows", [](raisin::RenderQualitySettings& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.shadows(); return wrap(state,result); }, "/// @brief Read a snapshot of the shadows sub-config from the flat fields.\n  /// @return Copy of the main shadow and cascade fields (additional-light shadow fields excluded).\nC++: ShadowsSettings () const");
-bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings").def("setShadows", [](raisin::RenderQualitySettings& self, Arg<const raisin::RenderQualitySettings::ShadowsSettings &> a0) { auto state=current_state(); Guard guard(state,false); decltype(auto) n0=unwrap<const raisin::RenderQualitySettings::ShadowsSettings &>(a0,state); self.setShadows(n0); return py::none(); }, py::arg("s"), "/// @brief Write the shadows sub-config back into the flat fields.\n  /// @param s Values to store.\nC++: void (const ShadowsSettings &)");
 }
 }
