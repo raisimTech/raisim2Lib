@@ -61,16 +61,46 @@ An example URDF is
 The update method is selected with `raisim::Sensor::setMeasurementSource`:
 
 - `RAISIM`: measurement is computed by RaiSim. The owning articulated system
-  refreshes it during `World::integrate()` whenever `1 / update_rate` of
-  simulated time has passed since the last update, and at once when
-  `World::setWorldTime()` moved the time back before the last update (a new
-  episode; `Sensor::isUpdateDue()`). This is the default for IMU
+  refreshes it during `World::integrate()` on a fixed grid of deadlines
+  `1 / update_rate` apart, at the first step that reaches each deadline
+  (see [Update timing](#update-timing)). This is the default for IMU
   and spinning LiDAR sensors. `DepthCamera` supports RaiSim-side CPU ray
   updates, but use this for headless fallback rather than for rendered camera
   images when rayrai is available. `RGBCamera` cannot use it.
 - `MANUAL`: user code writes the buffers. This is the default for RGB and
   depth cameras. Use it for in-process rayrai RGB/depth rendering or real
   hardware integration.
+
+### Update timing
+
+RaiSim-sourced IMUs, depth cameras and LiDARs count their deadlines in physics
+steps: the time of a deadline is the sum of the time steps since the grid
+started, not the world time. A sensor takes each deadline at the first step
+that reaches it and drops the deadlines a step goes past, without shifting the
+grid. It takes at most one sample per step, so its long-run rate equals
+`update_rate` up to the physics rate, even when the period is not a multiple of
+the time step. A 30 Hz depth camera at 1000 Hz is updated 34, 33, 33, 34, 33,
+33, ... steps apart, 30 times per simulated second, and a 500 Hz IMU at
+2000 Hz exactly every fourth step, without slipping.
+
+The world time stamps the samples (`getUpdateTimeStamp()`). Changing it with
+`World::setWorldTime()` between steps does not move the grid, so a world clock
+that disagrees with the time step (time kept in whole nanoseconds at 3000 Hz)
+does not slip the samples. A step that ends before the last step the sensor
+counted starts a new episode: the grid starts again with an update at once.
+Setting the world time back by more than one step does this; setting it back
+by one step or less goes unnoticed, as the next step then ends at or after the
+last one (at the same time, it counts as already done). The grid also starts
+again, with an update at once, when `setUpdateRate()` changes the rate. When the
+world time moves forward by more than one and a half time steps between two
+steps the sensor counts (it was not updated for some steps, for example while
+its source was `MANUAL`, or the world time was set forward), that time counts
+as physics time. A spinning LiDAR's head still turns
+by the world time between its updates (see [Spinning LiDAR](#spinning-lidar)).
+Force and tactile sensors keep their own acquisition clock.
+
+`Sensor::isUpdateDue()` serves sensors with a `MANUAL` source, such as cameras a
+viewer renders: an update is due one period after `getUpdateTimeStamp()`.
 
 There is no `VISUALIZER` measurement source in the RaiSim API. TCP camera
 requests use `MANUAL` sensors: a connected visualizer renders requested frames,
@@ -463,11 +493,12 @@ estimator using the raw accelerometer and gyro channels instead.
 
 ### Sampling and delivery
 
-The acquisition clock retains its phase when a deadline falls between physics
-steps. Acquisition takes place at the first completed step at or after the
-deadline; the next deadline advances from the original clock rather than the
-rounded acquisition time. There is at most one acquisition per physics step,
-so a requested rate above the physics rate cannot create additional motion data.
+Acquisitions follow the step-counted grid of [Update timing](#update-timing):
+when a deadline falls between physics steps, acquisition takes place at the
+first completed step at or after it, and the next deadline keeps the grid's
+phase rather than following the rounded acquisition time. There is at most one
+acquisition per physics step, so a requested rate above the physics rate cannot
+create additional motion data.
 
 For a simulation starting at time zero with 1 ms physics, a 400 Hz IMU and 3 ms
 latency, the first samples are:
@@ -487,15 +518,15 @@ The acquisition intervals alternate between 2 ms and 3 ms. The mean rate remains
 delivered sample. `getDeliveryTimeStamp()` is when that sample became available.
 Both are simulation times, not wall-clock times.
 
-For latency $L$, a sample acquired at $t_s$ becomes available at the
-first physics step with $t\ge t_s+L$. Delivery is checked every physics
-step, including steps without a new acquisition. Latency is therefore rounded
-up to the available physics times. Acceleration, gyro and ground-truth orientation
+For latency $L$, a sample becomes available at the first physics step that
+ends at least $L$ of physics time after its acquisition, counted in time steps
+like the sampling grid. Delivery is checked every physics step, including steps
+without a new acquisition. Latency is therefore rounded up to whole steps. Acceleration, gyro and ground-truth orientation
 are queued together. Before the first delivery, timestamps are negative and the
 quaternion is the identity; do not treat those initial buffers as measurements.
 
 Queue storage grows with acquired samples, up to 65,536 pending measurements
-(about 6 MiB per IMU). If this capacity is exhausted, or growth cannot allocate
+(about 6.5 MiB per IMU). If this capacity is exhausted, or growth cannot allocate
 memory, new samples are dropped until room becomes available. Existing queued
 samples keep their acquisition times and delivery latency. A warning is emitted
 on the first loss after `reset()`; `getDroppedMeasurementCount()` reports the
