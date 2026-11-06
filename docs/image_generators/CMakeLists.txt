@@ -74,7 +74,8 @@ set(_doc_image_generators
     doc_image_deformable_solid
     doc_image_fluids
     doc_image_tracks
-    doc_image_home_tracks)
+    doc_image_home_tracks
+    doc_image_joint_friction)
 set(_gallery_scenes rayrai_blue_wall_scene granular_media_showcase
                     tendon_pulleys rayrai_nested_glass_showcase rayrai_city)
 foreach(_scene IN LISTS _gallery_scenes)

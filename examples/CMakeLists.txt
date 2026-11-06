@@ -425,6 +425,8 @@ target_compile_features(rayrai_tank_survival PRIVATE cxx_std_20)
 target_compile_definitions(rayrai_tank_survival PRIVATE TANK_SURVIVAL_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/../rsc")
 # A gun firing a solid round and an explosive shell at a wall of crates, and a charge going off beside it.
 create_rayrai_executable(rayrai_explosion_projectile src/rayrai/dynamics/rayrai_explosion_projectile.cpp)
+# Three spherical pendulums with no, a little and a lot of joint friction, coming to rest inside their friction cones.
+create_rayrai_executable(rayrai_spherical_joint_friction src/rayrai/dynamics/rayrai_spherical_joint_friction.cpp)
 target_compile_features(rayrai_offroad_buggy PRIVATE cxx_std_20)
 # A pond in a meadow: rayrai water with grass and trees on its banks and the sun reflected on it.
 create_rayrai_executable(rayrai_water_pond src/rayrai/worlds/rayrai_water_pond.cpp)
