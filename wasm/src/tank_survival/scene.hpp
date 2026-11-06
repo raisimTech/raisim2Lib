@@ -27,7 +27,10 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   auto settings = Viewer::defaultRenderQualitySettings(raisin::RenderQualityPreset(quality));
   settings.gamma = 2.2f;
   settings.colorMode = raisin::ViewerColorMode::AcesApprox;
-  settings.pbrExposure = 1.05f;
+  // A little darker overall, and distance haze half as dense as the preset's: everything past a hundred
+  // metres faded toward the haze color and the scenes looked washed out.
+  settings.pbrExposure = 0.9f;
+  settings.fogDensity *= 0.5f;
   settings.pbrEnvironmentLightingTint = glm::vec3(0.65f);
   settings.depthOfFieldEnabled = false;
   settings.reflectiveGround = false;
