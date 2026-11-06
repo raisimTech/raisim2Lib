@@ -219,8 +219,8 @@ $$
 
 A position-limit impulse acts on a joint outside its range. A velocity-limit impulse acts on a
 joint whose entry of $\boldsymbol{u}^*$ exceeds its velocity limit, unless a position-limit
-impulse acts on that joint. A joint-friction impulse acts on every revolute or prismatic joint with
-friction (see [Joint Damping and Friction](./JointDampingAndFriction.md)).
+impulse acts on that joint. A joint-friction impulse acts on every revolute, prismatic or spherical
+joint with friction (see [Joint Damping and Friction](./JointDampingAndFriction.md)).
 
 **5. The applied joint torque.** With $\Delta\boldsymbol{u} = \boldsymbol{u}_{t+1} - \boldsymbol{u}_t$,
 moving the implicit part to the right-hand side gives the equation of motion of the step:
@@ -240,14 +240,15 @@ The torque on the joints over the step is therefore, term by term:
 | actuators | $\boldsymbol{\tau}_{act}$, constant over the step |
 | springs | $\boldsymbol{k}_s\,(\boldsymbol{q}_s - \boldsymbol{q}_t) - \tfrac{\Delta t}{4}\,\boldsymbol{k}_s\,\Delta\boldsymbol{u}$ |
 | external forces | $\boldsymbol{J}^T \boldsymbol{F}_{ext}$ |
-| joint friction | $\boldsymbol{\lambda}_f / \Delta t$, with $\|\boldsymbol{\lambda}_f\| \le (\boldsymbol{\tau}_{c,joint} + \boldsymbol{\tau}_{c,out})\,\Delta t$ |
+| joint friction | $\boldsymbol{\lambda}_f / \Delta t$, with $\lvert\lambda_{f,j}\rvert \le (\tau_{c,joint,j} + \tau_{c,out,j})\,\Delta t$ for a revolute or prismatic joint $j$ and $\lVert\boldsymbol{\lambda}_{f,j}\rVert \le \tau_{c,j}\,\Delta t$ for the three entries of a spherical joint $j$ |
 | contacts and joint limits | the rest of $\boldsymbol{J}_c^T \boldsymbol{\lambda}_c / \Delta t$ |
 
 The friction impulse $\boldsymbol{\lambda}_f$, the joints' share of
 $\boldsymbol{J}_c^T \boldsymbol{\lambda}_c$, stops a joint if the bound allows it, and
 otherwise opposes the motion with the bound. $\boldsymbol{\tau}_{c,joint}$ is the joint
 friction (see [Joint Damping and Friction](./JointDampingAndFriction.md)) and $\boldsymbol{\tau}_{c,out}$ the output
-friction of the joint's actuator.
+friction of the joint's actuator. For a spherical joint, the bound applies to the magnitude of the
+joint's three entries, so its friction torque is the same in every direction.
 
 Only the explicit part of the feedforward and PD torque is clamped. The implicit part is not, so
 the applied PD torque can exceed the actuation limits by

@@ -1,7 +1,7 @@
 # Joint Damping and Friction
 
-Every revolute and prismatic joint can have viscous damping and Coulomb friction, and a spherical
-joint can have viscous damping. They model bearings, seals and gears. They are passive: they only
+Every revolute, prismatic and spherical joint can have viscous damping and Coulomb friction. They
+model bearings, seals, gears and ball-and-socket joints. They are passive: they only
 remove energy, they are not part of the generalized force you set, and they act whether or not the
 joint is controlled.
 
@@ -20,7 +20,7 @@ Set them with the standard URDF `<dynamics>` attributes. Both default to zero:
 | --- | --- | --- |
 | revolute | $Nm\,s/rad$ | $Nm$ |
 | prismatic | $N\,s/m$ | $N$ |
-| spherical | $Nm\,s/rad$, on each of the three angular velocity components | not supported (ignored) |
+| spherical | $Nm\,s/rad$, on each of the three angular velocity components | $Nm$, the largest magnitude of the friction torque, in any direction (see [Spherical joints](#spherical-joints)) |
 
 The MJCF loader reads the joint `damping` attribute but not `frictionloss`.
 
@@ -85,6 +85,74 @@ solver, together with the contacts and the joint limits. A joint therefore stops
 of chattering around zero velocity, and the friction torque is consistent with the contact forces
 on the robot. A robot with friction adds one row to the contact
 solver; robots without friction do not pay for it.
+
+### Spherical joints
+
+A spherical joint takes the same `<dynamics>` attributes:
+
+```xml
+<joint name="shoulder" type="spherical">
+    <parent link="torso"/>
+    <child link="upper_arm"/>
+    <dynamics damping="0.2" friction="1.5"/>
+</joint>
+```
+
+The friction of a spherical joint (a ball-and-socket joint) acts on its three entries of the
+generalized velocity, $\boldsymbol{u}_j \in \mathbb{R}^3$: the angular velocity of the child body
+relative to the parent body (see [Joints](./StateAndKinematics.md#joints)). Its friction torque
+$\boldsymbol{\tau}_f \in \mathbb{R}^3$ is bounded in magnitude by the same $\tau_c$ in every
+direction. It holds the joint at rest while the other torques on it stay below $\tau_c$, and
+otherwise opposes the relative rotation with the full $\tau_c$:
+
+$$
+\boldsymbol{\tau}_f = -\tau_c\,\frac{\boldsymbol{u}_{j,t+1}}{\|\boldsymbol{u}_{j,t+1}\|} \ \text{if} \ \boldsymbol{u}_{j,t+1} \neq \boldsymbol{0},
+\qquad \|\boldsymbol{\tau}_f\| \le \tau_c \ \text{if} \ \boldsymbol{u}_{j,t+1} = \boldsymbol{0}.
+$$
+
+The friction torque is opposite to the joint's angular velocity at the end of the step, whatever the
+inertia of the bodies, so it removes as much energy as the bound allows. Some consequences:
+
+- **It is isotropic.** A torque of $0.98\,\tau_c$ is held in every direction, and a torque of
+  $1.05\,\tau_c$ turns the joint in every direction. The friction does not depend on the joint
+  frame. Three revolute joints in a row (a gimbal), each with friction $\tau_c$, behave
+  differently. They hold up to $\sqrt{3}\,\tau_c$ about a diagonal, and their
+  components stop at different times, which turns the axis of a rotation as it slows down.
+- **A spin slows down about a fixed axis.** A body with isotropic inertia $I$ spinning about any axis
+  slows down along that axis at the constant rate $\tau_c / I$ and stops.
+- **A swing stops off the vertical.** A pendulum of mass $m$ whose center of mass is a distance $d$
+  from the joint comes to rest wherever gravity's torque, $m g d \sin\theta$ at the tilt $\theta$, is
+  at most $\tau_c$. The resting points form a cone around the vertical, as the figure shows. With only
+  viscous damping, it would keep creeping toward the bottom.
+- **A planar swing stays planar.** A pendulum on a spherical joint whose mass is symmetric about its
+  plane of swing, under loads in that plane, moves exactly like a revolute joint with the same
+  friction about the plane's normal. (Without that symmetry, the body's own dynamics can turn it out
+  of the plane, which a revolute joint would prevent.)
+
+![a spherical pendulum's bob spiralling down inside a ring that marks its friction cone](../../../rsc/docs/image/rayrai/spherical_joint_friction.png)
+
+*A spherical pendulum ($m = 1\,kg$, $d = 0.5\,m$, $\tau_c = 0.6\,Nm$) released at a tilt of
+$1.1\,rad$ on a conical swing. The bob's positions (light to dark) spiral down as friction removes
+energy, and the bob comes to rest $5.5°$ off the vertical, inside the ring where gravity's torque
+equals $\tau_c$ (a tilt of $7.0°$).*
+
+Like the friction of a revolute or prismatic joint, it is solved together with the contacts, the joint
+limits and the other joints' friction. A contact pushing a link therefore cannot slip a joint unless
+the total torque on the joint exceeds $\tau_c$. In a [closed loop](./ClosedLoopSystems.md), the friction
+acts only in the directions the loop lets the joint turn. In the other directions the loop's forces
+alone carry the load, and they are reported in full. For example, if the link's tip is pinned, only
+twisting the link about its own axis meets the friction.
+
+### Accuracy
+
+The friction of each joint is exact for the motion of the other joints and the contacts. When several
+joints with friction are strongly coupled, e.g., a long chain of spherical joints that mostly stick,
+the joints settle together over the contact solver's iterations. With the default solver settings the
+friction torque never exceeds $\tau_c$, but a joint that should stick can keep creeping slowly, and a
+sliding joint can be braked by less than $\tau_c$. With more solver iterations and a smaller tolerance
+(`World::setContactSolverParam()`), the friction converges to that tolerance.
+
+### Setting the friction
 
 The joint's own friction is set in the model file; there is no C++ setter for it. The
 `output_friction` of an actuator can be changed at runtime by editing the definitions from
