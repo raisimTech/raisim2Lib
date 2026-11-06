@@ -301,6 +301,85 @@ void gunFiresOnceItCanReachTheSight() {
         "the gun is ready below its depression once it has turned as far as it can");
 }
 
+// The turret swings to a new angle and stops there. Its gains came from a nominal inertia, far below the
+// turret's and gun's: it overshot a quarter turn by 0.14 rad (the player's tank) to 0.41 rad (the BMD-2) and
+// swung back and forth for most of a second after each turn of the view.
+void turretSettlesWithoutRinging() {
+  for (const tank::Role role : {tank::Role::Player, tank::Role::Medium, tank::Role::Scout}) {
+    const tank::VehicleSpec& spec = tank::vehicle(role);
+    const std::string folder = std::string(TANK_SURVIVAL_ASSETS) + "/tank_survival/vehicles/" + spec.model;
+    const tank::VehicleModel model = tank::loadVehicleModel(folder);
+    raisim::World world;
+    world.setTimeStep(tank::kTimeStep);
+    world.addGround();
+    tank::Tank vehicle(world, tank::vehicleUrdf(spec, model, folder), model, spec,
+                       tank::Vec3(0.0, 0.0, model.axleHeight + 0.3), 0.0, 0.0);
+    // The turret's angle on the hull, commanded `to` and held for `seconds`.
+    const auto swing = [&](double to, double seconds, double& overshoot, double& last) {
+      const double from = vehicle.turretAngle();
+      vehicle.turretAim = to;
+      vehicle.command(0.0, 0.0, 1.0, world.getWorldTime());
+      overshoot = 0.0;
+      for (int i = 0; i < int(seconds / tank::kTimeStep); ++i) {
+        world.integrate();
+        const double error = tank::wrapAngle(vehicle.turretAngle() - to);
+        if (error * (from - to) < 0.0) overshoot = std::max(overshoot, std::abs(error));
+        last = std::abs(error);
+      }
+    };
+    double overshoot = 0.0, last = 0.0;
+    swing(0.0, 1.0, overshoot, last);
+    swing(0.5 * tank::kPi, 1.5, overshoot, last);
+    check(overshoot < 0.02 && last < 0.01, "the turret turns a quarter turn without overshooting and stops there");
+    swing(0.5 * tank::kPi + 0.15, 1.0, overshoot, last);
+    check(overshoot < 0.005 && last < 0.005, "the turret follows a small turn of the view without overshooting");
+  }
+}
+
+// Each enemy, driven as the game drives it (its share of top speed, steering held under the sideways
+// acceleration of a turn at speed), over rough ground and steered hard from side to side, stays on its
+// tracks. At full speed and full steer, the BMD-2 rolled over in five runs of six.
+void enemiesStayOnTheirTracks() {
+  for (const tank::Role role : {tank::Role::Scout, tank::Role::Medium, tank::Role::Heavy, tank::Role::Destroyer,
+                                tank::Role::Artillery, tank::Role::Boss}) {
+    const tank::VehicleSpec& spec = tank::vehicle(role);
+    const std::string folder = std::string(TANK_SURVIVAL_ASSETS) + "/tank_survival/vehicles/" + spec.model;
+    const tank::VehicleModel model = tank::loadVehicleModel(folder);
+    const std::string urdf = tank::vehicleUrdf(spec, model, folder);
+    int rolls = 0;
+    for (const tank::Terrain terrain : {tank::Terrain::Hills, tank::Terrain::Ridges}) {
+      constexpr size_t kSamples = 161;
+      std::vector<double> heights(kSamples * kSamples);
+      for (size_t j = 0; j < kSamples; ++j)
+        for (size_t i = 0; i < kSamples; ++i)
+          heights[j * kSamples + i] = tank::roughness(terrain, -80.0 + double(i), -80.0 + double(j));
+      for (int run = 0; run < 6; ++run) {
+        raisim::World world;
+        world.setTimeStep(tank::kTimeStep);
+        world.addHeightMap(kSamples, kSamples, 160.0, 160.0, 0.0, 0.0, heights);
+        const tank::Vec3 start(-40.0 + 12.0 * run, -30.0 + 9.0 * run, 0.0);
+        tank::Tank vehicle(world, urdf, model, spec,
+                           start + tank::Vec3(0, 0, tank::roughness(terrain, start.x(), start.y()) + model.axleHeight + 0.4),
+                           0.7 * run, 0.0);
+        bool rolled = false;
+        // Until it has driven 12 s or reached the edge of the ground.
+        for (int i = 0; i < int(12.0 / tank::kTimeStep) && !rolled &&
+                        vehicle.position().head<2>().cwiseAbs().maxCoeff() < 70.0; ++i) {
+          if (i % 8 == 0) {
+            const double steer = vehicle.steerLimit(tank::kEnemyTurnAcceleration);
+            vehicle.command(1.0, std::clamp(std::sin(0.9 * i * tank::kTimeStep), -steer, steer), tank::kEnemySpeedScale,
+                            world.getWorldTime());
+          }
+          world.integrate();
+          rolled = vehicle.hullRotation()(2, 2) < 0.35;
+        }
+        rolls += rolled;
+      }
+    }
+    check(rolls == 0, "an enemy steered hard over rough ground stays on its tracks");
+  }
+}
+
 // Each vehicle on rough ground at full throttle, then steered: a rigid hull bounced from bump to bump with
 // its tracks mostly in the air and went on straight (the player's tank turned 5 degrees in 3 s); on sprung
 // track carriers it turns.
@@ -352,6 +431,8 @@ int main() {
   sightPicksTheNearestEnemy();
   recoilSettlesWhereTheViewWas();
   gunFiresOnceItCanReachTheSight();
+  turretSettlesWithoutRinging();
+  enemiesStayOnTheirTracks();
   tanksTurnWhileDriving();
   if (failures == 0) std::printf("tank_survival_test: all checks passed\n");
   return failures == 0 ? 0 : 1;

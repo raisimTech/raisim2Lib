@@ -60,4 +60,4 @@ for (const auto& hit : world->getProjectileHits())
 
 The rendering window gets the explosions, projectiles and hits with the rest of the world in each
 `raisin::PhysicsSnapshot`, and draws them by the snapshot's world time. For a game with a tank,
-craters, wind and barrels that set each other off, see [Tank Battle](rayrai_tank_battle.md).
+craters, wind and barrels that set each other off, see [Tank Survival](rayrai_tank_survival.md).

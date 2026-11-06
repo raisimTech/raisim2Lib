@@ -43,9 +43,9 @@ Quick map to the current rayrai-related targets:
 - `rayrai_spherical_joint_friction`: three spherical pendulums with no, a little and a lot of joint
   friction; the swings with friction spiral down and stop inside their friction cones; see
   [Spherical Joint Friction](../examples/rayrai/rayrai_spherical_joint_friction.md).
-- `rayrai_tank_battle`: a tracked tank fires shells (World projectiles) at crates, walls, tanks
-  and fuel barrels that set each other off; blasts, craters, wind and the explosion effects; see
-  [Tank Battle](../examples/rayrai/rayrai_tank_battle.md).
+- `rayrai_tank_survival`: the Tank Survival game, from the same source as its web page
+  (`raisim2Lib/wasm/src/tank_survival`): waves of armored vehicles, shells, blasts, craters and wind;
+  see [Tank Survival](../examples/rayrai/rayrai_tank_survival.md).
 - `rayrai_rolling_spinning_friction` / `rayrai_swept_ccd`: physics-focused
   scenes that visualize rolling/spinning friction and swept CCD.
 - `rayrai_motor_operating_region`: a randomly actuated fixed-base quadruped

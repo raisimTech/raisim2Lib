@@ -90,8 +90,7 @@
         "server/kinematic_platform",
         "server/island_sleep_benchmark",
         "rayrai/rayrai_explosion_projectile",
-        "rayrai/rayrai_spherical_joint_friction",
-        "rayrai/rayrai_tank_battle"
+        "rayrai/rayrai_spherical_joint_friction"
       ]
     },
     {

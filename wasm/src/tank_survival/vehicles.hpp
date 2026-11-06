@@ -96,6 +96,12 @@ inline VehicleModel loadVehicleModel(const std::string& folder) {
 // follow the ground instead of a rigid hull bouncing from bump to bump, which leaves the tracks no grip
 // to steer with. The sprocket and idler at the ends of a belt ride above its road wheels, as on a real
 // tank: only the run under the road wheels takes the load, which a skid turn can twist.
+// Half the distance between the tracks' centers.
+inline double trackHalfGauge(const VehicleModel& m) {
+  const double width = m.hullMax.y() - m.hullMin.y();
+  return 0.5 * width - 0.3 * width / 3.6;
+}
+
 inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, const std::string& folder) {
   std::ostringstream u;
   u.precision(6);
@@ -131,7 +137,7 @@ inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, c
     << "<visual><origin xyz=\"" << v3(-origin) << "\"/><geometry><mesh filename=\"" << folder
     << "/hull.gltf\"/></geometry></visual><collision><origin xyz=\"" << v3(hullCenter - origin)
     << "\"/><geometry><box size=\"" << v3(hullSize) << "\"/></geometry></collision></link>";
-  const double trackY = 0.5 * width - 0.3 * width / 3.6;
+  const double trackY = trackHalfGauge(m);
   const double rear = m.hullMin.x() + r + 0.25, front = m.hullMax.x() - r - 0.3, middle = 0.5 * (rear + front);
   for (const char* side : {"left", "right"}) {
     const std::string s = side, carrier = s + "_carrier";
@@ -176,6 +182,10 @@ inline std::string vehicleUrdf(const VehicleSpec& spec, const VehicleModel& m, c
   return u.str();
 }
 
+// Natural frequency (rad/s) of the turret drive: within 0.2 rad of a quarter turn in about half a second,
+// without overshoot. A stiffer drive swung the hull and rolled light vehicles over.
+inline constexpr double kTurretFrequency = 6.0;
+
 struct Tank {
   raisim::ArticulatedSystem* system = nullptr;
   const VehicleSpec* spec = nullptr;
@@ -217,11 +227,13 @@ struct Tank {
     dTarget = pGain;
     pTarget = Eigen::VectorXd::Zero(system->getGeneralizedCoordinateDim());
     const double mass = kind.mass / 12500.0;
-    const double turretInertia = 0.24 * kind.mass * std::pow(shape.turretMax.x() - shape.turretMin.x(), 2) / 12.0 / 1800.0;
     const double gunInertia = 0.05 * kind.mass * std::pow(shape.muzzle - shape.gunPivot.x(), 2) / 3.0 / 600.0;
     dGain[left] = dGain[right] = 4000.0 * mass;
-    pGain[turret] = 4e5 * turretInertia;
-    dGain[turret] = 4e4 * turretInertia;
+    // The turret, with the gun, turns critically damped at kTurretFrequency, from its inertia about its axis;
+    // gains from a nominal inertia left it ringing for most of a second after each turn of the view.
+    const double turretInertia = system->getMassMatrix().e()(turret, turret);
+    pGain[turret] = turretInertia * kTurretFrequency * kTurretFrequency;
+    dGain[turret] = 2.0 * turretInertia * kTurretFrequency;
     pGain[gun] = 1e6 * gunInertia;
     dGain[gun] = 6e4 * gunInertia;
     // Each track's carrier is sprung under the hull: the hull's weight sets it 8 cm into its springs
@@ -271,6 +283,14 @@ struct Tank {
     pTarget[turretCoordinate] = spec->fixedTurret ? 0.0 : turretAim;
     pTarget[gunCoordinate] = gunAim;
     system->setPdTarget(pTarget, dTarget);
+  }
+
+  // The largest steering input (command()'s turn) whose turn at the hull's speed stays under `acceleration`
+  // (m/s^2) sideways; 1 at rest, where the vehicle pivots.
+  double steerLimit(double acceleration) const {
+    const double ground = std::abs(velocity().dot(hullRotation().col(0)));
+    const double spin = acceleration * trackHalfGauge(model) / std::max(ground, 1e-3);
+    return std::clamp(spin / std::max(spec->turnRate, 1e-6), 0.0, 1.0);
   }
 
   void muzzle(Vec3& position, Vec3& direction) const {

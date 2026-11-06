@@ -8,14 +8,10 @@
 #include "rayrai/OpenGLMesh.hpp"
 #include "rayrai/Visuals.hpp"
 
-#ifndef TANK_SURVIVAL_BROADLEAF_TREES
-#define TANK_SURVIVAL_BROADLEAF_TREES 1
-#endif
-
 namespace tank {
 
-// Whether broadleaf trees grow among the pines and firs.
-inline constexpr bool kBroadleafTrees = TANK_SURVIVAL_BROADLEAF_TREES != 0;
+// How much of the weather's ambient light the scenes keep.
+inline constexpr float kAmbientScale = 0.2f;
 
 // How dense the grass is at each render quality (Fast to Ultra), how far it is drawn (m), and how fine
 // the tree and shrub meshes and how small plants on screen may become before they are simplified or
@@ -31,7 +27,15 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   auto settings = Viewer::defaultRenderQualitySettings(raisin::RenderQualityPreset(quality));
   settings.gamma = 2.2f;
   settings.colorMode = raisin::ViewerColorMode::AcesApprox;
-  settings.pbrExposure = 1.05f;
+  // A little darker overall, and distance haze a quarter as dense as the preset's: everything past a
+  // hundred metres faded toward the haze color, and shadows looked grey. A hazy level's distance fog keeps
+  // its haze color where the thinner weather haze below no longer gives it one.
+  settings.pbrExposure = 0.9f;
+  settings.fogDensity *= 0.25f;
+  if (level.visibility < 5000.0f) {
+    settings.fogColorOverrideEnabled = true;
+    settings.fogColor = level.fogColor;
+  }
   settings.pbrEnvironmentLightingTint = glm::vec3(0.65f);
   settings.depthOfFieldEnabled = false;
   settings.reflectiveGround = false;
@@ -57,7 +61,9 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   weather.windSpeed = float(level.wind.norm());
   weather.cloudCoverage = level.clouds;
   weather.cloudDensity = 0.35f + 0.5f * level.clouds;
-  weather.visibilityMeters = level.visibility;
+  // The weather's height haze a third as dense as the level's visibility gives: its bright color lifted
+  // shadows even a few tens of metres away.
+  weather.visibilityMeters = 3.0f * level.visibility;
   weather.airTurbidity = level.turbidity;
   weather.snowCoverage = level.snow;
   weather.precipitationRate = level.rain;
@@ -69,6 +75,12 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   // snow, which reflects most of the light, the sky is brightened to match, as the eye adapts.
   const auto sky = viewer.generateWeatherSkyEnvironment(256, 32, false);
   viewer.setEnvironmentBackground(sky.environmentMap, 1.0f + 0.9f * level.snow);
+  // Ambient light at a fifth of what the weather gives: the scenes looked washed out. The sky's light
+  // reaches every shading path, instanced foliage included, through the environment intensity (and the
+  // sun's ambient term below); the procedural sky's tint multiplies it again, so it is left alone.
+  auto ambient = viewer.getRenderQualitySettings();
+  ambient.pbrEnvironmentIntensity *= kAmbientScale;
+  viewer.setRenderQualitySettings(ambient);
   const float azimuth = glm::radians(level.sunAzimuth), elevation = glm::radians(level.sunElevation);
   auto& sun = viewer.getLight();
   sun.type = raisin::LightType::DIRECTIONAL;
@@ -82,7 +94,7 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   const glm::vec3 tint = glm::mix(glm::vec3(1.0f, 0.95f, 0.86f), glm::vec3(1.0f, 0.62f, 0.38f), low);
   sun.diffuse = tint * (17.0f - 7.0f * low) * (1.0f - 0.45f * level.clouds);
   sun.specular = sun.diffuse;
-  sun.ambient = glm::vec3(0.13f);
+  sun.ambient = glm::vec3(0.13f * kAmbientScale);
   // Explosions throw up the level's own ground: soil, sand, concrete dust or snow, under black soot.
   auto effects = viewer.getExplosionEffectSettings();
   effects.smokeColor = glm::vec3(0.07f, 0.066f, 0.062f);
@@ -524,12 +536,12 @@ class Scenery {
       for (const auto& p : treePlacements) crowded = crowded || std::hypot(p.x - x, p.y - y) < 3.0;
       if (crowded) continue;
       const double r = unit();
-      const int type = kind == Terrain::Ridges || !kBroadleafTrees ? (r < 0.55 ? 0 : 1) : (r < 0.65 ? 2 : r < 0.85 ? 1 : 0);
-      const double scale = (type == 2 ? 1.7 : 3.4) * (0.75 + 0.5 * unit());
+      const int type = r < 0.55 ? 0 : 1;
+      const double scale = 3.4 * (0.75 + 0.5 * unit());
       treePlacements.push_back({x, y, terrain.getHeight(x, y) - 0.05, unit() * 2 * kPi, scale, type});
     }
-    const std::array<const char*, 3> treeNames{"pine_sapling_small", "fir_sapling", "tree_small_02"};
-    for (int t = 0; t < (kBroadleafTrees ? 3 : 2); ++t) {
+    const std::array<const char*, 2> treeNames{"pine_sapling_small", "fir_sapling"};
+    for (int t = 0; t < 2; ++t) {
       const auto collider = raisim::Rasset::load(forest + treeNames[t] + "/model.rasset");
       std::vector<Placement> group;
       const size_t first = trees_.size();
@@ -561,20 +573,20 @@ class Scenery {
     // Woods on the hills outside the walls, which nothing reaches: drawn only.
     if (kind != Terrain::Dunes) {
       const int count = kind == Terrain::Town ? 120 : kind == Terrain::Fortress ? 260 : 700;
-      std::array<std::vector<Placement>, 3> outside;
+      std::array<std::vector<Placement>, 2> outside;
       for (int attempts = 0, placed = 0; placed < count && attempts < count * 20; ++attempts) {
         const double x = uniform(random, -520.0, 520.0), y = uniform(random, -520.0, 520.0);
         if (std::max(std::abs(x), std::abs(y)) < kArena + 8.0 || unit() > std::clamp(grove(x * 0.5, y * 0.5) * 1.3, 0.05, 1.0) ||
             riverDistance(kind, x, y) < river + 3.0)
           continue;
         const double r = unit();
-        const int type = kind == Terrain::Ridges || !kBroadleafTrees ? (r < 0.5 ? 0 : 1) : (r < 0.65 ? 2 : r < 0.85 ? 1 : 0);
+        const int type = r < 0.5 ? 0 : 1;
         const double z = std::max(std::abs(x), std::abs(y)) < 0.5 * kExtent ? terrain.getHeight(x, y) : outerHeight(kind, x, y);
-        outside[size_t(type)].push_back({x, y, z - 0.1, unit() * 2 * kPi, (type == 2 ? 1.9 : 3.8) * (0.75 + 0.5 * unit()), type});
+        outside[size_t(type)].push_back({x, y, z - 0.1, unit() * 2 * kPi, 3.8 * (0.75 + 0.5 * unit()), type});
         ++placed;
       }
-      const std::array<const char*, 3> names{"pine_sapling_small", "fir_sapling", "tree_small_02"};
-      for (int t = 0; t < 3; ++t)
+      const std::array<const char*, 2> names{"pine_sapling_small", "fir_sapling"};
+      for (int t = 0; t < 2; ++t)
         instanced(viewer, std::string("far ") + names[t], forest + names[t] + "/model.gltf", outside[size_t(t)], true, 1.3f, -1, true);
     }
 
@@ -813,9 +825,8 @@ class Scenery {
   struct Crown {
     double x, y, radius, low, high;
   };
-  static constexpr std::array<Crown, 3> kCrowns{{{0.03, 0.0, 0.4, 0.22, 1.28},
-                                                 {-0.01, 0.015, 0.43, 0.02, 1.29},
-                                                 {0.15, -0.77, 1.8, 1.46, 4.53}}};
+  static constexpr std::array<Crown, 2> kCrowns{{{0.03, 0.0, 0.4, 0.22, 1.28},
+                                                 {-0.01, 0.015, 0.43, 0.02, 1.29}}};
 
   struct Tree {
     Vec3 base = Vec3::Zero(), crown = Vec3::Zero();
