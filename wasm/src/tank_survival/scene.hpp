@@ -27,10 +27,15 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   auto settings = Viewer::defaultRenderQualitySettings(raisin::RenderQualityPreset(quality));
   settings.gamma = 2.2f;
   settings.colorMode = raisin::ViewerColorMode::AcesApprox;
-  // A little darker overall, and distance haze half as dense as the preset's: everything past a hundred
-  // metres faded toward the haze color and the scenes looked washed out.
+  // A little darker overall, and distance haze a quarter as dense as the preset's: everything past a
+  // hundred metres faded toward the haze color, and shadows looked grey. A hazy level's distance fog keeps
+  // its haze color where the thinner weather haze below no longer gives it one.
   settings.pbrExposure = 0.9f;
-  settings.fogDensity *= 0.5f;
+  settings.fogDensity *= 0.25f;
+  if (level.visibility < 5000.0f) {
+    settings.fogColorOverrideEnabled = true;
+    settings.fogColor = level.fogColor;
+  }
   settings.pbrEnvironmentLightingTint = glm::vec3(0.65f);
   settings.depthOfFieldEnabled = false;
   settings.reflectiveGround = false;
@@ -56,7 +61,9 @@ inline void configureRendering(Viewer& viewer, const LevelSpec& level, int quali
   weather.windSpeed = float(level.wind.norm());
   weather.cloudCoverage = level.clouds;
   weather.cloudDensity = 0.35f + 0.5f * level.clouds;
-  weather.visibilityMeters = level.visibility;
+  // The weather's height haze a third as dense as the level's visibility gives: its bright color lifted
+  // shadows even a few tens of metres away.
+  weather.visibilityMeters = 3.0f * level.visibility;
   weather.airTurbidity = level.turbidity;
   weather.snowCoverage = level.snow;
   weather.precipitationRate = level.rain;
