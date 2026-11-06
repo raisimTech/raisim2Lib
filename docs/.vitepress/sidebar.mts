@@ -49,6 +49,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Runtime Scene Editing', link: '/sections/examples/rayrai/rayrai_runtime_scene_editing.md' },
               { text: 'Sensor Noise', link: '/sections/examples/rayrai/rayrai_sensor_noise.md' },
               { text: 'Explosion and Projectile', link: '/sections/examples/rayrai/rayrai_explosion_projectile.md' },
+              { text: 'Spherical Joint Friction', link: '/sections/examples/rayrai/rayrai_spherical_joint_friction.md' },
               { text: 'Swept CCD', link: '/sections/examples/rayrai/rayrai_swept_ccd.md' },
               { text: 'Tank Battle', link: '/sections/examples/rayrai/rayrai_tank_battle.md' },
               { text: 'Tank Survival', link: '/sections/examples/rayrai/rayrai_tank_survival.md' },

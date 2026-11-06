@@ -40,6 +40,9 @@ Quick map to the current rayrai-related targets:
 - `rayrai_explosion_projectile`: the smallest use of projectiles and explosions: a gun fires a solid
   round and an explosive shell at a wall of crates, and a charge goes off beside it; see
   [Explosion and Projectile](../examples/rayrai/rayrai_explosion_projectile.md).
+- `rayrai_spherical_joint_friction`: three spherical pendulums with no, a little and a lot of joint
+  friction; the swings with friction spiral down and stop inside their friction cones; see
+  [Spherical Joint Friction](../examples/rayrai/rayrai_spherical_joint_friction.md).
 - `rayrai_tank_battle`: a tracked tank fires shells (World projectiles) at crates, walls, tanks
   and fuel barrels that set each other off; blasts, craters, wind and the explosion effects; see
   [Tank Battle](../examples/rayrai/rayrai_tank_battle.md).

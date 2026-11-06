@@ -134,7 +134,8 @@ inertia of the bodies, so it removes as much energy as the bound allows. Some co
 *A spherical pendulum ($m = 1\,kg$, $d = 0.5\,m$, $\tau_c = 0.6\,Nm$) released at a tilt of
 $1.1\,rad$ on a conical swing. The bob's positions (light to dark) spiral down as friction removes
 energy, and the bob comes to rest $5.5°$ off the vertical, inside the ring where gravity's torque
-equals $\tau_c$ (a tilt of $7.0°$).*
+equals $\tau_c$ (a tilt of $7.0°$).* The [Spherical Joint Friction](../examples/rayrai/rayrai_spherical_joint_friction.md)
+example shows three such pendulums, with no, a little and a lot of friction.
 
 Like the friction of a revolute or prismatic joint, it is solved together with the contacts, the joint
 limits and the other joints' friction. A contact pushing a link therefore cannot slip a joint unless
