@@ -13,6 +13,8 @@ Run with: python3 -m unittest discover -s docs/scripts
 import json
 import re
 import unittest
+import subprocess
+import shutil
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent.parent
@@ -59,10 +61,24 @@ class ExampleGalleryTest(unittest.TestCase):
         elsewhere = {"rayrai_tendons", "rayrai_blue_wall_scene", "rayrai_heightmap_replacement"}
         self.assertEqual(sorted(targets - pages - elsewhere), [], "rayrai example targets without a page")
 
+    def test_gallery_keys_accept_vitepress_relative_and_absolute_paths(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is needed to check the VitePress data loader")
+        module = (DOCS / ".vitepress/theme/data/examplePaths.mjs").as_uri()
+        script = ("import {examplePageKey} from " + json.dumps(module) + ";"
+                  "import assert from 'node:assert/strict';"
+                  "for(const path of ['sections/examples/rayrai/demo.md',"
+                  "'/tmp/site/sections/examples/rayrai/demo.md',"
+                  "'C:/site/sections/examples/rayrai/demo.md'])"
+                  "assert.equal(examplePageKey(path),'rayrai/demo');")
+        subprocess.run([node, "--input-type=module", "-e", script], check=True)
+
     def test_deformable_examples_have_their_own_category(self):
         categories = {category["id"]: category for category in self.gallery["categories"]}
         sources = DOCS.parent / "examples" / "src" / "server" / "deformable"
         expected = {f"server/{source.stem}" for source in sources.glob("*.cpp")}
+        expected.add("rayrai/rayrai_fem_workbench")
         self.assertEqual(set(categories["deformable"]["examples"]), expected)
         self.assertIn("rayrai/rayrai_deformable_terrain", categories["terrain"]["examples"])
 

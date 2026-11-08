@@ -98,18 +98,9 @@ The browser build enters a dedicated CMake path only under Emscripten. Native co
 
 ## Release archive
 
-Starting with v2.14.0, the Linux release workflow creates `webassembly-<version>.zip` with both the browser tools in `web-examples/` and the buildable [WebAssembly SDK](./WebAssemblySdk.md) in `sdk/`. The SDK includes public headers, prelinked WebAssembly libraries, CMake packages, runtime files and notices. The smaller `webassembly-sdk-<version>.zip` is also provided. Both are shared by all CPU architectures. RaiSim and Rayrai implementation sources, built-in shader implementation headers, LLVM bitcode, debug data and source maps are excluded; required public API headers and templates remain available.
+Linux releases attach the buildable [WebAssembly SDK](./WebAssemblySdk.md) as `webassembly-sdk-<version>.zip`, shared by all CPU architectures. It includes public headers, prelinked WebAssembly libraries, CMake packages, runtime files and notices. RaiSim and Rayrai implementation sources, built-in shader implementation headers, LLVM bitcode, debug data and source maps are excluded; required public API headers and templates remain available. The browser examples and the scene editor are published on this website only; v2.13.0 and v2.14.0 also attached them as `webassembly-<version>.zip`.
 
-An existing browser bundle and installed SDK can also be packaged locally without uploading:
-
-```bash
-python3 -B web/package_release.py \
-  --bundle-dir /tmp/raisim-wasm/web-bundle \
-  --sdk-dir /tmp/raisim-wasm-sdk \
-  --output-dir /tmp/raisim-archives --version 2.13.0
-```
-
-To build custom packages, point your CMake project at the extracted `webassembly-<version>/sdk` folder with Emscripten 4.0.0. The SDK provides `find_package(raisim)` and `find_package(rayrai)`. For the bundled demos, enter `webassembly-<version>` and run `python3 serve.py`. Open `http://localhost:8000/web-examples/index.html` or `http://localhost:8000/web-examples/editor.html`.
+To build custom packages, point your CMake project at the extracted SDK folder with Emscripten 4.0.0. The SDK provides `find_package(raisim)` and `find_package(rayrai)`.
 
 ## Hosting and source confidentiality
 

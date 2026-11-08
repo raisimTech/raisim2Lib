@@ -26,7 +26,7 @@ runtime and the CMake files are the interface code, and you are free to read the
 
 ## Quick start
 
-Starting with v2.14.0, the full `webassembly-<version>.zip` release includes this SDK in `sdk/`. Use that folder directly, or download the smaller `webassembly-sdk-<version>.zip`. Both contain `libraisim.a`, `librayrai.a`, public headers, CMake packages and the runtime. Only the public `rayrai/shaders/Shader.hpp` interface is installed; built-in shader implementations remain in the compiled library.
+Download `webassembly-sdk-<version>.zip` from the RaiSim release. It contains `libraisim.a`, `librayrai.a`, public headers, CMake packages and the runtime. Only the public `rayrai/shaders/Shader.hpp` interface is installed; built-in shader implementations remain in the compiled library.
 
 The example project is [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm):
 

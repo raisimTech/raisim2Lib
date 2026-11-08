@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { examplePageKey } from './examplePaths.mjs'
 
 // Build-time data for <ExampleGallery>: the categories of sections/examples/gallery.json
 // and the title of every example page (sections/examples/**/*.md), keyed by the
@@ -34,7 +35,7 @@ export default {
         continue
       }
       const heading = readFileSync(file, 'utf8').match(/^# (.+)$/m)
-      const key = path.replace(/^.*\/sections\/examples\//, '').replace(/\.md$/, '')
+      const key = examplePageKey(path)
       if (heading) titles[key] = heading[1].trim()
     }
     if (!gallery) throw new Error('sections/examples/gallery.json is missing')

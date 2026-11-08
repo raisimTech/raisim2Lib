@@ -120,8 +120,9 @@
     {
       "id": "deformable",
       "title": "Deformable",
-      "description": "Cloth, soft bodies, folding and contact with rigid objects.",
+      "description": "Stress analysis, cloth, soft bodies, folding and contact with rigid objects.",
       "examples": [
+        "rayrai/rayrai_fem_workbench",
         "server/deformable_objects",
         "server/robotiq_cloth_fold",
         "server/heavy_objects_on_cloth",

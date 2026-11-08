@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, type DefaultTheme, type HeadConfig } from 'vitepress'
 import { docsSidebar } from './sidebar.mts'
+import { firstContentImage, imageInfo } from './socialImage.mjs'
 
 const docsDir = fileURLToPath(new URL('..', import.meta.url))
 
@@ -113,11 +114,19 @@ export default defineConfig({
   ],
 
   // The card a shared link shows on social networks and messengers: the page's title, description,
-  // address and picture (the site's, unless the page's frontmatter names an `image`).
-  transformHead({ pageData, title, description }) {
+  // address and picture. The picture is the page's frontmatter `image`, else the first picture of its
+  // text, else the site's. Its size lets Facebook show it on the first share of a link.
+  transformHead({ pageData, title, description, content, siteConfig }) {
     const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '.html')
     const url = `https://raisim.com/${path}`
-    const image = new URL(String(pageData.frontmatter.image ?? '/og-image.jpg'), url).href
+    const picture = pageData.frontmatter.image
+      ? undefined
+      : firstContentImage(content, siteConfig.outDir, siteConfig.site.base) ??
+        (() => {
+          const info = imageInfo(`${siteConfig.srcDir}/public/og-image.jpg`)
+          return info && { path: '/og-image.jpg', ...info, alt: 'RaiSim' }
+        })()
+    const image = new URL(String(pageData.frontmatter.image ?? picture?.path ?? '/og-image.jpg'), url).href
     const head: HeadConfig[] = [
       ['meta', { property: 'og:title', content: title }],
       ['meta', { property: 'og:description', content: description }],
@@ -127,6 +136,17 @@ export default defineConfig({
       ['meta', { name: 'twitter:description', content: description }],
       ['meta', { name: 'twitter:image', content: image }],
     ]
+    if (picture) {
+      head.push(
+        ['meta', { property: 'og:image:type', content: picture.type }],
+        ['meta', { property: 'og:image:width', content: String(picture.width) }],
+        ['meta', { property: 'og:image:height', content: String(picture.height) }],
+      )
+      if (picture.alt) {
+        head.push(['meta', { property: 'og:image:alt', content: picture.alt }],
+                  ['meta', { name: 'twitter:image:alt', content: picture.alt }])
+      }
+    }
     return head
   },
 

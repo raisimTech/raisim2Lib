@@ -36,6 +36,7 @@
   "rayrai_complete_showcase": {"kind": "rayrai", "start": 1.5},
   "rayrai_custom_visuals": {"kind": "rayrai", "start": 1.5},
   "rayrai_deformable_terrain": {"args": ["--hidden"], "every_frame": true, "fps": 60, "kind": "rayrai", "load": 120, "start": 4},
+  "rayrai_fem_workbench": {"kind": "rayrai", "args": ["--showcase"], "start": 1.5, "seconds": 4},
   "rayrai_depth_camera": {"kind": "rayrai", "start": 1.5},
   "rayrai_segmentation_camera": {"kind": "rayrai", "start": 1.5},
   "rayrai_fluid_waves": {"kind": "rayrai", "start": 3},

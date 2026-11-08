@@ -30,6 +30,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Complete Showcase', link: '/sections/examples/rayrai/rayrai_complete_showcase.md' },
               { text: 'Custom Visuals', link: '/sections/examples/rayrai/rayrai_custom_visuals.md' },
               { text: 'Deformable Terrain', link: '/sections/examples/rayrai/rayrai_deformable_terrain.md' },
+              { text: 'FEM Workbench', link: '/sections/examples/rayrai/rayrai_fem_workbench.md' },
               { text: 'Depth Camera', link: '/sections/examples/rayrai/rayrai_depth_camera.md' },
               { text: 'Floating on Waves', link: '/sections/examples/rayrai/rayrai_fluid_waves.md' },
               { text: 'Forest', link: '/sections/examples/rayrai/rayrai_forest.md' },
@@ -228,6 +229,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         ],
       },
       { text: 'Single-Body Objects', link: '/sections/SingleBodyObjects.md' },
+      { text: 'Linear elasticity / FEM', link: '/sections/LinearElasticity.md' },
       { text: 'Deformable Objects', link: '/sections/DeformableObject.md' },
       {
         text: 'Fluids',
