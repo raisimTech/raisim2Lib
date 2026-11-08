@@ -99,8 +99,34 @@ as physics time. A spinning LiDAR's head still turns
 by the world time between its updates (see [Spinning LiDAR](#spinning-lidar)).
 Force and tactile sensors keep their own acquisition clock.
 
-`Sensor::isUpdateDue()` serves sensors with a `MANUAL` source, such as cameras a
-viewer renders: an update is due one period after `getUpdateTimeStamp()`.
+`MANUAL` RGB/depth cameras also retain a nominal sample grid when scheduled
+through `Sensor::isUpdateDue(worldTime)` and `setUpdateTimeStamp(acquisitionTime)`.
+The first acknowledged image anchors the grid. Later images retain the remainder
+after their deadlines: at 1000 Hz, a 30 Hz camera uses 34, 33, 33, ... step
+intervals instead of waiting 34 steps after every image (29.4 Hz). A 300 Hz camera
+uses 4, 3, 3, ... steps; relative to its first image, updates occur at
+0, 4, 7, 10, 14, ... ms. Polling does not consume a deadline, and acknowledging the same
+image twice does not advance it twice. Missed deadlines are skipped without
+shifting the remaining grid.
+
+`RaisimServer` schedules viewer images from a compensated clock advanced by the
+configured physics time steps, for cameras on both world robots and visual-only
+articulated systems. It records this clock and the world timestamp when it
+requests an image. A delayed reply acknowledges that acquisition time, so render
+or transport delays do not restart the period. `getUpdateTimeStamp()` remains the
+acquisition world time, not the reply arrival time. Checkpoints preserve the
+camera grid and its clock.
+
+For viewer scheduling, a world-time correction applied after an integration step
+and no larger than half that step leaves the camera clock unchanged. Larger
+jumps, and time changes without an intervening integration since the preceding
+clock edit, adjust it. Setting the current time again has no effect. A backward
+acquisition timestamp or a rate/source change establishes a new grid at the next
+acknowledged image.
+
+Outside `RaisimServer`, the public polling/acknowledgment API uses the timestamps
+the application supplies. In-process rendering remains application-driven; use
+this API when enforcing a camera update rate.
 
 There is no `VISUALIZER` measurement source in the RaiSim API. TCP camera
 requests use `MANUAL` sensors: a connected visualizer renders requested frames,

@@ -1013,7 +1013,7 @@ server already has:
 
 <figure>
 <img class="diagram" src="../../rsc/docs/image/rayrai/tcp_viewer/tcp_viewer_sensor_round_trip.svg" alt="RGB and depth camera request and response sequence">
-<figcaption><code>RaisimServer</code> requests a camera update when its update period elapses. The viewer renders the current streamed scene using that camera's pose, intrinsics, lens model, resolution, and clipping planes, then returns BGRA pixels or metric depth values. The server validates the entire response before atomically updating sensor buffers and timestamps.</figcaption>
+<figcaption><code>RaisimServer</code> requests a camera update at the next nominal sampling deadline. The viewer renders the current streamed scene using that camera's pose, intrinsics, lens model, resolution, and clipping planes, then returns BGRA pixels or metric depth values. The server validates the entire response before atomically updating sensor buffers and acquisition timestamps.</figcaption>
 </figure>
 
 The selected-object panel adds a **Sensors (N)** tab when the object declares

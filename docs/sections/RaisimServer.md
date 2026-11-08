@@ -58,11 +58,19 @@ object is destroyed.
 
 `RaisimServer` can have the connected rayrai TCP viewer render the images of
 RGB and depth cameras. When a `MeasurementSource::MANUAL` camera reaches its
-update period, the regular scene reply includes its pose, lens model,
+next sampling deadline, the regular scene reply includes its pose, lens model,
 resolution and clipping range. The viewer renders the camera image and returns
 BGRA pixels or metric depth values in a `REQUEST_SENSOR_UPDATE` frame. The
 server validates every entry before it replaces sensor buffers and updates
 timestamps.
+
+Requests retain a nominal grid counted in physics time, including cameras on
+visual-only articulated systems. A 30 Hz camera at 1000 Hz therefore uses mixed
+33/34-step intervals and averages 30 Hz. The server records the acquisition time
+with each request. Late replies leave future deadlines on the same grid; missed
+slots are skipped when a later acquisition is acknowledged. Repeated `needsSensorUpdate()` calls do not consume a deadline. See
+[Update timing](./Sensors.md#update-timing) for clock edits, rate changes and
+manual scheduling outside the server.
 
 IMU and spinning LiDAR measurements are always computed by RaiSim; their
 metadata is streamed for inspection, but the viewer does not return samples

@@ -28,7 +28,7 @@ inline const std::array<WeaponSpec, kWeaponCount> kWeapons{{
      true, {1.0f, 0.86f, 0.35f, 1.0f}},
     {"HE-FRAG", "HE", "High explosive: blast and craters, wrecks light vehicles", 700, 15.0, 0.06, 0.25, 2.2, 45, 30, 3.0,
      false, {1.0f, 0.45f, 0.2f, 1.0f}},
-    {"Coaxial MG", "MG", "7.62 mm machine gun: shreds scouts, bounces off tanks", 850, 0.0095, 0.0039, 0.3, 0.0, 14, 2.5,
+    {"Coaxial MG", "MG", "7.62 mm machine gun: shreds scouts, bounces off tanks", 850, 0.0095, 0.0039, 0.3, 0.0, 14, 30.0,
      0.085, true, {0.85f, 0.85f, 0.85f, 1.0f}},
     {"ATGM", "Missile", "Wire-guided missile: follows your aim, tandem warhead", 150, 25.0, 0.08, 0.3, 2.5, 520, 95, 5.0,
      false, {0.4f, 0.85f, 1.0f, 1.0f}},

@@ -98,17 +98,18 @@ The browser build enters a dedicated CMake path only under Emscripten. Native co
 
 ## Release archive
 
-The Linux release workflow creates a separate `webassembly-<version>.zip` alongside the native archives. It is shared by all CPU architectures and contains a README, a localhost preview server and the audited `web-examples/` directory, including these examples and the scene editor. The documentation release uses the same compiled bundle. Source, native libraries, debug files and test modules are excluded.
+Starting with v2.14.0, the Linux release workflow creates `webassembly-<version>.zip` with both the browser tools in `web-examples/` and the buildable [WebAssembly SDK](./WebAssemblySdk.md) in `sdk/`. The SDK includes public headers, prelinked WebAssembly libraries, CMake packages, runtime files and notices. The smaller `webassembly-sdk-<version>.zip` is also provided. Both are shared by all CPU architectures. RaiSim and Rayrai implementation sources, built-in shader implementation headers, LLVM bitcode, debug data and source maps are excluded; required public API headers and templates remain available.
 
-An existing compiled bundle can also be packaged locally without uploading:
+An existing browser bundle and installed SDK can also be packaged locally without uploading:
 
 ```bash
 python3 -B web/package_release.py \
   --bundle-dir /tmp/raisim-wasm/web-bundle \
-  --output-dir /tmp/raisim-archives --version 2.12.0
+  --sdk-dir /tmp/raisim-wasm-sdk \
+  --output-dir /tmp/raisim-archives --version 2.13.0
 ```
 
-Extract the archive, enter its `webassembly-<version>` directory, and run `python3 serve.py`. Open `http://localhost:8000/web-examples/index.html` or `http://localhost:8000/web-examples/editor.html`.
+To build custom packages, point your CMake project at the extracted `webassembly-<version>/sdk` folder with Emscripten 4.0.0. The SDK provides `find_package(raisim)` and `find_package(rayrai)`. For the bundled demos, enter `webassembly-<version>` and run `python3 serve.py`. Open `http://localhost:8000/web-examples/index.html` or `http://localhost:8000/web-examples/editor.html`.
 
 ## Hosting and source confidentiality
 
