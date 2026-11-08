@@ -123,6 +123,11 @@ returns[('RayraiWindow', 'modelHandle')] = {'ModelHandle | None'}
 returns[('RayraiWindow', 'getExternalFont')] = {'Font | None'}
 returns[('RayraiWindow', 'debugObjectFor')] = {'RaisimObject | None'}
 returns[('assimp', 'loadModelSceneAsync')] = {'ModelLoadFuture'}
+# Adapters whose return differs between overloads, selected by a parameter of the overload, or
+# that return a tuple nanobind cannot describe.
+segmentation_images = 'tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]'
+overload_returns = {('Camera', 'getRawImage', 'sensor: raisimpy.SegmentationCamera'): segmentation_images + ' | None'}
+tuple_returns = {('Camera', 'readSegmentation'): segmentation_images}
 
 root_names = {record['name'].removeprefix('raisin::').split('::')[0]
               for record in records if record['name'].startswith('raisin::') or
@@ -150,11 +155,18 @@ for path in (output / 'raisimpy_rayrai').glob('*.pyi'):
         if method and ' -> object:' in line:
             owner = '.'.join(([namespace] if namespace else []) + [name for _, name in stack])
             candidates = returns.get((owner, method.group(1)))
+            for (overload_owner, overload_name, parameter), annotation in overload_returns.items():
+                if (overload_owner, overload_name) == (owner, method.group(1)) and parameter in line:
+                    candidates = {annotation}
             if candidates:
                 annotation = ' | '.join(sorted(candidates))
                 if namespace:
                     annotation = qualify_submodule_return(annotation)
                 line = line.replace(' -> object:', ' -> ' + annotation + ':')
+        elif method and ' -> tuple:' in line:
+            owner = '.'.join(([namespace] if namespace else []) + [name for _, name in stack])
+            if (owner, method.group(1)) in tuple_returns:
+                line = line.replace(' -> tuple:', ' -> ' + tuple_returns[(owner, method.group(1))] + ':')
         lines.append(line)
     text = '\n'.join(lines) + '\n'
     ast.parse(text)

@@ -2,6 +2,19 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_012(py::module_& m) {
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"lightSpaceMatrix_", &raisin::Light::lightSpaceMatrix_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"pointLightSpaceMatrices_", &raisin::Light::pointLightSpaceMatrices_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowsEnabled_", &raisin::Light::shadowsEnabled_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowBias_", &raisin::Light::shadowBias_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowStrength_", &raisin::Light::shadowStrength_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowPCFRadius_", &raisin::Light::shadowPCFRadius_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowOrthoHalfSize_", &raisin::Light::shadowOrthoHalfSize_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowNear_", &raisin::Light::shadowNear_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowFar_", &raisin::Light::shadowFar_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowCenter_", &raisin::Light::shadowCenter_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowPosition_", &raisin::Light::shadowPosition_);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowUseCustomPosition_", &raisin::Light::shadowUseCustomPosition_);}
+{auto c=bound_class<raisin::LocalFogVolume>(m, "LocalFogVolume"); default_constructor(c);}
 {auto c=bound_class<raisin::LocalFogVolume>(m, "LocalFogVolume"); field(c,"center", &raisin::LocalFogVolume::center);}
 {auto c=bound_class<raisin::LocalFogVolume>(m, "LocalFogVolume"); field(c,"radius", &raisin::LocalFogVolume::radius);}
 {auto c=bound_class<raisin::LocalFogVolume>(m, "LocalFogVolume"); field(c,"color", &raisin::LocalFogVolume::color);}
@@ -44,18 +57,5 @@ void define_012(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"proximityFadeEnabled", &raisin::Material::proximityFadeEnabled);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"proximityFadeDistance", &raisin::Material::proximityFadeDistance);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoStrength", &raisin::Material::aoStrength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoLightAffect", &raisin::Material::aoLightAffect);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissiveStrength", &raisin::Material::emissiveStrength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissionOperator", &raisin::Material::emissionOperator);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularFactor", &raisin::Material::specularFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularColorFactor", &raisin::Material::specularColorFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"diffuseMode", &raisin::Material::diffuseMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularMode", &raisin::Material::specularMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"ior", &raisin::Material::ior);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"transmissionFactor", &raisin::Material::transmissionFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"refractionFactor", &raisin::Material::refractionFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"volumeThicknessFactor", &raisin::Material::volumeThicknessFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"dielectricPriority", &raisin::Material::dielectricPriority);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"dielectricVolumeId", &raisin::Material::dielectricVolumeId);}
 }
 }

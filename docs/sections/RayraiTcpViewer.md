@@ -1143,7 +1143,9 @@ server frame of another protocol version, or with feature bits it does not
 know, instead of trying to parse an incompatible stream.
 
 The feature bits cover the explicit header, deformable delta streaming, sim
-control, contact object tags, actuator state and scene files. With deformable delta
+control, contact object tags, actuator state, scene files, body-frame offsets,
+fluid volumes, application controls, wrench sensors, segmentation cameras and
+visual articulated system records. With deformable delta
 streaming, deformable objects send their mesh topology only at initialization
 or when it changes; ordinary update frames send vertex positions only. This
 keeps cloth and soft-body streaming cheap without compressing the stream.
@@ -1156,8 +1158,11 @@ The protocol constants are declared in `rayrai/TcpProtocolReader.hpp`, which
   the same one.
 - `kProtocolFeatureExplicitHeader`, `kProtocolFeatureDeformableDelta`,
   `kProtocolFeatureSimControl`, `kProtocolFeatureContactObjectTags`,
-  `kProtocolFeatureActuatorState` and `kProtocolFeatureSceneFiles`: the
-  feature bits.
+  `kProtocolFeatureActuatorState`, `kProtocolFeatureSceneFiles`,
+  `kProtocolFeatureBodyFrameOffsets`, `kProtocolFeatureFluidVolumes`,
+  `kProtocolFeatureControls`, `kProtocolFeatureWrenchSensors`,
+  `kProtocolFeatureSegmentation` and `kProtocolFeatureVisualArticulatedType`:
+  the feature bits, described in [RaisimServer](./RaisimServer.md).
   `kProtocolSupportedFeatures` is the OR of all bits this build understands.
 - `kMaxMessageBytes`: the largest message the client accepts (64 MiB by
   default). Very large scenes can raise it at build time with the

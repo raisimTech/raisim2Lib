@@ -156,6 +156,20 @@ else:
         self.assertFalse(hasattr(rr,'ExternalFrameCache'))
         self.assertFalse(hasattr(rr.ImportVisualSceneOptions(),'report'))
 
+    def test_stub_readback_returns(self):
+        tree = ast.parse((ROOT / 'raisimPy/typings/raisimpy_rayrai/__init__.pyi').read_text())
+        camera = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'Camera')
+        returns = {}
+        for method in camera.body:
+            if isinstance(method, ast.FunctionDef) and method.name in ('getRawImage', 'readSegmentation'):
+                sensor = [ast.unparse(arg.annotation) for arg in method.args.args if arg.arg == 'sensor']
+                returns[(method.name, sensor[0] if sensor else None)] = ast.unparse(method.returns)
+        images = 'tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]'
+        self.assertEqual(returns[('getRawImage', 'raisimpy.RGBCamera')], 'numpy.ndarray | None')
+        self.assertEqual(returns[('getRawImage', 'raisimpy.DepthCamera')], 'numpy.ndarray | None')
+        self.assertEqual(returns[('getRawImage', 'raisimpy.SegmentationCamera')], images + ' | None')
+        self.assertEqual(returns[('readSegmentation', None)], images)
+
     def test_stub_annotation_names(self):
         for path in (ROOT / 'raisimPy/typings/raisimpy_rayrai').glob('*.pyi'):
             tree = ast.parse(path.read_text())
@@ -494,6 +508,42 @@ class RayraiRenderTests(unittest.TestCase):
         self.assertEqual(depth.shape, (60, 80))
         self.assertEqual(depth.dtype, np.float32)
         self.assertTrue(np.isfinite(depth).all())
+
+    def test_segmentation_sensor_readback(self):
+        rr = self.rr
+        world = raisim.World()
+        ground = world.addGround()
+        box = world.addBox(1., 1., .5, 1.)
+        box.setPosition(0., 0., .25)
+        box.setSegmentationLabel(world.addSegmentationClass('box'))
+        mount = world.addArticulatedSystem(
+            "<robot name='mount'><link name='world'/><link name='mount'><inertial><mass value='1'/>"
+            "<inertia ixx='0.1' iyy='0.1' izz='0.1' ixy='0' ixz='0' iyz='0'/></inertial>"
+            "<sensor name='seg' type='segmentation' update_rate='100'><origin rpy='0 1.5707963267948966 0'/>"
+            "<camera horizontal_fov='1.5707963267948966'><image width='16' height='12'/>"
+            "<clip near='0.1' far='10'/></camera></sensor></link><joint name='fixed' type='fixed'>"
+            "<origin xyz='0 0 3'/><parent link='world'/><child link='mount'/></joint></robot>")
+        sensor = mount.getSensorSet('mount').getSensor('seg')
+        with rr.RayraiWindow(world, 16, 12, visible=False,
+                             shaderBinaryCacheDirectory='/tmp/raisimpy-rayrai-test-shaders') as viewer:
+            camera = rr.Camera(viewer, sensor)
+            viewer.renderSegmentation(sensor, camera)
+            objects, bodies, labels = camera.readSegmentation()
+            self.assertEqual(objects.shape, (12, 16))
+            self.assertEqual(objects.dtype, np.int32)
+            self.assertEqual(objects[6, 8], box.getIndexInWorld())
+            self.assertEqual(bodies[6, 8], 0)
+            self.assertEqual(labels[6, 8], world.getSegmentationClassLabel('box'))
+            self.assertEqual(objects[0, 0], ground.getIndexInWorld())
+            self.assertIsNone(camera.getRawImage(sensor))
+            np.testing.assert_array_equal(sensor.getObjectImage(), objects)
+            np.testing.assert_array_equal(sensor.getLabelImage(), labels)
+            custom = camera.getRawImage(sensor, rr.Camera.SensorStorageMode.CUSTOM_BUFFER)
+            for rendered, read in zip(custom, (objects, bodies, labels)):
+                np.testing.assert_array_equal(rendered, read)
+            sensor.update(world)
+            self.assertEqual(sensor.getObjectImage()[6, 8], objects[6, 8])
+            self.assertEqual(sensor.getLabelImage()[6, 8], labels[6, 8])
 
     def test_sync_rgb_and_depth_sensor_pose(self):
         world=raisim.World()

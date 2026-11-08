@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_004(py::module_& m) {
+py::class_<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings");
 py::class_<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion");
 py::class_<raisin::RayraiWindow::ReflectionProbeSidecarLoadResult>(m.attr("RayraiWindow"), "ReflectionProbeSidecarLoadResult");
 py::class_<raisin::RayraiWindow::ReflectionProbeSidecarProbe>(m.attr("RayraiWindow"), "ReflectionProbeSidecarProbe");
@@ -36,6 +37,5 @@ py::class_<raisin::RenderQualitySettings::ShadowsSettings>(m.attr("RenderQuality
 py::class_<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings");
 py::class_<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings");
 py::class_<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState");
-py::class_<raisin::Visuals::FrameCacheMaterialStateMemo>(m.attr("Visuals"), "FrameCacheMaterialStateMemo");
 }
 }

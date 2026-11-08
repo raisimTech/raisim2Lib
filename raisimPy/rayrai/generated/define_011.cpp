@@ -2,6 +2,19 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_011(py::module_& m) {
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"center", &raisin::IrradianceVolume::center);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"halfExtents", &raisin::IrradianceVolume::halfExtents);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"orientation", &raisin::IrradianceVolume::orientation);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"color", &raisin::IrradianceVolume::color);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"strength", &raisin::IrradianceVolume::strength);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"edgeFade", &raisin::IrradianceVolume::edgeFade);}
+{auto c=bound_class<raisin::IrradianceVolume>(m, "IrradianceVolume"); field(c,"normalBias", &raisin::IrradianceVolume::normalBias);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"type", &raisin::Light::type);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"ambient", &raisin::Light::ambient);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"diffuse", &raisin::Light::diffuse);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"specular", &raisin::Light::specular);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"position", &raisin::Light::position);}
+{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"direction", &raisin::Light::direction);}
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"constant", &raisin::Light::constant);}
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"linear", &raisin::Light::linear);}
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"quadratic", &raisin::Light::quadratic);}
@@ -44,18 +57,5 @@ bound_class<Handle<raisin::Light>>(m, "Light").def("setShadowPosition", [](Handl
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowRes_", &raisin::Light::shadowRes_);}
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowAllocatedRes_", &raisin::Light::shadowAllocatedRes_);}
 {auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowCubeAllocatedRes_", &raisin::Light::shadowCubeAllocatedRes_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"lightSpaceMatrix_", &raisin::Light::lightSpaceMatrix_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"pointLightSpaceMatrices_", &raisin::Light::pointLightSpaceMatrices_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowsEnabled_", &raisin::Light::shadowsEnabled_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowBias_", &raisin::Light::shadowBias_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowStrength_", &raisin::Light::shadowStrength_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowPCFRadius_", &raisin::Light::shadowPCFRadius_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowOrthoHalfSize_", &raisin::Light::shadowOrthoHalfSize_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowNear_", &raisin::Light::shadowNear_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowFar_", &raisin::Light::shadowFar_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowCenter_", &raisin::Light::shadowCenter_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowPosition_", &raisin::Light::shadowPosition_);}
-{auto c=bound_class<Handle<raisin::Light>>(m, "Light"); field(c,"shadowUseCustomPosition_", &raisin::Light::shadowUseCustomPosition_);}
-{auto c=bound_class<raisin::LocalFogVolume>(m, "LocalFogVolume"); default_constructor(c);}
 }
 }

@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_054(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"radius", &raisin::RenderQualitySettings::BloomSettings::radius);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"knee", &raisin::RenderQualitySettings::BloomSettings::knee);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"quality", &raisin::RenderQualitySettings::BloomSettings::quality);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"sourceClamp", &raisin::RenderQualitySettings::BloomSettings::sourceClamp);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"anamorphic", &raisin::RenderQualitySettings::BloomSettings::anamorphic);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtStrength", &raisin::RenderQualitySettings::BloomSettings::dirtStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtScale", &raisin::RenderQualitySettings::BloomSettings::dirtScale);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtTexture", &raisin::RenderQualitySettings::BloomSettings::dirtTexture);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"blendMode", &raisin::RenderQualitySettings::BloomSettings::blendMode);}
+{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"mix", &raisin::RenderQualitySettings::BloomSettings::mix);}
+{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); default_constructor(c);}
+{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"enabled", &raisin::RenderQualitySettings::DepthOfFieldSettings::enabled);}
+{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"focusDistance", &raisin::RenderQualitySettings::DepthOfFieldSettings::focusDistance);}
+{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"focusRange", &raisin::RenderQualitySettings::DepthOfFieldSettings::focusRange);}
+{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"maxRadius", &raisin::RenderQualitySettings::DepthOfFieldSettings::maxRadius);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); default_constructor(c);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"density", &raisin::RenderQualitySettings::FogSettings::density);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"colorOverrideEnabled", &raisin::RenderQualitySettings::FogSettings::colorOverrideEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"color", &raisin::RenderQualitySettings::FogSettings::color);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightEnabled", &raisin::RenderQualitySettings::FogSettings::heightEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightDensity", &raisin::RenderQualitySettings::FogSettings::heightDensity);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightBaseHeight", &raisin::RenderQualitySettings::FogSettings::heightBaseHeight);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightFalloff", &raisin::RenderQualitySettings::FogSettings::heightFalloff);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricEnabled", &raisin::RenderQualitySettings::FogSettings::volumetricEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricDensity", &raisin::RenderQualitySettings::FogSettings::volumetricDensity);}
+{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseScale", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseScale);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseStrength", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricColor", &raisin::RenderQualitySettings::FogSettings::volumetricColor);}
 {auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricAnisotropy", &raisin::RenderQualitySettings::FogSettings::volumetricAnisotropy);}
@@ -31,31 +57,5 @@ void define_054(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings"); field(c,"jitterScale", &raisin::RenderQualitySettings::TemporalAaSettings::jitterScale);}
 {auto c=bound_class<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings"); field(c,"method", &raisin::RenderQualitySettings::TemporalAaSettings::method);}
 {auto c=bound_class<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings"); field(c,"currentWeight", &raisin::RenderQualitySettings::TemporalAaSettings::currentWeight);}
-{auto c=bound_class<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings"); field(c,"sharpness", &raisin::RenderQualitySettings::TemporalAaSettings::sharpness);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"pbrToneMappingEnabled", &raisin::RenderQualitySettings::ToneMappingSettings::pbrToneMappingEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"exposure", &raisin::RenderQualitySettings::ToneMappingSettings::exposure);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"autoExposureEnabled", &raisin::RenderQualitySettings::ToneMappingSettings::autoExposureEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"autoExposureKey", &raisin::RenderQualitySettings::ToneMappingSettings::autoExposureKey);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"autoExposureSpeed", &raisin::RenderQualitySettings::ToneMappingSettings::autoExposureSpeed);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"autoExposureMinFactor", &raisin::RenderQualitySettings::ToneMappingSettings::autoExposureMinFactor);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"autoExposureMaxFactor", &raisin::RenderQualitySettings::ToneMappingSettings::autoExposureMaxFactor);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"whiteBalance", &raisin::RenderQualitySettings::ToneMappingSettings::whiteBalance);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"saturation", &raisin::RenderQualitySettings::ToneMappingSettings::saturation);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"gradePreset", &raisin::RenderQualitySettings::ToneMappingSettings::gradePreset);}
-{auto c=bound_class<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings"); field(c,"gradeStrength", &raisin::RenderQualitySettings::ToneMappingSettings::gradeStrength);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); default_constructor(c);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"cacheable", &raisin::Visuals::FrameCacheMaterialState::cacheable);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"hasTextures", &raisin::Visuals::FrameCacheMaterialState::hasTextures);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"hasPbrMeshes", &raisin::Visuals::FrameCacheMaterialState::hasPbrMeshes);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"transparent", &raisin::Visuals::FrameCacheMaterialState::transparent);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"specialBlendMode", &raisin::Visuals::FrameCacheMaterialState::specialBlendMode);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"renderPriority", &raisin::Visuals::FrameCacheMaterialState::renderPriority);}
-{auto c=bound_class<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState"); field(c,"sortKeys", &raisin::Visuals::FrameCacheMaterialState::sortKeys);}
-bound_class<raisin::Visuals::FrameCacheMaterialStateMemo>(m.attr("Visuals"), "FrameCacheMaterialStateMemo").def("__init__", [](raisin::Visuals::FrameCacheMaterialStateMemo* self){ auto state=current_state(); Guard guard(state,false);  new(self) raisin::Visuals::FrameCacheMaterialStateMemo(); });
-{auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); default_constructor(c);}
-{auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"all", &raisin::Visuals::MaterialSortKeys::all);}
-{auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"simpleOnly", &raisin::Visuals::MaterialSortKeys::simpleOnly);}
-{auto c=bound_class<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys"); field(c,"pbrOnly", &raisin::Visuals::MaterialSortKeys::pbrOnly);}
 }
 }

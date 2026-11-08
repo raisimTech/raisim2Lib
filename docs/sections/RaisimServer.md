@@ -184,8 +184,21 @@ bits are:
 - `PROTOCOL_FEATURE_CONTROLS`: a reply carries the application's sliders
   (see [Sliders](#sliders)) after connecting and whenever one changes, and the
   viewer sets their values with `CR_SET_CONTROL` requests.
+- `PROTOCOL_FEATURE_WRENCH_SENSORS`: joint force/torque and tactile sensors are
+  sent with their metadata and measurements.
+- `PROTOCOL_FEATURE_SEGMENTATION`: segmentation cameras are sent with the other
+  cameras, and the viewer renders the `MANUAL` ones and returns their images
+  ([Segmentation camera](./Sensors.md#segmentation-camera)). Every world object
+  record ends with the object's world index and the segmentation labels of its
+  bodies, which the viewer's segmentation images report. A segmentation reply
+  carries the segmentation type it was rendered with.
+- `PROTOCOL_FEATURE_VISUAL_ARTICULATED_TYPE`: visual articulated systems
+  (`addVisualArticulatedSystem()`) are sent with an object type of their own.
+  Without it they share one with visual objects, and a viewer reads a system
+  with fewer than two visuals, such as a camera rig without geometry, as a
+  visual object.
 
-The rayrai TCP viewer negotiates all nine bits automatically.
+The rayrai TCP viewer negotiates all twelve bits automatically.
 `sendUpdateRequest()` in `rayrai/RaisimTcpCommon.hpp` advertises every bit
 the client build supports; a custom client that writes its own request frames
 may advertise any subset (see [Rayrai TCP Viewer](./RayraiTcpViewer.md)).

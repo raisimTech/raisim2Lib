@@ -5,7 +5,14 @@
 namespace py = nanobind;
 using namespace raisim;
 
+#if RAISIMPY_HAS_SEGMENTATION
+void init_segmentation_articulated(py::class_<ArticulatedSystem, Object>& system);
+#endif
+
 void init_articulated_extensions(py::module_& m, py::class_<ArticulatedSystem, Object>& system) {
+#if RAISIMPY_HAS_SEGMENTATION
+    init_segmentation_articulated(system);
+#endif
     using Options = ArticulatedSystem::IKOptions;
     using Result = ArticulatedSystem::IKResult;
     py::class_<Options>(system, "IKOptions")

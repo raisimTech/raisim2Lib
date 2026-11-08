@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_042(py::module_& m) {
+{auto c=bound_class<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo"); field(c,"textureUnit", &raisin::Material::TextureBindingInfo::textureUnit);}
+{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); default_constructor(c);}
+{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"name", &raisin::Material::TextureSlotInfo::name);}
+{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"isSrgb", &raisin::Material::TextureSlotInfo::isSrgb);}
+{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"hasUvTransform", &raisin::Material::TextureSlotInfo::hasUvTransform);}
+{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); default_constructor(c);}
+{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"scaleOffset", &raisin::Material::UvTransform::scaleOffset);}
+{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"rotation", &raisin::Material::UvTransform::rotation);}
+{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"authored", &raisin::Material::UvTransform::authored);}
+{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); default_constructor(c);}
+{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); field(c,"scale", &raisin::Material::VertexDisplacementSettings::scale);}
+{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); field(c,"midlevel", &raisin::Material::VertexDisplacementSettings::midlevel);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); default_constructor(c);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"environmentFaceSize", &raisin::PbrEnvironment::LoadOptions::environmentFaceSize);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"irradianceFaceSize", &raisin::PbrEnvironment::LoadOptions::irradianceFaceSize);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"irradianceSampleCount", &raisin::PbrEnvironment::LoadOptions::irradianceSampleCount);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredFaceSize", &raisin::PbrEnvironment::LoadOptions::prefilteredFaceSize);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredMipLevels", &raisin::PbrEnvironment::LoadOptions::prefilteredMipLevels);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredSampleCount", &raisin::PbrEnvironment::LoadOptions::prefilteredSampleCount);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"brdfLutSize", &raisin::PbrEnvironment::LoadOptions::brdfLutSize);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"brdfLutSampleCount", &raisin::PbrEnvironment::LoadOptions::brdfLutSampleCount);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"strength", &raisin::PbrEnvironment::LoadOptions::strength);}
+{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"generateEnvironmentMipmaps", &raisin::PbrEnvironment::LoadOptions::generateEnvironmentMipmaps);}
+{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); default_constructor(c);}
+{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"revision", &raisin::RaisimObject::Changes::revision);}
+{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"candidate", &raisin::RaisimObject::Changes::candidate);}
 {auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"shadow", &raisin::RaisimObject::Changes::shadow);}
 bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGlobalAsset"), "MeshLodChain").def("__init__", [](Handle<raisin::RayraiGlobalAsset::MeshLodChain>* self, const Viewer& viewer) { Guard guard(viewer.state); new(self) Handle<raisin::RayraiGlobalAsset::MeshLodChain>(own(viewer.state, std::make_shared<raisin::RayraiGlobalAsset::MeshLodChain>())); }, py::arg("viewer"));
 {auto c=bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGlobalAsset"), "MeshLodChain"); field(c,"levels", &raisin::RayraiGlobalAsset::MeshLodChain::levels);}
@@ -31,31 +57,5 @@ bound_class<Handle<raisin::RayraiGlobalAsset::MeshLodChain>>(m.attr("RayraiGloba
 {auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"occluded", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::occluded);}
 {auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"drawn", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::drawn);}
 {auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"hizTests", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::hizTests);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"hizOccluded", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::hizOccluded);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"hizDepthReadbacks", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::hizDepthReadbacks);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"hizMipLevels", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::hizMipLevels);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizDrawCalls", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizDrawCalls);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizDepthBuilds", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizDepthBuilds);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizComputeDepthBuilds", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizComputeDepthBuilds);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizRasterDepthBuilds", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizRasterDepthBuilds);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizMipLevels", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizMipLevels);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"fallbackCode", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::fallbackCode);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"hizFallbackCode", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::hizFallbackCode);}
-{auto c=bound_class<raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics>(m.attr("RayraiWindow"), "ConservativeOcclusionCullingDiagnostics"); field(c,"gpuHizFallbackCode", &raisin::RayraiWindow::ConservativeOcclusionCullingDiagnostics::gpuHizFallbackCode);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"fileName", &raisin::RayraiWindow::DebugPassCapture::fileName);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"label", &raisin::RayraiWindow::DebugPassCapture::label);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"pbrDebugOutput", &raisin::RayraiWindow::DebugPassCapture::pbrDebugOutput);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"postProcessDebugMode", &raisin::RayraiWindow::DebugPassCapture::postProcessDebugMode);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"width", &raisin::RayraiWindow::DebugPassCapture::width);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"height", &raisin::RayraiWindow::DebugPassCapture::height);}
-{auto c=bound_class<raisin::RayraiWindow::DebugPassCapture>(m.attr("RayraiWindow"), "DebugPassCapture"); field(c,"rgba", &raisin::RayraiWindow::DebugPassCapture::rgba);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"index", &raisin::RayraiWindow::DirectionalShadowCascade::index);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"nearPlane", &raisin::RayraiWindow::DirectionalShadowCascade::nearPlane);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"farPlane", &raisin::RayraiWindow::DirectionalShadowCascade::farPlane);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"splitDepth", &raisin::RayraiWindow::DirectionalShadowCascade::splitDepth);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"texelWorldSize", &raisin::RayraiWindow::DirectionalShadowCascade::texelWorldSize);}
-{auto c=bound_class<raisin::RayraiWindow::DirectionalShadowCascade>(m.attr("RayraiWindow"), "DirectionalShadowCascade"); field(c,"center", &raisin::RayraiWindow::DirectionalShadowCascade::center);}
 }
 }

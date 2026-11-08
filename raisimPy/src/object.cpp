@@ -127,6 +127,21 @@ void init_object(py::module_ &m) {
 	    Returns:
 	        int: object index in the world.
 	    )mydelimiter")
+#if RAISIMPY_HAS_SEGMENTATION
+	    .def("setSegmentationLabel", &raisim::Object::setSegmentationLabel, R"mydelimiter(
+	    Set the semantic label segmentation cameras report for this object (0 means unlabeled).
+
+	    Args:
+	        label (int): non-negative label, e.g. from World.addSegmentationClass().
+	    )mydelimiter",
+	    py::arg("label"))
+	    .def("getSegmentationLabel", &raisim::Object::getSegmentationLabel, R"mydelimiter(
+	    Get the semantic label set by setSegmentationLabel().
+
+	    Returns:
+	        int: the label (0 if none).
+	    )mydelimiter")
+#endif
 
         .def("getId", &raisim::Object::getId)
 

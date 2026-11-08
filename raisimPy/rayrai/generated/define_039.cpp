@@ -2,6 +2,29 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_039(py::module_& m) {
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessAccumulationEnabled", &raisin::WeatherSettings::wetnessAccumulationEnabled);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessAccumulationRate", &raisin::WeatherSettings::wetnessAccumulationRate);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessDryingRate", &raisin::WeatherSettings::wetnessDryingRate);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"snowCoverage", &raisin::WeatherSettings::snowCoverage);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningRate", &raisin::WeatherSettings::lightningRate);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointLightEnabled", &raisin::WeatherSettings::lightningLocalPointLightEnabled);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointDistance", &raisin::WeatherSettings::lightningLocalPointDistance);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointRadius", &raisin::WeatherSettings::lightningLocalPointRadius);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointIntensity", &raisin::WeatherSettings::lightningLocalPointIntensity);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"thunderSpeedOfSound", &raisin::WeatherSettings::thunderSpeedOfSound);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"airTurbidity", &raisin::WeatherSettings::airTurbidity);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"groundAlbedo", &raisin::WeatherSettings::groundAlbedo);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"useExplicitSunAngles", &raisin::WeatherSettings::useExplicitSunAngles);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunAzimuthDegrees", &raisin::WeatherSettings::sunAzimuthDegrees);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunElevationDegrees", &raisin::WeatherSettings::sunElevationDegrees);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunDiskSize", &raisin::WeatherSettings::sunDiskSize);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"moonDiskSize", &raisin::WeatherSettings::moonDiskSize);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudAltitudeMeters", &raisin::WeatherSettings::cloudAltitudeMeters);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudThicknessMeters", &raisin::WeatherSettings::cloudThicknessMeters);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudShadowStrength", &raisin::WeatherSettings::cloudShadowStrength);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudScale", &raisin::WeatherSettings::cloudScale);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudAnimationSpeed", &raisin::WeatherSettings::cloudAnimationSpeed);}
+{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletsEnabled", &raisin::WeatherSettings::lensDropletsEnabled);}
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletStrength", &raisin::WeatherSettings::lensDropletStrength);}
 {auto c=bound_class<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment"); default_constructor(c);}
 {auto c=bound_class<raisin::WeatherSkyEnvironment>(m, "WeatherSkyEnvironment"); field(c,"environmentMap", &raisin::WeatherSkyEnvironment::environmentMap);}
@@ -34,28 +57,5 @@ void define_039(py::module_& m) {
 {auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::enabled);}
 {auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"applicable", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::applicable);}
 {auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"scheduled", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::scheduled);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"active", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::active);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"ready", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::ready);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"committed", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::committed);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"synchronousFallback", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::synchronousFallback);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"authoredInstanceCount", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::authoredInstanceCount);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"nodeCount", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::nodeCount);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"leafCount", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::leafCount);}
-{auto c=bound_class<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics"); field(c,"fallbackCode", &raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics::fallbackCode);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); default_constructor(c);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::enabled);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"applicable", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::applicable);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"used", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::used);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"authoredInstanceCount", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::authoredInstanceCount);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"renderedInstanceCount", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::renderedInstanceCount);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"candidateInstanceCount", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::candidateInstanceCount);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"sourceTrianglesPerInstance", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::sourceTrianglesPerInstance);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"impostorTrianglesPerInstance", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::impostorTrianglesPerInstance);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"nearestDistance", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::nearestDistance);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"projectedRadiusPixels", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::projectedRadiusPixels);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics"); field(c,"fallbackCode", &raisin::InstancedVisuals::FoliageImpostorDiagnostics::fallbackCode);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); default_constructor(c);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::FoliageWindDiagnostics::enabled);}
-{auto c=bound_class<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics"); field(c,"rootHeight", &raisin::InstancedVisuals::FoliageWindDiagnostics::rootHeight);}
 }
 }

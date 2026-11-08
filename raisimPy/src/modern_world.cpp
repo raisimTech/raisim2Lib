@@ -3,7 +3,14 @@
 namespace py = nanobind;
 using namespace raisim;
 
+#if RAISIMPY_HAS_SEGMENTATION
+void init_segmentation_world(py::class_<World>& world);
+#endif
+
 void init_world_extensions(py::module_& m, py::class_<World>& world) {
+#if RAISIMPY_HAS_SEGMENTATION
+    init_segmentation_world(world);
+#endif
     py::class_<World::Checkpoint>(world, "Checkpoint")
         .def(py::init<>())
         .def("__bool__", [](const World::Checkpoint& self) { return bool(self); })

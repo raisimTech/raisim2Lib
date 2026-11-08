@@ -33,6 +33,7 @@ template<> inline constexpr bool value_type<raisin::GeometryRefractionDiagnostic
 template<> inline constexpr bool value_type<raisin::GeometryRefractionSamplingStatistics> = true;
 template<> inline constexpr bool value_type<raisin::GerstnerWave> = true;
 template<> inline constexpr bool value_type<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics> = true;
+template<> inline constexpr bool value_type<raisin::InstancedVisuals::FoliageBatchSupport> = true;
 template<> inline constexpr bool value_type<raisin::InstancedVisuals::FoliageImpostorDiagnostics> = true;
 template<> inline constexpr bool value_type<raisin::InstancedVisuals::FoliageWindDiagnostics> = true;
 template<> inline constexpr bool value_type<raisin::InstancedVisuals::GpuHizOcclusionConfig> = true;

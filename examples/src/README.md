@@ -92,6 +92,7 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
 - `rayrai_basic_scene`: minimal in-process rayrai rendering.
 - `rayrai_complete_showcase`: broad rayrai feature overview.
 - `rayrai_depth_camera`: rayrai depth capture plus CPU depth-camera comparison.
+- `rayrai_segmentation_camera`: RGB and segmentation images of one camera side by side.
 - `rayrai_rgb_camera`: in-process rayrai RGB capture.
 - `rayrai_rolling_spinning_friction`: rolling and spinning friction on a grid
   of spheres and cylinders.

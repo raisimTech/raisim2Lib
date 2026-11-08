@@ -47,6 +47,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'RGB Camera', link: '/sections/examples/rayrai/rayrai_rgb_camera.md' },
               { text: 'Rolling And Spinning Friction', link: '/sections/examples/rayrai/rayrai_rolling_spinning_friction.md' },
               { text: 'Runtime Scene Editing', link: '/sections/examples/rayrai/rayrai_runtime_scene_editing.md' },
+              { text: 'Segmentation Camera', link: '/sections/examples/rayrai/rayrai_segmentation_camera.md' },
               { text: 'Sensor Noise', link: '/sections/examples/rayrai/rayrai_sensor_noise.md' },
               { text: 'Explosion and Projectile', link: '/sections/examples/rayrai/rayrai_explosion_projectile.md' },
               { text: 'Spherical Joint Friction', link: '/sections/examples/rayrai/rayrai_spherical_joint_friction.md' },

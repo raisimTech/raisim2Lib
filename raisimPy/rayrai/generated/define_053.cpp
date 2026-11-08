@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_053(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"screenSpaceRefraction", &raisin::RayraiWindow::TransparentDrawDebugView::screenSpaceRefraction);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"screenSpaceRefractionAvailable", &raisin::RayraiWindow::TransparentDrawDebugView::screenSpaceRefractionAvailable);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"screenSpaceRefractionStrength", &raisin::RayraiWindow::TransparentDrawDebugView::screenSpaceRefractionStrength);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"screenSpaceRefractionMaxPixels", &raisin::RayraiWindow::TransparentDrawDebugView::screenSpaceRefractionMaxPixels);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"transparentFogAlphaWeighted", &raisin::RayraiWindow::TransparentDrawDebugView::transparentFogAlphaWeighted);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"transparentFogStrength", &raisin::RayraiWindow::TransparentDrawDebugView::transparentFogStrength);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"alphaToCoverage", &raisin::RayraiWindow::TransparentDrawDebugView::alphaToCoverage);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"depthWrite", &raisin::RayraiWindow::TransparentDrawDebugView::depthWrite);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"depthTest", &raisin::RayraiWindow::TransparentDrawDebugView::depthTest);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawTileSize", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawTileSize);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawTileColumns", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawTileColumns);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawTileRows", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawTileRows);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawCoveredTileCount", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawCoveredTileCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawHotTileCount", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawHotTileCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"maxEstimatedOverdraw", &raisin::RayraiWindow::TransparentDrawDebugView::maxEstimatedOverdraw);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"averageEstimatedOverdraw", &raisin::RayraiWindow::TransparentDrawDebugView::averageEstimatedOverdraw);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"overdrawTileCounts", &raisin::RayraiWindow::TransparentDrawDebugView::overdrawTileCounts);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"worldTransparentCount", &raisin::RayraiWindow::TransparentDrawDebugView::worldTransparentCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"visualTransparentCount", &raisin::RayraiWindow::TransparentDrawDebugView::visualTransparentCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"instancedTransparentCount", &raisin::RayraiWindow::TransparentDrawDebugView::instancedTransparentCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"totalTransparentCount", &raisin::RayraiWindow::TransparentDrawDebugView::totalTransparentCount);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawDebugView>(m.attr("RayraiWindow"), "TransparentDrawDebugView"); field(c,"backToFrontOrder", &raisin::RayraiWindow::TransparentDrawDebugView::backToFrontOrder);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"source", &raisin::RayraiWindow::TransparentDrawItem::source);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"name", &raisin::RayraiWindow::TransparentDrawItem::name);}
+{auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"center", &raisin::RayraiWindow::TransparentDrawItem::center);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"radius", &raisin::RayraiWindow::TransparentDrawItem::radius);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"distanceSquared", &raisin::RayraiWindow::TransparentDrawItem::distanceSquared);}
 {auto c=bound_class<raisin::RayraiWindow::TransparentDrawItem>(m.attr("RayraiWindow"), "TransparentDrawItem"); field(c,"sortOffset", &raisin::RayraiWindow::TransparentDrawItem::sortOffset);}
@@ -31,31 +57,5 @@ bound_class<Handle<raisin::RayraiWindow::VisualMeshBuilder>>(m.attr("RayraiWindo
 {auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"enabled", &raisin::RenderQualitySettings::BloomSettings::enabled);}
 {auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"threshold", &raisin::RenderQualitySettings::BloomSettings::threshold);}
 {auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"strength", &raisin::RenderQualitySettings::BloomSettings::strength);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"radius", &raisin::RenderQualitySettings::BloomSettings::radius);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"knee", &raisin::RenderQualitySettings::BloomSettings::knee);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"quality", &raisin::RenderQualitySettings::BloomSettings::quality);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"sourceClamp", &raisin::RenderQualitySettings::BloomSettings::sourceClamp);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"anamorphic", &raisin::RenderQualitySettings::BloomSettings::anamorphic);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtStrength", &raisin::RenderQualitySettings::BloomSettings::dirtStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtScale", &raisin::RenderQualitySettings::BloomSettings::dirtScale);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"dirtTexture", &raisin::RenderQualitySettings::BloomSettings::dirtTexture);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"blendMode", &raisin::RenderQualitySettings::BloomSettings::blendMode);}
-{auto c=bound_class<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySettings"), "BloomSettings"); field(c,"mix", &raisin::RenderQualitySettings::BloomSettings::mix);}
-{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"enabled", &raisin::RenderQualitySettings::DepthOfFieldSettings::enabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"focusDistance", &raisin::RenderQualitySettings::DepthOfFieldSettings::focusDistance);}
-{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"focusRange", &raisin::RenderQualitySettings::DepthOfFieldSettings::focusRange);}
-{auto c=bound_class<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings"); field(c,"maxRadius", &raisin::RenderQualitySettings::DepthOfFieldSettings::maxRadius);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"density", &raisin::RenderQualitySettings::FogSettings::density);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"colorOverrideEnabled", &raisin::RenderQualitySettings::FogSettings::colorOverrideEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"color", &raisin::RenderQualitySettings::FogSettings::color);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightEnabled", &raisin::RenderQualitySettings::FogSettings::heightEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightDensity", &raisin::RenderQualitySettings::FogSettings::heightDensity);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightBaseHeight", &raisin::RenderQualitySettings::FogSettings::heightBaseHeight);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"heightFalloff", &raisin::RenderQualitySettings::FogSettings::heightFalloff);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricEnabled", &raisin::RenderQualitySettings::FogSettings::volumetricEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricDensity", &raisin::RenderQualitySettings::FogSettings::volumetricDensity);}
-{auto c=bound_class<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings"); field(c,"volumetricNoiseScale", &raisin::RenderQualitySettings::FogSettings::volumetricNoiseScale);}
 }
 }

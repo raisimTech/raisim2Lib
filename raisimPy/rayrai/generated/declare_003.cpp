@@ -2,6 +2,7 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_003(py::module_& m) {
+py::enum_<raisin::Material::StencilCompare>(m.attr("Material"), "StencilCompare").value("Always", raisin::Material::StencilCompare::Always).value("Less", raisin::Material::StencilCompare::Less).value("Equal", raisin::Material::StencilCompare::Equal).value("LessOrEqual", raisin::Material::StencilCompare::LessOrEqual).value("Greater", raisin::Material::StencilCompare::Greater).value("NotEqual", raisin::Material::StencilCompare::NotEqual).value("GreaterOrEqual", raisin::Material::StencilCompare::GreaterOrEqual);
 py::enum_<raisin::Material::StencilEffectMode>(m.attr("Material"), "StencilEffectMode").value("Disabled", raisin::Material::StencilEffectMode::Disabled).value("Outline", raisin::Material::StencilEffectMode::Outline).value("Xray", raisin::Material::StencilEffectMode::Xray).value("Custom", raisin::Material::StencilEffectMode::Custom);
 py::class_<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo");
 py::enum_<raisin::Material::TextureChannel>(m.attr("Material"), "TextureChannel").value("Red", raisin::Material::TextureChannel::Red).value("Green", raisin::Material::TextureChannel::Green).value("Blue", raisin::Material::TextureChannel::Blue).value("Alpha", raisin::Material::TextureChannel::Alpha).value("Gray", raisin::Material::TextureChannel::Gray);
@@ -36,6 +37,5 @@ py::class_<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiW
 py::class_<raisin::RayraiWindow::ReflectionProbeDebugItem>(m.attr("RayraiWindow"), "ReflectionProbeDebugItem");
 py::class_<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary");
 py::class_<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView");
-py::class_<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings");
 }
 }

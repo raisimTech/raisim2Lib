@@ -2,6 +2,29 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_037(py::module_& m) {
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"heightFogDensity", &raisin::WeatherDiagnostics::heightFogDensity);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"heightFogBaseHeight", &raisin::WeatherDiagnostics::heightFogBaseHeight);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"heightFogFalloff", &raisin::WeatherDiagnostics::heightFogFalloff);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"fogColor", &raisin::WeatherDiagnostics::fogColor);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"fogAnisotropy", &raisin::WeatherDiagnostics::fogAnisotropy);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"visibilityTransmittance100m", &raisin::WeatherDiagnostics::visibilityTransmittance100m);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"visibilityTransmittance1km", &raisin::WeatherDiagnostics::visibilityTransmittance1km);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"localFogVolumeBudget", &raisin::WeatherDiagnostics::localFogVolumeBudget);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"localFogVolumeCount", &raisin::WeatherDiagnostics::localFogVolumeCount);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"localFogPositiveDensity", &raisin::WeatherDiagnostics::localFogPositiveDensity);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"localFogNegativeDensity", &raisin::WeatherDiagnostics::localFogNegativeDensity);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationRate", &raisin::WeatherDiagnostics::precipitationRate);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"effectivePrecipitationRate", &raisin::WeatherDiagnostics::effectivePrecipitationRate);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainOcclusionStrength", &raisin::WeatherDiagnostics::rainOcclusionStrength);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetness", &raisin::WeatherDiagnostics::wetness);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetnessAccumulationActive", &raisin::WeatherDiagnostics::wetnessAccumulationActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"accumulatedWetness", &raisin::WeatherDiagnostics::accumulatedWetness);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetnessAccumulationRate", &raisin::WeatherDiagnostics::wetnessAccumulationRate);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetnessDryingRate", &raisin::WeatherDiagnostics::wetnessDryingRate);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetMaterialActive", &raisin::WeatherDiagnostics::wetMaterialActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetMaterialStrength", &raisin::WeatherDiagnostics::wetMaterialStrength);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"puddleStrength", &raisin::WeatherDiagnostics::puddleStrength);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainRippleStrength", &raisin::WeatherDiagnostics::rainRippleStrength);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetAlbedoDarkening", &raisin::WeatherDiagnostics::wetAlbedoDarkening);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetRoughnessScale", &raisin::WeatherDiagnostics::wetRoughnessScale);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"wetSpecularBoost", &raisin::WeatherDiagnostics::wetSpecularBoost);}
@@ -34,28 +57,5 @@ void define_037(py::module_& m) {
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lightningPointLightRadius", &raisin::WeatherDiagnostics::lightningPointLightRadius);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lightningPointLightIntensity", &raisin::WeatherDiagnostics::lightningPointLightIntensity);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"thunderDelaySeconds", &raisin::WeatherDiagnostics::thunderDelaySeconds);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticlesActive", &raisin::WeatherDiagnostics::precipitationParticlesActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"snowParticlesActive", &raisin::WeatherDiagnostics::snowParticlesActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainParticlesActive", &raisin::WeatherDiagnostics::rainParticlesActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleBudget", &raisin::WeatherDiagnostics::precipitationParticleBudget);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticlesRendered", &raisin::WeatherDiagnostics::precipitationParticlesRendered);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleSizePixels", &raisin::WeatherDiagnostics::precipitationParticleSizePixels);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleDepthMeters", &raisin::WeatherDiagnostics::precipitationParticleDepthMeters);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleAlpha", &raisin::WeatherDiagnostics::precipitationParticleAlpha);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleColor", &raisin::WeatherDiagnostics::precipitationParticleColor);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticlesActive", &raisin::WeatherDiagnostics::rainSplashParticlesActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticlesRendered", &raisin::WeatherDiagnostics::rainSplashParticlesRendered);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleSizePixels", &raisin::WeatherDiagnostics::rainSplashParticleSizePixels);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleAlpha", &raisin::WeatherDiagnostics::rainSplashParticleAlpha);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleColor", &raisin::WeatherDiagnostics::rainSplashParticleColor);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletsActive", &raisin::WeatherDiagnostics::lensDropletsActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletsRendered", &raisin::WeatherDiagnostics::lensDropletsRendered);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletStrength", &raisin::WeatherDiagnostics::lensDropletStrength);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletMaxSizePixels", &raisin::WeatherDiagnostics::lensDropletMaxSizePixels);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletAlpha", &raisin::WeatherDiagnostics::lensDropletAlpha);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"weatherTextureBytes", &raisin::WeatherDiagnostics::weatherTextureBytes);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionActive", &raisin::WeatherDiagnostics::transitionActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionAlpha", &raisin::WeatherDiagnostics::transitionAlpha);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentValid", &raisin::WeatherDiagnostics::skyEnvironmentValid);}
 }
 }

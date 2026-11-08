@@ -2,6 +2,19 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_014(py::module_& m) {
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarWorldSpace", &raisin::Material::triplanarWorldSpace);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarScale", &raisin::Material::triplanarScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarOffset", &raisin::Material::triplanarOffset);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarSharpness", &raisin::Material::triplanarSharpness);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarEnabled", &raisin::Material::uv2TriplanarEnabled);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarWorldSpace", &raisin::Material::uv2TriplanarWorldSpace);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarScale", &raisin::Material::uv2TriplanarScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarOffset", &raisin::Material::uv2TriplanarOffset);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarSharpness", &raisin::Material::uv2TriplanarSharpness);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureUvTransforms", &raisin::Material::textureUvTransforms);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatFactor", &raisin::Material::clearcoatFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatRoughnessFactor", &raisin::Material::clearcoatRoughnessFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"iridescenceFactor", &raisin::Material::iridescenceFactor);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"iridescenceThickness", &raisin::Material::iridescenceThickness);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenFactor", &raisin::Material::sheenFactor);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenColorFactor", &raisin::Material::sheenColorFactor);}
@@ -44,18 +57,5 @@ void define_014(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"weatherSnowEligible", &raisin::Material::weatherSnowEligible);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimFactor", &raisin::Material::rimFactor);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimTint", &raisin::Material::rimTint);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimPower", &raisin::Material::rimPower);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimColor", &raisin::Material::rimColor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"growEnabled", &raisin::Material::growEnabled);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"growAmount", &raisin::Material::growAmount);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapScale", &raisin::Material::heightmapScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapVertexDisplacementScale", &raisin::Material::heightmapVertexDisplacementScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapVertexDisplacementMidlevel", &raisin::Material::heightmapVertexDisplacementMidlevel);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapDeepParallax", &raisin::Material::heightmapDeepParallax);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapMinLayers", &raisin::Material::heightmapMinLayers);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapMaxLayers", &raisin::Material::heightmapMaxLayers);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapFlip", &raisin::Material::heightmapFlip);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapInvert", &raisin::Material::heightmapInvert);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailAlbedoBlend", &raisin::Material::detailAlbedoBlend);}
 }
 }

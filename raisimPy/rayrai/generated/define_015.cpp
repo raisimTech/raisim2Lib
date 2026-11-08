@@ -2,6 +2,19 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_015(py::module_& m) {
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimPower", &raisin::Material::rimPower);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimColor", &raisin::Material::rimColor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"growEnabled", &raisin::Material::growEnabled);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"growAmount", &raisin::Material::growAmount);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapScale", &raisin::Material::heightmapScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapVertexDisplacementScale", &raisin::Material::heightmapVertexDisplacementScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapVertexDisplacementMidlevel", &raisin::Material::heightmapVertexDisplacementMidlevel);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapDeepParallax", &raisin::Material::heightmapDeepParallax);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapMinLayers", &raisin::Material::heightmapMinLayers);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapMaxLayers", &raisin::Material::heightmapMaxLayers);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapFlip", &raisin::Material::heightmapFlip);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightmapInvert", &raisin::Material::heightmapInvert);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailAlbedoBlend", &raisin::Material::detailAlbedoBlend);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailUvLayer", &raisin::Material::detailUvLayer);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailAlbedoBlendMode", &raisin::Material::detailAlbedoBlendMode);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"detailNormalStrength", &raisin::Material::detailNormalStrength);}
@@ -44,18 +57,5 @@ void define_015(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatMap", &raisin::Material::clearcoatMap);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatRoughnessMap", &raisin::Material::clearcoatRoughnessMap);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatNormalMap", &raisin::Material::clearcoatNormalMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenColorMap", &raisin::Material::sheenColorMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"sheenRoughnessMap", &raisin::Material::sheenRoughnessMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"transmissionMap", &raisin::Material::transmissionMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"refractionMap", &raisin::Material::refractionMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"thicknessMap", &raisin::Material::thicknessMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"subsurfaceMap", &raisin::Material::subsurfaceMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"subsurfaceTransmittanceMap", &raisin::Material::subsurfaceTransmittanceMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"backlightMap", &raisin::Material::backlightMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"anisotropyMap", &raisin::Material::anisotropyMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"anisotropyMapAlphaStrength", &raisin::Material::anisotropyMapAlphaStrength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"weatherMaskMap", &raisin::Material::weatherMaskMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"rimMap", &raisin::Material::rimMap);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"heightMap", &raisin::Material::heightMap);}
 }
 }

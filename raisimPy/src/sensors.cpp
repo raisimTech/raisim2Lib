@@ -49,6 +49,7 @@ std::vector<raisim::Vec<3>> ndarray_to_vec3_list(const NDArray &array) {
 }  // namespace
 
 void init_wrench_sensors(py::module_& m);
+void init_segmentation(py::module_& m);
 
 void init_sensors(py::module_ &m) {
     py::enum_<raisim::Sensor::Type>(m, "SensorType", py::is_arithmetic())
@@ -60,6 +61,9 @@ void init_sensors(py::module_ &m) {
 #if RAISIMPY_HAS_WRENCH_SENSORS
         .value("FORCE", raisim::Sensor::Type::FORCE)
         .value("TACTILE", raisim::Sensor::Type::TACTILE)
+#endif
+#if RAISIMPY_HAS_SEGMENTATION
+        .value("SEGMENTATION", raisim::Sensor::Type::SEGMENTATION)
 #endif
         ;
 
@@ -325,5 +329,8 @@ void init_sensors(py::module_ &m) {
         .def("getCurrentYaw", &raisim::SpinningLidar::getCurrentYaw);
 #if RAISIMPY_HAS_WRENCH_SENSORS
     init_wrench_sensors(m);
+#endif
+#if RAISIMPY_HAS_SEGMENTATION
+    init_segmentation(m);
 #endif
 }

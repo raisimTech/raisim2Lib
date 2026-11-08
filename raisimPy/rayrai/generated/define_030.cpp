@@ -2,6 +2,26 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_030(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"depthOfFieldEnabled", &raisin::RenderQualitySettings::depthOfFieldEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"depthOfFieldFocusDistance", &raisin::RenderQualitySettings::depthOfFieldFocusDistance);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"depthOfFieldFocusRange", &raisin::RenderQualitySettings::depthOfFieldFocusRange);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"depthOfFieldMaxRadius", &raisin::RenderQualitySettings::depthOfFieldMaxRadius);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"textureAnisotropy", &raisin::RenderQualitySettings::textureAnisotropy);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"textureMipLodBias", &raisin::RenderQualitySettings::textureMipLodBias);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerMsaaSamples", &raisin::RenderQualitySettings::viewerMsaaSamples);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"alphaToCoverage", &raisin::RenderQualitySettings::alphaToCoverage);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaEnabled", &raisin::RenderQualitySettings::temporalAaEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaBlend", &raisin::RenderQualitySettings::temporalAaBlend);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaJitterScale", &raisin::RenderQualitySettings::temporalAaJitterScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaMethod", &raisin::RenderQualitySettings::temporalAaMethod);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaCurrentWeight", &raisin::RenderQualitySettings::temporalAaCurrentWeight);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"temporalAaSharpness", &raisin::RenderQualitySettings::temporalAaSharpness);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerRenderScale", &raisin::RenderQualitySettings::viewerRenderScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerUpscaleFilter", &raisin::RenderQualitySettings::viewerUpscaleFilter);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowsEnabled", &raisin::RenderQualitySettings::shadowsEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"shadowedLightBudget", &raisin::RenderQualitySettings::shadowedLightBudget);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowPolicy", &raisin::RenderQualitySettings::pointShadowPolicy);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"maxPointShadowLights", &raisin::RenderQualitySettings::maxPointShadowLights);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"additionalShadowResolutionScale", &raisin::RenderQualitySettings::additionalShadowResolutionScale);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pointShadowResolutionScale", &raisin::RenderQualitySettings::pointShadowResolutionScale);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"minAdditionalShadowResolution", &raisin::RenderQualitySettings::minAdditionalShadowResolution);}
@@ -37,25 +57,5 @@ void define_030(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectionProbeBrdfLutSamples", &raisin::RenderQualitySettings::reflectionProbeBrdfLutSamples);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"localDiffuseIrradianceIntensity", &raisin::RenderQualitySettings::localDiffuseIrradianceIntensity);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"localDiffuseIrradianceSaturation", &raisin::RenderQualitySettings::localDiffuseIrradianceSaturation);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoSelectImportedShadowLight", &raisin::RenderQualitySettings::autoSelectImportedShadowLight);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"sortTransparentInstances", &raisin::RenderQualitySettings::sortTransparentInstances);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"weightedBlendedOit", &raisin::RenderQualitySettings::weightedBlendedOit);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentDepthPrepass", &raisin::RenderQualitySettings::transparentDepthPrepass);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentShadowDithering", &raisin::RenderQualitySettings::transparentShadowDithering);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"transparentShadowOpacityScale", &raisin::RenderQualitySettings::transparentShadowOpacityScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"screenSpaceRefraction", &raisin::RenderQualitySettings::screenSpaceRefraction);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"screenSpaceRefractionStrength", &raisin::RenderQualitySettings::screenSpaceRefractionStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"screenSpaceRefractionMaxPixels", &raisin::RenderQualitySettings::screenSpaceRefractionMaxPixels);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefraction", &raisin::RenderQualitySettings::geometryRefraction);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionBackend", &raisin::RenderQualitySettings::geometryRefractionBackend);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionSamples", &raisin::RenderQualitySettings::geometryRefractionSamples);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionMaxBounces", &raisin::RenderQualitySettings::geometryRefractionMaxBounces);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionProgressive", &raisin::RenderQualitySettings::geometryRefractionProgressive);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionMaxSamples", &raisin::RenderQualitySettings::geometryRefractionMaxSamples);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionLowDiscrepancy", &raisin::RenderQualitySettings::geometryRefractionLowDiscrepancy);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionAdaptive", &raisin::RenderQualitySettings::geometryRefractionAdaptive);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionMinSamples", &raisin::RenderQualitySettings::geometryRefractionMinSamples);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionRelativeError", &raisin::RenderQualitySettings::geometryRefractionRelativeError);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"geometryRefractionAbsoluteError", &raisin::RenderQualitySettings::geometryRefractionAbsoluteError);}
 }
 }

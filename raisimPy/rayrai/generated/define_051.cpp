@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_051(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::RgbaOutputTransform>(m.attr("RayraiWindow"), "RgbaOutputTransform"); field(c,"gamma", &raisin::RayraiWindow::RgbaOutputTransform::gamma);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"visualLoaded", &raisin::RayraiWindow::SceneImportReport::visualLoaded);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"totalSceneLightCount", &raisin::RayraiWindow::SceneImportReport::totalSceneLightCount);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"importedLightCount", &raisin::RayraiWindow::SceneImportReport::importedLightCount);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"droppedLightCount", &raisin::RayraiWindow::SceneImportReport::droppedLightCount);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"shadowLightPromoted", &raisin::RayraiWindow::SceneImportReport::shadowLightPromoted);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"remainingShadingLightCount", &raisin::RayraiWindow::SceneImportReport::remainingShadingLightCount);}
+{auto c=bound_class<raisin::RayraiWindow::SceneImportReport>(m.attr("RayraiWindow"), "SceneImportReport"); field(c,"notes", &raisin::RayraiWindow::SceneImportReport::notes);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"shaderProgramCount", &raisin::RayraiWindow::ShaderWarmupDiagnostics::shaderProgramCount);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"linkedProgramCount", &raisin::RayraiWindow::ShaderWarmupDiagnostics::linkedProgramCount);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"totalCompileMs", &raisin::RayraiWindow::ShaderWarmupDiagnostics::totalCompileMs);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"slowestCompileMs", &raisin::RayraiWindow::ShaderWarmupDiagnostics::slowestCompileMs);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"slowestShaderName", &raisin::RayraiWindow::ShaderWarmupDiagnostics::slowestShaderName);}
+{auto c=bound_class<raisin::RayraiWindow::ShaderWarmupDiagnostics>(m.attr("RayraiWindow"), "ShaderWarmupDiagnostics"); field(c,"warmedUp", &raisin::RayraiWindow::ShaderWarmupDiagnostics::warmedUp);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"enabled", &raisin::RayraiWindow::ShadowAtlasPlan::enabled);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"overflow", &raisin::RayraiWindow::ShadowAtlasPlan::overflow);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"pointShadowPolicy", &raisin::RayraiWindow::ShadowAtlasPlan::pointShadowPolicy);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"pointShadowsUseStandaloneCubemaps", &raisin::RayraiWindow::ShadowAtlasPlan::pointShadowsUseStandaloneCubemaps);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"atlasResolution", &raisin::RayraiWindow::ShadowAtlasPlan::atlasResolution);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"padding", &raisin::RayraiWindow::ShadowAtlasPlan::padding);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"tileCount", &raisin::RayraiWindow::ShadowAtlasPlan::tileCount);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"nonPointTileCount", &raisin::RayraiWindow::ShadowAtlasPlan::nonPointTileCount);}
+{auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"pointShadowFaceTileCount", &raisin::RayraiWindow::ShadowAtlasPlan::pointShadowFaceTileCount);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"occupancy", &raisin::RayraiWindow::ShadowAtlasPlan::occupancy);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasPlan>(m.attr("RayraiWindow"), "ShadowAtlasPlan"); field(c,"tiles", &raisin::RayraiWindow::ShadowAtlasPlan::tiles);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowAtlasTile>(m.attr("RayraiWindow"), "ShadowAtlasTile"); default_constructor(c);}
@@ -31,31 +57,5 @@ void define_051(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalShadowMapReuses", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalShadowMapReuses);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalShadowDirtyLights", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalShadowDirtyLights);}
 {auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalShadowCleanLights", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalShadowCleanLights);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticDynamicCompositionAvailable", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticDynamicCompositionAvailable);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticDynamicCompositionEnabled", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticDynamicCompositionEnabled);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticDynamicCompositionFallback", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticDynamicCompositionFallback);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticDynamicCompositionFallbackFrames", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticDynamicCompositionFallbackFrames);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticShadowMapRenders", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticShadowMapRenders);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticShadowMapReuses", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticShadowMapReuses);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"dynamicShadowMapRenders", &raisin::RayraiWindow::ShadowCacheDiagnostics::dynamicShadowMapRenders);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticDynamicCompositedLayers", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticDynamicCompositedLayers);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalStaticShadowMapRenders", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalStaticShadowMapRenders);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalStaticShadowMapReuses", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalStaticShadowMapReuses);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalDynamicShadowMapRenders", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalDynamicShadowMapRenders);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"additionalStaticDynamicCompositedTiles", &raisin::RayraiWindow::ShadowCacheDiagnostics::additionalStaticDynamicCompositedTiles);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"staticShadowCasterCount", &raisin::RayraiWindow::ShadowCacheDiagnostics::staticShadowCasterCount);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"dynamicShadowCasterCount", &raisin::RayraiWindow::ShadowCacheDiagnostics::dynamicShadowCasterCount);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowCacheDiagnostics>(m.attr("RayraiWindow"), "ShadowCacheDiagnostics"); field(c,"receiverDepthFilteredMaps", &raisin::RayraiWindow::ShadowCacheDiagnostics::receiverDepthFilteredMaps);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"available", &raisin::RayraiWindow::ShadowDebugOverlaySummary::available);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"overlayEnabled", &raisin::RayraiWindow::ShadowDebugOverlaySummary::overlayEnabled);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"shadowsEnabled", &raisin::RayraiWindow::ShadowDebugOverlaySummary::shadowsEnabled);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"updateEveryFrame", &raisin::RayraiWindow::ShadowDebugOverlaySummary::updateEveryFrame);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"contactHardening", &raisin::RayraiWindow::ShadowDebugOverlaySummary::contactHardening);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"cascadeRendered", &raisin::RayraiWindow::ShadowDebugOverlaySummary::cascadeRendered);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasRendered", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasRendered);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"atlasOverflow", &raisin::RayraiWindow::ShadowDebugOverlaySummary::atlasOverflow);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"splitOverridesEnabled", &raisin::RayraiWindow::ShadowDebugOverlaySummary::splitOverridesEnabled);}
-{auto c=bound_class<raisin::RayraiWindow::ShadowDebugOverlaySummary>(m.attr("RayraiWindow"), "ShadowDebugOverlaySummary"); field(c,"cascadeCount", &raisin::RayraiWindow::ShadowDebugOverlaySummary::cascadeCount);}
 }
 }
