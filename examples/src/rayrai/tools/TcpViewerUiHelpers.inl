@@ -2302,6 +2302,8 @@ const char* sensorTypeLabel(raisim::Sensor::Type type) {
     case raisim::Sensor::Type::DEPTH: return "Depth camera";
     case raisim::Sensor::Type::IMU: return "IMU";
     case raisim::Sensor::Type::SPINNING_LIDAR: return "Spinning lidar";
+    case raisim::Sensor::Type::FORCE: return "Force / torque";
+    case raisim::Sensor::Type::TACTILE: return "Tactile pad";
     default: return "Unknown sensor";
   }
 }
@@ -2473,6 +2475,39 @@ void drawObjectSensors(const TcpViewerIcons& icons, const std::vector<SensorInfo
     const std::string label = std::string(sensorTypeLabel(sensor.type)) + "  " + sensor.name;
     if (drawSensorTreeNode(icons, sensor.type, label.c_str())) {
       ImGui::TextDisabled("source %s", sensorSourceLabel(sensor.source));
+      const bool wrench = sensor.type == raisim::Sensor::Type::FORCE ||
+                          sensor.type == raisim::Sensor::Type::TACTILE;
+      if (wrench) {
+        ImGui::Text("Force  %.3f  %.3f  %.3f N", sensor.force.x, sensor.force.y, sensor.force.z);
+        ImGui::Text("Torque %.3f  %.3f  %.3f Nm", sensor.torque.x, sensor.torque.y, sensor.torque.z);
+      }
+      if (sensor.type == raisim::Sensor::Type::TACTILE && !sensor.taxelForces.empty()) {
+        ImGui::Text("Normal load %.3f N", sensor.normalForce);
+        if (sensor.normalForce > 0.f)
+          ImGui::Text("Center Y/Z %.4f  %.4f m", sensor.centerOfPressure.x, sensor.centerOfPressure.y);
+        const float width = std::min(280.f, ImGui::GetContentRegionAvail().x);
+        const float height = width * float(std::clamp(sensor.padHeight / sensor.padWidth, 0.25, 2.));
+        const float gap = std::min({1.f, width / sensor.padColumns * 0.2f, height / sensor.padRows * 0.2f});
+        const ImVec2 origin = ImGui::GetCursorScreenPos();
+        float maximum = 0.f;
+        for (const auto& force : sensor.taxelForces) maximum = std::max(maximum, -force.x);
+        auto* draw = ImGui::GetWindowDrawList();
+        for (int row = 0; row < sensor.padRows; ++row) {
+          for (int col = 0; col < sensor.padColumns; ++col) {
+            const size_t index = size_t(row) * sensor.padColumns + col;
+            const float load = std::max(0.f, -sensor.taxelForces[index].x);
+            const float value = maximum > 0.f ? load / maximum : 0.f;
+            const ImU32 color = ImGui::ColorConvertFloat4ToU32(
+                ImVec4(0.08f + 0.9f * value, 0.15f + 0.55f * value, 0.35f - 0.25f * value, 1.f));
+            const ImVec2 a(origin.x + width * col / sensor.padColumns,
+                           origin.y + height * (sensor.padRows - 1 - row) / sensor.padRows);
+            const ImVec2 b(a.x + width / sensor.padColumns - gap, a.y + height / sensor.padRows - gap);
+            draw->AddRectFilled(a, b, color);
+          }
+        }
+        ImGui::Dummy(ImVec2(width, height));
+        ImGui::TextDisabled("Contact force per taxel | peak %.3f N", maximum);
+      }
       if (isCameraSensorType(sensor.type)) {
         const std::string frustumKey = cameraFrustumKey(sensor);
         auto& state = cameraFrustums[frustumKey];
@@ -2525,7 +2560,7 @@ void drawObjectSensors(const TcpViewerIcons& icons, const std::vector<SensorInfo
           ImGui::TextWrapped(
             "Waiting for a server request. If this persists, reinstall RaiSim and rebuild the server example.");
         }
-      } else {
+      } else if (!wrench) {
         ImGui::TextDisabled("No image preview for this sensor type");
       }
       ImGui::TreePop();
@@ -3240,6 +3275,7 @@ enum class TcpViewerIconKind {
   ObjectCompound,
   ObjectDeformable,
   ObjectGranular,
+  Collapse,
   Count
 };
 
@@ -3329,6 +3365,7 @@ const char* tcpViewerIconFileName(TcpViewerIconKind kind) {
     case TcpViewerIconKind::ObjectCompound: return "compound_uicons_sr_cubes.png";
     case TcpViewerIconKind::ObjectDeformable: return "deformable_uicons_sr_wave_square.png";
     case TcpViewerIconKind::ObjectGranular: return "granular_uicons_sr_braille.png";
+    case TcpViewerIconKind::Collapse: return "collapse_uicons_sr_angle_double_small_left.png";
     case TcpViewerIconKind::Count: break;
   }
   return "";

@@ -10,6 +10,7 @@ can be one version ahead of ``RAISIM_VERSION``.
    :maxdepth: 1
    :caption: Versions
 
+   changelog/next
    changelog/v2.10
    changelog/v2.9
    changelog/v2.8

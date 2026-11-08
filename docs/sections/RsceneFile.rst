@@ -1252,9 +1252,10 @@ environment, irradiance and prefiltered map and a BRDF table for the visual).
 Their defaults are those of ``raisin::Visuals``.
 
 ``id`` (default ``object_<path>``) and ``parentGroupId`` follow `Conventions`_.
-The ``raisim*`` tuning keys, ``semanticClass``, ``instanceId``,
-``segmentationColor`` and ``receiveShadow`` are **ignored**, as by Engine 2's
-bridges.
+``semanticClass`` labels the body for segmentation cameras: ``addToWorld()`` sets
+``Object::setSegmentationLabel(world.addSegmentationClass(semanticClass))`` (every part of a
+``.rasset`` object). The ``raisim*`` tuning keys, ``instanceId``, ``segmentationColor`` and
+``receiveShadow`` are **ignored**, as by Engine 2's bridges.
 
 wire record
 -----------

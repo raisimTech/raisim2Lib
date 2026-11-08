@@ -65,6 +65,7 @@ fi-sr-disk for .rrtcs session logs.
 - fi-sr-chart-histogram -> diagnostics_uicons_sr_chart_histogram.png (Diagnostics tab)
 - fi-sr-layers -> objects_uicons_sr_layers.png          (Objects tab)
 - fi-sr-keyboard -> help_uicons_sr_keyboard.png          (Help tab)
+- fi-sr-angle-double-small-left -> collapse_uicons_sr_angle_double_small_left.png (Collapse the left panel)
 
 Options > Camera view buttons. Arrows for the four side views; front and back
 follow the drafting convention of a dot for the axis coming toward the viewer and

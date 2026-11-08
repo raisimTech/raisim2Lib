@@ -66,6 +66,7 @@
 #include "TcpViewerSceneFiles.hpp"
 #include "TcpViewerSignals.hpp"
 #include "TcpViewerVideo.hpp"
+#include "TcpViewerExamples.hpp"
 #include "TcpViewerSimulation.hpp"
 #include "TcpViewerInspectorLoad.hpp"
 #include "TcpViewerConnection.hpp"
@@ -90,6 +91,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#endif
+#if defined(__EMSCRIPTEN__)
+#include "webgpu/Backend.hpp"
 #endif
 
 namespace
@@ -332,6 +336,8 @@ struct AngleToolState {
 
 struct ProgramOptions {
   std::filesystem::path simulationPath;
+  std::string exampleName;
+  std::filesystem::path examplesDir;
   std::filesystem::path activationKey;
   bool noSaveSettings = false;
   std::string host = "127.0.0.1";
@@ -385,6 +391,7 @@ struct ProgramOptions {
   bool replayLoop = false;
   float replaySpeed = 1.0f;
   float updateRateHz = -1.0f;
+  int renderQuality = -1;
   double waitForServerSeconds = 0.0;
   double exitAfterSeconds = 0.0;
   bool printHelp = false;
@@ -746,6 +753,9 @@ void printUsage(const char* argv0) {
     << "Usage: " << (argv0 ? argv0 : "rayrai_tcp_viewer") << " [options]\n\n"
     << "Options:\n"
     << "  --simulate FILE             Launch a RaiSim world XML in a child simulation process\n"
+    << "  --example NAME              Start the server example NAME listed next to this viewer\n"
+    << "                              (raisim_server_examples.tsv) and connect to it\n"
+    << "  --examples-dir DIR          List and start the server examples in DIR instead\n"
     << "  --activation-key FILE       Use this RaiSim activation key (also for local simulation)\n"
     << "  --no-save-settings          Keep this session's preferences temporary\n"
     << "  --host HOST                 Server host (default: 127.0.0.1)\n"
@@ -770,6 +780,7 @@ void printUsage(const char* argv0) {
     << "  --screenshot-dir PATH       Directory used by F12 and PNG sequence recording\n"
     << "  --record-session PATH       Record raw TCP scene updates for offline replay\n"
     << "  --update-rate HZ            Target TCP scene update rate (15-120, default 60)\n"
+    << "  --render-quality NAME       Render with the fast, balanced, high or ultra preset\n"
     << "  --replay-session PATH       Replay a previously recorded TCP session\n"
     << "  --replay-speed SCALE        Replay speed multiplier (default: 1.0)\n"
     << "  --replay-loop               Loop replay sessions\n"
@@ -816,6 +827,14 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       return true;
     } else if (arg == "--no-save-settings") {
       options.noSaveSettings = true;
+    } else if (arg == "--example") {
+      const char* value = requireValue("--example");
+      if (!value || !*value) return false;
+      options.exampleName = value;
+    } else if (arg == "--examples-dir") {
+      const char* value = requireValue("--examples-dir");
+      if (!value || !*value) return false;
+      options.examplesDir = value;
     } else if (arg == "--simulate" || arg == "--activation-key") {
       const char* value = requireValue(arg.c_str());
       if (!value || !*value) return false;
@@ -907,6 +926,16 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
         return false;
       }
       options.updateRateHz = rateHz;
+    } else if (arg == "--render-quality") {
+      const char* value = requireValue("--render-quality");
+      if (!value) return false;
+      const int quality = raisin::tcp_viewer::qualityIndexFromName(value, -1);
+      if (quality < 0 || quality > 3) {
+        std::cerr << "ERROR: invalid --render-quality value: " << value
+                  << " (expected fast, balanced, high or ultra)\n";
+        return false;
+      }
+      options.renderQuality = quality;
     } else if (arg == "--replay-session") {
       const char* value = requireValue("--replay-session");
       if (!value) return false;
@@ -1270,6 +1299,8 @@ ImVec4 tcpViewerIconTint(TcpViewerIconKind kind, bool hovered, bool active) {
     case TcpViewerIconKind::ObjectCompound: color = ImVec4(0.48f, 0.82f, 0.96f, 1.0f); break;
     case TcpViewerIconKind::ObjectDeformable: color = ImVec4(0.96f, 0.58f, 0.78f, 1.0f); break;
     case TcpViewerIconKind::ObjectGranular: color = ImVec4(0.94f, 0.68f, 0.40f, 1.0f); break;
+    // Panel chrome, not an action on the scene: the same neutral as the Help tab.
+    case TcpViewerIconKind::Collapse: color = ImVec4(0.86f, 0.88f, 0.94f, 1.0f); break;
     case TcpViewerIconKind::Count: color = ImVec4(0.92f, 0.94f, 0.98f, 1.0f); break;
   }
   const float boost = active ? 1.18f : (hovered ? 1.08f : 1.0f);
@@ -1383,27 +1414,56 @@ int iconTabLabelSpaceCount(float fontSize, float spaceWidth) {
   return static_cast<int>(std::ceil(needed));
 }
 
+/// A panel row that a button at its right end shares (drawIconOnlyButtonAtRowEnd()).
+struct PanelRow {
+  /// Top-left corner of the row.
+  ImVec2 min{0.0f, 0.0f};
+  float height = 0.0f;
+  /// Right edge of the row's last item.
+  float itemsRight = 0.0f;
+  /// Size of the row's tabs, which a button at its end matches; zero for a row of frame-height controls.
+  ImVec2 tabSize{0.0f, 0.0f};
+  /// Right edge of everything the panel drew this frame. Last frame's window edge would hold an
+  /// auto-resizing panel at its widest: the button would keep it that wide.
+  float contentRight = 0.0f;
+};
+
 /**
  * @brief Open a tab bar sized for icon tabs.
  *
  * Pairs with endIconTabBar(). The extra frame padding has to be in style before
  * the first tab is submitted, which is why it lives here rather than in
- * beginIconTabItem().
+ * beginIconTabItem(). With row, records the row the bar takes, and the bar and
+ * everything up to endIconTabBar(row) form one group whose right edge that call
+ * records; pass the same row to every beginIconTabItem() of the bar.
  */
-bool beginIconTabBar(const char* id) {
+bool beginIconTabBar(const char* id, PanelRow* row = nullptr) {
   const ImGuiStyle& style = ImGui::GetStyle();
   ImVec2 padding = style.FramePadding;
   padding.y = iconTabFramePaddingY(ImGui::GetFontSize(), padding.y);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, padding);
+  if (row) {
+    row->min = ImGui::GetCursorScreenPos();
+    row->height = ImGui::GetFontSize() + padding.y * 2.0f;
+    row->itemsRight = row->min.x;
+    ImGui::BeginGroup();
+  }
   if (ImGui::BeginTabBar(id)) {
     return true;
+  }
+  if (row) {
+    ImGui::EndGroup();
   }
   ImGui::PopStyleVar();
   return false;
 }
 
-void endIconTabBar() {
+void endIconTabBar(PanelRow* row = nullptr) {
   ImGui::EndTabBar();
+  if (row) {
+    ImGui::EndGroup();
+    row->contentRight = ImGui::GetItemRectMax().x;
+  }
   ImGui::PopStyleVar();
 }
 
@@ -1447,11 +1507,13 @@ void drawIconChip(ImDrawList* drawList, ImTextureID textureId, const ImVec2& ico
  * @return True when the tab is selected; the caller must then call EndTabItem().
  */
 bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const char* tooltip,
-                      const char* id) {
+                      const char* id, PanelRow* row = nullptr, ImGuiTabItemFlags flags = 0) {
   const TcpViewerIcon* icon = icons.get(kind);
   if (!icon) {
     // No texture: fall back to the text label rather than an unclickable blank.
-    return ImGui::BeginTabItem(tooltip ? tooltip : id);
+    const bool selected = ImGui::BeginTabItem(tooltip ? tooltip : id, nullptr, flags);
+    if (row) row->itemsRight = std::max(row->itemsRight, ImGui::GetItemRectMax().x);
+    return selected;
   }
 
   const int spaceCount = iconTabLabelSpaceCount(ImGui::GetFontSize(), ImGui::CalcTextSize(" ").x);
@@ -1461,10 +1523,14 @@ bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const
   // every tab -- the bar then lost its selection and fell back to the first one.
   const std::string label = std::string(static_cast<size_t>(spaceCount), ' ') + "###" + id;
 
-  const bool selected = ImGui::BeginTabItem(label.c_str());
+  const bool selected = ImGui::BeginTabItem(label.c_str(), nullptr, flags);
   const bool hovered = ImGui::IsItemHovered();
   const ImVec2 itemMin = ImGui::GetItemRectMin();
   const ImVec2 itemMax = ImGui::GetItemRectMax();
+  if (row) {
+    row->itemsRight = std::max(row->itemsRight, itemMax.x);
+    if (itemMax.x - itemMin.x >= 2.0f) row->tabSize = ImVec2(itemMax.x - itemMin.x, itemMax.y - itemMin.y);
+  }
   if (hovered && tooltip && tooltip[0] != '\0') {
     ImGui::SetTooltip("%s", tooltip);
   }
@@ -1640,6 +1706,65 @@ bool drawIconOnlyButton(const TcpViewerIcons& icons, TcpViewerIconKind kind,
   drawList->PopClipRect();
   ImGui::PopID();
   return pressed;
+}
+
+/**
+ * @brief An icon button shaped and sized like the icon tabs, for a tab bar's row.
+ *
+ * The tab background and its top-rounded corners, and the glyph at the tabs' size,
+ * so it reads as part of the tab row rather than a smaller control beside it.
+ */
+bool drawIconTabLikeButton(const TcpViewerIcons& icons, TcpViewerIconKind kind, const char* tooltip,
+                           const char* id, const ImVec2& size) {
+  const TcpViewerIcon* icon = icons.get(kind);
+  ImGui::PushID(id ? id : tooltip);
+  if (!icon) {
+    const bool pressed = ImGui::Button(tooltip ? tooltip : "?", size);
+    ImGui::PopID();
+    return pressed;
+  }
+  const bool pressed = ImGui::InvisibleButton("##icon_tab_button", size);
+  const bool hovered = ImGui::IsItemHovered();
+  const bool active = ImGui::IsItemActive();
+  if (hovered && tooltip && tooltip[0] != '\0') {
+    ImGui::SetTooltip("%s", tooltip);
+  }
+  const ImVec2 itemMin = ImGui::GetItemRectMin();
+  const ImVec2 itemMax = ImGui::GetItemRectMax();
+  ImDrawList* drawList = ImGui::GetWindowDrawList();
+  const ImGuiCol background = active ? ImGuiCol_TabActive : (hovered ? ImGuiCol_TabHovered : ImGuiCol_Tab);
+  drawList->AddRectFilled(itemMin, itemMax, ImGui::GetColorU32(background), ImGui::GetStyle().TabRounding,
+                          ImDrawFlags_RoundCornersTop);
+  // the glyph as beginIconTabItem() sizes it
+  const float iconSize = std::max(1.0f, std::min(size.x, size.y) * kTabIconFillFactor);
+  const ImVec2 centre((itemMin.x + itemMax.x) * 0.5f, (itemMin.y + itemMax.y) * 0.5f);
+  const ImVec2 iconMin(std::round(centre.x - iconSize * 0.5f), std::round(centre.y - iconSize * 0.5f));
+  drawIconGlyph(drawList, (ImTextureID)(intptr_t)icon->texture, iconMin,
+                ImVec2(iconMin.x + iconSize, iconMin.y + iconSize), tcpViewerIconTint(kind, hovered, active));
+  ImGui::PopID();
+  return pressed;
+}
+
+/**
+ * @brief An icon-only button at the right end of a panel row.
+ *
+ * Call after the panel's content, as the window's last item: at the right edge of
+ * that content, or just past the row's items when the content is narrower than
+ * them and the button. On a tab row it is the size and shape of the tabs
+ * (drawIconTabLikeButton()); on a row of controls, drawIconOnlyButton(). A tab
+ * bar takes its whole row, and a trailing tab button would follow the last tab
+ * rather than the edge, so the button is placed over the row.
+ */
+bool drawIconOnlyButtonAtRowEnd(const TcpViewerIcons& icons, TcpViewerIconKind kind, const char* tooltip,
+                                const char* id, const PanelRow& row) {
+  const bool tabRow = row.tabSize.x > 0.0f;
+  const ImVec2 size = tabRow ? row.tabSize : ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+  // whole pixels, so the glyph is not resampled at a fractional UI scale
+  const float left =
+      std::round(std::max(row.contentRight - size.x, row.itemsRight + ImGui::GetStyle().ItemSpacing.x));
+  ImGui::SetCursorScreenPos(ImVec2(left, row.min.y + std::round((row.height - size.y) * 0.5f)));
+  return tabRow ? drawIconTabLikeButton(icons, kind, tooltip, id, size)
+                : drawIconOnlyButton(icons, kind, tooltip, id);
 }
 
 /**
@@ -1846,6 +1971,54 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   return true;
 }
 
+/**
+ * @brief Opens a collapsed left panel the pointer has just arrived over.
+ *
+ * Call right after the panel's window begins. The pointer has to arrive: one that
+ * was already over the panel when it collapsed has to leave and come back.
+ *
+ * @param hoveredWhileMinimized What finishLeftPanelFrame() returned last frame.
+ * @return True when the panel opened.
+ */
+bool openLeftPanelOnHover(bool& minimized, bool hovered, bool hoveredWhileMinimized) {
+  if (!minimized || !hovered || hoveredWhileMinimized) {
+    return false;
+  }
+  minimized = false;
+  return true;
+}
+
+/**
+ * @brief The left panel's state at the end of a frame.
+ *
+ * An open panel collapses after kOverlayAutoCollapseDelay without the pointer or an
+ * interaction, never with keepOpen. A click on its collapse button (collapseClicked)
+ * leaves the pointer over the panel, but the window was not reported hovered that
+ * frame (the button was the active item when it began), and it keeps its expanded
+ * size one more frame, which would read as the pointer arriving and open it again.
+ *
+ * @return Whether the pointer counts as over the collapsed panel, for the next
+ *         frame's openLeftPanelOnHover().
+ */
+// The collapsed logo chip is a window of its own: an auto-resizing window keeps last frame's
+// size, so one shared window would draw the light chip at the open panel's size for a frame.
+std::string leftPanelWindowName(bool minimized, const std::string& paneSuffix) {
+  return (minimized ? "Raisim TCP##CollapsedOverlay" : "Raisim TCP##Overlay") + paneSuffix;
+}
+
+bool finishLeftPanelFrame(bool& minimized, std::chrono::steady_clock::time_point& lastInteraction,
+                          std::chrono::steady_clock::time_point now, bool hovered, bool interacting,
+                          bool keepOpen, bool collapseClicked) {
+  if (!minimized) {
+    if (hovered || interacting || keepOpen) {
+      lastInteraction = now;
+    } else if (now - lastInteraction >= kOverlayAutoCollapseDelay) {
+      minimized = true;
+    }
+  }
+  return minimized && (hovered || collapseClicked);
+}
+
 void drawCollapsedLeftPanelLogo(const TcpViewerImageTexture& logo) {
   const bool hasLogo = logo.valid();
   const float fontSize = ImGui::GetFontSize();
@@ -1956,13 +2129,12 @@ void renderViewer(raisin::RayraiWindow& viewer, SDL_Window* window,
   ImGui::SetNextWindowSize(ImVec2(paneW, paneH));
   ImGui::Begin(windowName, nullptr, kPaneViewportWindowFlags);
 
-  ImTextureID tex = (ImTextureID)(intptr_t)viewer.getImageTexture();
   // The frame loop already opened this window once to fix its draw order, so the
   // cursor is placed explicitly rather than inherited from that earlier pass.
   const ImVec2 windowPos(rect.x, rect.y);
   ImGui::SetCursorScreenPos(windowPos);
   ImGuiIO& io = ImGui::GetIO();
-  ImGui::Image(tex, ImVec2(paneW, paneH), ImVec2(0, 1), ImVec2(1, 0));
+  ImGui::Dummy(ImVec2(paneW, paneH));
 
   const bool isHovered = ImGui::IsItemHovered();
   int cursorX = static_cast<int>((io.MousePos.x - windowPos.x) * scaleX);
@@ -1983,9 +2155,110 @@ void renderViewer(raisin::RayraiWindow& viewer, SDL_Window* window,
   }
   viewer.update(paneFbW, paneFbH, allowViewportInput ? isHovered : false, cursorX, cursorY,
     allowClickSelection);
+  // The image is read after update(), which creates the render target on the first frame and
+  // replaces it on a resize; a texture read before would be missing or deleted by now.
+  if (const unsigned int texture = viewer.getImageTexture()) {
+    ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)texture, windowPos,
+      ImVec2(windowPos.x + paneW, windowPos.y + paneH), ImVec2(0, 1), ImVec2(1, 0));
+  }
 
   ImGui::End();
   ImGui::PopStyleVar(2);
+}
+
+std::string lowerCaseText(std::string text) {
+  for (char& c : text) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  return text;
+}
+
+// The Output tab: the launched example's name and state, the button that stops it (or clears it
+// once it has ended), and its output below, following the end while scrolled to the bottom.
+template <typename Stop, typename Clear>
+void drawExampleOutputTab(const TcpViewerIcons& icons, const raisin::tcp_viewer::ServerExample& example,
+                          raisin::tcp_viewer::ExampleLauncher::State state, int exitCode,
+                          const std::string& output, ImVec2 outputSize, Stop&& stop, Clear&& clear) {
+  using State = raisin::tcp_viewer::ExampleLauncher::State;
+  const float rowStart = ImGui::GetCursorScreenPos().x;
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(example.title.c_str());
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", example.name.c_str());
+  ImGui::SameLine();
+  switch (state) {
+    case State::Starting:
+      ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.25f, 1.0f), "starting");
+      break;
+    case State::Running:
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "running");
+      break;
+    case State::Exited:
+      if (exitCode == 0) {
+        ImGui::TextDisabled("exited (code 0)");
+      } else {
+        ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "exited (code %d)", exitCode);
+      }
+      break;
+    default:
+      ImGui::TextDisabled("stopped");
+      break;
+  }
+  const bool active = state == State::Starting || state == State::Running;
+  const char* buttonLabel = active ? "Stop example" : "Clear";
+  const float stateEnd = ImGui::GetItemRectMax().x;
+  const float buttonStart = std::max(stateEnd + ImGui::GetStyle().ItemSpacing.x,
+                                     rowStart + outputSize.x - iconTextButtonSize(buttonLabel).x);
+  ImGui::SameLine(0.0f, buttonStart - stateEnd);
+  if (drawIconTextButton(icons, active ? TcpViewerIconKind::Stop : TcpViewerIconKind::Delete, buttonLabel,
+                         active ? "stop_example" : "clear_example")) {
+    if (active) {
+      stop();
+    } else {
+      clear();
+    }
+  }
+  if (ImGui::BeginChild("##example_output", outputSize, true, ImGuiWindowFlags_HorizontalScrollbar)) {
+    const bool following = ImGui::GetScrollY() >= ImGui::GetScrollMaxY();
+    ImGui::TextUnformatted(output.empty() ? "(no output yet)" : output.c_str());
+    if (following) ImGui::SetScrollHereY(1.0f);
+  }
+  ImGui::EndChild();
+}
+
+// The server examples next to the viewer, grouped by category; a click starts one, and the one
+// started last is highlighted.
+template <typename Start>
+void drawExampleLauncher(const raisin::tcp_viewer::ExampleLauncher& launcher, char* filter, size_t filterSize,
+                         float width, Start&& start) {
+  if (launcher.source().empty()) return;
+  ImGui::SeparatorText("Server examples next to this viewer");
+  const auto& examples = launcher.examples();
+  if (examples.empty()) {
+    ImGui::TextDisabled("%s", launcher.source().c_str());
+    return;
+  }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", launcher.source().c_str());
+  ImGui::SetNextItemWidth(width);
+  ImGui::InputTextWithHint("##example_filter", "Search examples", filter, filterSize);
+  const std::string needle = lowerCaseText(filter);
+  if (ImGui::BeginChild("##server_examples", ImVec2(width, ImGui::GetTextLineHeightWithSpacing() * 12.0f), true)) {
+    const std::string* category = nullptr;
+    for (const auto& example : examples) {
+      if (!needle.empty() &&
+          lowerCaseText(example.title + " " + example.name + " " + example.category).find(needle) == std::string::npos)
+        continue;
+      if (!category || *category != example.category) {
+        category = &example.category;
+        std::string heading = example.category;
+        std::replace(heading.begin(), heading.end(), '_', ' ');
+        if (!heading.empty()) heading[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(heading[0])));
+        ImGui::SeparatorText(heading.c_str());
+      }
+      ImGui::PushID(example.name.c_str());
+      if (ImGui::Selectable(example.title.c_str(), &example == launcher.example())) start(example);
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", example.name.c_str());
+      ImGui::PopID();
+    }
+  }
+  ImGui::EndChild();
 }
 
 /**
@@ -2026,6 +2299,12 @@ struct ViewerPane {
   raisin::tcp_viewer::ActuatorTraces actuatorTraces;
   raisin::tcp_viewer::LocalSimulation localSimulation;
   bool connectingLocalSimulation = false;
+  /** The server example this pane launched from the viewer's directory, if any. */
+  std::unique_ptr<raisin::tcp_viewer::ExampleLauncher> exampleLauncher;
+  bool connectingExample = false;
+  /** Brings the Output tab to the front the next time the left panel draws its tabs. */
+  bool selectOutputTab = false;
+  char exampleFilter[64] = "";
   bool autoConnect = false;
   bool everConnected = false;
   // True once a scene payload has actually arrived on the current connection. A
@@ -2098,6 +2377,9 @@ struct ViewerPane {
   std::vector<float> controlGc;
   uint32_t controlGcTag = 0;
   bool controlGcDirty = false;
+  // the server's sliders (RaisimServer::addSlider()) and the one being dragged
+  std::vector<raisin::tcp_viewer::ServerControlView> serverControls;
+  int draggedServerControl = -1;
 
   // ----- viewport gestures and tools -----
   ViewerViewportState viewportState;
@@ -2271,16 +2553,22 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+#if defined(__EMSCRIPTEN__)
+  // The page's canvas draws through WebGPU, so the window must not create a WebGL context.
+  constexpr Uint32 kWindowGraphicsFlag = 0;
+#else
+  constexpr Uint32 kWindowGraphicsFlag = SDL_WINDOW_OPENGL;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   auto setContextVersion = [](int major, int minor) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
   };
   setContextVersion(4, 3);
+#endif
 
   SDL_Window* window = SDL_CreateWindow("Rayrai Raisim TCP Viewer", SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED, options.windowWidth, options.windowHeight,
-    SDL_WindowFlags(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |
+    SDL_WindowFlags(kWindowGraphicsFlag | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |
                     (options.fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)));
 
   if (!window) {
@@ -2292,6 +2580,10 @@ int main(int argc, char* argv[]) {
     SDL_SetWindowBordered(window, SDL_TRUE);
   }
 
+#if defined(__EMSCRIPTEN__)
+  SDL_GLContext context = nullptr;
+  raisin::webgpu::initialize();
+#else
   SDL_GLContext context = SDL_GL_CreateContext(window);
   if (!context) {
     SDL_ClearError();
@@ -2313,6 +2605,7 @@ int main(int argc, char* argv[]) {
       return reinterpret_cast<glbinding::ProcAddress>(SDL_GL_GetProcAddress(name));
     },
     false);
+#endif
 
   gl::GLint fragmentTextureUnits = 0;
   gl::glGetIntegerv(gl::GL_MAX_TEXTURE_IMAGE_UNITS, &fragmentTextureUnits);
@@ -2328,10 +2621,17 @@ int main(int argc, char* argv[]) {
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+#if defined(__EMSCRIPTEN__)
+  ImGui_ImplSDL2_InitForOther(window);
+#else
   ImGui_ImplSDL2_InitForOpenGL(window, context);
+#endif
   ImGui_ImplOpenGL3_Init("#version 330");
   raionrobotics_imgui_theme();
 
+#if defined(__EMSCRIPTEN__)
+  raisin::webgpu::CanvasTarget canvasTarget;
+#endif
   TcpViewerIcons uiIcons;
   const std::filesystem::path tcpViewerIconDir = findTcpViewerIconDir(binaryDir);
   if (!uiIcons.load(tcpViewerIconDir)) {
@@ -2360,6 +2660,8 @@ int main(int argc, char* argv[]) {
   auto createPaneRenderer = [&](uint32_t paneId) {
     auto pane = std::make_unique<ViewerPane>(paneId);
     pane->world = std::make_shared<raisim::World>();
+    pane->exampleLauncher = std::make_unique<raisin::tcp_viewer::ExampleLauncher>(
+        options.examplesDir.empty() ? binaryDir : std::filesystem::absolute(options.examplesDir));
     // Construct the renderer with the shader binary cache turned on and verbose so
     // we can see whether the slow "pbrMeshHigh" compile is a cache miss or a
     // genuine driver recompile. ThreadingMode default, 1 compile thread, cache
@@ -2368,7 +2670,11 @@ int main(int argc, char* argv[]) {
         pane->world, options.windowWidth, options.windowHeight,
         raisin::RayraiWindow::ThreadingMode::SingleThread,
         /*shaderCompileThreadCount=*/1u,
+#if defined(__EMSCRIPTEN__)
+        /*shaderBinaryCacheEnabled=*/false,
+#else
         /*shaderBinaryCacheEnabled=*/true,
+#endif
         /*shaderBinaryCacheDirectory=*/std::string{},
         /*logShaderBinaryCache=*/true);
     // TCP scene updates need mesh assets available on the first render/export pass.
@@ -2399,7 +2705,10 @@ int main(int argc, char* argv[]) {
     sanitizeViewerSettings(settings);
   }
   const GpuQualityRecommendation gpuQuality = recommendRenderQualityForCurrentGpu();
-  if (applyAutomaticRenderQualityIfUnset(settings, gpuQuality.quality)) {
+  if (options.renderQuality >= 0) {
+    copyRenderDefaultsToSettings(settings, options.renderQuality);
+    settings.renderQualityUserSet = true;
+  } else if (applyAutomaticRenderQualityIfUnset(settings, gpuQuality.quality)) {
     std::cerr << "INFO: Auto render quality selected " << qualityName(settings.renderQuality)
               << " for GPU '" << gpuQuality.gpu.renderer << "'\n";
   }
@@ -2671,6 +2980,10 @@ int main(int argc, char* argv[]) {
     auto& actuatorTraces = pane.actuatorTraces;
     auto& localSimulation = pane.localSimulation;
     auto& connectingLocalSimulation = pane.connectingLocalSimulation;
+    auto& exampleLauncher = *pane.exampleLauncher;
+    auto& connectingExample = pane.connectingExample;
+    auto& selectOutputTab = pane.selectOutputTab;
+    auto& exampleFilter = pane.exampleFilter;
     auto& autoConnect = pane.autoConnect;
     auto& everConnected = pane.everConnected;
     auto& sceneReceived = pane.sceneReceived;
@@ -2714,6 +3027,8 @@ int main(int argc, char* argv[]) {
     auto& requestedIndex = pane.requestedIndex;
     auto& requestedEntry = pane.requestedEntry;
     auto& motionEstimates = pane.motionEstimates;
+    auto& serverControls = pane.serverControls;
+    auto& draggedServerControl = pane.draggedServerControl;
     auto& pendingControlRequests = pane.pendingControlRequests;
     auto& simPaused = pane.simPaused;
     auto& controlForce = pane.controlForce;
@@ -2805,7 +3120,6 @@ int main(int argc, char* argv[]) {
     // ImGui keys window state by name, so every pane needs its own names or all
     // panes would share one collapsed/scrolled/positioned panel.
     const std::string paneWindowSuffix = "##pane" + std::to_string(pane.id);
-    const std::string overlayWindowName = "Raisim TCP##Overlay" + paneWindowSuffix;
     const std::string detailWindowName = "Selected Object##Overlay" + paneWindowSuffix;
     const std::string inspectorWindowName = "Raisim Inspector##Overlay" + paneWindowSuffix;
 
@@ -2831,6 +3145,19 @@ int main(int argc, char* argv[]) {
     inspector = InspectorState{};
     lastStatus = "disconnected";
   };
+  // A pane runs one session: starting another one ends the example the pane launched, so that
+  // the example's exit cannot disconnect the session that replaced it.
+  auto stopExample = [&] {
+    exampleLauncher.stop();
+    connectingExample = false;
+  };
+  // Ending a session ends the example it was attached to, which stays in the Output tab with
+  // its output until it is cleared or another session starts.
+  auto terminateExample = [&] {
+    exampleLauncher.terminate();
+    connectingExample = false;
+  };
+
   auto loadAsInspector = [&](const std::string& path) -> bool {
     namespace fs = std::filesystem;
     inspector.lastError.clear();
@@ -2841,6 +3168,7 @@ int main(int argc, char* argv[]) {
 
     // Close any previously-loaded inspector model before replacing it.
     closeInspector();
+    stopExample();
 
     const auto tStart = std::chrono::steady_clock::now();
     raisin::tcp_viewer::InspectorModel model;
@@ -2952,6 +3280,8 @@ int main(int argc, char* argv[]) {
     mouseForce = {};
     poseGrabber = {};
     pendingControlRequests.clear();
+    serverControls.clear();
+    draggedServerControl = -1;
     controlSelectionTag = 0;
     controlSelectionIndex = -1;
     controlPoseTag = 0;
@@ -2986,6 +3316,10 @@ int main(int argc, char* argv[]) {
       lastStatus = "close inspector to connect";
       return false;
     }
+    if (exampleLauncher.conflictsWith(isLoopbackHostName(endpoint.host) ? "127.0.0.1" : endpoint.host,
+                                      endpoint.port, beaconReceiver.servers())) {
+      stopExample();
+    }
     lastStatus = connectingStatus;
     if (target == raisin::tcp_viewer::ConnectionTarget::ExternalServer && localSimulation.active()) {
       clearSceneState();
@@ -2997,6 +3331,7 @@ int main(int argc, char* argv[]) {
       awaitingResponse = false;
       awaitingSensorAck = false;
       everConnected = true;
+      if (exampleLauncher.example() && !exampleLauncher.active()) stopExample();
       setPaneEndpoint(pane, endpoint.host, endpoint.port);
       if (!localSimulation.active()) {
         recordConnection(recentConnections, endpoint.host, endpoint.port);
@@ -3022,6 +3357,7 @@ int main(int argc, char* argv[]) {
       if (!localSimulation.start(binaryPath, path, options.activationKey, error)) {
         lastStatus = error; return false;
       }
+      stopExample();
       client.disconnect();
       awaitingResponse = awaitingSensorAck = false;
       closeInspector();
@@ -3051,14 +3387,39 @@ int main(int argc, char* argv[]) {
     return loaded;
   };
 
+  // Launches a server example from the viewer's directory and connects once its beacon
+  // tells the port.
+  auto startExample = [&](const raisin::tcp_viewer::ServerExample& example) {
+    if (inspector.active) closeInspector();
+    client.disconnect();
+    localSimulation.stop();
+    connectingLocalSimulation = false;
+    awaitingResponse = awaitingSensorAck = false;
+    clearSceneState();
+    replayMode = false;
+    autoConnect = false;
+    std::string error;
+    if (!exampleLauncher.start(example.name, error)) {
+      lastStatus = error;
+      connectingExample = false;
+      return;
+    }
+    connectingExample = true;
+    selectOutputTab = true;
+    autoFrameApplied = false;
+    nextAutoConnectAttempt = std::chrono::steady_clock::now();
+    lastStatus = "Starting " + example.title;
+  };
+
   auto applyScenePayload = [&](const std::vector<char>& payload, bool fromReplay,
                               std::chrono::steady_clock::time_point sampleNow,
                               std::vector<PendingSensorUpdate>& pending) -> bool {
     BufferReader reader(payload);
     scene.setVerbose(verboseParsing);
     const bool parsedOk = scene.applyResponse(reader, pending);
-    if (!fromReplay) {
-      for (const auto& command : scene.takeViewerCommands()) {
+    raisin::tcp_viewer::dispatchViewerCommands(
+      scene.takeViewerCommands(), fromReplay, sceneFiles, *viewer,
+      [&](const raisin::tcp_viewer::ViewerCommand& command) {
         switch (command.type) {
           case raisin::tcp_viewer::ViewerCommandType::StartRecording: {
             if (!raisin::tcp_viewer::canStartServerRecording(
@@ -3121,12 +3482,18 @@ int main(int argc, char* argv[]) {
                                 std::clamp(command.height, 120, 8192));
             }
             break;
+          case raisin::tcp_viewer::ViewerCommandType::SetFluidVolumes:
+            break;
+          case raisin::tcp_viewer::ViewerCommandType::SetControls:
+            raisin::tcp_viewer::receiveServerControls(serverControls, command.controls);
+            break;
         }
-      }
+      });
+    if (!fromReplay) {
       sceneFiles.receive(scene.takeSceneFileBlock(), client);
-    } else {
-      static_cast<void>(scene.takeViewerCommands());
     }
+    // the water moves with the server's world, as its waves do in the physics
+    if (scene.hasServerWorldTime()) viewer->setWaterTimeSeconds(scene.getServerWorldTime());
     const bool disconnectRequested = scene.consumeDisconnectRequested();
     bool ok = parsedOk && !disconnectRequested;
     if (disconnectRequested) {
@@ -3230,6 +3597,18 @@ int main(int argc, char* argv[]) {
         }
       }
       light.direction = lightDirectionFromYawPitch(lightYawDeg, lightPitchDeg);
+      if (!options.exampleName.empty()) {
+        const auto& examples = exampleLauncher.examples();
+        const auto found = std::find_if(examples.begin(), examples.end(),
+            [&](const raisin::tcp_viewer::ServerExample& example) { return example.name == options.exampleName; });
+        if (found == examples.end()) {
+          std::cerr << "Unknown server example: " << options.exampleName << '\n';
+          quit = true;
+          viewerExitCode = 1;
+        } else {
+          startExample(*found);
+        }
+      }
       if (!options.simulationPath.empty()) {
         std::string error;
         if (raisin::tcp_viewer::classifyDroppedScene(options.simulationPath, error) !=
@@ -3337,6 +3716,29 @@ int main(int argc, char* argv[]) {
       lastStatus = "Simulation stopped: " + localSimulation.error();
       std::cerr << lastStatus << '\n';
       if (!options.simulationPath.empty() && !everConnected) { quit = true; viewerExitCode = 1; }
+    }
+    {
+      using ExampleState = raisin::tcp_viewer::ExampleLauncher::State;
+      const bool exampleWasActive = exampleLauncher.active();
+      exampleLauncher.poll(beaconReceiver.servers());
+      if (exampleWasActive && exampleLauncher.state() == ExampleState::Exited) {
+        client.disconnect();
+        clearSceneState();
+        awaitingResponse = awaitingSensorAck = false;
+        connectingExample = false;
+        selectOutputTab = true;
+        lastStatus = exampleLauncher.example()->title + " exited (code " +
+                     std::to_string(exampleLauncher.exitCode()) + ")";
+        std::cerr << lastStatus << '\n';
+      }
+      if (connectingExample && exampleLauncher.state() == ExampleState::Running &&
+          now >= nextAutoConnectAttempt) {
+        if (connectToEndpoint({exampleLauncher.host(), exampleLauncher.port()}, false,
+                              "Connecting to example", "Waiting for example", kAutoConnectTimeoutMs)) {
+          connectingExample = false;
+        }
+        nextAutoConnectAttempt = now + std::chrono::milliseconds(100);
+      }
     }
     if (connectingLocalSimulation && localSimulation.state() == raisin::tcp_viewer::LocalSimulation::State::Running &&
         now >= nextAutoConnectAttempt) {
@@ -3765,6 +4167,10 @@ int main(int argc, char* argv[]) {
         awaitingSensorAck = false;
         client.disconnect();
         clearSceneState();
+        if (exampleLauncher.example()) {
+          terminateExample();
+          selectOutputTab = true;
+        }
       }
     }
 
@@ -5316,6 +5722,7 @@ int main(int argc, char* argv[]) {
     // active so the user isn't tempted to interact with mutually-exclusive state.
     const bool overlayVisible = !inspector.active;
     bool overlayHovered = false;
+    bool overlayCollapseClicked = false;
     if (overlayVisible) {
     // The collapsed logo sits on a light chip because the wordmark is dark ink;
     // that chip is fully opaque so no scene colour bleeds through the logo.
@@ -5331,18 +5738,18 @@ int main(int argc, char* argv[]) {
     }
     // Auto-resize alone would let a tall panel run past the bottom of a small
     // pane and over its neighbour, so cap it at the pane the panel belongs to.
-    ImGui::SetNextWindowSizeConstraints(
-      ImVec2(0.0f, 0.0f),
-      ImVec2(FLT_MAX, std::max(ImGui::GetFontSize() * 6.0f,
-                               uiSize.y - (overlayPos.y - paneOrigin.y) - 12.0f)));
-    if (ImGui::Begin(overlayWindowName.c_str(), nullptr, kOverlayPanelWindowFlags)) {
+    const float overlayMaxHeight =
+      std::max(ImGui::GetFontSize() * 6.0f, uiSize.y - (overlayPos.y - paneOrigin.y) - 12.0f);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(FLT_MAX, overlayMaxHeight));
+    // A pointer that opens the chip during this frame opens the panel from the next frame on: the
+    // chip's window must never lay out the panel's content, or it keeps that size.
+    const bool drawsChip = overlayMinimized;
+    if (ImGui::Begin(leftPanelWindowName(drawsChip, paneWindowSuffix).c_str(), nullptr,
+                     kOverlayPanelWindowFlags)) {
       overlayHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
       overlayRightEdge = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
-      const bool overlayHoverShouldOpen = overlayMinimized && overlayHovered &&
-                                          !overlayCollapsedHoveredLastFrame;
       const ImGuiStyle& style = ImGui::GetStyle();
-      if (overlayHoverShouldOpen) {
-        overlayMinimized = false;
+      if (openLeftPanelOnHover(overlayMinimized, overlayHovered, overlayCollapsedHoveredLastFrame)) {
         overlayLastInteractionTime = now;
       }
 
@@ -5353,7 +5760,11 @@ int main(int argc, char* argv[]) {
 
       // The Connection tab's contents, which are also drawn on their own when
       // there is no session and the tab bar would hold a single tab.
+      // The connect prompt's first row, which ends with the collapse button when there is no session.
+      PanelRow connectRow;
       const auto drawConnectionTab = [&]() {
+        connectRow.min = ImGui::GetCursorScreenPos();
+        connectRow.height = ImGui::GetFrameHeight();
         ImGui::PushStyleColor(ImGuiCol_TextDisabled,
           raionrobotics_imgui_secondary_text_color());
         ConnectionEntry current;
@@ -5475,6 +5886,7 @@ int main(int argc, char* argv[]) {
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Disconnect, "Disconnect", "disconnect")) {
             client.disconnect();
             localSimulation.stop();
+            terminateExample();
             connectingLocalSimulation = false;
             autoConnect = false;
             awaitingResponse = false;
@@ -5496,6 +5908,7 @@ int main(int argc, char* argv[]) {
           ImGui::SameLine();
           ImGui::TextDisabled("(inspector active — close to connect)");
         }
+        connectRow.itemsRight = ImGui::GetItemRectMax().x;
 
         // Disconnected: the endpoint row above, then the live server list. It is
         // a child rather than a combo so the servers are on screen without a
@@ -5631,6 +6044,7 @@ int main(int argc, char* argv[]) {
           if (!discoveryStatus.empty()) {
             ImGui::TextDisabled("%s", discoveryStatus.c_str());
           }
+          drawExampleLauncher(exampleLauncher, exampleFilter, sizeof(exampleFilter), listWidth, startExample);
           // Amber while a connect is in flight, red once it is idle or failed:
           // the prompt now stays up through the handshake, so a plain red line
           // would call a connection that is still being made a failure.
@@ -5869,19 +6283,59 @@ int main(int argc, char* argv[]) {
         ImGui::PopStyleColor();
       };
 
-      if (overlayMinimized) {
+      PanelRow leftTabRow;
+      const bool showOutputTab = exampleLauncher.example() != nullptr;
+      if (drawsChip) {
         drawCollapsedLeftPanelLogo(collapsedLogoVisible ? raisimLogo : TcpViewerImageTexture{});
-      } else if (!sessionActive) {
+      } else if (!sessionActive && !showOutputTab) {
         // A tab bar holding a single tab is just a title with extra steps, so the
-        // connect prompt is drawn on its own.
+        // connect prompt is drawn on its own, and the collapse button ends its first row.
+        ImGui::BeginGroup();
         drawConnectionTab();
-      } else if (beginIconTabBar("##LeftTabs")) {
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Connect, "Connection", "tab_connection")) {
+        ImGui::EndGroup();
+        connectRow.contentRight = ImGui::GetItemRectMax().x;
+        if (drawIconOnlyButtonAtRowEnd(uiIcons, TcpViewerIconKind::Collapse, "Collapse panel",
+                                       "collapse_left_panel", connectRow)) {
+          overlayMinimized = true;
+          overlayCollapseClicked = true;
+        }
+      } else if (beginIconTabBar("##LeftTabs", &leftTabRow)) {
+        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Connect, "Connection", "tab_connection",
+                             &leftTabRow)) {
           drawConnectionTab();
           ImGui::EndTabItem();
         }
 
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Options, "Options", "tab_options")) {
+        // The launched example's own tab, there from its start until it is cleared, so that the
+        // output of an example that ended stays readable after its session is gone.
+        if (showOutputTab) {
+          const ImGuiTabItemFlags outputTabFlags = selectOutputTab ? ImGuiTabItemFlags_SetSelected : 0;
+          selectOutputTab = false;
+          if (beginIconTabItem(uiIcons, TcpViewerIconKind::FileCode, "Example output", "tab_example_output",
+                               &leftTabRow, outputTabFlags)) {
+            const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+            const float outputWidth = std::min(ImGui::CalcTextSize("0").x * 72.0f + style.ScrollbarSize,
+                                               std::max(lineHeight * 12.0f, uiSize.x * 0.6f));
+            const float outputTop = ImGui::GetCursorScreenPos().y + ImGui::GetFrameHeightWithSpacing();
+            const float outputHeight = std::clamp(overlayPos.y + overlayMaxHeight - outputTop - 10.0f,
+                                                  lineHeight * 6.0f, lineHeight * 16.0f);
+            drawExampleOutputTab(uiIcons, *exampleLauncher.example(), exampleLauncher.state(),
+              exampleLauncher.exitCode(), exampleLauncher.output(), ImVec2(outputWidth, outputHeight),
+              [&] {
+                client.disconnect();
+                terminateExample();
+                clearSceneState();
+                awaitingResponse = awaitingSensorAck = false;
+                autoConnect = false;
+                lastStatus = "Example stopped";
+              },
+              [&] { stopExample(); });
+            ImGui::EndTabItem();
+          }
+        }
+
+        if (sessionActive &&
+            beginIconTabItem(uiIcons, TcpViewerIconKind::Options, "Options", "tab_options", &leftTabRow)) {
           drawViewOptions();
           ImGui::EndTabItem();
         }
@@ -5889,7 +6343,8 @@ int main(int argc, char* argv[]) {
         // Everything that writes a file lives here rather than sharing the
         // Options tab: screenshots, video, the PNG frame sequence, the session
         // replay log, and the replay transport.
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Video, "Record", "tab_record")) {
+        if (sessionActive &&
+            beginIconTabItem(uiIcons, TcpViewerIconKind::Video, "Record", "tab_record", &leftTabRow)) {
           ImGui::PushStyleColor(ImGuiCol_TextDisabled,
             raionrobotics_imgui_secondary_text_color());
           drawCaptureOptions();
@@ -5897,12 +6352,14 @@ int main(int argc, char* argv[]) {
           ImGui::EndTabItem();
         }
 
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Render, "Render", "tab_render")) {
+        if (sessionActive &&
+            beginIconTabItem(uiIcons, TcpViewerIconKind::Render, "Render", "tab_render", &leftTabRow)) {
           drawRenderingOptions();
           ImGui::EndTabItem();
         }
 
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Objects, "Objects", "tab_objects")) {
+        if (sessionActive &&
+            beginIconTabItem(uiIcons, TcpViewerIconKind::Objects, "Objects", "tab_objects", &leftTabRow)) {
           uint32_t selectedTag = 0;
           int selectedIndex = 0;
           const VisualEntry* selectedEntry = nullptr;
@@ -6407,7 +6864,8 @@ int main(int argc, char* argv[]) {
 
           ImGui::EndTabItem();
         }
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Diagnostics, "Diagnostics", "tab_diagnostics")) {
+        if (sessionActive && beginIconTabItem(uiIcons, TcpViewerIconKind::Diagnostics, "Diagnostics",
+                                              "tab_diagnostics", &leftTabRow)) {
           constexpr const char* packetColumnNames[] = {"t", "bytes", "src", "ok", "obj", "vis", "sens", "miss"};
           constexpr float packetColumnWidths[] = {62.0f, 62.0f, 46.0f, 34.0f, 44.0f, 44.0f, 44.0f, 44.0f};
           float packetTableWidth = ImGui::GetStyle().ScrollbarSize + ImGui::GetStyle().CellPadding.x * 16.0f;
@@ -6553,7 +7011,8 @@ int main(int argc, char* argv[]) {
           }
           ImGui::EndTabItem();
         }
-        if (beginIconTabItem(uiIcons, TcpViewerIconKind::Help, "Help", "tab_help")) {
+        if (sessionActive &&
+            beginIconTabItem(uiIcons, TcpViewerIconKind::Help, "Help", "tab_help", &leftTabRow)) {
           ImGui::PushStyleColor(ImGuiCol_TextDisabled,
             raionrobotics_imgui_secondary_text_color());
           ImGui::SeparatorText("Keyboard and mouse");
@@ -6561,7 +7020,14 @@ int main(int argc, char* argv[]) {
           ImGui::PopStyleColor();
           ImGui::EndTabItem();
         }
-        endIconTabBar();
+        endIconTabBar(&leftTabRow);
+        // Collapses the panel now rather than after kOverlayAutoCollapseDelay
+        // without the pointer.
+        if (drawIconOnlyButtonAtRowEnd(uiIcons, TcpViewerIconKind::Collapse, "Collapse panel",
+                                       "collapse_left_panel", leftTabRow)) {
+          overlayMinimized = true;
+          overlayCollapseClicked = true;
+        }
       }
     }
     ImGui::End();
@@ -6571,14 +7037,8 @@ int main(int argc, char* argv[]) {
     ImGui::PopStyleVar(2);
     const bool overlayInteractionActive = ImGui::IsAnyItemActive() ||
                                           ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup);
-    if (!overlayMinimized) {
-      if (overlayHovered || overlayInteractionActive || options.keepOverlayOpen) {
-        overlayLastInteractionTime = now;
-      } else if (now - overlayLastInteractionTime >= kOverlayAutoCollapseDelay) {
-        overlayMinimized = true;
-      }
-    }
-    overlayCollapsedHoveredLastFrame = overlayMinimized && overlayHovered;
+    overlayCollapsedHoveredLastFrame = finishLeftPanelFrame(overlayMinimized, overlayLastInteractionTime, now,
+      overlayHovered, overlayInteractionActive, options.keepOverlayOpen, overlayCollapseClicked);
     } // end if (overlayVisible)
     // Scene-file prompt, download and mesh progress, below the menu bar, clear of the overlay.
     sceneFiles.drawOverlay(ImVec2(paneOrigin.x, paneOrigin.y + menuBarHeight),
@@ -6606,6 +7066,51 @@ int main(int argc, char* argv[]) {
       // Not even the minimised inspector fits beside the overlay: collapsing the
       // overlay is the only way to see the selection in a pane this narrow.
       selectedEntry = nullptr;
+    }
+
+    // the server's sliders, at the pane's lower right corner, while it streams
+    if (!serverControls.empty() && client.isConnected()) {
+      ImGui::SetNextWindowBgAlpha(0.5f);
+      ImGui::SetNextWindowPos(ImVec2(paneOrigin.x + uiSize.x - 12.0f, paneOrigin.y + uiSize.y - 12.0f),
+                              ImGuiCond_Always, ImVec2(1.0f, 1.0f));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
+      if (ImGui::Begin(("Controls##Overlay" + paneWindowSuffix).c_str(), nullptr, kOverlayPanelWindowFlags)) {
+        ImGui::TextColored(ImVec4(0.35f, 0.8f, 1.0f, 1.0f), "Controls");
+        if (!awaitingResponse)
+          raisin::tcp_viewer::settleServerControls(
+            serverControls, raisin::tcp_viewer::heldServerControls(serverControls.size(), draggedServerControl,
+                                                                   pendingControlRequests));
+        draggedServerControl = -1;
+        for (size_t i = 0; i < serverControls.size(); ++i) {
+          auto& control = serverControls[i].control;
+          ImGui::PushID(static_cast<int>(i));
+          ImGui::SetNextItemWidth(std::round(ImGui::GetFontSize() * 12.0f));
+          double value = control.value;
+          const bool changed = ImGui::SliderScalar(control.name.c_str(), ImGuiDataType_Double, &value, &control.min,
+                                                   &control.max, "%.3g", ImGuiSliderFlags_AlwaysClamp);
+          if (ImGui::IsItemActive()) draggedServerControl = static_cast<int>(i);
+          if (changed) {
+            control.value = value;
+            raisin::tcp_viewer::ClientRequest request;
+            request.type = raisin::tcp_viewer::ClientRequestType::CR_SET_CONTROL;
+            request.controlIndex = static_cast<int32_t>(i);
+            request.controlValue = value;
+            const auto pending = std::find_if(pendingControlRequests.begin(), pendingControlRequests.end(),
+                                              [&](const raisin::tcp_viewer::ClientRequest& queued) {
+                                                return queued.type == request.type &&
+                                                       queued.controlIndex == request.controlIndex;
+                                              });
+            if (pending != pendingControlRequests.end()) {
+              *pending = request;
+            } else {
+              pendingControlRequests.push_back(request);
+            }
+          }
+          ImGui::PopID();
+        }
+      }
+      ImGui::End();
+      ImGui::PopStyleVar();
     }
 
     if (selectedEntry) {
@@ -7649,8 +8154,16 @@ int main(int argc, char* argv[]) {
     }
 
     ImGui::Render();
+#if defined(__EMSCRIPTEN__)
+    canvasTarget.bind(std::max(1, fbW), std::max(1, fbH));
+#endif
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#if defined(__EMSCRIPTEN__)
+    canvasTarget.present();
+    raisin::webgpu::waitForAnimationFrame();
+#else
     SDL_GL_SwapWindow(window);
+#endif
   }
 
   if (logExitFps) {
@@ -7695,11 +8208,18 @@ int main(int argc, char* argv[]) {
   }
   panes.clear();
 
+#if defined(__EMSCRIPTEN__)
+  canvasTarget.release();
+#endif
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
 
+#if defined(__EMSCRIPTEN__)
+  raisin::webgpu::shutdown();
+#else
   SDL_GL_DeleteContext(context);
+#endif
   SDL_DestroyWindow(window);
   SDL_Quit();
   return viewerExitCode;

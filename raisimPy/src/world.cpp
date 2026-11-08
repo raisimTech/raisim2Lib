@@ -1184,6 +1184,23 @@ void init_world(py::module_ &m) {
             list[Object]: list of object instances.
         )mydelimiter")
 
+      .def("addSegmentationClass", &raisim::World::addSegmentationClass, R"mydelimiter(
+        Name a segmentation class, e.g. object.setSegmentationLabel(world.addSegmentationClass("box")).
+
+        Args:
+            name (str): class name.
+
+        Returns:
+            int: the label of the class (labels start at 1; 0 is unlabeled).
+        )mydelimiter",
+        py::arg("name"))
+      .def("getSegmentationClassLabel", &raisim::World::getSegmentationClassLabel, py::arg("name"))
+      .def("getSegmentationClassName", &raisim::World::getSegmentationClassName, py::arg("label"))
+      .def("getSegmentationClassNames", &raisim::World::getSegmentationClassNames,
+           "Class names indexed by label; unnamed labels hold empty strings.")
+      .def("setSegmentationClassName", &raisim::World::setSegmentationClassName,
+           py::arg("label"), py::arg("name"))
+
       .def("updateMaterialProp", &raisim::World::updateMaterialProp, R"mydelimiter(
         Update material property.
 

@@ -1077,6 +1077,27 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
         )mydelimiter",
         py::arg("name"))
 
+        .def("setBodySegmentationLabel",
+             py::overload_cast<size_t, int32_t>(&raisim::ArticulatedSystem::setBodySegmentationLabel),
+             R"mydelimiter(
+        Give one body its own segmentation label; it takes precedence over the object label.
+
+        Args:
+            body_idx (int): body index.
+            label (int): non-negative label.
+        )mydelimiter",
+        py::arg("body_idx"), py::arg("label"))
+        .def("setBodySegmentationLabel",
+             py::overload_cast<const std::string&, int32_t>(&raisim::ArticulatedSystem::setBodySegmentationLabel),
+             py::arg("body_name"), py::arg("label"))
+        .def("getBodySegmentationLabel", &raisim::ArticulatedSystem::getBodySegmentationLabel, R"mydelimiter(
+        Returns:
+            int: the label of the body, its own or the object label.
+        )mydelimiter",
+        py::arg("body_idx"))
+        .def("clearBodySegmentationLabels", &raisim::ArticulatedSystem::clearBodySegmentationLabels,
+             "Remove the body labels; every body takes the object label again.")
+
 
         .def("getDOF", &raisim::ArticulatedSystem::getDOF, R"mydelimiter(
         Return the number of degrees of freedom.

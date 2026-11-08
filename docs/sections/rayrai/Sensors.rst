@@ -154,11 +154,52 @@ is honored by ``raisin::Camera``. The ``RGBCamera`` and ``DepthCamera``
 constructors copy the lens, ``isFisheyeLens()`` reports it, and
 ``renderWithExternalCamera`` resamples the rendered color image through the
 OpenCV/ROS equidistant model with ``k1``–``k4`` distortion. The source view is
-rasterized with a horizontal field of view of at most 179°. Only the color
-image is remapped; depth from ``renderDepthPlaneDistance`` stays rectilinear.
-For a camera that is not built from a RaiSim sensor, call
+rasterized with a horizontal field of view of at most 179°. The linear depth of
+``renderDepthPlaneDistance`` and the ids of ``renderSegmentation`` are remapped
+the same way at the nearest source pixel, so depth, segmentation and RGB of one
+fisheye camera line up and a fisheye ``DepthCamera``'s ``depthToPointCloud()``
+gets the depth its rays expect. Pixels beyond half the horizontal field of view
+from the optical axis hold no depth (0) and background ids (-1), as the color
+image is black there. For a camera that is not built from a RaiSim sensor, call
 ``Camera::setLensModel(lens, hFovRad)`` and set ``zoom`` (the vertical field of
 view of the rasterized source view) yourself.
+
+.. _rayrai-segmentation:
+
+Segmentation
+============
+``RayraiWindow::renderSegmentation(sensor, camera)`` renders a
+``raisim::SegmentationCamera`` (see :ref:`segmentation camera <segmentation-camera>`):
+each pixel of the camera's ``RGBA32I`` target holds the world index, body index
+and label of the world object it sees, or ``-1`` in all three. It draws the
+geometry of ``renderDepthPlaneDistance``, without antialiasing, blending,
+weather or post-processing, so the depth and segmentation of a camera agree
+pixel for pixel. Read the images into the sensor or into your own buffers:
+
+.. code-block:: cpp
+
+    auto* segmentation = robot->getSensorSet("camera_link")
+                           ->getSensor<raisim::SegmentationCamera>("segmentation");
+    raisin::Camera camera(*segmentation);           // resolution, clipping, field of view, lens
+    viewer.renderSegmentation(*segmentation, camera);
+    camera.getRawImage(*segmentation);              // the images the segmentation type selects
+
+    std::vector<int32_t> labels(size_t(camera.rtWidth()) * camera.rtHeight());
+    camera.readSegmentation(nullptr, nullptr, labels.data(), labels.size());  // skip images with null
+
+Rows come top-first unless ``flipVertical`` is false; ``getSegmentationTexture()``
+returns the GL texture for further GPU work. One ``Camera`` can render the color,
+depth and segmentation of a pose in turn, which keeps the three aligned.
+
+Pass ``drawVisualizationObjects`` to include visuals: ``Visuals`` and
+``InstancedVisuals`` write their ``getSegmentationIds()``, ``-2`` as object and
+body index (``SegmentationCamera::kNotWorldObject``) and label 0 unless set with
+``setSegmentationIds()`` or ``setSegmentationLabel()``;
+``InstancedVisuals::setSegmentationExcluded(true)`` leaves a visual out. The TCP
+viewer gives the visuals it builds for server objects their server world index,
+body index and label (``kProtocolFeatureSegmentation``) and excludes the mesh
+batches it draws them with, so a TCP render reports what an in-process one does.
+The integer target needs desktop OpenGL; the WebGPU backend does not support it.
 
 TCP viewer protocol
 ===================
@@ -183,8 +224,10 @@ The protocol constants are defined in ``rayrai/TcpProtocolReader.hpp``, which
 * ``kProtocolVersion`` — the current wire version. Mismatched versions cause
   the viewer to disconnect with a versioned-protocol error.
 * ``kProtocolFeatureExplicitHeader``, ``kProtocolFeatureDeformableDelta``,
-  ``kProtocolFeatureSimControl``, ``kProtocolFeatureContactObjectTags``, and
-  ``kProtocolFeatureActuatorState`` — the currently negotiated feature bits;
+  ``kProtocolFeatureSimControl``, ``kProtocolFeatureContactObjectTags``,
+  ``kProtocolFeatureActuatorState`` and ``kProtocolFeatureSegmentation`` (segmentation
+  cameras, and the world index and body labels after each world object record) — the
+  currently negotiated feature bits;
   ``kProtocolSupportedFeatures`` is the OR of all bits this build understands.
   The viewer rejects a server update that sets any other bit.
 * ``kMaxMessageBytes`` — maximum accepted message size (default 64 MiB),
@@ -220,9 +263,9 @@ reader provides ``readBool``, ``readVec3f``, ``readVec4f``, ``readQuatWxyz``,
 ``readFloatVector``, ``readIntVector``, ``readByteVector``, and
 ``readColorMap``.
 
-The current viewer also services ``MeasurementSource::MANUAL`` RGB/depth
-requests received in the scene stream. It renders from the streamed camera
-pose and lens, returns BGRA or metric-depth buffers in a sensor-update message,
+The current viewer also services ``MeasurementSource::MANUAL`` RGB, depth and
+segmentation requests received in the scene stream. It renders from the streamed camera
+pose and lens, returns BGRA, metric-depth or segmentation id buffers in a sensor-update message,
 and exposes the latest preview in the selected object's Sensors tab. IMU and
 spinning-LiDAR values remain RaiSim-side. See :doc:`../RayraiTcpViewer` for the
 full request/response sequence and troubleshooting guidance.

@@ -7,7 +7,7 @@ RaiSim supports these sensor workflows:
 * **URDF-attached sensors** for robots. Sensor metadata is loaded from a sensor
   XML file attached to a URDF link. This is the right workflow for IMU, RGB,
   depth, and spinning LiDAR sensors that should move with an articulated system.
-* **rayrai-rendered RGB/depth sensors** for camera observations. When rayrai is
+* **rayrai-rendered RGB/depth/segmentation sensors** for camera observations. When rayrai is
   available, use in-process rayrai rendering with
   ``Sensor::MeasurementSource::MANUAL`` for RGB/depth sensor buffers. This is
   the recommended path for rendered images, screenshots, and dataset generation.
@@ -181,6 +181,185 @@ Manual buffer update:
     }
 
     rgb->setImageBuffer(rgba);
+
+
+.. _segmentation-camera:
+
+Segmentation camera
+====================================
+
+``raisim::SegmentationCamera`` reports, for every pixel, which object, which body of that object
+and which semantic label the camera sees. It fills up to three ``int32`` images of
+``width * height`` values, row-major with row 0 at the top of the image:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 48 30
+
+   * - Image
+     - Value
+     - Nothing hit
+   * - ``getObjectImage()``
+     - World index of the object, ``World::getObject(index)`` (``Object::getIndexInWorld()``)
+     - ``-1``
+   * - ``getBodyImage()``
+     - Body index within that object: an ``ArticulatedSystem`` body
+       (``getBodyNames()`` order); ``0`` for single bodies, compounds, terrain and deformables
+     - ``-1``
+   * - ``getLabelImage()``
+     - Semantic label of that body; ``0`` for geometry without a label
+     - ``-1``
+
+``-1`` (``SegmentationCamera::kBackground``) in every image means nothing was hit within
+``[clipNear, clipFar]``. The object and body images hold ``-2``
+(``SegmentationCamera::kNotWorldObject``) for rayrai visuals that are not RaiSim objects; they
+appear only when a renderer is asked to draw visualization objects. Number your own classes from
+1: label 0 means unlabeled.
+
+The segmentation type selects the images, as Gazebo's ``segmentation_type`` does:
+
+* ``SEMANTIC``: the label image;
+* ``INSTANCE``: the object and body images;
+* ``PANOPTIC`` (default): all three.
+
+The images a type does not select are empty (``None`` in Python).
+
+Labels
+------
+
+Labels are plain non-negative integers set on objects. An articulated system's bodies take its
+label, unless a body has its own; a body label takes precedence whatever the order of the calls.
+Links merged into their parent through fixed joints are part of the parent body.
+
+.. code-block:: cpp
+
+    table->setSegmentationLabel(3);
+    robot->setSegmentationLabel(1);                       // every body of the robot
+    robot->setBodySegmentationLabel("gripper_link", 2);  // except the gripper
+    robot->clearBodySegmentationLabels();                // all bodies take the object label again
+
+``World`` keeps optional class names for labels, like Isaac Lab's ``idToLabels``:
+
+.. code-block:: cpp
+
+    box->setSegmentationLabel(world.addSegmentationClass("box"));  // 1 the first time, then the same label
+    const std::string& name = world.getSegmentationClassName(label);  // "" for an unnamed label
+
+World XML files store labels and classes. An object takes ``segmentation_label="3"`` or
+``segmentation_class="box"``; an articulated system also takes
+``<body_segmentation body="gripper_link" label="2"/>`` (or ``class="gripper"``) children; the
+world's names are kept in ``<segmentation_classes><class label="1" name="box"/></segmentation_classes>``.
+``.rscene`` files label objects and articulated systems with their ``semanticClass`` key, which
+RaiSim Engine 2 writes.
+
+Attaching a segmentation camera
+-------------------------------
+
+The sensor XML matches the RGB and depth cameras. The optional ``<segmentation type="..."/>``
+element takes ``semantic``, ``instance`` or ``panoptic``; other values are rejected.
+
+.. code-block:: xml
+
+    <sensor name="segmentation" type="segmentation" update_rate="30">
+      <origin xyz="0.1 0 0" rpy="0 0 0"/>
+      <camera horizontal_fov="1.5" projection="pinhole">
+        <image width="640" height="480"/>
+        <clip near="0.1" far="20"/>
+        <segmentation type="panoptic"/>
+      </camera>
+    </sensor>
+
+Give it the pose and camera parameters of an RGB camera to get labels aligned with its image.
+
+Measuring
+---------
+
+* **rayrai (recommended)**: keep the sensor ``MANUAL`` and render it on the GPU from the visual
+  geometry; see :ref:`rayrai segmentation <rayrai-segmentation>`.
+
+  .. code-block:: cpp
+
+      raisin::Camera segmentationCamera(*segmentation);
+      viewer.renderSegmentation(*segmentation, segmentationCamera);
+      segmentationCamera.getRawImage(*segmentation);  // fills the sensor's images
+
+* **CPU ray cast**: with ``MeasurementSource::RAISIM`` each update casts one ray per pixel against
+  the collision geometry (owning body excluded), like a ``RAISIM`` depth camera. Rays start on the
+  near plane and end on the far plane, so clipping matches the renderer's. It needs no GPU and is
+  deterministic, but costs one ray test per pixel.
+
+  .. code-block:: cpp
+
+      segmentation->setMeasurementSource(raisim::Sensor::MeasurementSource::RAISIM);
+      world.integrate();  // updates the images at the sensor's update rate
+
+* **TCP viewer**: a ``RaisimServer`` asks a connected ``rayrai_tcp_viewer`` to render due ``MANUAL``
+  segmentation cameras, as it does for RGB and depth cameras, and stores the returned images. The
+  viewer shows them in its sensor pane in id colors.
+
+The renderer draws visual geometry and the ray cast collision geometry, so the two differ where
+those differ. Granular particles and objects hidden in the viewer are ray-cast but not drawn by
+rayrai, and the ray cast skips the camera's own body while the renderer draws it. World indices
+refer to the world at the measurement time: ``World::removeObject()`` moves the last object into
+the freed index.
+
+Display colors
+--------------
+
+``SegmentationCamera::colorize(ids, rgba, background)`` gives each non-negative id a fixed,
+well-separated color that does not depend on the other ids, and negative ids the background color
+(transparent black by default), like Drake's ``ColorizeLabelImage``:
+
+.. code-block:: cpp
+
+    std::vector<unsigned char> rgba;
+    raisim::SegmentationCamera::colorize(segmentation->getLabelImage(), rgba);
+
+Python
+------
+
+.. code-block:: python
+
+    camera = robot.getSensorSet("camera_link").getSensor("segmentation")
+    camera.setMeasurementSource(raisim.SensorMeasurementSource.RAISIM)
+    world.integrate()
+    objects = camera.getObjectImage()   # (H, W) int32, -1 where nothing was hit
+    labels = camera.getLabelImage()     # (H, W) int32
+    colors = raisim.SegmentationCamera.colorize(labels)  # (H, W, 4) uint8
+    mask = objects == table.getIndexInWorld()
+
+raisimPy does not bind rayrai: Python programs use the CPU ray cast or a TCP viewer.
+
+Coming from another simulator
+-----------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 72
+
+   * - Simulator
+     - RaiSim equivalent
+   * - MuJoCo ``Renderer.enable_segmentation_rendering()``, ``(H, W, 2)`` ``[objid, objtype]``
+     - ``getObjectImage()`` and ``getBodyImage()``; ``-1`` background in both
+   * - PyBullet ``getCameraImage`` with ``ER_SEGMENTATION_MASK_OBJECT_AND_LINKINDEX``
+     - ``uid`` → ``getObjectImage()``, ``link`` → ``getBodyImage()`` (two images instead of
+       ``uid + ((link + 1) << 24)``); ``-1`` background
+   * - Isaac Lab ``data_types``: ``semantic_segmentation`` / ``instance_id_segmentation_fast``
+     - ``SEMANTIC`` / ``INSTANCE`` cameras; ``idToLabels`` → ``World::getSegmentationClassName()``.
+       Isaac's ``BACKGROUND = 0`` and ``UNLABELLED = 1`` are ``label + 1``
+   * - Gazebo ``<sensor type="segmentation">``, ``<segmentation_type>``, label system ``<label>``
+     - ``<sensor type="segmentation">`` with ``<segmentation type="..."/>``;
+       ``Object::setSegmentationLabel()``; panoptic gives labels and instances
+   * - Drake ``RgbdSensor`` label image, ``RenderLabel``, ``ColorizeLabelImage``
+     - ``getLabelImage()`` with integer labels; ``SegmentationCamera::colorize()``
+   * - Genesis ``segmentation_level='entity' | 'link'``, ``cam.render(segmentation=True)``
+     - entity → ``getObjectImage()``, link → ``getObjectImage()`` with ``getBodyImage()``
+   * - ManiSkill / SAPIEN actor or link ids, ``segmentation_id_map``
+     - ``getObjectImage()`` with ``World::getObject(index)``; ``getBodyImage()`` for links
+   * - Habitat ``SensorType.SEMANTIC`` with ``semantic_id``
+     - ``SEMANTIC`` camera with ``Object::setSegmentationLabel()``
+   * - CARLA semantic / instance segmentation cameras
+     - ``SEMANTIC`` / ``PANOPTIC`` cameras; tags are labels
 
 
 Spinning LiDAR

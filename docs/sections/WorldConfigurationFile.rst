@@ -144,7 +144,11 @@ whose children carry their own materials),
 (optional) ``appearance`` [string],
 (optional, default ``dynamic``) ``body_type`` [string]: ``dynamic``, ``kinematic``, or ``static``,
 (optional for primitives, default ``0, 0, 0``) ``com`` [Vec<3>]: the center of
-mass in the body frame
+mass in the body frame,
+(optional) ``segmentation_label`` [int] or ``segmentation_class`` [string]: the
+segmentation label, given directly or by class name (see :ref:`segmentation-camera`;
+every object type takes them, and an ``articulated_system`` also takes
+``<body_segmentation body="..." label="..."/>`` or ``class="..."`` children)
 
 1. <child> ``inertia``: <attribute> ``xx``, ``xy``, ``xz``, ``yy``, ``yz``,
    ``zz`` [float], the inertia about the center of mass in the body frame.

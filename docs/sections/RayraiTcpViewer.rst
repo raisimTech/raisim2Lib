@@ -1114,8 +1114,8 @@ turns that off.
 
 RGB/depth sensor round trip
 ===========================
-The TCP viewer renders the images of ``MeasurementSource::MANUAL`` RGB and depth
-cameras that belong to an articulated system. The server requests each image
+The TCP viewer renders the images of ``MeasurementSource::MANUAL`` RGB, depth and
+segmentation cameras that belong to an articulated system. The server requests each image
 and the viewer sends it back; the viewer does not just preview an image the
 server already has:
 
@@ -1126,14 +1126,16 @@ server already has:
    ``RaisimServer`` requests a camera update when its update period elapses.
    The viewer renders the current streamed scene using that camera's pose,
    intrinsics, lens model, resolution, and clipping planes, then returns BGRA
-   pixels or metric depth values. The server validates the entire response
+   pixels, metric depth values or segmentation ids. The server validates the entire response
    before atomically updating sensor buffers and timestamps.
 
 The selected-object panel adds a **Sensors (N)** tab when the object declares
 sensors. It reports source, resolution, clipping range, sample counts, render
-time, and the latest RGB/depth preview. Depth previews map the clipping range
+time, and the latest RGB/depth/segmentation preview. Depth previews map the clipping range
 logarithmically from black (near) to white (far) and list the valid depth range
-of the frame. Each camera entry has two checkboxes:
+of the frame. Segmentation previews color the label image (the object image of an
+``INSTANCE`` camera) with ``SegmentationCamera::colorize()``, background black. A server
+streams segmentation cameras only to viewers that negotiate ``kProtocolFeatureSegmentation``. Each camera entry has two checkboxes:
 
 * **Frustum**: the camera frustum in the main view, cyan for RGB and orange for
   depth. It cannot be picked. The depth frustum extends to the configured far

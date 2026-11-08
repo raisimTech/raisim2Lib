@@ -262,6 +262,28 @@ function(create_sensor_noise_example)
 endfunction()
 create_sensor_noise_example()
 
+# Segmentation cameras require a RaiSim package with SegmentationCamera; older SDKs omit this example.
+function(create_segmentation_example)
+    include(CheckCXXSourceCompiles)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_REQUIRED_LIBRARIES raisim::raisim)
+    unset(RAISIM_EXAMPLE_HAS_SEGMENTATION CACHE)
+    check_cxx_source_compiles("
+        #include <raisim/sensors/SegmentationSensor.hpp>
+        int main() {
+            std::vector<unsigned char> rgba;
+            raisim::SegmentationCamera::colorize({0, -1}, rgba);
+        }" RAISIM_EXAMPLE_HAS_SEGMENTATION)
+    if(RAISIM_EXAMPLE_HAS_SEGMENTATION)
+        create_rayrai_executable(rayrai_segmentation_camera src/rayrai/sensors/rayrai_segmentation_camera.cpp)
+        target_compile_features(rayrai_segmentation_camera PRIVATE cxx_std_20)
+    else()
+        message(STATUS "Skipping rayrai_segmentation_camera: selected RaiSim package lacks SegmentationCamera")
+    endif()
+endfunction()
+create_segmentation_example()
+
 create_rayrai_executable(rayrai_deformable_terrain src/rayrai/physics/rayrai_deformable_terrain.cpp)
 create_rayrai_executable(rayrai_lidar_pointcloud src/rayrai/sensors/rayrai_lidar_pointcloud.cpp)
 create_rayrai_executable(rayrai_aruco_marker src/rayrai/sensors/rayrai_aruco_marker.cpp)
@@ -295,6 +317,8 @@ create_rayrai_executable(rayrai_swept_ccd src/rayrai/collision/rayrai_swept_ccd.
 # Tools.
 create_rayrai_executable(rayrai_tcp_viewer src/rayrai/tools/rayrai_tcp_viewer.cpp)
 target_sources(rayrai_tcp_viewer PRIVATE
+    src/rayrai/tools/TcpViewerProcess.cpp
+    src/rayrai/tools/TcpViewerExamples.cpp
     src/rayrai/tools/TcpViewerInspectorLoad.cpp
     src/rayrai/tools/TcpViewerSceneFiles.cpp
     src/rayrai/tools/TcpViewerActuators.cpp

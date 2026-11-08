@@ -108,6 +108,11 @@ Sensors and ray queries
    * - Capture depth without rayrai
      - ``World::captureDepthCamera``
      - :doc:`Sensors`
+   * - Segment camera images into objects, bodies and semantic classes
+     - ``raisim::SegmentationCamera``, ``Object::setSegmentationLabel``,
+       ``ArticulatedSystem::setBodySegmentationLabel``, ``World::addSegmentationClass``,
+       ``RayraiWindow::renderSegmentation``
+     - :doc:`Sensors`, :doc:`rayrai/Sensors`
    * - Read inertial measurements
      - ``raisim::InertialMeasurementUnit``
      - :doc:`Sensors`

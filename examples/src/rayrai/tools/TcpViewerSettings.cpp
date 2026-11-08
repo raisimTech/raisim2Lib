@@ -15,12 +15,16 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <sstream>
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
+#endif
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
 #endif
 
 namespace raisin::tcp_viewer
@@ -764,12 +768,30 @@ struct SettingWriter {
 
 } // namespace
 
-void loadViewerSettings(ViewerSettings& settings) {
-  std::ifstream input(settingsFilePath());
-  if (!input) {
-    return;
-  }
+namespace {
 
+#if defined(__EMSCRIPTEN__)
+EM_JS_DEPS(rayrai_viewer_settings, "$stringToNewUTF8,$UTF8ToString");
+// A browser page's files last only as long as the page, so the settings live in its local storage.
+EM_JS(char*, pageStoredViewerSettings, (), {
+  try {
+    const text = globalThis.localStorage.getItem("rayrai-tcp-viewer-settings");
+    return text === null ? 0 : stringToNewUTF8(text);
+  } catch (error) {
+    return 0;
+  }
+});
+EM_JS(int, pageStoreViewerSettings, (const char* text), {
+  try {
+    globalThis.localStorage.setItem("rayrai-tcp-viewer-settings", UTF8ToString(text));
+    return 1;
+  } catch (error) {
+    return 0;
+  }
+});
+#endif
+
+void readViewerSettings(std::istream& input, ViewerSettings& settings) {
   std::string line;
   while (std::getline(input, line)) {
     for (size_t i = 0; i < line.size(); ++i) {
@@ -824,6 +846,21 @@ void loadViewerSettings(ViewerSettings& settings) {
     }
   }
   sanitizeViewerSettings(settings);
+}
+
+}  // namespace
+
+void loadViewerSettings(ViewerSettings& settings) {
+#if defined(__EMSCRIPTEN__)
+  char* text = pageStoredViewerSettings();
+  if (!text) return;
+  std::istringstream input(text);
+  std::free(text);
+#else
+  std::ifstream input(settingsFilePath());
+  if (!input) return;
+#endif
+  readViewerSettings(input, settings);
 }
 
 namespace detail {
@@ -886,12 +923,19 @@ void writeViewerSettings(std::ostream& output, const ViewerSettings& settings) {
 }
 
 void saveViewerSettings(const ViewerSettings& settings) {
+#if defined(__EMSCRIPTEN__)
+  std::ostringstream output;
+  writeViewerSettings(output, settings);
+  if (!pageStoreViewerSettings(output.str().c_str()))
+    std::cerr << "WARN: This browser did not keep the viewer settings\n";
+#else
   const auto path = settingsFilePath();
   if (!detail::writeSettingsFileAtomically(path, [&](std::ostream& output) {
         writeViewerSettings(output, settings);
       })) {
     std::cerr << "WARN: Failed to write " << path << "\n";
   }
+#endif
 }
 
 } // namespace raisin::tcp_viewer
