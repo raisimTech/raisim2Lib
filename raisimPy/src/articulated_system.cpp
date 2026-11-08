@@ -2117,7 +2117,6 @@ void init_articulated_system(py::module_ &m) { // py::module &main_module) {
         .def("getj_MinvJT_T1D", [vecdyn_list_to_pylist](raisim::ArticulatedSystem &self) {
             return vecdyn_list_to_pylist(self.getj_MinvJT_T1D());
         })
-        .def("getFullDelassusAndTauStar", &raisim::ArticulatedSystem::getFullDelassusAndTauStar, py::arg("dt"))
         .def("getVisObPose", [](raisim::ArticulatedSystem &self, size_t idx) {
             Mat<3, 3> rot;
             Vec<3> pos;

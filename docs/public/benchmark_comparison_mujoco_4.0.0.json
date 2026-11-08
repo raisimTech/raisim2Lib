@@ -1,0 +1,1215 @@
+{
+  "measured_on": "2026-11-08",
+  "cpu_affinity": [
+    8
+  ],
+  "metric": "launcher wall-clock seconds, including scene construction, warmup, validation and the benchmark loop",
+  "methodology": {
+    "repeat": 3,
+    "aggregation": "median",
+    "rendering": false,
+    "cpu": "Intel Core Ultra 7 265K",
+    "compiler": "Clang 20.1.8",
+    "build_type": "Release",
+    "mujoco_versions": [
+      "3.13.0",
+      "4.0.0"
+    ],
+    "latest_release_source": "https://github.com/google-deepmind/mujoco/releases/tag/4.0.0",
+    "raisim_library": "Existing build-benchmark/lib/libraisim.so.2.13.0, built November 6; identical library used for both MuJoCo versions and the RaiSim measurements.",
+    "limitations": [
+      "A full rebuild is blocked by pre-existing changes to include_internal/helpers.hpp that do not compile with src/World.cpp. Existing user changes were preserved.",
+      "MuJoCo 4.0 benchmark translation units were rebuilt with installed RaiSim headers matching the existing RaiSim library (layout stamp 0xbcf1ae91b55ef9ad). The temporary launcher omits the unrelated segmentation_camera entry, whose current implementation requires a newer RaiSim library.",
+      "Cube-stack timings are excluded for both MuJoCo versions because every repeat reports QACC instability (3.13 at 0.0200 s; 4.0 at 0.0210 s).",
+      "These measurements use different hardware from the published October 14 documentation results; the historical results have been preserved.",
+      "Docker Clang 20 Ubuntu 20.04 and ARM GCC 10 toolchains were unavailable (no Docker socket)."
+    ],
+    "validation": [
+      "MuJoCo header/runtime version and collision-profiler regression test passed.",
+      "MuJoCo benchmark warning-handler regression test passed."
+    ]
+  },
+  "summary": [
+    {
+      "benchmark_id": "chain10_speed",
+      "label": "Chain, 10 links",
+      "raisim_seconds": 0.18802532,
+      "mujoco_3.13.0_seconds": 0.617795671,
+      "mujoco_4.0.0_seconds": 0.616228435,
+      "mujoco_4.0.0_over_raisim": 3.2773694255645998,
+      "mujoco_runtime_change_percent": -0.253681932970351
+    },
+    {
+      "benchmark_id": "chain20_speed",
+      "label": "Chain, 20 links",
+      "raisim_seconds": 0.387225004,
+      "mujoco_3.13.0_seconds": 2.211925527,
+      "mujoco_4.0.0_seconds": 2.173674393,
+      "mujoco_4.0.0_over_raisim": 5.613465996632801,
+      "mujoco_runtime_change_percent": -1.729313827842982
+    },
+    {
+      "benchmark_id": "anymal_standing",
+      "label": "ANYmal standing",
+      "raisim_seconds": 3.504714796,
+      "mujoco_3.13.0_seconds": 8.204393093,
+      "mujoco_4.0.0_seconds": 8.143465485,
+      "mujoco_4.0.0_over_raisim": 2.3235743730971485,
+      "mujoco_runtime_change_percent": -0.7426217553128112
+    },
+    {
+      "benchmark_id": "anymal_falling",
+      "label": "ANYmal falling",
+      "raisim_seconds": 0.190355863,
+      "mujoco_3.13.0_seconds": 0.427769317,
+      "mujoco_4.0.0_seconds": 0.422965254,
+      "mujoco_4.0.0_over_raisim": 2.2219712455087346,
+      "mujoco_runtime_change_percent": -1.123049926463049
+    },
+    {
+      "benchmark_id": "heightmap_anymal_speed",
+      "label": "ANYmal on heightmap",
+      "raisim_seconds": 0.744580622,
+      "mujoco_3.13.0_seconds": 3.382170424,
+      "mujoco_4.0.0_seconds": 3.202460322,
+      "mujoco_4.0.0_over_raisim": 4.301025607405614,
+      "mujoco_runtime_change_percent": -5.313454955574414
+    },
+    {
+      "benchmark_id": "primitive_speed",
+      "label": "Primitive speed",
+      "raisim_seconds": 2.125442669,
+      "mujoco_3.13.0_seconds": 4.824702059,
+      "mujoco_4.0.0_seconds": 4.854922381,
+      "mujoco_4.0.0_over_raisim": 2.2841935243937646,
+      "mujoco_runtime_change_percent": 0.6263665948786912
+    },
+    {
+      "benchmark_id": "strandbeest",
+      "label": "Strandbeest",
+      "raisim_seconds": 0.107474209,
+      "mujoco_3.13.0_seconds": 0.276534134,
+      "mujoco_4.0.0_seconds": 0.249229316,
+      "mujoco_4.0.0_over_raisim": 2.3189686001782994,
+      "mujoco_runtime_change_percent": -9.873941276269349
+    },
+    {
+      "benchmark_id": "heightmap_lidar",
+      "label": "Heightmap LiDAR",
+      "raisim_seconds": 0.646562128,
+      "mujoco_3.13.0_seconds": 15.1740396,
+      "mujoco_4.0.0_seconds": 15.110560545,
+      "mujoco_4.0.0_over_raisim": 23.370624245718272,
+      "mujoco_runtime_change_percent": -0.41833985328468826
+    },
+    {
+      "benchmark_id": "primitive_ray_scaling",
+      "label": "Primitive ray scaling",
+      "raisim_seconds": 0.01712931,
+      "mujoco_3.13.0_seconds": 1.510751207,
+      "mujoco_4.0.0_seconds": 0.554797914,
+      "mujoco_4.0.0_over_raisim": 32.388806904656406,
+      "mujoco_runtime_change_percent": -63.27668570249237
+    },
+    {
+      "benchmark_id": "deformable_cloth",
+      "label": "Deformable cloth",
+      "raisim_seconds": 0.555311103,
+      "mujoco_3.13.0_seconds": 2.952174664,
+      "mujoco_4.0.0_seconds": 2.968325575,
+      "mujoco_4.0.0_over_raisim": 5.345338061789123,
+      "mujoco_runtime_change_percent": 0.5470852113511615
+    },
+    {
+      "benchmark_id": "deformable_cube_stack",
+      "label": "Deformable cube stack",
+      "raisim_seconds": 0.941388956,
+      "mujoco_3.13.0_seconds": null,
+      "mujoco_4.0.0_seconds": null,
+      "mujoco_4.0.0_over_raisim": null,
+      "mujoco_runtime_change_percent": null
+    }
+  ],
+  "runs": {
+    "3.13.0": {
+      "reports": [
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:19:39+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "mujoco",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-3.13.0",
+              "--bench",
+              "chain10_speed",
+              "--bench",
+              "chain20_speed",
+              "--bench",
+              "anymal_standing",
+              "--bench",
+              "anymal_falling",
+              "--bench",
+              "heightmap_anymal_speed",
+              "--bench",
+              "primitive_speed",
+              "--bench",
+              "strandbeest",
+              "--bench",
+              "heightmap_lidar",
+              "--bench",
+              "primitive_ray_scaling",
+              "--bench",
+              "deformable_cloth",
+              "--backend=mujoco",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/3.13.0/0"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cloth",
+              "benchmark_label": "Deformable cloth XPBD benchmark",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 2.952174664,
+                "median_seconds": 2.952174664,
+                "min_seconds": 2.935388583,
+                "max_seconds": 2.957092314,
+                "repeat": 3,
+                "buckets": {
+                  "total": 2.952174664
+                }
+              },
+              "note": "repeat=3 min=2.93539 max=2.95709"
+            },
+            {
+              "benchmark_id": "strandbeest",
+              "benchmark_label": "Strandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--steps=3000"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.276534134,
+                "median_seconds": 0.276534134,
+                "min_seconds": 0.275867904,
+                "max_seconds": 0.277013103,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.276534134
+                }
+              },
+              "note": "repeat=3 min=0.275868 max=0.277013; 90.9898 us/step, loop gap 2.77327e-05 m"
+            },
+            {
+              "benchmark_id": "primitive_speed",
+              "benchmark_label": "Primitive speed bench",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 4.824702059,
+                "median_seconds": 4.824702059,
+                "min_seconds": 4.816060508,
+                "max_seconds": 4.830379591,
+                "repeat": 3,
+                "buckets": {
+                  "total": 4.824702059
+                }
+              },
+              "note": "repeat=3 min=4.81606 max=4.83038"
+            },
+            {
+              "benchmark_id": "anymal_standing",
+              "benchmark_label": "ANYmal standing",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 8.204393093,
+                "median_seconds": 8.204393093,
+                "min_seconds": 8.184468719,
+                "max_seconds": 8.236751522,
+                "repeat": 3,
+                "buckets": {
+                  "total": 8.204393093
+                }
+              },
+              "note": "repeat=3 min=8.18447 max=8.23675"
+            },
+            {
+              "benchmark_id": "anymal_falling",
+              "benchmark_label": "ANYmal falling",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.427769317,
+                "median_seconds": 0.427769317,
+                "min_seconds": 0.426909711,
+                "max_seconds": 0.430589378,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.427769317
+                }
+              },
+              "note": "repeat=3 min=0.42691 max=0.430589"
+            },
+            {
+              "benchmark_id": "chain10_speed",
+              "benchmark_label": "Chain10 speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.617795671,
+                "median_seconds": 0.617795671,
+                "min_seconds": 0.616752686,
+                "max_seconds": 0.650841075,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.617795671
+                }
+              },
+              "note": "repeat=3 min=0.616753 max=0.650841"
+            },
+            {
+              "benchmark_id": "chain20_speed",
+              "benchmark_label": "Chain20 speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 2.211925527,
+                "median_seconds": 2.211925527,
+                "min_seconds": 2.208922946,
+                "max_seconds": 2.220053215,
+                "repeat": 3,
+                "buckets": {
+                  "total": 2.211925527
+                }
+              },
+              "note": "repeat=3 min=2.20892 max=2.22005"
+            },
+            {
+              "benchmark_id": "heightmap_lidar",
+              "benchmark_label": "Heightmap lidar",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 15.1740396,
+                "median_seconds": 15.1740396,
+                "min_seconds": 15.129138959,
+                "max_seconds": 15.201753596,
+                "repeat": 3,
+                "buckets": {
+                  "total": 15.1740396
+                }
+              },
+              "note": "repeat=3 min=15.1291 max=15.2018"
+            },
+            {
+              "benchmark_id": "heightmap_anymal_speed",
+              "benchmark_label": "Heightmap ANYmal speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 3.382170424,
+                "median_seconds": 3.382170424,
+                "min_seconds": 3.378934565,
+                "max_seconds": 3.386681289,
+                "repeat": 3,
+                "buckets": {
+                  "total": 3.382170424
+                }
+              },
+              "note": "repeat=3 min=3.37893 max=3.38668"
+            },
+            {
+              "benchmark_id": "primitive_ray_scaling",
+              "benchmark_label": "Primitive ray scaling",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--objects=10000",
+                  "--rays=10000",
+                  "--warmup=256",
+                  "--workload=mixed"
+                ]
+              },
+              "timings": {
+                "total_seconds": 1.510751207,
+                "median_seconds": 1.510751207,
+                "min_seconds": 1.487402922,
+                "max_seconds": 1.533982336,
+                "repeat": 3,
+                "buckets": {
+                  "total": 1.510751207
+                }
+              },
+              "note": "repeat=3 min=1.4874 max=1.53398; objects=10000 rays=10000 workload=mixed ns/ray=44071.6 Mray/s=0.0226903 hit_ratio=0.5"
+            }
+          ]
+        },
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:19:57+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "mujoco",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-3.13.0",
+              "--bench",
+              "deformable_cube_stack",
+              "--backend=mujoco",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/3.13.0/1",
+              "--",
+              "--cubes=8",
+              "--resolution=4",
+              "--steps=1200",
+              "--iterations=6",
+              "--collision-radius=0.04"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cube_stack",
+              "benchmark_label": "Deformable cube stack benchmark",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--cubes=8",
+                  "--resolution=4",
+                  "--steps=1200",
+                  "--iterations=6",
+                  "--collision-radius=0.04"
+                ]
+              },
+              "timings": {
+                "total_seconds": 5.721192311,
+                "median_seconds": 5.721192311,
+                "min_seconds": 5.710973574,
+                "max_seconds": 5.750815755,
+                "repeat": 3,
+                "buckets": {
+                  "total": 5.721192311
+                }
+              },
+              "note": "repeat=3 min=5.71097 max=5.75082"
+            }
+          ]
+        }
+      ],
+      "logs": [
+        "2.53354e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000789 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=43.303\n2.55181e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000784 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=43.303\n2.53168e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000790 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=43.303\nStrandbeest (79 DoF, 84 connects, mujoco): 91.1042 us/step, real-time factor 10.9764\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\nStrandbeest (79 DoF, 84 connects, mujoco): 90.7694 us/step, real-time factor 11.0169\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\nStrandbeest (79 DoF, 84 connects, mujoco): 90.9898 us/step, real-time factor 10.9902\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\n4.82942e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020706 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\n4.81508e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020768 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\n4.82374e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020731 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\nDone.\n8.1806e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.122240 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n8.20063e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.121942 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n8.23339e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.121457 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n427090 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.234143 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n424415 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.235618 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n423161 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.236317 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n647557 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.154427 MHz\n614561 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.162718 MHz\n613582 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.162977 MHz\n2.20496e+06 microseconds\nDone.\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.045352 MHz\n2.21605e+06 microseconds\nDone.\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.045125 MHz\n2.20812e+06 microseconds\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.045287 MHz\n[benchmark] steps=2000 warmup=200 elapsed_ms=13774 us_per_step=6887.02 sim_speed=0.726004x\n[benchmark] lidar_ms=13773.9 lidar_us_per_step=6886.97 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=13713.5 us_per_step=6856.77 sim_speed=0.729206x\n[benchmark] lidar_ms=13713.5 lidar_us_per_step=6856.74 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=13751.4 us_per_step=6875.71 sim_speed=0.727198x\n[benchmark] lidar_ms=13751.4 lidar_us_per_step=6875.68 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n3.37468e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.059265 MHz\nAverage contacts: 8.61468\n3.38248e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.059128 MHz\nAverage contacts: 8.61468\n3.37802e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.059206 MHz\nAverage contacts: 8.61468\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=1021.930 query_ms=441.687 ns_per_ray=44168.728 mrays_per_second=0.023 hit_ratio=0.500 checksum=17867794150908957417\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=1068.539 query_ms=442.307 ns_per_ray=44230.734 mrays_per_second=0.023 hit_ratio=0.500 checksum=17867794150908957417\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=1047.486 query_ms=440.716 ns_per_ray=44071.609 mrays_per_second=0.023 hit_ratio=0.500 checksum=17867794150908957417\n\nBenchmark Summary\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark                                                                     RaiSim       MuJoCo       Speedup(R/M)  Notes                                                                                                                         \n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nDeformable cloth XPBD benchmark                                               -            OK 2.952s    -             MuJoCo: repeat=3 min=2.93539 max=2.95709                                                                                      \nStrandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk  -            OK 0.277s    -             MuJoCo: repeat=3 min=0.275868 max=0.277013; 90.9898 us/step, loop gap 2.77327e-05 m                                           \nPrimitive speed bench                                                         -            OK 4.825s    -             MuJoCo: repeat=3 min=4.81606 max=4.83038                                                                                      \nANYmal standing                                                               -            OK 8.204s    -             MuJoCo: repeat=3 min=8.18447 max=8.23675                                                                                      \nANYmal falling                                                                -            OK 0.428s    -             MuJoCo: repeat=3 min=0.42691 max=0.430589                                                                                     \nChain10 speed                                                                 -            OK 0.618s    -             MuJoCo: repeat=3 min=0.616753 max=0.650841                                                                                    \nChain20 speed                                                                 -            OK 2.212s    -             MuJoCo: repeat=3 min=2.20892 max=2.22005                                                                                      \nHeightmap lidar                                                               -            OK 15.174s   -             MuJoCo: repeat=3 min=15.1291 max=15.2018                                                                                      \nHeightmap ANYmal speed                                                        -            OK 3.382s    -             MuJoCo: repeat=3 min=3.37893 max=3.38668                                                                                      \nPrimitive ray scaling                                                         -            OK 1.511s    -             MuJoCo: repeat=3 min=1.4874 max=1.53398; objects=10000 rays=10000 workload=mixed ns/ray=44071.6 Mray/s=0.0226903 hit_ratio=0.5\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/0/benchmark_20261108_201939.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/0/benchmark_20261108_201939.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/0/benchmark_20261108_201939.md\n",
+        "WARNING: Nan, Inf or huge value in QACC at DOF 3. The simulation is unstable. Time = 0.0200.\n\n5.33829e+06 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.000225 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\nWARNING: Nan, Inf or huge value in QACC at DOF 3. The simulation is unstable. Time = 0.0200.\n\n5.3346e+06 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.000225 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\nWARNING: Nan, Inf or huge value in QACC at DOF 3. The simulation is unstable. Time = 0.0200.\n\n5.32001e+06 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.000226 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\n\nBenchmark Summary\n-----------------------------------------------------------------------------------------------------------------\nBenchmark                        RaiSim       MuJoCo       Speedup(R/M)  Notes                                   \n-----------------------------------------------------------------------------------------------------------------\nDeformable cube stack benchmark  -            OK 5.721s    -             MuJoCo: repeat=3 min=5.71097 max=5.75082\n-----------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/1/benchmark_20261108_201957.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/1/benchmark_20261108_201957.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/3.13.0/1/benchmark_20261108_201957.md\n"
+      ]
+    },
+    "4.0.0": {
+      "reports": [
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:34:08+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "mujoco",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-4.0.0",
+              "--bench",
+              "chain10_speed",
+              "--bench",
+              "chain20_speed",
+              "--bench",
+              "anymal_standing",
+              "--bench",
+              "anymal_falling",
+              "--bench",
+              "heightmap_anymal_speed",
+              "--bench",
+              "primitive_speed",
+              "--bench",
+              "strandbeest",
+              "--bench",
+              "heightmap_lidar",
+              "--bench",
+              "primitive_ray_scaling",
+              "--bench",
+              "deformable_cloth",
+              "--backend=mujoco",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/4.0.0/0"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cloth",
+              "benchmark_label": "Deformable cloth XPBD benchmark",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 2.968325575,
+                "median_seconds": 2.968325575,
+                "min_seconds": 2.966667037,
+                "max_seconds": 2.969917667,
+                "repeat": 3,
+                "buckets": {
+                  "total": 2.968325575
+                }
+              },
+              "note": "repeat=3 min=2.96667 max=2.96992"
+            },
+            {
+              "benchmark_id": "strandbeest",
+              "benchmark_label": "Strandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--steps=3000"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.249229316,
+                "median_seconds": 0.249229316,
+                "min_seconds": 0.24758181,
+                "max_seconds": 0.249479576,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.249229316
+                }
+              },
+              "note": "repeat=3 min=0.247582 max=0.24948; 82.3677 us/step, loop gap 2.77327e-05 m"
+            },
+            {
+              "benchmark_id": "primitive_speed",
+              "benchmark_label": "Primitive speed bench",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 4.854922381,
+                "median_seconds": 4.854922381,
+                "min_seconds": 4.854875006,
+                "max_seconds": 4.858720567,
+                "repeat": 3,
+                "buckets": {
+                  "total": 4.854922381
+                }
+              },
+              "note": "repeat=3 min=4.85488 max=4.85872"
+            },
+            {
+              "benchmark_id": "anymal_standing",
+              "benchmark_label": "ANYmal standing",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 8.143465485,
+                "median_seconds": 8.143465485,
+                "min_seconds": 8.116208359,
+                "max_seconds": 8.242360523,
+                "repeat": 3,
+                "buckets": {
+                  "total": 8.143465485
+                }
+              },
+              "note": "repeat=3 min=8.11621 max=8.24236"
+            },
+            {
+              "benchmark_id": "anymal_falling",
+              "benchmark_label": "ANYmal falling",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.422965254,
+                "median_seconds": 0.422965254,
+                "min_seconds": 0.42296341,
+                "max_seconds": 0.424287364,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.422965254
+                }
+              },
+              "note": "repeat=3 min=0.422963 max=0.424287"
+            },
+            {
+              "benchmark_id": "chain10_speed",
+              "benchmark_label": "Chain10 speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.616228435,
+                "median_seconds": 0.616228435,
+                "min_seconds": 0.615182522,
+                "max_seconds": 0.616937825,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.616228435
+                }
+              },
+              "note": "repeat=3 min=0.615183 max=0.616938"
+            },
+            {
+              "benchmark_id": "chain20_speed",
+              "benchmark_label": "Chain20 speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 2.173674393,
+                "median_seconds": 2.173674393,
+                "min_seconds": 2.167577365,
+                "max_seconds": 2.193384928,
+                "repeat": 3,
+                "buckets": {
+                  "total": 2.173674393
+                }
+              },
+              "note": "repeat=3 min=2.16758 max=2.19338"
+            },
+            {
+              "benchmark_id": "heightmap_lidar",
+              "benchmark_label": "Heightmap lidar",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 15.110560545,
+                "median_seconds": 15.110560545,
+                "min_seconds": 15.086198422,
+                "max_seconds": 15.131555086,
+                "repeat": 3,
+                "buckets": {
+                  "total": 15.110560545
+                }
+              },
+              "note": "repeat=3 min=15.0862 max=15.1316"
+            },
+            {
+              "benchmark_id": "heightmap_anymal_speed",
+              "benchmark_label": "Heightmap ANYmal speed",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 3.202460322,
+                "median_seconds": 3.202460322,
+                "min_seconds": 3.19300535,
+                "max_seconds": 3.205010145,
+                "repeat": 3,
+                "buckets": {
+                  "total": 3.202460322
+                }
+              },
+              "note": "repeat=3 min=3.19301 max=3.20501"
+            },
+            {
+              "benchmark_id": "primitive_ray_scaling",
+              "benchmark_label": "Primitive ray scaling",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--objects=10000",
+                  "--rays=10000",
+                  "--warmup=256",
+                  "--workload=mixed"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.554797914,
+                "median_seconds": 0.554797914,
+                "min_seconds": 0.550778076,
+                "max_seconds": 0.562171608,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.554797914
+                }
+              },
+              "note": "repeat=3 min=0.550778 max=0.562172; objects=10000 rays=10000 workload=mixed ns/ray=43992.2 Mray/s=0.0227313 hit_ratio=0.5"
+            }
+          ]
+        },
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:34:11+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "mujoco",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-4.0.0",
+              "--bench",
+              "deformable_cube_stack",
+              "--backend=mujoco",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/4.0.0/1",
+              "--",
+              "--cubes=8",
+              "--resolution=4",
+              "--steps=1200",
+              "--iterations=6",
+              "--collision-radius=0.04"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cube_stack",
+              "benchmark_label": "Deformable cube stack benchmark",
+              "backend": "mujoco",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--cubes=8",
+                  "--resolution=4",
+                  "--steps=1200",
+                  "--iterations=6",
+                  "--collision-radius=0.04"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.842381166,
+                "median_seconds": 0.842381166,
+                "min_seconds": 0.837501474,
+                "max_seconds": 0.851618483,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.842381166
+                }
+              },
+              "note": "repeat=3 min=0.837501 max=0.851618"
+            }
+          ]
+        }
+      ],
+      "logs": [
+        "2.93967e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000680 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=444.523\n2.93932e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000680 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=444.523\n2.94e+06 microseconds\nThe simulation of Deformable cloth (mujoco) is running at: 0.000680 MHz\ngrid=32 particles=1024 triangles=1922 iterations=6 sphere=yes pinned=0 avg_contact_entries=444.523\nStrandbeest (79 DoF, 84 connects, mujoco): 81.7492 us/step, real-time factor 12.2325\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\nStrandbeest (79 DoF, 84 connects, mujoco): 82.437 us/step, real-time factor 12.1305\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\nStrandbeest (79 DoF, 84 connects, mujoco): 82.3677 us/step, real-time factor 12.1407\nWorst loop gap: 2.77327e-05 m\nWalked 3.84758 m in 3 s\n4.85408e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020601 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\n4.85414e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020601 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\n4.85793e+06 microseconds\nThe simulation of Primitive bench (mujoco) is running at: 0.020585 MHz\nPrimitive bench avg contacts (mujoco): 79.8792\nDone.\n8.11236e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.123269 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n8.13983e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.122853 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n8.23875e+06 microseconds\nThe simulation of ANYmal standing (mujoco) is running at: 0.121378 MHz\nANYmal avg contacts (mujoco): 3.99981\nDone.\n419489 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.238385 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n419283 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.238502 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n420561 microseconds\nThe simulation of ANYmal falling (mujoco) is running at: 0.237778 MHz\nANYmal avg contacts (mujoco): 0\nDone.\n612991 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.163135 MHz\n611883 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.163430 MHz\n613749 microseconds\nDone.\nThe simulation of Chain10 (30 dof, mujoco) is running at: 0.162933 MHz\n2.16364e+06 microseconds\nDone.\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.046218 MHz\n2.16976e+06 microseconds\nDone.\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.046088 MHz\n2.18946e+06 microseconds\nThe simulation of Chain20 (60 dof, mujoco) is running at: 0.045673 MHz\n[benchmark] steps=2000 warmup=200 elapsed_ms=13669.4 us_per_step=6834.71 sim_speed=0.73156x\n[benchmark] lidar_ms=13669.4 lidar_us_per_step=6834.68 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=13702.6 us_per_step=6851.28 sim_speed=0.72979x\n[benchmark] lidar_ms=13702.5 lidar_us_per_step=6851.25 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=13715 us_per_step=6857.51 sim_speed=0.729127x\n[benchmark] lidar_ms=13714.9 lidar_us_per_step=6857.47 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1538900 hit_ratio=0.469635\n[benchmark] surface_hits=1538900 surface_samples=1538900 surface_hit_ratio=1 surface_mean_abs_error=0.00149015 surface_max_abs_error=0.0163423 surface_tol=0.05\n3.18256e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.062842 MHz\nAverage contacts: 8.21503\n3.19821e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.062535 MHz\nAverage contacts: 8.21503\n3.20059e+06 microseconds\nThe simulation of Heightmap ANYmal (mujoco) is running at: 0.062488 MHz\nAverage contacts: 8.21503\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=91.292 query_ms=447.700 ns_per_ray=44769.995 mrays_per_second=0.022 hit_ratio=0.500 checksum=17867794150908957417\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=88.169 query_ms=443.450 ns_per_ray=44345.024 mrays_per_second=0.023 hit_ratio=0.500 checksum=17867794150908957417\n[primitive_ray_scaling:mujoco] objects=10000 rays=10000 workload=mixed build_ms=88.122 query_ms=439.922 ns_per_ray=43992.171 mrays_per_second=0.023 hit_ratio=0.500 checksum=17867794150908957417\n\nBenchmark Summary\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark                                                                     RaiSim       MuJoCo       Speedup(R/M)  Notes                                                                                                                            \n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nDeformable cloth XPBD benchmark                                               -            OK 2.968s    -             MuJoCo: repeat=3 min=2.96667 max=2.96992                                                                                         \nStrandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk  -            OK 0.249s    -             MuJoCo: repeat=3 min=0.247582 max=0.24948; 82.3677 us/step, loop gap 2.77327e-05 m                                               \nPrimitive speed bench                                                         -            OK 4.855s    -             MuJoCo: repeat=3 min=4.85488 max=4.85872                                                                                         \nANYmal standing                                                               -            OK 8.143s    -             MuJoCo: repeat=3 min=8.11621 max=8.24236                                                                                         \nANYmal falling                                                                -            OK 0.423s    -             MuJoCo: repeat=3 min=0.422963 max=0.424287                                                                                       \nChain10 speed                                                                 -            OK 0.616s    -             MuJoCo: repeat=3 min=0.615183 max=0.616938                                                                                       \nChain20 speed                                                                 -            OK 2.174s    -             MuJoCo: repeat=3 min=2.16758 max=2.19338                                                                                         \nHeightmap lidar                                                               -            OK 15.111s   -             MuJoCo: repeat=3 min=15.0862 max=15.1316                                                                                         \nHeightmap ANYmal speed                                                        -            OK 3.202s    -             MuJoCo: repeat=3 min=3.19301 max=3.20501                                                                                         \nPrimitive ray scaling                                                         -            OK 0.555s    -             MuJoCo: repeat=3 min=0.550778 max=0.562172; objects=10000 rays=10000 workload=mixed ns/ray=43992.2 Mray/s=0.0227313 hit_ratio=0.5\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/0/benchmark_20261108_203408.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/0/benchmark_20261108_203408.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/0/benchmark_20261108_203408.md\n",
+        "WARNING: Nan, Inf or huge value in QACC at DOF 471. The simulation is unstable. Time = 0.0210.\n\n819184 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.001465 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\nWARNING: Nan, Inf or huge value in QACC at DOF 471. The simulation is unstable. Time = 0.0210.\n\n813590 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.001475 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\nWARNING: Nan, Inf or huge value in QACC at DOF 471. The simulation is unstable. Time = 0.0210.\n\n809930 microseconds\nThe simulation of Deformable cube stack (mujoco) is running at: 0.001482 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=1000 triangles=n/a iterations=6 collision_radius=0.04 avg_contact_entries=0\n\nBenchmark Summary\n-------------------------------------------------------------------------------------------------------------------\nBenchmark                        RaiSim       MuJoCo       Speedup(R/M)  Notes                                     \n-------------------------------------------------------------------------------------------------------------------\nDeformable cube stack benchmark  -            OK 0.842s    -             MuJoCo: repeat=3 min=0.837501 max=0.851618\n-------------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/1/benchmark_20261108_203411.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/1/benchmark_20261108_203411.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/4.0.0/1/benchmark_20261108_203411.md\n"
+      ]
+    },
+    "raisim": {
+      "reports": [
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:21:23+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "raisim",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-3.13.0",
+              "--bench",
+              "chain10_speed",
+              "--bench",
+              "chain20_speed",
+              "--bench",
+              "anymal_standing",
+              "--bench",
+              "anymal_falling",
+              "--bench",
+              "heightmap_anymal_speed",
+              "--bench",
+              "primitive_speed",
+              "--bench",
+              "strandbeest",
+              "--bench",
+              "heightmap_lidar",
+              "--bench",
+              "primitive_ray_scaling",
+              "--bench",
+              "deformable_cloth",
+              "--backend=raisim",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/raisim/0"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cloth",
+              "benchmark_label": "Deformable cloth XPBD benchmark",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.555311103,
+                "median_seconds": 0.555311103,
+                "min_seconds": 0.554760854,
+                "max_seconds": 0.55723546,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.555311103
+                }
+              },
+              "note": "repeat=3 min=0.554761 max=0.557235"
+            },
+            {
+              "benchmark_id": "strandbeest",
+              "benchmark_label": "Strandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--steps=3000"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.107474209,
+                "median_seconds": 0.107474209,
+                "min_seconds": 0.107316468,
+                "max_seconds": 0.137763028,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.107474209
+                }
+              },
+              "note": "repeat=3 min=0.107316 max=0.137763; 31.6507 us/step, loop gap 2.47781e-05 m"
+            },
+            {
+              "benchmark_id": "primitive_speed",
+              "benchmark_label": "Primitive speed bench",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 2.125442669,
+                "median_seconds": 2.125442669,
+                "min_seconds": 2.123812301,
+                "max_seconds": 2.128621029,
+                "repeat": 3,
+                "buckets": {
+                  "total": 2.125442669
+                }
+              },
+              "note": "repeat=3 min=2.12381 max=2.12862"
+            },
+            {
+              "benchmark_id": "anymal_standing",
+              "benchmark_label": "ANYmal standing",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 3.504714796,
+                "median_seconds": 3.504714796,
+                "min_seconds": 3.499526896,
+                "max_seconds": 3.518235888,
+                "repeat": 3,
+                "buckets": {
+                  "total": 3.504714796
+                }
+              },
+              "note": "repeat=3 min=3.49953 max=3.51824"
+            },
+            {
+              "benchmark_id": "anymal_falling",
+              "benchmark_label": "ANYmal falling",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.190355863,
+                "median_seconds": 0.190355863,
+                "min_seconds": 0.190268126,
+                "max_seconds": 0.191664927,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.190355863
+                }
+              },
+              "note": "repeat=3 min=0.190268 max=0.191665"
+            },
+            {
+              "benchmark_id": "chain10_speed",
+              "benchmark_label": "Chain10 speed",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.18802532,
+                "median_seconds": 0.18802532,
+                "min_seconds": 0.186584957,
+                "max_seconds": 0.190490745,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.18802532
+                }
+              },
+              "note": "repeat=3 min=0.186585 max=0.190491"
+            },
+            {
+              "benchmark_id": "chain20_speed",
+              "benchmark_label": "Chain20 speed",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.387225004,
+                "median_seconds": 0.387225004,
+                "min_seconds": 0.382104041,
+                "max_seconds": 0.38791817,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.387225004
+                }
+              },
+              "note": "repeat=3 min=0.382104 max=0.387918"
+            },
+            {
+              "benchmark_id": "heightmap_lidar",
+              "benchmark_label": "Heightmap lidar",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.646562128,
+                "median_seconds": 0.646562128,
+                "min_seconds": 0.644736995,
+                "max_seconds": 0.646633724,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.646562128
+                }
+              },
+              "note": "repeat=3 min=0.644737 max=0.646634"
+            },
+            {
+              "benchmark_id": "heightmap_anymal_speed",
+              "benchmark_label": "Heightmap ANYmal speed",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": []
+              },
+              "timings": {
+                "total_seconds": 0.744580622,
+                "median_seconds": 0.744580622,
+                "min_seconds": 0.743788685,
+                "max_seconds": 0.745137954,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.744580622
+                }
+              },
+              "note": "repeat=3 min=0.743789 max=0.745138"
+            },
+            {
+              "benchmark_id": "primitive_ray_scaling",
+              "benchmark_label": "Primitive ray scaling",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--objects=10000",
+                  "--rays=10000",
+                  "--warmup=256",
+                  "--workload=mixed"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.01712931,
+                "median_seconds": 0.01712931,
+                "min_seconds": 0.016383657,
+                "max_seconds": 0.019364637,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.01712931
+                }
+              },
+              "note": "repeat=3 min=0.0163837 max=0.0193646; objects=10000 rays=10000 workload=mixed ns/ray=213.902 Mray/s=4.67504 hit_ratio=0.5"
+            }
+          ]
+        },
+        {
+          "schema_version": 1,
+          "generated_at": "2026-11-08T20:21:26+0900",
+          "git": {
+            "commit": "fdfc27c3066f311d3295719c8acc6015952179c9",
+            "branch": "master",
+            "describe": "v0.4.1-1293-gfdfc27c30-dirty",
+            "dirty": true
+          },
+          "build": {
+            "type": "Release",
+            "compiler": "Clang",
+            "compiler_version": "20.1.8",
+            "cplusplus": 202002
+          },
+          "system": {
+            "cpu": "Intel(R) Core(TM) Ultra 7 265K",
+            "hardware_threads": 20
+          },
+          "run": {
+            "backend_selection": "raisim",
+            "environment": {
+              "OMP_NUM_THREADS": "1",
+              "OPENBLAS_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "VECLIB_MAXIMUM_THREADS": "1"
+            },
+            "command_line": [
+              "/tmp/benchmarks-mujoco-3.13.0",
+              "--bench",
+              "deformable_cube_stack",
+              "--backend=raisim",
+              "--repeat",
+              "3",
+              "--report",
+              "--report-dir",
+              "/tmp/mujoco-comparison-2026-11-08-verified/raisim/1",
+              "--",
+              "--cubes=8",
+              "--resolution=4",
+              "--steps=1200",
+              "--iterations=6",
+              "--collision-radius=0.04"
+            ]
+          },
+          "results": [
+            {
+              "benchmark_id": "deformable_cube_stack",
+              "benchmark_label": "Deformable cube stack benchmark",
+              "backend": "raisim",
+              "exit_code": 0,
+              "status": "ok",
+              "scene_config": {
+                "args": [
+                  "--cubes=8",
+                  "--resolution=4",
+                  "--steps=1200",
+                  "--iterations=6",
+                  "--collision-radius=0.04"
+                ]
+              },
+              "timings": {
+                "total_seconds": 0.941388956,
+                "median_seconds": 0.941388956,
+                "min_seconds": 0.93910382,
+                "max_seconds": 0.964618786,
+                "repeat": 3,
+                "buckets": {
+                  "total": 0.941388956
+                }
+              },
+              "note": "repeat=3 min=0.939104 max=0.964619"
+            }
+          ]
+        }
+      ],
+      "logs": [
+        "556472 microseconds\nThe simulation of Deformable cloth is running at: 0.003594 MHz\ngrid=32 particles=1024 triangles=1922 bending_constraints=0 iterations=6 compliance=1e-05 bend_compliance=-1 sphere=yes pinned=0 avg_contact_entries=124.181\n554476 microseconds\nThe simulation of Deformable cloth is running at: 0.003607 MHz\ngrid=32 particles=1024 triangles=1922 bending_constraints=0 iterations=6 compliance=1e-05 bend_compliance=-1 sphere=yes pinned=0 avg_contact_entries=124.181\n555033 microseconds\nThe simulation of Deformable cloth is running at: 0.003603 MHz\ngrid=32 particles=1024 triangles=1922 bending_constraints=0 iterations=6 compliance=1e-05 bend_compliance=-1 sphere=yes pinned=0 avg_contact_entries=124.181\n[2026:11:08:20:20:59 ArticulatedSystemPins.cpp:1486] \u001b[33marticulated system Strandbeest: the joints already hold every constrained direction of 12 pin/equality constraint(s) (their anchors lie on joint axes, to 1e-3 rad), so they are ignored\u001b[0m\nStrandbeest (79 DoF, 84 pins): 31.5729 us/step, real-time factor 31.6728\nWorst loop gap: 2.47781e-05 m\nWalked 3.89768 m in 3 s\n[2026:11:08:20:21:00 ArticulatedSystemPins.cpp:1486] \u001b[33marticulated system Strandbeest: the joints already hold every constrained direction of 12 pin/equality constraint(s) (their anchors lie on joint axes, to 1e-3 rad), so they are ignored\u001b[0m\nStrandbeest (79 DoF, 84 pins): 31.5839 us/step, real-time factor 31.6617\nWorst loop gap: 2.47781e-05 m\nWalked 3.89768 m in 3 s\n[2026:11:08:20:21:00 ArticulatedSystemPins.cpp:1486] \u001b[33marticulated system Strandbeest: the joints already hold every constrained direction of 12 pin/equality constraint(s) (their anchors lie on joint axes, to 1e-3 rad), so they are ignored\u001b[0m\nStrandbeest (79 DoF, 84 pins): 31.6507 us/step, real-time factor 31.5949\nWorst loop gap: 2.47781e-05 m\nWalked 3.89768 m in 3 s\n2.12855e+06 microseconds\nThe simulation of Primitive bench (raisim) is running at: 0.046980 MHz\nPrimitive bench avg contacts (raisim): 77.5663\n2.12375e+06 microseconds\nThe simulation of Primitive bench (raisim) is running at: 0.047087 MHz\nPrimitive bench avg contacts (raisim): 77.5663\n2.12538e+06 microseconds\nThe simulation of Primitive bench (raisim) is running at: 0.047050 MHz\nPrimitive bench avg contacts (raisim): 77.5663\n3.50415e+06 microseconds\nThe simulation of ANYmal standing (raisim) is running at: 0.285376 MHz\nANYmal avg contacts (raisim): 3.99903\nANYmal default rolling friction (raisim): 0\n3.51775e+06 microseconds\nThe simulation of ANYmal standing (raisim) is running at: 0.284272 MHz\nANYmal avg contacts (raisim): 3.99903\nANYmal default rolling friction (raisim): 0\n3.49906e+06 microseconds\nThe simulation of ANYmal standing (raisim) is running at: 0.285791 MHz\nANYmal avg contacts (raisim): 3.99903\nANYmal default rolling friction (raisim): 0\n189828 microseconds\nThe simulation of ANYmal falling (raisim) is running at: 0.526793 MHz\nANYmal avg contacts (raisim): 0\n190020 microseconds\nThe simulation of ANYmal falling (raisim) is running at: 0.526260 MHz\nANYmal avg contacts (raisim): 0\n191363 microseconds\nThe simulation of ANYmal falling (raisim) is running at: 0.522567 MHz\nANYmal avg contacts (raisim): 0\n190340 microseconds\nThe simulation of Chain10 (30 dof) is running at: 0.525376 MHz\n187897 microseconds\nThe simulation of Chain10 (30 dof) is running at: 0.532206 MHz\n186443 microseconds\nThe simulation of Chain10 (30 dof) is running at: 0.536357 MHz\n381846 microseconds\nThe simulation of Chain20 (60 dof) is running at: 0.261886 MHz\n386929 microseconds\nThe simulation of Chain20 (60 dof) is running at: 0.258445 MHz\n387608 microseconds\nThe simulation of Chain20 (60 dof) is running at: 0.257993 MHz\n[benchmark] steps=2000 warmup=200 elapsed_ms=562.293 us_per_step=281.147 sim_speed=17.7843x\n[benchmark] lidar_ms=529.395 lidar_us_per_step=264.697 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1539500 hit_ratio=0.469818\n[benchmark] surface_hits=1539500 surface_samples=1539500 surface_hit_ratio=1 surface_mean_abs_error=3.77966e-16 surface_max_abs_error=3.55271e-15 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=562.412 us_per_step=281.206 sim_speed=17.7805x\n[benchmark] lidar_ms=529.48 lidar_us_per_step=264.74 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1539500 hit_ratio=0.469818\n[benchmark] surface_hits=1539500 surface_samples=1539500 surface_hit_ratio=1 surface_mean_abs_error=3.77966e-16 surface_max_abs_error=3.55271e-15 surface_tol=0.05\n[benchmark] steps=2000 warmup=200 elapsed_ms=562.31 us_per_step=281.155 sim_speed=17.7838x\n[benchmark] lidar_ms=529.417 lidar_us_per_step=264.709 heightmap_size=(200,200) heightmap_samples=(400,400)\n[benchmark] rays=3276800 hits=1539500 hit_ratio=0.469818\n[benchmark] surface_hits=1539500 surface_samples=1539500 surface_hit_ratio=1 surface_mean_abs_error=3.77966e-16 surface_max_abs_error=3.55271e-15 surface_tol=0.05\n743754 microseconds\nThe simulation of Heightmap ANYmal is running at: 0.268906 MHz\nAverage contacts: 2.99657\n743301 microseconds\nThe simulation of Heightmap ANYmal is running at: 0.269070 MHz\nAverage contacts: 2.99657\n742511 microseconds\nThe simulation of Heightmap ANYmal is running at: 0.269356 MHz\nAverage contacts: 2.99657\n[primitive_ray_scaling] objects=10000 rays=10000 workload=mixed build_ms=9.735 query_ms=2.359 ns_per_ray=235.926 mrays_per_second=4.239 hit_ratio=0.500 checksum=8131875887223516006\n[primitive_ray_scaling] objects=10000 rays=10000 workload=mixed build_ms=8.818 query_ms=2.185 ns_per_ray=218.459 mrays_per_second=4.578 hit_ratio=0.500 checksum=8131875887223516006\n[primitive_ray_scaling] objects=10000 rays=10000 workload=mixed build_ms=8.343 query_ms=2.139 ns_per_ray=213.902 mrays_per_second=4.675 hit_ratio=0.500 checksum=8131875887223516006\n\nBenchmark Summary\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark                                                                     RaiSim       MuJoCo       Speedup(R/M)  Notes                                                                                                                            \n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nDeformable cloth XPBD benchmark                                               OK 0.555s    -            -             RaiSim: repeat=3 min=0.554761 max=0.557235                                                                                       \nStrandbeest from USD: 79 DoF, 42 hinge closures (84 pins), crank-driven walk  OK 0.107s    -            -             RaiSim: repeat=3 min=0.107316 max=0.137763; 31.6507 us/step, loop gap 2.47781e-05 m                                              \nPrimitive speed bench                                                         OK 2.125s    -            -             RaiSim: repeat=3 min=2.12381 max=2.12862                                                                                         \nANYmal standing                                                               OK 3.505s    -            -             RaiSim: repeat=3 min=3.49953 max=3.51824                                                                                         \nANYmal falling                                                                OK 0.190s    -            -             RaiSim: repeat=3 min=0.190268 max=0.191665                                                                                       \nChain10 speed                                                                 OK 0.188s    -            -             RaiSim: repeat=3 min=0.186585 max=0.190491                                                                                       \nChain20 speed                                                                 OK 0.387s    -            -             RaiSim: repeat=3 min=0.382104 max=0.387918                                                                                       \nHeightmap lidar                                                               OK 0.647s    -            -             RaiSim: repeat=3 min=0.644737 max=0.646634                                                                                       \nHeightmap ANYmal speed                                                        OK 0.745s    -            -             RaiSim: repeat=3 min=0.743789 max=0.745138                                                                                       \nPrimitive ray scaling                                                         OK 0.017s    -            -             RaiSim: repeat=3 min=0.0163837 max=0.0193646; objects=10000 rays=10000 workload=mixed ns/ray=213.902 Mray/s=4.67504 hit_ratio=0.5\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/raisim/0/benchmark_20261108_202123.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/raisim/0/benchmark_20261108_202123.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/raisim/0/benchmark_20261108_202123.md\n",
+        "960830 microseconds\nThe simulation of Deformable cube stack is running at: 0.001249 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=784 triangles=1536 iterations=6 compliance=7.5e-05 collision_radius=0.06525 avg_contact_entries=1137.83\n935783 microseconds\nThe simulation of Deformable cube stack is running at: 0.001282 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=784 triangles=1536 iterations=6 compliance=7.5e-05 collision_radius=0.06525 avg_contact_entries=1137.83\n937951 microseconds\nThe simulation of Deformable cube stack is running at: 0.001279 MHz\ncubes=8 resolution=5 requested_resolution=4 particles=784 triangles=1536 iterations=6 compliance=7.5e-05 collision_radius=0.06525 avg_contact_entries=1137.83\n\nBenchmark Summary\n-------------------------------------------------------------------------------------------------------------------\nBenchmark                        RaiSim       MuJoCo       Speedup(R/M)  Notes                                     \n-------------------------------------------------------------------------------------------------------------------\nDeformable cube stack benchmark  OK 0.941s    -            -             RaiSim: repeat=3 min=0.939104 max=0.964619\n-------------------------------------------------------------------------------------------------------------------\nBenchmark reports written:\n  JSON: /tmp/mujoco-comparison-2026-11-08-verified/raisim/1/benchmark_20261108_202126.json\n  CSV:  /tmp/mujoco-comparison-2026-11-08-verified/raisim/1/benchmark_20261108_202126.csv\n  MD:   /tmp/mujoco-comparison-2026-11-08-verified/raisim/1/benchmark_20261108_202126.md\n"
+      ]
+    }
+  }
+}
