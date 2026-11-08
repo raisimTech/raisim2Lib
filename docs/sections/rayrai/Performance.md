@@ -365,7 +365,7 @@ caches are also checked against their source and rebuilt when stale.
 
 | Contents | Default location | Override |
 | --- | --- | --- |
-| Imported-mesh metadata and generated LOD chains | `<temp>/rayrai_mesh_preprocess_cache` | `RAYRAI_MESH_PREPROCESS_CACHE_DIR` |
+| Imported-mesh metadata and generated LOD chains | per-user cache folder (`%LOCALAPPDATA%/RaiSim/rayrai/mesh_preprocess_cache`, `$XDG_CACHE_HOME/raisim/rayrai/mesh_preprocess_cache`, `~/Library/Caches/raisim/rayrai/mesh_preprocess_cache` or `~/.cache/raisim/rayrai/mesh_preprocess_cache`) | `RAYRAI_MESH_PREPROCESS_CACHE_DIR` |
 | LOD chains prepared by asynchronous loading of instanced meshes, and the prepared geometry and import description of asynchronously loaded models of at least 65,536 vertices | `rayrai_cache_<file>.lods`, `.rgeo` and `.rimp` next to the source asset, else `<temp>/rayrai_async_lod_cache` | `RAYRAI_ASYNC_LOD_CACHE_DIR` |
 | Procedural cloud noise textures | `$HOME/.raisim/rayrai`, then `%USERPROFILE%\.raisim\rayrai` (Windows), then `<temp>/raisim/rayrai` | `RAYRAI_CLOUD_TEXTURE_CACHE_DIR` |
 

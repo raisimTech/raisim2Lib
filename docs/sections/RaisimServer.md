@@ -197,6 +197,11 @@ bits are:
   Without it they share one with visual objects, and a viewer reads a system
   with fewer than two visuals, such as a camera rig without geometry, as a
   visual object.
+- `PROTOCOL_FEATURE_SENSOR_IMAGE_OFFSET`: the description of every RGB, depth
+  and segmentation camera carries the camera's image offset in pixels
+  (`xOffset`, then `yOffset`, as two 32-bit integers) right after its lens
+  parameters, and the viewer shifts its rendered image the same way the CPU
+  cameras shift their rays.
 
 The rayrai TCP viewer negotiates all twelve bits automatically.
 `sendUpdateRequest()` in `rayrai/RaisimTcpCommon.hpp` advertises every bit
@@ -235,6 +240,10 @@ object or a spatial tendon, by visual tag), `CR_SAVE_THE_WORLD` (export the
 world as XML), and the interaction wire `CR_ATTACH_WIRE` /
 `CR_DRAG_OBJECT`. File paths in these requests are opened and written on the
 server host. The wire is released when the client disconnects.
+`CR_SAVE_THE_WORLD` writes a file only after the application called
+`setViewerWorldExport(true)`; otherwise the server ignores the request with a
+warning, because any viewer (including a web page on an allowed origin) could
+otherwise overwrite files on the server host.
 
 There is no authentication or per-client authorization: once the connection is
 open, the client can issue any request negotiated by both ends, plus every

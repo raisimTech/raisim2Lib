@@ -227,8 +227,8 @@ The protocol constants are defined in `rayrai/TcpProtocolReader.hpp`, which
   `kProtocolFeatureActuatorState`, `kProtocolFeatureSceneFiles`,
   `kProtocolFeatureBodyFrameOffsets`, `kProtocolFeatureFluidVolumes`,
   `kProtocolFeatureControls`, `kProtocolFeatureWrenchSensors`,
-  `kProtocolFeatureSegmentation`, and `kProtocolFeatureVisualArticulatedType`
-  — the currently negotiated feature bits (see [RaisimServer](../RaisimServer.md));
+  `kProtocolFeatureSegmentation`, `kProtocolFeatureVisualArticulatedType`, and
+  `kProtocolFeatureSensorImageOffset` — the currently negotiated feature bits (see [RaisimServer](../RaisimServer.md));
   `kProtocolSupportedFeatures` is the OR of all bits this build understands.
   The viewer rejects a server update that sets any other bit.
 - `kMaxMessageBytes` — maximum accepted message size (default 64 MiB),

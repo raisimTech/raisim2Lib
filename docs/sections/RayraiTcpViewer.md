@@ -710,7 +710,8 @@ or not sim control was negotiated:
 - **Delete Selected**: remove the selected object.
 - **Export world**: ask the server to write its world as XML to a path on the
   server (**Export World XML**). **Browse...** is offered only for a server on
-  this machine.
+  this machine. The server writes the file only if its application called
+  `RaisimServer::setViewerWorldExport(true)`.
 
 **Selected control.** For the selected object: the body index of an
 articulated system (**Body follows selection**), **Shift-drag force** with
@@ -1163,8 +1164,9 @@ The protocol constants are declared in `rayrai/TcpProtocolReader.hpp`, which
   `kProtocolFeatureActuatorState`, `kProtocolFeatureSceneFiles`,
   `kProtocolFeatureBodyFrameOffsets`, `kProtocolFeatureFluidVolumes`,
   `kProtocolFeatureControls`, `kProtocolFeatureWrenchSensors`,
-  `kProtocolFeatureSegmentation` and `kProtocolFeatureVisualArticulatedType`:
-  the feature bits, described in [RaisimServer](./RaisimServer.md).
+  `kProtocolFeatureSegmentation`, `kProtocolFeatureVisualArticulatedType` and
+  `kProtocolFeatureSensorImageOffset`: the feature bits, described in
+  [RaisimServer](./RaisimServer.md).
   `kProtocolSupportedFeatures` is the OR of all bits this build understands.
 - `kMaxMessageBytes`: the largest message the client accepts (64 MiB by
   default). Very large scenes can raise it at build time with the

@@ -443,10 +443,15 @@ rayrai keeps regenerable caches for imported meshes; deleting them only
 costs regeneration time on the next load.
 
 - Mesh metadata and generated LOD chains are written to
-  `RAYRAI_MESH_PREPROCESS_CACHE_DIR`, by default the
-  `rayrai_mesh_preprocess_cache` folder in the system temporary directory.
+  `RAYRAI_MESH_PREPROCESS_CACHE_DIR`, by default a per-user cache folder:
+  `%LOCALAPPDATA%/RaiSim/rayrai/mesh_preprocess_cache` on Windows,
+  `$XDG_CACHE_HOME/raisim/rayrai/mesh_preprocess_cache` when that variable is
+  set, else `~/Library/Caches/raisim/rayrai/mesh_preprocess_cache` on macOS and
+  `~/.cache/raisim/rayrai/mesh_preprocess_cache` elsewhere (a per-user folder in
+  the system temporary directory without a home directory).
   An entry is invalidated when the source file's size or modification time
-  changes, or when the cache format changes.
+  changes, when the cache format, the meshoptimizer version or the LOD
+  parameters change, or when its checksum does not match.
   `RAYRAI_SUPPRESS_MESH_PREPROCESS_CACHE_FALLBACK_WARNINGS=1` silences the
   warnings printed when the cache cannot be used.
 - LOD chains that instanced batches prepare during asynchronous loading are
