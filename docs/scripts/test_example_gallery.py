@@ -51,6 +51,14 @@ class ExampleGalleryTest(unittest.TestCase):
         self.assertEqual(sorted(pages - stubs - NOT_EXAMPLES - set(self.listed)), [], "pages missing from gallery.json")
         self.assertEqual(sorted(set(self.listed) - pages), [], "gallery.json lists pages that do not exist")
 
+    def test_every_rayrai_example_target_has_a_page(self):
+        cmake = (DOCS.parent / "examples" / "CMakeLists.txt").read_text(encoding="utf-8")
+        targets = set(re.findall(r"create_rayrai_executable\((\w+)\s", cmake))
+        pages = {page.stem for page in EXAMPLES.rglob("*.md")}
+        # Documented elsewhere: the tendon examples page, the Blender import page and a debug tool.
+        elsewhere = {"rayrai_tendons", "rayrai_blue_wall_scene", "rayrai_heightmap_replacement"}
+        self.assertEqual(sorted(targets - pages - elsewhere), [], "rayrai example targets without a page")
+
     def test_deformable_examples_have_their_own_category(self):
         categories = {category["id"]: category for category in self.gallery["categories"]}
         sources = DOCS.parent / "examples" / "src" / "server" / "deformable"

@@ -5,9 +5,9 @@ RaiSim supports these sensor workflows:
 - **URDF-attached sensors** for robots. Sensor metadata is loaded from a sensor
   XML file attached to a URDF link. This is the right workflow for IMU, RGB,
   depth, and spinning LiDAR sensors that should move with an articulated system.
-- **rayrai-rendered RGB/depth sensors** for camera observations. When rayrai is
-  available, use in-process rayrai rendering with
-  `Sensor::MeasurementSource::MANUAL` for RGB/depth sensor buffers. This is
+- **rayrai-rendered RGB, depth and segmentation sensors** for camera
+  observations. When rayrai is available, use in-process rayrai rendering with
+  `Sensor::MeasurementSource::MANUAL` for camera sensor buffers. This is
   the recommended path for rendered images, screenshots, and dataset generation.
 - **World-level CPU depth-camera capture** only as a deterministic headless
   fallback. `World::captureDepthCamera` casts CPU rays from an arbitrary camera
@@ -61,16 +61,75 @@ An example URDF is
 The update method is selected with `raisim::Sensor::setMeasurementSource`:
 
 - `RAISIM`: measurement is computed by RaiSim. The owning articulated system
-  refreshes it during `World::integrate()` whenever `1 / update_rate` of
-  simulated time has passed since the last update, and at once when
-  `World::setWorldTime()` moved the time back before the last update (a new
-  episode; `Sensor::isUpdateDue()`). This is the default for IMU
-  and spinning LiDAR sensors. `DepthCamera` supports RaiSim-side CPU ray
-  updates, but use this for headless fallback rather than for rendered camera
-  images when rayrai is available. `RGBCamera` cannot use it.
-- `MANUAL`: user code writes the buffers. This is the default for RGB and
-  depth cameras. Use it for in-process rayrai RGB/depth rendering or real
+  refreshes it during `World::integrate()` on a fixed grid of deadlines
+  `1 / update_rate` apart, at the first step that reaches each deadline
+  (see [Update timing](#update-timing)). This is the default for IMU
+  and spinning LiDAR sensors. `DepthCamera` and `SegmentationCamera` support
+  RaiSim-side CPU ray updates, but use this for headless fallback rather than
+  for rendered camera images when rayrai is available. `RGBCamera` cannot use it.
+- `MANUAL`: user code writes the buffers. This is the default for RGB, depth
+  and segmentation cameras. Use it for in-process rayrai rendering or real
   hardware integration.
+
+### Update timing
+
+RaiSim-sourced IMUs, depth cameras and LiDARs count their deadlines in physics
+steps: the time of a deadline is the sum of the time steps since the grid
+started, not the world time. A sensor takes each deadline at the first step
+that reaches it and drops the deadlines a step goes past, without shifting the
+grid. It takes at most one sample per step, so its long-run rate equals
+`update_rate` up to the physics rate, even when the period is not a multiple of
+the time step. A 30 Hz depth camera at 1000 Hz is updated 34, 33, 33, 34, 33,
+33, ... steps apart, 30 times per simulated second, and a 500 Hz IMU at
+2000 Hz exactly every fourth step, without slipping.
+
+The world time stamps the samples (`getUpdateTimeStamp()`). Changing it with
+`World::setWorldTime()` between steps does not move the grid, so a world clock
+that disagrees with the time step (time kept in whole nanoseconds at 3000 Hz)
+does not slip the samples. A step that ends before the last step the sensor
+counted starts a new episode: the grid starts again with an update at once.
+Setting the world time back by more than one step does this; setting it back
+by one step or less goes unnoticed, as the next step then ends at or after the
+last one (at the same time, it counts as already done). The grid also starts
+again, with an update at once, when `setUpdateRate()` changes the rate. When the
+world time moves forward by more than one and a half time steps between two
+steps the sensor counts (it was not updated for some steps, for example while
+its source was `MANUAL`, or the world time was set forward), that time counts
+as physics time. A spinning LiDAR's head still turns
+by the world time between its updates (see [Spinning LiDAR](#spinning-lidar)).
+Force and tactile sensors keep their own acquisition clock.
+
+`MANUAL` RGB, depth and segmentation cameras also retain a nominal sample grid when scheduled
+through `Sensor::isUpdateDue(worldTime)` and `setUpdateTimeStamp(acquisitionTime)`.
+The first acknowledged image anchors the grid. Later images retain the remainder
+after their deadlines: at 1000 Hz, a 30 Hz camera uses 34, 33, 33, ... step
+intervals instead of waiting 34 steps after every image (29.4 Hz). A 300 Hz camera
+uses 4, 3, 3, ... steps; relative to its first image, updates occur at
+0, 4, 7, 10, 14, ... ms. Polling does not consume a deadline, and acknowledging the same
+image twice does not advance it twice. Missed deadlines are skipped without
+shifting the remaining grid.
+
+`RaisimServer` schedules viewer images from a compensated clock advanced by the
+configured physics time steps, for cameras on both world robots and visual-only
+articulated systems. It records this clock and the world timestamp when it
+requests an image. A delayed reply acknowledges that acquisition time, so render
+or transport delays do not restart the period. `getUpdateTimeStamp()` remains the
+acquisition world time, not the reply arrival time. Checkpoints preserve the
+camera grid and its clock. When a camera's image size (or a segmentation
+camera's type) changes, the server sends the new properties to the viewer
+before requesting the camera again; an image the viewer was rendering with the
+old properties is dropped and does not count as a sample.
+
+For viewer scheduling, a world-time correction applied after an integration step
+and no larger than half that step leaves the camera clock unchanged. Larger
+jumps, and time changes without an intervening integration since the preceding
+clock edit, adjust it. Setting the current time again has no effect. A backward
+acquisition timestamp or a rate/source change establishes a new grid at the next
+acknowledged image.
+
+Outside `RaisimServer`, the public polling/acknowledgment API uses the timestamps
+the application supplies. In-process rendering remains application-driven; use
+this API when enforcing a camera update rate.
 
 There is no `VISUALIZER` measurement source in the RaiSim API. TCP camera
 requests use `MANUAL` sensors: a connected visualizer renders requested frames,
@@ -171,6 +230,131 @@ for (int y = 0; y < prop.height; ++y) {
 
 rgb->setImageBuffer(rgba);
 ```
+
+## Segmentation camera
+
+`raisim::SegmentationCamera` reports what each pixel sees. It fills up to three
+`int32` images of `width * height` values, in rows from the top-left pixel
+(index `row * width + col`):
+
+- the **object image** holds the world index of the object
+  (`Object::getIndexInWorld()`, `World::getObject(index)`),
+- the **body image** holds the body of that object, in
+  `ArticulatedSystem::getBodyNames()` order (0 for single bodies, compounds,
+  height maps and deformables),
+- the **label image** holds the semantic label of that body.
+
+Pixels that see nothing between the near and the far plane hold
+`SegmentationCamera::kBackground` (-1) in every image. Rayrai visuals that are
+not RaiSim objects, drawn only when a render includes visualization objects,
+hold `SegmentationCamera::kNotWorldObject` (-2) as object and body index and
+label 0, unless `Visuals::setSegmentationIds()` gives them other ids.
+
+The segmentation type selects the images: `SEMANTIC` fills the label image,
+`INSTANCE` the object and body images, and `PANOPTIC` (the default) all three.
+`getObjectImage()`, `getBodyImage()` and `getLabelImage()` return empty vectors
+for the images the type does not select. A world index is the object's index
+when the image was taken: `World::removeObject()` moves the last object into
+the index it frees.
+
+### Labels and classes
+
+A label is a non-negative integer; 0 means unlabeled. The world keeps a table of
+class names for them:
+
+```cpp
+const int32_t robotClass = world.addSegmentationClass("robot");
+robot->setSegmentationLabel(robotClass);  // every body of the robot
+robot->setBodySegmentationLabel("gripper", world.addSegmentationClass("gripper"));
+box->setSegmentationLabel(world.addSegmentationClass("box"));
+
+const auto& labels = camera->getLabelImage();
+const std::string& name = world.getSegmentationClassName(labels[pixel]);
+```
+
+`addSegmentationClass()` returns the label a name already has, or the next free
+label (labels start at 1). `setSegmentationClassName(label, name)` names a
+label of your choice. A body label set with `setBodySegmentationLabel()` takes
+precedence over the object label; `clearBodySegmentationLabels()` removes them.
+Links merged into their parent through fixed joints are part of the parent body.
+World XML exports and checkpoints keep the labels and the class table.
+
+When displaying the label image, all objects with the same semantic label have
+the same color, regardless of their RGB appearance. For example, two boxes
+labeled `Box` share a color. Colorize the object image instead to give each
+object instance its own color. The [segmentation camera example](./examples/rayrai/rayrai_segmentation_camera.md#semantic-classes-and-object-instances)
+shows both modes beside the RGB image.
+
+### URDF, XML and .rscene
+
+A URDF link declares a segmentation camera like a depth camera, with an
+optional `<segmentation type="...">` (`semantic`, `instance` or `panoptic`):
+
+```xml
+<sensor name="segmentation" type="segmentation" update_rate="30">
+  <origin xyz="0.1 0 0" rpy="0 0 0"/>
+  <camera horizontal_fov="1.2">
+    <image width="640" height="480"/>
+    <clip near="0.05" far="20"/>
+  </camera>
+  <segmentation type="panoptic"/>
+</sensor>
+```
+
+The `projection` and lens attributes of depth cameras apply as well. In a world
+XML file, an object takes `segmentation_label="4"` or `segmentation_class="box"`
+(one of the two), an articulated system also takes per-body labels, and
+`<segmentation_classes>` names labels:
+
+```xml
+<raisim version="1.0">
+  <segmentation_classes>
+    <class label="1" name="floor"/>
+  </segmentation_classes>
+  <objects>
+    <ground name="floor" segmentation_label="1"/>
+    <articulated_system name="arm" urdf_path="arm.urdf" segmentation_class="robot">
+      <body_segmentation body="tip" class="gripper"/>
+    </articulated_system>
+  </objects>
+</raisim>
+```
+
+In a `.rscene` file, the `semanticClass` key of an object or articulated record
+labels it with that class.
+
+### Measuring segmentation images
+
+With rayrai, render the camera and read the images back. The images agree pixel
+for pixel with `renderDepthPlaneDistance()` from the same camera, without
+antialiasing, blending, weather or post-processing; a fisheye lens is resampled
+at the nearest pixel:
+
+```cpp
+auto* camera = robot->getSensorSet("head")->getSensor<raisim::SegmentationCamera>("segmentation");
+raisin::Camera renderCamera(*camera);
+
+viewer->renderSegmentation(*camera, renderCamera);  // copies the sensor pose
+renderCamera.getRawImage(*camera);                   // fills the sensor's images
+
+std::vector<unsigned char> rgba;
+raisim::SegmentationCamera::colorize(camera->getLabelImage(), rgba);  // for display
+```
+
+`Camera::readSegmentation()` reads the three images into buffers of your own.
+A connected `rayrai_tcp_viewer` renders the `MANUAL` segmentation cameras of a
+`RaisimServer`'s robots and returns their images, as for RGB and depth cameras.
+
+With the `RAISIM` source, `update(world)` casts one ray per pixel from the near
+to the far plane against the collision bodies of the world, ignoring the body
+the camera is attached to. Rayrai draws visual meshes, so the two differ where a
+body's visual and collision shapes differ. Fisheye distortion coefficients are
+applied by rayrai only, as for depth cameras.
+
+In Python, `getObjectImage()`, `getBodyImage()` and `getLabelImage()` return
+`(height, width)` `int32` arrays, or `None` for images the type does not
+select, and `raisimpy.rayrai.Camera.readSegmentation()` returns the three
+rendered images.
 
 ## Spinning LiDAR
 
@@ -463,11 +647,12 @@ estimator using the raw accelerometer and gyro channels instead.
 
 ### Sampling and delivery
 
-The acquisition clock retains its phase when a deadline falls between physics
-steps. Acquisition takes place at the first completed step at or after the
-deadline; the next deadline advances from the original clock rather than the
-rounded acquisition time. There is at most one acquisition per physics step,
-so a requested rate above the physics rate cannot create additional motion data.
+Acquisitions follow the step-counted grid of [Update timing](#update-timing):
+when a deadline falls between physics steps, acquisition takes place at the
+first completed step at or after it, and the next deadline keeps the grid's
+phase rather than following the rounded acquisition time. There is at most one
+acquisition per physics step, so a requested rate above the physics rate cannot
+create additional motion data.
 
 For a simulation starting at time zero with 1 ms physics, a 400 Hz IMU and 3 ms
 latency, the first samples are:
@@ -487,15 +672,15 @@ The acquisition intervals alternate between 2 ms and 3 ms. The mean rate remains
 delivered sample. `getDeliveryTimeStamp()` is when that sample became available.
 Both are simulation times, not wall-clock times.
 
-For latency $L$, a sample acquired at $t_s$ becomes available at the
-first physics step with $t\ge t_s+L$. Delivery is checked every physics
-step, including steps without a new acquisition. Latency is therefore rounded
-up to the available physics times. Acceleration, gyro and ground-truth orientation
+For latency $L$, a sample becomes available at the first physics step that
+ends at least $L$ of physics time after its acquisition, counted in time steps
+like the sampling grid. Delivery is checked every physics step, including steps
+without a new acquisition. Latency is therefore rounded up to whole steps. Acceleration, gyro and ground-truth orientation
 are queued together. Before the first delivery, timestamps are negative and the
 quaternion is the identity; do not treat those initial buffers as measurements.
 
 Queue storage grows with acquired samples, up to 65,536 pending measurements
-(about 6 MiB per IMU). If this capacity is exhausted, or growth cannot allocate
+(about 6.5 MiB per IMU). If this capacity is exhausted, or growth cannot allocate
 memory, new samples are dropped until room becomes available. Existing queued
 samples keep their acquisition times and delivery latency. A warning is emitted
 on the first loss after `reset()`; `getDroppedMeasurementCount()` reports the
@@ -899,6 +1084,9 @@ Current runnable coverage:
 - [Rayrai LiDAR point cloud](./examples/rayrai/rayrai_lidar_pointcloud.md)
   shows a robot-mounted `SpinningLidar` and visualizes its scan as a rayrai
   point cloud.
+- [Rayrai segmentation camera](./examples/rayrai/rayrai_segmentation_camera.md)
+  renders a color image and a segmentation image from one camera and shows them
+  side by side, colored by semantic class or by object.
 - [Rayrai ArUco marker](./examples/rayrai/rayrai_aruco_marker.md) covers
   marker rendering and camera-facing visual output.
 
@@ -985,7 +1173,7 @@ viewer->measureSpinningLidarSingleDrawGPU(*lidar, posW, rotW);
 
 ## Examples
 
-- Use the dedicated rayrai RGB, depth, LiDAR, and ArUco examples above for
+- Use the dedicated rayrai RGB, depth, segmentation, LiDAR, and ArUco examples above for
   robot-attached rendered sensor buffers.
 - Use `rayrai_complete_showcase` when you need one runnable scene that
   combines RGB/depth cameras, LiDAR visualization, and custom visuals.
@@ -999,6 +1187,10 @@ viewer->measureSpinningLidarSingleDrawGPU(*lidar, posW, rotW);
 ## Depth Camera API
 
 - [`raisim::DepthCamera`](/api/raisim/DepthCamera.md)
+
+## Segmentation Camera API
+
+- [`raisim::SegmentationCamera`](/api/raisim/SegmentationCamera.md)
 
 ## RGB Camera API
 

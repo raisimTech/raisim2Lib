@@ -2300,6 +2300,7 @@ const char* sensorTypeLabel(raisim::Sensor::Type type) {
   switch (type) {
     case raisim::Sensor::Type::RGB: return "RGB camera";
     case raisim::Sensor::Type::DEPTH: return "Depth camera";
+    case raisim::Sensor::Type::SEGMENTATION: return "Segmentation camera";
     case raisim::Sensor::Type::IMU: return "IMU";
     case raisim::Sensor::Type::SPINNING_LIDAR: return "Spinning lidar";
     case raisim::Sensor::Type::FORCE: return "Force / torque";
@@ -2326,25 +2327,31 @@ struct CameraFrustumUiState {
 
 using CameraFrustumUiStates = std::unordered_map<std::string, CameraFrustumUiState>;
 
-bool isCameraSensorType(raisim::Sensor::Type type) {
-  return type == raisim::Sensor::Type::RGB || type == raisim::Sensor::Type::DEPTH;
-}
-
 std::string cameraFrustumKey(const SensorInfo& sensor) {
   return std::to_string(sensor.parentTag) + ":" +
          std::to_string(static_cast<int>(sensor.type)) + ":" + sensor.name;
 }
 
+// True for a camera the viewer renders on the server's request; until the first image arrives its
+// panel says so instead of "No image preview".
+bool cameraAwaitsViewerImage(const SensorInfo& sensor) {
+  return sensor.source == raisim::Sensor::MeasurementSource::MANUAL && isCameraSensor(sensor.type);
+}
+
+bool cameraHasImageRange(raisim::Sensor::Type type) {
+  return type == raisim::Sensor::Type::DEPTH || type == raisim::Sensor::Type::SEGMENTATION;
+}
+
 float cameraFrustumFarDistance(const SensorInfo& sensor) {
   if (sensor.type == raisim::Sensor::Type::RGB) return 10.0f;
-  if (sensor.type == raisim::Sensor::Type::DEPTH && std::isfinite(sensor.clipFar)) {
+  if (cameraHasImageRange(sensor.type) && std::isfinite(sensor.clipFar)) {
     return static_cast<float>(std::max(sensor.clipFar, 1.0e-3));
   }
   return 10.0f;
 }
 
 std::string cameraSensorRangeLabel(const SensorInfo& sensor) {
-  if (sensor.type != raisim::Sensor::Type::DEPTH) return {};
+  if (!cameraHasImageRange(sensor.type)) return {};
   char label[64];
   std::snprintf(label, sizeof(label), "%.3f~%.3f", sensor.clipNear, sensor.clipFar);
   return label;
@@ -2424,7 +2431,7 @@ void updateCameraFrustums(raisin::RayraiWindow& viewer, const RemoteScene& scene
     const auto sensor = std::find_if(sensors.begin(), sensors.end(), [&](const SensorInfo& item) {
       return item.type == state.type && item.name == state.sensorName;
     });
-    if (sensor == sensors.end() || !isCameraSensorType(sensor->type)) {
+    if (sensor == sensors.end() || !isCameraSensor(sensor->type)) {
       removeCameraFrustum(viewer, state);
       removeCameraSensorFrame(viewer, state);
       continue;
@@ -2508,7 +2515,7 @@ void drawObjectSensors(const TcpViewerIcons& icons, const std::vector<SensorInfo
         ImGui::Dummy(ImVec2(width, height));
         ImGui::TextDisabled("Contact force per taxel | peak %.3f N", maximum);
       }
-      if (isCameraSensorType(sensor.type)) {
+      if (isCameraSensor(sensor.type)) {
         const std::string frustumKey = cameraFrustumKey(sensor);
         auto& state = cameraFrustums[frustumKey];
         state.parentTag = sensor.parentTag;
@@ -2551,9 +2558,7 @@ void drawObjectSensors(const TcpViewerIcons& icons, const std::vector<SensorInfo
           ImGui::Image(reinterpret_cast<ImTextureID>(uint64_t(preview->texture)),
             ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
         }
-      } else if (sensor.source == raisim::Sensor::MeasurementSource::MANUAL &&
-                 (sensor.type == raisim::Sensor::Type::RGB ||
-                  sensor.type == raisim::Sensor::Type::DEPTH)) {
+      } else if (cameraAwaitsViewerImage(sensor)) {
         if (sensor.viewerUpdateRequested) {
           ImGui::TextDisabled("Rendering the first frame...");
         } else {

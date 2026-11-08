@@ -2,6 +2,29 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_038(py::module_& m) {
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticlesActive", &raisin::WeatherDiagnostics::precipitationParticlesActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"snowParticlesActive", &raisin::WeatherDiagnostics::snowParticlesActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainParticlesActive", &raisin::WeatherDiagnostics::rainParticlesActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleBudget", &raisin::WeatherDiagnostics::precipitationParticleBudget);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticlesRendered", &raisin::WeatherDiagnostics::precipitationParticlesRendered);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleSizePixels", &raisin::WeatherDiagnostics::precipitationParticleSizePixels);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleDepthMeters", &raisin::WeatherDiagnostics::precipitationParticleDepthMeters);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleAlpha", &raisin::WeatherDiagnostics::precipitationParticleAlpha);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"precipitationParticleColor", &raisin::WeatherDiagnostics::precipitationParticleColor);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticlesActive", &raisin::WeatherDiagnostics::rainSplashParticlesActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticlesRendered", &raisin::WeatherDiagnostics::rainSplashParticlesRendered);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleSizePixels", &raisin::WeatherDiagnostics::rainSplashParticleSizePixels);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleAlpha", &raisin::WeatherDiagnostics::rainSplashParticleAlpha);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"rainSplashParticleColor", &raisin::WeatherDiagnostics::rainSplashParticleColor);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletsActive", &raisin::WeatherDiagnostics::lensDropletsActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletsRendered", &raisin::WeatherDiagnostics::lensDropletsRendered);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletStrength", &raisin::WeatherDiagnostics::lensDropletStrength);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletMaxSizePixels", &raisin::WeatherDiagnostics::lensDropletMaxSizePixels);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"lensDropletAlpha", &raisin::WeatherDiagnostics::lensDropletAlpha);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"weatherTextureBytes", &raisin::WeatherDiagnostics::weatherTextureBytes);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionActive", &raisin::WeatherDiagnostics::transitionActive);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"transitionAlpha", &raisin::WeatherDiagnostics::transitionAlpha);}
+{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentValid", &raisin::WeatherDiagnostics::skyEnvironmentValid);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentMap", &raisin::WeatherDiagnostics::skyEnvironmentMap);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyIrradianceMap", &raisin::WeatherDiagnostics::skyIrradianceMap);}
 {auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"skyEnvironmentFaceSize", &raisin::WeatherDiagnostics::skyEnvironmentFaceSize);}
@@ -34,28 +57,5 @@ void define_038(py::module_& m) {
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"fogAnisotropy", &raisin::WeatherSettings::fogAnisotropy);}
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"humidity", &raisin::WeatherSettings::humidity);}
 {auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetness", &raisin::WeatherSettings::wetness);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessAccumulationEnabled", &raisin::WeatherSettings::wetnessAccumulationEnabled);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessAccumulationRate", &raisin::WeatherSettings::wetnessAccumulationRate);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"wetnessDryingRate", &raisin::WeatherSettings::wetnessDryingRate);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"snowCoverage", &raisin::WeatherSettings::snowCoverage);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningRate", &raisin::WeatherSettings::lightningRate);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointLightEnabled", &raisin::WeatherSettings::lightningLocalPointLightEnabled);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointDistance", &raisin::WeatherSettings::lightningLocalPointDistance);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointRadius", &raisin::WeatherSettings::lightningLocalPointRadius);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lightningLocalPointIntensity", &raisin::WeatherSettings::lightningLocalPointIntensity);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"thunderSpeedOfSound", &raisin::WeatherSettings::thunderSpeedOfSound);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"airTurbidity", &raisin::WeatherSettings::airTurbidity);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"groundAlbedo", &raisin::WeatherSettings::groundAlbedo);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"useExplicitSunAngles", &raisin::WeatherSettings::useExplicitSunAngles);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunAzimuthDegrees", &raisin::WeatherSettings::sunAzimuthDegrees);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunElevationDegrees", &raisin::WeatherSettings::sunElevationDegrees);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"sunDiskSize", &raisin::WeatherSettings::sunDiskSize);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"moonDiskSize", &raisin::WeatherSettings::moonDiskSize);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudAltitudeMeters", &raisin::WeatherSettings::cloudAltitudeMeters);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudThicknessMeters", &raisin::WeatherSettings::cloudThicknessMeters);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudShadowStrength", &raisin::WeatherSettings::cloudShadowStrength);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudScale", &raisin::WeatherSettings::cloudScale);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"cloudAnimationSpeed", &raisin::WeatherSettings::cloudAnimationSpeed);}
-{auto c=bound_class<raisin::WeatherSettings>(m, "WeatherSettings"); field(c,"lensDropletsEnabled", &raisin::WeatherSettings::lensDropletsEnabled);}
 }
 }

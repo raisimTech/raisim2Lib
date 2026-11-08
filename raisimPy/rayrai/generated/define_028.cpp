@@ -2,6 +2,26 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_028(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerChromaticAberrationStrength", &raisin::RenderQualitySettings::viewerChromaticAberrationStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerFilmGrainStrength", &raisin::RenderQualitySettings::viewerFilmGrainStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"aerialPerspectiveEnabled", &raisin::RenderQualitySettings::aerialPerspectiveEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"aerialPerspectiveStrength", &raisin::RenderQualitySettings::aerialPerspectiveStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalEnabled", &raisin::RenderQualitySettings::detailNormalEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalScale", &raisin::RenderQualitySettings::detailNormalScale);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalStrength", &raisin::RenderQualitySettings::detailNormalStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSubsurfaceWrap", &raisin::RenderQualitySettings::viewerSubsurfaceWrap);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSubsurfaceTint", &raisin::RenderQualitySettings::viewerSubsurfaceTint);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsEnabled", &raisin::RenderQualitySettings::lightShaftsEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsStrength", &raisin::RenderQualitySettings::lightShaftsStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsDecay", &raisin::RenderQualitySettings::lightShaftsDecay);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsDensity", &raisin::RenderQualitySettings::lightShaftsDensity);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareGhostStrength", &raisin::RenderQualitySettings::lensFlareGhostStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareStreakStrength", &raisin::RenderQualitySettings::lensFlareStreakStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareTint", &raisin::RenderQualitySettings::lensFlareTint);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsEnabled", &raisin::RenderQualitySettings::contactShadowsEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsLength", &raisin::RenderQualitySettings::contactShadowsLength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsStrength", &raisin::RenderQualitySettings::contactShadowsStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsThickness", &raisin::RenderQualitySettings::contactShadowsThickness);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurEnabled", &raisin::RenderQualitySettings::motionBlurEnabled);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurDirection", &raisin::RenderQualitySettings::motionBlurDirection);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"motionBlurStrength", &raisin::RenderQualitySettings::motionBlurStrength);}
@@ -37,25 +57,5 @@ void define_028(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"heatHazeEnabled", &raisin::RenderQualitySettings::heatHazeEnabled);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"heatHazeStrength", &raisin::RenderQualitySettings::heatHazeStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"heatHazeFrequency", &raisin::RenderQualitySettings::heatHazeFrequency);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"heatHazeSpeed", &raisin::RenderQualitySettings::heatHazeSpeed);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"heatHazeMaxY", &raisin::RenderQualitySettings::heatHazeMaxY);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"zoomBlurEnabled", &raisin::RenderQualitySettings::zoomBlurEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"zoomBlurStrength", &raisin::RenderQualitySettings::zoomBlurStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"zoomBlurCenter", &raisin::RenderQualitySettings::zoomBlurCenter);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"zoomBlurInnerRadius", &raisin::RenderQualitySettings::zoomBlurInnerRadius);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"posterizeEnabled", &raisin::RenderQualitySettings::posterizeEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"posterizeLevels", &raisin::RenderQualitySettings::posterizeLevels);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstEnabled", &raisin::RenderQualitySettings::starburstEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstStrength", &raisin::RenderQualitySettings::starburstStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstSpikes", &raisin::RenderQualitySettings::starburstSpikes);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstAngleOffset", &raisin::RenderQualitySettings::starburstAngleOffset);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstRadius", &raisin::RenderQualitySettings::starburstRadius);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"starburstTint", &raisin::RenderQualitySettings::starburstTint);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomEnabled", &raisin::RenderQualitySettings::bloomEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomThreshold", &raisin::RenderQualitySettings::bloomThreshold);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomStrength", &raisin::RenderQualitySettings::bloomStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomRadius", &raisin::RenderQualitySettings::bloomRadius);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomKnee", &raisin::RenderQualitySettings::bloomKnee);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"bloomQuality", &raisin::RenderQualitySettings::bloomQuality);}
 }
 }

@@ -2,6 +2,26 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_027(py::module_& m) {
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricFogWindDirection", &raisin::RenderQualitySettings::volumetricFogWindDirection);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricFogWindSpeed", &raisin::RenderQualitySettings::volumetricFogWindSpeed);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricFogTurbulenceSpeed", &raisin::RenderQualitySettings::volumetricFogTurbulenceSpeed);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricLightingEnabled", &raisin::RenderQualitySettings::volumetricLightingEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricLightStrength", &raisin::RenderQualitySettings::volumetricLightStrength);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricLightDecay", &raisin::RenderQualitySettings::volumetricLightDecay);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"volumetricLightSamples", &raisin::RenderQualitySettings::volumetricLightSamples);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"gamma", &raisin::RenderQualitySettings::gamma);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"highFidelityPbr", &raisin::RenderQualitySettings::highFidelityPbr);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"forceSimpleMaterialShading", &raisin::RenderQualitySettings::forceSimpleMaterialShading);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pbrToneMapping", &raisin::RenderQualitySettings::pbrToneMapping);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"colorMode", &raisin::RenderQualitySettings::colorMode);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pbrExposure", &raisin::RenderQualitySettings::pbrExposure);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureEnabled", &raisin::RenderQualitySettings::autoExposureEnabled);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureKey", &raisin::RenderQualitySettings::autoExposureKey);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureSpeed", &raisin::RenderQualitySettings::autoExposureSpeed);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureMinFactor", &raisin::RenderQualitySettings::autoExposureMinFactor);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"autoExposureMaxFactor", &raisin::RenderQualitySettings::autoExposureMaxFactor);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerWhiteBalance", &raisin::RenderQualitySettings::viewerWhiteBalance);}
+{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSaturation", &raisin::RenderQualitySettings::viewerSaturation);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerColorGradePreset", &raisin::RenderQualitySettings::viewerColorGradePreset);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerColorGradeStrength", &raisin::RenderQualitySettings::viewerColorGradeStrength);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"pbrEnvironmentMaxLod", &raisin::RenderQualitySettings::pbrEnvironmentMaxLod);}
@@ -37,25 +57,5 @@ void define_027(py::module_& m) {
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"reflectiveGroundMetallic", &raisin::RenderQualitySettings::reflectiveGroundMetallic);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"fxaaEnabled", &raisin::RenderQualitySettings::fxaaEnabled);}
 {auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerVignetteStrength", &raisin::RenderQualitySettings::viewerVignetteStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerChromaticAberrationStrength", &raisin::RenderQualitySettings::viewerChromaticAberrationStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerFilmGrainStrength", &raisin::RenderQualitySettings::viewerFilmGrainStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"aerialPerspectiveEnabled", &raisin::RenderQualitySettings::aerialPerspectiveEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"aerialPerspectiveStrength", &raisin::RenderQualitySettings::aerialPerspectiveStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalEnabled", &raisin::RenderQualitySettings::detailNormalEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalScale", &raisin::RenderQualitySettings::detailNormalScale);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"detailNormalStrength", &raisin::RenderQualitySettings::detailNormalStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSubsurfaceWrap", &raisin::RenderQualitySettings::viewerSubsurfaceWrap);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"viewerSubsurfaceTint", &raisin::RenderQualitySettings::viewerSubsurfaceTint);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsEnabled", &raisin::RenderQualitySettings::lightShaftsEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsStrength", &raisin::RenderQualitySettings::lightShaftsStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsDecay", &raisin::RenderQualitySettings::lightShaftsDecay);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lightShaftsDensity", &raisin::RenderQualitySettings::lightShaftsDensity);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareGhostStrength", &raisin::RenderQualitySettings::lensFlareGhostStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareStreakStrength", &raisin::RenderQualitySettings::lensFlareStreakStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"lensFlareTint", &raisin::RenderQualitySettings::lensFlareTint);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsEnabled", &raisin::RenderQualitySettings::contactShadowsEnabled);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsLength", &raisin::RenderQualitySettings::contactShadowsLength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsStrength", &raisin::RenderQualitySettings::contactShadowsStrength);}
-{auto c=bound_class<raisin::RenderQualitySettings>(m, "RenderQualitySettings"); field(c,"contactShadowsThickness", &raisin::RenderQualitySettings::contactShadowsThickness);}
 }
 }

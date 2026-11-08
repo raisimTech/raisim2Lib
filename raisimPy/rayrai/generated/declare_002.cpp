@@ -12,6 +12,7 @@ py::class_<raisin::Camera::RenderTargetDiagnostics>(m.attr("Camera"), "RenderTar
 py::enum_<raisin::Camera::SensorStorageMode>(m.attr("Camera"), "SensorStorageMode").value("SENSOR_SETTER", raisin::Camera::SensorStorageMode::SENSOR_SETTER).value("CUSTOM_BUFFER", raisin::Camera::SensorStorageMode::CUSTOM_BUFFER);
 py::class_<raisin::CoordinateFrame::Pose>(m.attr("CoordinateFrame"), "Pose");
 py::class_<raisin::InstancedVisuals::AsyncFoliageClusterPrepDiagnostics>(m.attr("InstancedVisuals"), "AsyncFoliageClusterPrepDiagnostics");
+py::class_<raisin::InstancedVisuals::FoliageBatchSupport>(m.attr("InstancedVisuals"), "FoliageBatchSupport");
 py::class_<raisin::InstancedVisuals::FoliageImpostorDiagnostics>(m.attr("InstancedVisuals"), "FoliageImpostorDiagnostics");
 py::class_<raisin::InstancedVisuals::FoliageWindDiagnostics>(m.attr("InstancedVisuals"), "FoliageWindDiagnostics");
 py::class_<raisin::InstancedVisuals::GpuHizOcclusionConfig>(m.attr("InstancedVisuals"), "GpuHizOcclusionConfig");
@@ -36,6 +37,5 @@ py::enum_<raisin::Material::NormalMapConvention>(m.attr("Material"), "NormalMapC
 py::class_<raisin::Material::ParallaxSettings>(m.attr("Material"), "ParallaxSettings");
 py::enum_<raisin::Material::ShadingModel>(m.attr("Material"), "ShadingModel").value("Standard", raisin::Material::ShadingModel::Standard).value("Lambert", raisin::Material::ShadingModel::Lambert).value("Toon", raisin::Material::ShadingModel::Toon).value("Unlit", raisin::Material::ShadingModel::Unlit);
 py::enum_<raisin::Material::SpecularMode>(m.attr("Material"), "SpecularMode").value("SchlickGgx", raisin::Material::SpecularMode::SchlickGgx).value("Toon", raisin::Material::SpecularMode::Toon).value("Disabled", raisin::Material::SpecularMode::Disabled);
-py::enum_<raisin::Material::StencilCompare>(m.attr("Material"), "StencilCompare").value("Always", raisin::Material::StencilCompare::Always).value("Less", raisin::Material::StencilCompare::Less).value("Equal", raisin::Material::StencilCompare::Equal).value("LessOrEqual", raisin::Material::StencilCompare::LessOrEqual).value("Greater", raisin::Material::StencilCompare::Greater).value("NotEqual", raisin::Material::StencilCompare::NotEqual).value("GreaterOrEqual", raisin::Material::StencilCompare::GreaterOrEqual);
 }
 }

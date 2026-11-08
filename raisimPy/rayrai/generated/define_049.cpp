@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_049(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeSidecarSettings>(m.attr("RayraiWindow"), "ReflectionProbeSidecarSettings"); field(c,"reflectionProbeFilter", &raisin::RayraiWindow::ReflectionProbeSidecarSettings::reflectionProbeFilter);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); default_constructor(c);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"mesh", &raisin::RayraiWindow::RenderOverrides::mesh);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"pointcloud", &raisin::RayraiWindow::RenderOverrides::pointcloud);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"picking", &raisin::RayraiWindow::RenderOverrides::picking);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"post", &raisin::RayraiWindow::RenderOverrides::post);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"doShadows", &raisin::RayraiWindow::RenderOverrides::doShadows);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"drawCoordinateFrames", &raisin::RayraiWindow::RenderOverrides::drawCoordinateFrames);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"drawPointClouds", &raisin::RayraiWindow::RenderOverrides::drawPointClouds);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"drawVisualizationObjects", &raisin::RayraiWindow::RenderOverrides::drawVisualizationObjects);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"drawWeatherEffects", &raisin::RayraiWindow::RenderOverrides::drawWeatherEffects);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"skipGroundObjects", &raisin::RayraiWindow::RenderOverrides::skipGroundObjects);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"environmentBackgroundMap", &raisin::RayraiWindow::RenderOverrides::environmentBackgroundMap);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"environmentBackgroundExposure", &raisin::RayraiWindow::RenderOverrides::environmentBackgroundExposure);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"postProcess", &raisin::RayraiWindow::RenderOverrides::postProcess);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"allowViewerMsaa", &raisin::RayraiWindow::RenderOverrides::allowViewerMsaa);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"allowTemporalAa", &raisin::RayraiWindow::RenderOverrides::allowTemporalAa);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"allowViewerUpscale", &raisin::RayraiWindow::RenderOverrides::allowViewerUpscale);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"fixedShadowCenterEnabled", &raisin::RayraiWindow::RenderOverrides::fixedShadowCenterEnabled);}
+{auto c=bound_class<RenderOverridesValue>(m.attr("RayraiWindow"), "RenderOverrides"); field(c,"fixedShadowCenter", &raisin::RayraiWindow::RenderOverrides::fixedShadowCenter);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"fastForwardPathEligible", &raisin::RayraiWindow::RenderPassAccounting::fastForwardPathEligible);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"postprocessActive", &raisin::RayraiWindow::RenderPassAccounting::postprocessActive);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"msaaActive", &raisin::RayraiWindow::RenderPassAccounting::msaaActive);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"renderScaleActive", &raisin::RayraiWindow::RenderPassAccounting::renderScaleActive);}
+{auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"probeFilteringActive", &raisin::RayraiWindow::RenderPassAccounting::probeFilteringActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"localProbeSelectionActive", &raisin::RayraiWindow::RenderPassAccounting::localProbeSelectionActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"additionalShadowActive", &raisin::RayraiWindow::RenderPassAccounting::additionalShadowActive);}
 {auto c=bound_class<raisin::RayraiWindow::RenderPassAccounting>(m.attr("RayraiWindow"), "RenderPassAccounting"); field(c,"mainShadowPassesPerFrame", &raisin::RayraiWindow::RenderPassAccounting::mainShadowPassesPerFrame);}
@@ -31,31 +57,5 @@ void define_049(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"patchCount", &raisin::RayraiWindow::RgbaCalibrationMetrics::patchCount);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"validPatchCount", &raisin::RayraiWindow::RgbaCalibrationMetrics::validPatchCount);}
 {auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"averageRgbError", &raisin::RayraiWindow::RgbaCalibrationMetrics::averageRgbError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"rmsRgbError", &raisin::RayraiWindow::RgbaCalibrationMetrics::rmsRgbError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"maxRgbError", &raisin::RayraiWindow::RgbaCalibrationMetrics::maxRgbError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"averageLuminanceError", &raisin::RayraiWindow::RgbaCalibrationMetrics::averageLuminanceError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"averageSaturationError", &raisin::RayraiWindow::RgbaCalibrationMetrics::averageSaturationError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationMetrics>(m.attr("RayraiWindow"), "RgbaCalibrationMetrics"); field(c,"patches", &raisin::RayraiWindow::RgbaCalibrationMetrics::patches);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"name", &raisin::RayraiWindow::RgbaCalibrationPatch::name);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"x", &raisin::RayraiWindow::RgbaCalibrationPatch::x);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"y", &raisin::RayraiWindow::RgbaCalibrationPatch::y);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"width", &raisin::RayraiWindow::RgbaCalibrationPatch::width);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"height", &raisin::RayraiWindow::RgbaCalibrationPatch::height);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatch>(m.attr("RayraiWindow"), "RgbaCalibrationPatch"); field(c,"targetRgb", &raisin::RayraiWindow::RgbaCalibrationPatch::targetRgb);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"name", &raisin::RayraiWindow::RgbaCalibrationPatchResult::name);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"valid", &raisin::RayraiWindow::RgbaCalibrationPatchResult::valid);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"sampleCount", &raisin::RayraiWindow::RgbaCalibrationPatchResult::sampleCount);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"measuredRgb", &raisin::RayraiWindow::RgbaCalibrationPatchResult::measuredRgb);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"targetRgb", &raisin::RayraiWindow::RgbaCalibrationPatchResult::targetRgb);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"rgbError", &raisin::RayraiWindow::RgbaCalibrationPatchResult::rgbError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"maxChannelError", &raisin::RayraiWindow::RgbaCalibrationPatchResult::maxChannelError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"luminanceError", &raisin::RayraiWindow::RgbaCalibrationPatchResult::luminanceError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationPatchResult>(m.attr("RayraiWindow"), "RgbaCalibrationPatchResult"); field(c,"saturationError", &raisin::RayraiWindow::RgbaCalibrationPatchResult::saturationError);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"valid", &raisin::RayraiWindow::RgbaCalibrationRecommendation::valid);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"changed", &raisin::RayraiWindow::RgbaCalibrationRecommendation::changed);}
-{auto c=bound_class<raisin::RayraiWindow::RgbaCalibrationRecommendation>(m.attr("RayraiWindow"), "RgbaCalibrationRecommendation"); field(c,"neutralPatchCount", &raisin::RayraiWindow::RgbaCalibrationRecommendation::neutralPatchCount);}
 }
 }

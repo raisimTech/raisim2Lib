@@ -830,6 +830,20 @@
   },
   {
     "class": "Shader",
+    "name": "setIVec4",
+    "kind": "CXXMethod",
+    "signature": "void (std::basic_string_view<char>, const glm::vec<4, int> &) const",
+    "status": "generated"
+  },
+  {
+    "class": "Shader",
+    "name": "setIVec4",
+    "kind": "CXXMethod",
+    "signature": "void (int, const glm::vec<4, int> &) const",
+    "status": "generated"
+  },
+  {
+    "class": "Shader",
     "name": "setMat2",
     "kind": "CXXMethod",
     "signature": "void (std::basic_string_view<char>, const glm::mat<2, 2, float> &) const",
@@ -2155,6 +2169,27 @@
     "class": "raisin::Camera",
     "name": "Camera",
     "kind": "CXXConstructor",
+    "signature": "void (raisim::SegmentationCamera &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "Camera",
+    "kind": "CXXConstructor",
+    "signature": "void (const raisim::SegmentationCamera &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "Camera",
+    "kind": "CXXConstructor",
+    "signature": "void (const raisim::SegmentationCamera::SegmentationCameraProperties &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "Camera",
+    "kind": "CXXConstructor",
     "signature": "void (const raisin::Camera &)",
     "status": "excluded",
     "reason": "Deleted/copy/move constructor"
@@ -2570,6 +2605,13 @@
   },
   {
     "class": "raisin::Camera",
+    "name": "ensureSegmentationRenderTarget",
+    "kind": "CXXMethod",
+    "signature": "void ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
     "name": "unbindFbo",
     "kind": "CXXMethod",
     "signature": "void ()",
@@ -2724,6 +2766,13 @@
   },
   {
     "class": "raisin::Camera",
+    "name": "getSegmentationTexture",
+    "kind": "CXXMethod",
+    "signature": "unsigned int () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
     "name": "renderTargetDiagnostics",
     "kind": "CXXMethod",
     "signature": "std::vector<raisin::Camera::RenderTargetDiagnostics> () const",
@@ -2741,6 +2790,20 @@
     "name": "getRawImage",
     "kind": "CXXMethod",
     "signature": "void (raisim::DepthCamera &, raisin::Camera::SensorStorageMode, float *, unsigned long, bool) const",
+    "status": "manual"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "getRawImage",
+    "kind": "CXXMethod",
+    "signature": "void (raisim::SegmentationCamera &, raisin::Camera::SensorStorageMode, int *, int *, int *, unsigned long, bool) const",
+    "status": "manual"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "readSegmentation",
+    "kind": "CXXMethod",
+    "signature": "void (int *, int *, int *, unsigned long, bool) const",
     "status": "manual"
   },
   {
@@ -3466,6 +3529,41 @@
   },
   {
     "class": "raisin::InstancedVisuals",
+    "name": "setSegmentationIds",
+    "kind": "CXXMethod",
+    "signature": "void (int, int, int)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "setSegmentationLabel",
+    "kind": "CXXMethod",
+    "signature": "void (int)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "getSegmentationIds",
+    "kind": "CXXMethod",
+    "signature": "glm::vec<4, int> () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "setSegmentationExcluded",
+    "kind": "CXXMethod",
+    "signature": "void (bool)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "isSegmentationExcluded",
+    "kind": "CXXMethod",
+    "signature": "bool () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
     "name": "getPosition",
     "kind": "CXXMethod",
     "signature": "glm::vec<3, float> (unsigned long) const",
@@ -3903,6 +4001,13 @@
     "name": "supportsFoliageColorBatch",
     "kind": "CXXMethod",
     "signature": "bool () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "foliageBatchSupport",
+    "kind": "CXXMethod",
+    "signature": "raisin::InstancedVisuals::FoliageBatchSupport () const",
     "status": "generated"
   },
   {
@@ -6994,6 +7099,13 @@
   },
   {
     "class": "raisin::PhysicsObjectSnapshot",
+    "name": "worldIndex",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsObjectSnapshot",
     "name": "type",
     "kind": "FieldDecl",
     "signature": "raisim::ObjectType",
@@ -7095,6 +7207,13 @@
     "name": "colors",
     "kind": "FieldDecl",
     "signature": "std::vector<glm::vec<4, float>>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsRenderDescription",
+    "name": "segmentationLabels",
+    "kind": "FieldDecl",
+    "signature": "std::vector<int>",
     "status": "generated"
   },
   {
@@ -7643,9 +7762,30 @@
   },
   {
     "class": "raisin::RaisimObject",
+    "name": "worldIndex",
+    "kind": "CXXMethod",
+    "signature": "int () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
+    "name": "segmentationLabel",
+    "kind": "CXXMethod",
+    "signature": "int () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
     "name": "renderRevision",
     "kind": "CXXMethod",
     "signature": "unsigned long () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
+    "name": "shadowGeometrySignature",
+    "kind": "CXXMethod",
+    "signature": "unsigned long (bool) const",
     "status": "generated"
   },
   {
@@ -9782,6 +9922,20 @@
     "name": "renderDepthPlaneDistance",
     "kind": "CXXMethod",
     "signature": "void (raisin::Camera &, Shader *, bool, bool)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "renderSegmentation",
+    "kind": "CXXMethod",
+    "signature": "void (raisim::SegmentationCamera &, raisin::Camera &, bool, bool)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "renderSegmentation",
+    "kind": "CXXMethod",
+    "signature": "void (raisin::Camera &, bool, bool)",
     "status": "generated"
   },
   {
@@ -12880,6 +13034,27 @@
   },
   {
     "class": "raisin::Visuals",
+    "name": "setSegmentationIds",
+    "kind": "CXXMethod",
+    "signature": "void (int, int, int)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "setSegmentationLabel",
+    "kind": "CXXMethod",
+    "signature": "void (int)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "getSegmentationIds",
+    "kind": "CXXMethod",
+    "signature": "glm::vec<4, int> () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
     "name": "getPosition",
     "kind": "CXXMethod",
     "signature": "glm::vec<3, float> () const",
@@ -15536,6 +15711,20 @@
     "name": "fallbackCode",
     "kind": "FieldDecl",
     "signature": "unsigned int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals::FoliageBatchSupport",
+    "name": "basicTransform",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals::FoliageBatchSupport",
+    "name": "colorBatch",
+    "kind": "FieldDecl",
+    "signature": "bool",
     "status": "generated"
   },
   {

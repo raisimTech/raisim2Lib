@@ -6,7 +6,16 @@
 #include <cstddef>
 #include <vector>
 
+#include "raisim/sensors/SegmentationSensor.hpp"
+#include "raisim/sensors/Sensors.hpp"
+
 namespace raisin::tcp_viewer {
+
+/// @return True for the image sensors the viewer renders: RGB, depth and segmentation cameras.
+inline bool isCameraSensor(raisim::Sensor::Type type) {
+  return type == raisim::Sensor::Type::RGB || type == raisim::Sensor::Type::DEPTH ||
+         type == raisim::Sensor::Type::SEGMENTATION;
+}
 
 inline bool validSensorDimensions(int width, int height) {
   constexpr int kMaxSide = 8192;
@@ -18,6 +27,13 @@ inline bool validSensorDimensions(int width, int height) {
 
 // RaiSimServer's 32 MiB receive buffer includes a four-byte frame length.
 constexpr size_t kMaxSensorUpdatePayloadBytes = 33554432u - 4u;
+
+/// @return Bytes per pixel of a camera's reply: four for RGB and depth, four per image for segmentation.
+inline size_t sensorReplyBytesPerPixel(raisim::Sensor::Type type,
+                                       raisim::SegmentationCamera::SegmentationType segmentationType) {
+  return type == raisim::Sensor::Type::SEGMENTATION
+             ? 4u * size_t(raisim::SegmentationCamera::imageCount(segmentationType)) : 4u;
+}
 
 inline std::vector<size_t> selectSensorUpdateIndices(
     const std::vector<size_t>& entryBytes, size_t start,

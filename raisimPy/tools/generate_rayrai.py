@@ -73,7 +73,7 @@ def arg_annotation(a,q):
 
 manual={
  'raisin::RayraiWindow':{'createOffscreenGlContext','makeOffscreenContextCurrent','detachOffscreenGlContext','updateSingleChannelTexture','setExternalFont','getExternalFont','debugObjectFor','modelHandle','swapWorld','invalidateExternalFrameCache','setWeatherThunderCallback','setTargetVisual'},
- 'raisin::Camera':{'getRawImage','readSceneColorBgra','readLinearDepth','readSceneColorRgbaAsync','readLinearDepthAsync'},
+ 'raisin::Camera':{'getRawImage','readSceneColorBgra','readLinearDepth','readSegmentation','readSceneColorRgbaAsync','readLinearDepthAsync'},
  'raisin::InstancedVisuals':{'addInstances'},
  'raisin::assimp::loadModelSceneAsync':{'loadModelSceneAsync'},
 }

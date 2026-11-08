@@ -96,7 +96,7 @@ SensorType& readbackSensor(std::unique_ptr<SensorType>& sensor, const SensorInfo
   return *sensor;
 }
 
-struct DepthPreviewTexture {
+struct PreviewTexture {
   unsigned int texture = 0;
   int width = 0, height = 0;
 };
@@ -129,13 +129,8 @@ class ScopedPreviewUpload {
   gl::GLint texture_ = 0;
 };
 
-void uploadDepthPreview(DepthPreviewTexture& target, int width, int height,
-                        const std::vector<float>& depth,
-                        const detail::DepthPreviewShading& shading,
-                        std::vector<unsigned char>& rgba,
-                        float& minimumDepth, float& maximumDepth) {
-  detail::makeDepthPreviewRgba(depth, shading, rgba, minimumDepth, maximumDepth);
-
+void uploadPreview(PreviewTexture& target, int width, int height,
+                   const std::vector<unsigned char>& rgba) {
   const ScopedPreviewUpload upload;
   const bool created = target.texture == 0;
   if (created) gl::glGenTextures(1, &target.texture);
@@ -155,6 +150,22 @@ void uploadDepthPreview(DepthPreviewTexture& target, int width, int height,
     gl::glTexSubImage2D(gl::GL_TEXTURE_2D, 0, 0, 0, width, height,
                         gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
   }
+}
+
+void uploadDepthPreview(PreviewTexture& target, int width, int height,
+                        const std::vector<float>& depth,
+                        const detail::DepthPreviewShading& shading,
+                        std::vector<unsigned char>& rgba,
+                        float& minimumDepth, float& maximumDepth) {
+  detail::makeDepthPreviewRgba(depth, shading, rgba, minimumDepth, maximumDepth);
+  uploadPreview(target, width, height, rgba);
+}
+
+void uploadSegmentationPreview(PreviewTexture& target, const PendingSensorUpdate& update,
+                               std::vector<unsigned char>& rgba) {
+  const auto& ids = update.labels.empty() ? update.objects : update.labels;
+  raisim::SegmentationCamera::colorize(ids, rgba, {0, 0, 0, 255});
+  uploadPreview(target, update.info.width, update.info.height, rgba);
 }
 
 } // namespace
@@ -746,9 +757,9 @@ struct SensorRenderer::CachedSensor {
   std::unique_ptr<raisim::RGBCamera> rgbSensor;
   std::unique_ptr<raisim::DepthCamera> depthSensor;
   std::optional<detail::DepthPreviewShading> depthShading;
-  std::vector<unsigned char> depthPreviewRgba;
+  std::vector<unsigned char> previewRgba;
   SensorPreviewInfo preview;
-  DepthPreviewTexture depthPreview;
+  PreviewTexture previewTexture;
 };
 
 SensorRenderer::SensorRenderer() = default;
@@ -779,9 +790,7 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
 
   for (auto& update : updates) {
     const auto& info = update.info;
-    if ((info.type != raisim::Sensor::Type::RGB &&
-         info.type != raisim::Sensor::Type::DEPTH) ||
-        !validSensorDimensions(info.width, info.height)) {
+    if (!isCameraSensor(info.type) || !validSensorDimensions(info.width, info.height)) {
       status = "unsupported or invalid sensor request: " + info.name;
       return false;
     }
@@ -804,6 +813,19 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
       cached->camera->getRawImage(sensor, Camera::SensorStorageMode::CUSTOM_BUFFER,
         reinterpret_cast<char*>(update.colorBgra.data()), update.colorBgra.size(), true);
       cached->preview.texture = cached->camera->getFinalTexture();
+    } else if (info.type == raisim::Sensor::Type::SEGMENTATION) {
+      cached->camera->ensureSegmentationRenderTarget();
+      viewer.renderSegmentation(*cached->camera, true, true);
+      const size_t pixels = static_cast<size_t>(info.width) * static_cast<size_t>(info.height);
+      const bool instances = raisim::SegmentationCamera::hasInstanceImages(info.segmentationType);
+      const bool labels = raisim::SegmentationCamera::hasLabelImage(info.segmentationType);
+      update.objects.resize(instances ? pixels : 0u);
+      update.bodies.resize(instances ? pixels : 0u);
+      update.labels.resize(labels ? pixels : 0u);
+      cached->camera->readSegmentation(instances ? update.objects.data() : nullptr,
+        instances ? update.bodies.data() : nullptr, labels ? update.labels.data() : nullptr, pixels);
+      uploadSegmentationPreview(cached->previewTexture, update, cached->previewRgba);
+      cached->preview.texture = cached->previewTexture.texture;
     } else {
       cached->camera->ensureLinearDepthRenderTarget();
       // TCP physical geometry is marked detectable when RemoteScene reconstructs
@@ -821,10 +843,10 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
       if (!cached->depthShading || !cached->depthShading->matches(clipNear, clipFar)) {
         cached->depthShading.emplace(clipNear, clipFar);
       }
-      uploadDepthPreview(cached->depthPreview, info.width, info.height, update.depth,
-        *cached->depthShading, cached->depthPreviewRgba, cached->preview.minimumDepth,
+      uploadDepthPreview(cached->previewTexture, info.width, info.height, update.depth,
+        *cached->depthShading, cached->previewRgba, cached->preview.minimumDepth,
         cached->preview.maximumDepth);
-      cached->preview.texture = cached->depthPreview.texture;
+      cached->preview.texture = cached->previewTexture.texture;
     }
     update.renderMilliseconds = std::chrono::duration<double, std::milli>(
       std::chrono::steady_clock::now() - started).count();
@@ -862,7 +884,7 @@ std::vector<SensorPreviewInfo> SensorRenderer::previewsForTag(uint32_t parentTag
 void SensorRenderer::clear() {
   if (SDL_GL_GetCurrentContext() != nullptr) {
     for (const auto& item : sensors_) {
-      if (item.second) deleteTextureAndInvalidateCache(item.second->depthPreview.texture);
+      if (item.second) deleteTextureAndInvalidateCache(item.second->previewTexture.texture);
     }
   }
   sensors_.clear();

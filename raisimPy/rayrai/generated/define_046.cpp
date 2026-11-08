@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_046(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneVisibleInstanceFrameCacheFallbackDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneVisibleInstanceFrameCacheFallbackDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneClusteredDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneClusteredDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"shadowClusteredDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::shadowClusteredDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"impostorDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::impostorDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"shadowLodDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::shadowLodDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"persistentSourceBufferDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::persistentSourceBufferDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneMultiDrawIndirectDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneMultiDrawIndirectDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"shadowMultiDrawIndirectDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::shadowMultiDrawIndirectDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"multiDrawIndirectCommandCount", &raisin::RayraiWindow::FoliageRenderDiagnostics::multiDrawIndirectCommandCount);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"multiDrawIndirectFallbackDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::multiDrawIndirectFallbackDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneAlphaDepthPrepassDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneAlphaDepthPrepassDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneAlphaDepthPrepassInstanceVisits", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneAlphaDepthPrepassInstanceVisits);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneAlphaDepthPrepassFallbackDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneAlphaDepthPrepassFallbackDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneFrontToBackOrderedInstancedDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneFrontToBackOrderedInstancedDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneFrontToBackOrderedFoliageDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneFrontToBackOrderedFoliageDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"sceneFrontToBackOrderingFallbackDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::sceneFrontToBackOrderingFallbackDrawCalls);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"maxSourceTrianglesPerInstance", &raisin::RayraiWindow::FoliageRenderDiagnostics::maxSourceTrianglesPerInstance);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"maxImpostorTrianglesPerInstance", &raisin::RayraiWindow::FoliageRenderDiagnostics::maxImpostorTrianglesPerInstance);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"conservativeOcclusionCandidates", &raisin::RayraiWindow::FoliageRenderDiagnostics::conservativeOcclusionCandidates);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"conservativeOcclusionQueries", &raisin::RayraiWindow::FoliageRenderDiagnostics::conservativeOcclusionQueries);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"conservativeOcclusionOccluded", &raisin::RayraiWindow::FoliageRenderDiagnostics::conservativeOcclusionOccluded);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"conservativeOcclusionDrawn", &raisin::RayraiWindow::FoliageRenderDiagnostics::conservativeOcclusionDrawn);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"hizOcclusionTests", &raisin::RayraiWindow::FoliageRenderDiagnostics::hizOcclusionTests);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"hizOcclusionOccluded", &raisin::RayraiWindow::FoliageRenderDiagnostics::hizOcclusionOccluded);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"hizOcclusionDepthReadbacks", &raisin::RayraiWindow::FoliageRenderDiagnostics::hizOcclusionDepthReadbacks);}
+{auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionDrawCalls", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionDrawCalls);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionDepthBuilds);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionComputeDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionComputeDepthBuilds);}
 {auto c=bound_class<raisin::RayraiWindow::FoliageRenderDiagnostics>(m.attr("RayraiWindow"), "FoliageRenderDiagnostics"); field(c,"gpuHizOcclusionRasterDepthBuilds", &raisin::RayraiWindow::FoliageRenderDiagnostics::gpuHizOcclusionRasterDepthBuilds);}
@@ -31,31 +57,5 @@ void define_046(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"radius", &raisin::RayraiWindow::ReflectionProbe::radius);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"environmentMap", &raisin::RayraiWindow::ReflectionProbe::environmentMap);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"irradianceMap", &raisin::RayraiWindow::ReflectionProbe::irradianceMap);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"prefilteredEnvironmentMap", &raisin::RayraiWindow::ReflectionProbe::prefilteredEnvironmentMap);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"brdfLut", &raisin::RayraiWindow::ReflectionProbe::brdfLut);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"strength", &raisin::RayraiWindow::ReflectionProbe::strength);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxProjection", &raisin::RayraiWindow::ReflectionProbe::boxProjection);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxMin", &raisin::RayraiWindow::ReflectionProbe::boxMin);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxMax", &raisin::RayraiWindow::ReflectionProbe::boxMax);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"valid", &raisin::RayraiWindow::ReflectionProbeBlend::valid);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryIndex", &raisin::RayraiWindow::ReflectionProbeBlend::primaryIndex);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryIndex", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryIndex);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryWeight", &raisin::RayraiWindow::ReflectionProbeBlend::primaryWeight);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryWeight", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryWeight);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"strength", &raisin::RayraiWindow::ReflectionProbeBlend::strength);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxProjection);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxProjection);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryProbePosition", &raisin::RayraiWindow::ReflectionProbeBlend::primaryProbePosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryProbePosition", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryProbePosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxMin", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxMin);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxMax", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxMax);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxMin", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxMin);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxMax", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxMax);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"direction", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::direction);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"up", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::up);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"right", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::right);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); default_constructor(c);}
 }
 }

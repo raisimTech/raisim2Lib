@@ -55,11 +55,12 @@
     {
       "id": "sensors",
       "title": "Sensors",
-      "description": "RGB and depth cameras, LiDAR, ray casts, markers and sensor noise.",
+      "description": "RGB, depth and segmentation cameras, LiDAR, ray casts, markers and sensor noise.",
       "examples": [
         "rayrai/rayrai_lidar_pointcloud",
         "rayrai/rayrai_rgb_camera",
         "rayrai/rayrai_depth_camera",
+        "rayrai/rayrai_segmentation_camera",
         "rayrai/rayrai_sensor_noise",
         "rayrai/rayrai_aruco_marker",
         "server/ray_scan_lidar",

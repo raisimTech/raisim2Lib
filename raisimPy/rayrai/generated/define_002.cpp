@@ -2,6 +2,8 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_002(py::module_& m) {
+{auto c=bound_class<Texture>(m, "Texture"); default_constructor(c);}
+{auto c=bound_class<Texture>(m, "Texture"); field(c,"id", &Texture::id);}
 {auto c=bound_class<Texture>(m, "Texture"); field(c,"type", &Texture::type);}
 {auto c=bound_class<Vertex>(m, "Vertex"); default_constructor(c);}
 {auto c=bound_class<Vertex>(m, "Vertex"); field(c,"Position", &Vertex::Position);}
@@ -55,7 +57,5 @@ void define_002(py::module_& m) {
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimLoop", &OpenGLMesh::MeshDiagnostics::particlesAnimLoop);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimFrameProgress", &OpenGLMesh::MeshDiagnostics::particlesAnimFrameProgress);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailsEnabled", &OpenGLMesh::MeshDiagnostics::particleTrailsEnabled);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailLength", &OpenGLMesh::MeshDiagnostics::particleTrailLength);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailTaper", &OpenGLMesh::MeshDiagnostics::particleTrailTaper);}
 }
 }

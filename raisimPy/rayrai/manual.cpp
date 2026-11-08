@@ -496,6 +496,44 @@ void bind_manual(py::module_ &m) {
       py::arg("sensor"),
       py::arg("mode") = raisin::Camera::SensorStorageMode::SENSOR_SETTER,
       py::arg("flipVertical") = true);
+  cam.def(
+      "readSegmentation",
+      [](Handle<raisin::Camera> &s, bool flip) {
+        Guard g(s.state);
+        auto &c = s.get();
+        int w = c.rtWidth(), h = c.rtHeight();
+        valid_resolution(w, h);
+        const size_t pixels = size_t(w) * h;
+        std::vector<int32_t> objects(pixels), bodies(pixels), labels(pixels);
+        c.readSegmentation(objects.data(), bodies.data(), labels.data(), pixels, flip);
+        return py::make_tuple(array_copy(objects, {size_t(h), size_t(w)}),
+                              array_copy(bodies, {size_t(h), size_t(w)}),
+                              array_copy(labels, {size_t(h), size_t(w)}));
+      },
+      py::arg("flipVertical") = true,
+      "Return int32 (objects, bodies, labels) images of the last renderSegmentation().");
+  cam.def(
+      "getRawImage",
+      [](Handle<raisin::Camera> &s, raisim::SegmentationCamera &sensor,
+         raisin::Camera::SensorStorageMode mode, bool flip) -> py::object {
+        Guard g(s.state);
+        if (mode == raisin::Camera::SensorStorageMode::SENSOR_SETTER) {
+          s.get().getRawImage(sensor, mode, nullptr, nullptr, nullptr, 0, flip);
+          return py::none();
+        }
+        int w = s.get().rtWidth(), h = s.get().rtHeight();
+        valid_resolution(w, h);
+        const size_t pixels = size_t(w) * h;
+        std::vector<int32_t> objects(pixels), bodies(pixels), labels(pixels);
+        s.get().getRawImage(sensor, mode, objects.data(), bodies.data(), labels.data(), pixels,
+                            flip);
+        return py::make_tuple(array_copy(objects, {size_t(h), size_t(w)}),
+                              array_copy(bodies, {size_t(h), size_t(w)}),
+                              array_copy(labels, {size_t(h), size_t(w)}));
+      },
+      py::arg("sensor"),
+      py::arg("mode") = raisin::Camera::SensorStorageMode::SENSOR_SETTER,
+      py::arg("flipVertical") = true);
   auto inst =
       bound_class<Handle<raisin::InstancedVisuals>>(m, "InstancedVisuals");
   inst.def(

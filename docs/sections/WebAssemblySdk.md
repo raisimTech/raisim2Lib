@@ -12,7 +12,7 @@ The SDK holds RaiSim and Rayrai as prebuilt WebAssembly objects, with:
 - the CMake packages `raisim` and `rayrai`;
 - a small page runtime that runs your program on a canvas.
 
-Its libraries are compiled code: the SDK contains no RaiSim or Rayrai source and no LLVM bitcode. The page
+Its libraries are compiled WebAssembly objects: the SDK excludes private C++ implementation files, built-in shader implementation headers, LLVM bitcode and debug information. Required public API headers, inline functions and templates remain available. The page
 runtime and the CMake files are the interface code, and you are free to read them.
 
 ## Requirements
@@ -25,6 +25,8 @@ runtime and the CMake files are the interface code, and you are free to read the
 - An HTTP server that sends the cross-origin isolation headers. `serve.py` in the SDK sends them.
 
 ## Quick start
+
+Starting with v2.14.0, the full `webassembly-<version>.zip` release includes this SDK in `sdk/`. Use that folder directly, or download the smaller `webassembly-sdk-<version>.zip`. Both contain `libraisim.a`, `librayrai.a`, public headers, CMake packages and the runtime. Only the public `rayrai/shaders/Shader.hpp` interface is installed; built-in shader implementations remain in the compiled library.
 
 The example project is [`raisim2Lib/wasm`](https://github.com/raisimTech/raisim2Lib/tree/master/wasm):
 

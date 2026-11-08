@@ -15,7 +15,9 @@ from . import (
 
 __license__: str = 'PROPRIETARY'
 
-hasWrenchSensors: bool = False
+hasWrenchSensors: bool = True
+
+hasSegmentation: bool = True
 
 __authors__: list = ...
 
@@ -810,6 +812,8 @@ class SensorType(enum.IntEnum):
     FORCE = 5
 
     TACTILE = 6
+
+    SEGMENTATION = 7
 
 class SensorMeasurementSource(enum.IntEnum):
     RAISIM = 0
@@ -1712,6 +1716,138 @@ class TactileSensor(WrenchSensor):
 
     def getTaxelSlipVelocities(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
+class SegmentationType(enum.IntEnum):
+    SEMANTIC = 0
+
+    INSTANCE = 1
+
+    PANOPTIC = 2
+
+class SegmentationCameraProperties:
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def full_name(self) -> str: ...
+
+    @full_name.setter
+    def full_name(self, arg: str, /) -> None: ...
+
+    @property
+    def width(self) -> int: ...
+
+    @width.setter
+    def width(self, arg: int, /) -> None: ...
+
+    @property
+    def height(self) -> int: ...
+
+    @height.setter
+    def height(self, arg: int, /) -> None: ...
+
+    @property
+    def xOffset(self) -> int: ...
+
+    @xOffset.setter
+    def xOffset(self, arg: int, /) -> None: ...
+
+    @property
+    def yOffset(self) -> int: ...
+
+    @yOffset.setter
+    def yOffset(self, arg: int, /) -> None: ...
+
+    @property
+    def clipNear(self) -> float: ...
+
+    @clipNear.setter
+    def clipNear(self, arg: float, /) -> None: ...
+
+    @property
+    def clipFar(self) -> float: ...
+
+    @clipFar.setter
+    def clipFar(self, arg: float, /) -> None: ...
+
+    @property
+    def hFOV(self) -> float: ...
+
+    @hFOV.setter
+    def hFOV(self, arg: float, /) -> None: ...
+
+    @property
+    def lens(self) -> CameraLensModel: ...
+
+    @lens.setter
+    def lens(self, arg: CameraLensModel, /) -> None: ...
+
+    @property
+    def segmentationType(self) -> SegmentationType: ...
+
+    @segmentationType.setter
+    def segmentationType(self, arg: SegmentationType, /) -> None: ...
+
+    @staticmethod
+    def stringToSegmentationType(arg: str, /) -> SegmentationType: ...
+
+class SegmentationCamera(Sensor):
+    @staticmethod
+    def getStaticType() -> SensorType: ...
+
+    def getProperties(self) -> SegmentationCameraProperties: ...
+
+    def setProperties(self, properties: SegmentationCameraProperties) -> None: ...
+
+    def update(self, world: World) -> None: ...
+
+    def getObjectImage(self) -> Annotated[NDArray[numpy.int32], dict(order='C')] | None:
+        """
+        World index of the object in each pixel as a (height, width) int32 array; None for SEMANTIC.
+        """
+
+    def getBodyImage(self) -> Annotated[NDArray[numpy.int32], dict(order='C')] | None:
+        """
+        Body index within the object in each pixel as a (height, width) int32 array; None for SEMANTIC.
+        """
+
+    def getLabelImage(self) -> Annotated[NDArray[numpy.int32], dict(order='C')] | None:
+        """
+        Segmentation label in each pixel as a (height, width) int32 array; None for INSTANCE.
+        """
+
+    def setObjectImage(self, image: Annotated[NDArray[numpy.int32], dict(order='C', device='cpu', writable=False)]) -> None: ...
+
+    def setBodyImage(self, image: Annotated[NDArray[numpy.int32], dict(order='C', device='cpu', writable=False)]) -> None: ...
+
+    def setLabelImage(self, image: Annotated[NDArray[numpy.int32], dict(order='C', device='cpu', writable=False)]) -> None: ...
+
+    @staticmethod
+    def hasInstanceImages(type: SegmentationType) -> bool: ...
+
+    @staticmethod
+    def hasLabelImage(type: SegmentationType) -> bool: ...
+
+    @staticmethod
+    def imageCount(type: SegmentationType) -> int: ...
+
+    @staticmethod
+    def colorOf(id: int) -> list[int]: ...
+
+    @staticmethod
+    def colorize(ids: Annotated[NDArray[numpy.int32], dict(order='C', device='cpu', writable=False)], background: Sequence[int] = [0, 0, 0, 0]) -> Annotated[NDArray[numpy.uint8], dict(order='C')]:
+        """
+        RGBA uint8 colors of an id image (shape + (4,)); negative ids get background.
+        """
+
+    BACKGROUND: int = -1
+
+    NOT_WORLD_OBJECT: int = -2
+
 class ObjectType(enum.IntEnum):
     SPHERE = 0
 
@@ -1792,6 +1928,22 @@ class Object:
 
         Returns:
             int: object index in the world.
+        """
+
+    def setSegmentationLabel(self, label: int) -> None:
+        """
+        Set the semantic label segmentation cameras report for this object (0 means unlabeled).
+
+        Args:
+            label (int): non-negative label, e.g. from World.addSegmentationClass().
+        """
+
+    def getSegmentationLabel(self) -> int:
+        """
+        Get the semantic label set by setSegmentationLabel().
+
+        Returns:
+            int: the label (0 if none).
         """
 
     def getId(self) -> int: ...
@@ -4062,6 +4214,16 @@ class ArticulatedSystem(Object):
             id_ (int): collision object id.
             orientation (np.array[float[3]], np.array[float[4]], np.array[float[3,3]]): orientation offset.
         """
+
+    @overload
+    def setBodySegmentationLabel(self, bodyIdx: int, label: int) -> None: ...
+
+    @overload
+    def setBodySegmentationLabel(self, body: str, label: int) -> None: ...
+
+    def getBodySegmentationLabel(self, bodyIdx: int) -> int: ...
+
+    def clearBodySegmentationLabels(self) -> None: ...
 
     class IKOptions:
         def __init__(self) -> None: ...
@@ -7070,6 +7232,16 @@ class World:
     def unlock(self) -> None: ...
 
     def updateSelfCollisionCache(self) -> None: ...
+
+    def addSegmentationClass(self, name: str) -> int: ...
+
+    def getSegmentationClassLabel(self, name: str) -> int: ...
+
+    def getSegmentationClassName(self, label: int) -> str: ...
+
+    def getSegmentationClassNames(self) -> list[str]: ...
+
+    def setSegmentationClassName(self, label: int, name: str) -> None: ...
 
     class Checkpoint:
         def __init__(self) -> None: ...

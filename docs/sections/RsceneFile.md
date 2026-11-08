@@ -786,9 +786,11 @@ environment, irradiance and prefiltered map and a BRDF table for the visual).
 Their defaults are those of `raisin::Visuals`.
 
 `id` (default `object_<path>`) and `parentGroupId` follow [Conventions](#conventions).
-The `raisim*` tuning keys, `semanticClass`, `instanceId`,
-`segmentationColor` and `receiveShadow` are **ignored**, as by Engine 2's
-bridges.
+`semanticClass` labels the body with that segmentation class
+(`World::addSegmentationClass()`, see
+[Segmentation camera](./Sensors.md#segmentation-camera)); an empty value leaves
+it unlabeled. The `raisim*` tuning keys, `instanceId`, `segmentationColor` and
+`receiveShadow` are **ignored**, as by Engine 2's bridges.
 
 ### wire record
 
@@ -833,7 +835,8 @@ then applies `generalizedCoordinate` and `generalizedVelocity` when given.
 For a floating base the record's pose replaces the first seven coordinates,
 so the stored list contributes only the joints. A list of the wrong size is
 an error. `visible` is for viewers. `scale` must be positive; the system is
-built at unit scale. Engine 2 also writes `semanticClass`, fluid keys and
+built at unit scale. `semanticClass` labels every body of the system with that
+segmentation class, as for objects. Engine 2 also writes fluid keys and
 `raisim*` contact-tuning keys; neither its RaiSim bridge nor this reader
 applies them. `articulated_ik` records are rejected.
 

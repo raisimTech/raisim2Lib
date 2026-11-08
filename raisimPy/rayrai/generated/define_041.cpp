@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_041(py::module_& m) {
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::enabled);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"applicable", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::applicable);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"used", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::used);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"authoredInstanceCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::authoredInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"renderedInstanceCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::renderedInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"candidateInstanceCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::candidateInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"visibleInstanceCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::visibleInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"nodeCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::nodeCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"leafCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::leafCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"visitedNodeCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::visitedNodeCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"visibleLeafCount", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::visibleLeafCount);}
+{auto c=bound_class<raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics>(m.attr("InstancedVisuals"), "HierarchicalFoliageClusterDiagnostics"); field(c,"fallbackCode", &raisin::InstancedVisuals::HierarchicalFoliageClusterDiagnostics::fallbackCode);}
+{auto c=bound_class<raisin::InstancedVisuals::InstanceSpec>(m.attr("InstancedVisuals"), "InstanceSpec"); default_constructor(c);}
+{auto c=bound_class<raisin::InstancedVisuals::InstanceSpec>(m.attr("InstancedVisuals"), "InstanceSpec"); field(c,"position", &raisin::InstancedVisuals::InstanceSpec::position);}
+{auto c=bound_class<raisin::InstancedVisuals::InstanceSpec>(m.attr("InstancedVisuals"), "InstanceSpec"); field(c,"orientation", &raisin::InstancedVisuals::InstanceSpec::orientation);}
+{auto c=bound_class<raisin::InstancedVisuals::InstanceSpec>(m.attr("InstancedVisuals"), "InstanceSpec"); field(c,"scale", &raisin::InstancedVisuals::InstanceSpec::scale);}
+{auto c=bound_class<raisin::InstancedVisuals::InstanceSpec>(m.attr("InstancedVisuals"), "InstanceSpec"); field(c,"colorWeight", &raisin::InstancedVisuals::InstanceSpec::colorWeight);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); default_constructor(c);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"enabled", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::enabled);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"applicable", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::applicable);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"used", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::used);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"authoredInstanceCount", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::authoredInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"renderedInstanceCount", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::renderedInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"candidateInstanceCount", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::candidateInstanceCount);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"drawStride", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::drawStride);}
+{auto c=bound_class<raisin::InstancedVisuals::ShadowFoliageLodDiagnostics>(m.attr("InstancedVisuals"), "ShadowFoliageLodDiagnostics"); field(c,"fallbackCode", &raisin::InstancedVisuals::ShadowFoliageLodDiagnostics::fallbackCode);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); default_constructor(c);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); field(c,"mode", &raisin::Material::AlphaSettings::mode);}
 {auto c=bound_class<raisin::Material::AlphaSettings>(m.attr("Material"), "AlphaSettings"); field(c,"blend", &raisin::Material::AlphaSettings::blend);}
@@ -31,31 +57,5 @@ void define_041(py::module_& m) {
 {auto c=bound_class<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo"); field(c,"samplerUniform", &raisin::Material::TextureBindingInfo::samplerUniform);}
 {auto c=bound_class<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo"); field(c,"presenceUniform", &raisin::Material::TextureBindingInfo::presenceUniform);}
 {auto c=bound_class<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo"); field(c,"target", &raisin::Material::TextureBindingInfo::target);}
-{auto c=bound_class<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo"); field(c,"textureUnit", &raisin::Material::TextureBindingInfo::textureUnit);}
-{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); default_constructor(c);}
-{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"name", &raisin::Material::TextureSlotInfo::name);}
-{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"isSrgb", &raisin::Material::TextureSlotInfo::isSrgb);}
-{auto c=bound_class<raisin::Material::TextureSlotInfo>(m.attr("Material"), "TextureSlotInfo"); field(c,"hasUvTransform", &raisin::Material::TextureSlotInfo::hasUvTransform);}
-{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); default_constructor(c);}
-{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"scaleOffset", &raisin::Material::UvTransform::scaleOffset);}
-{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"rotation", &raisin::Material::UvTransform::rotation);}
-{auto c=bound_class<raisin::Material::UvTransform>(m.attr("Material"), "UvTransform"); field(c,"authored", &raisin::Material::UvTransform::authored);}
-{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); field(c,"scale", &raisin::Material::VertexDisplacementSettings::scale);}
-{auto c=bound_class<raisin::Material::VertexDisplacementSettings>(m.attr("Material"), "VertexDisplacementSettings"); field(c,"midlevel", &raisin::Material::VertexDisplacementSettings::midlevel);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); default_constructor(c);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"environmentFaceSize", &raisin::PbrEnvironment::LoadOptions::environmentFaceSize);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"irradianceFaceSize", &raisin::PbrEnvironment::LoadOptions::irradianceFaceSize);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"irradianceSampleCount", &raisin::PbrEnvironment::LoadOptions::irradianceSampleCount);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredFaceSize", &raisin::PbrEnvironment::LoadOptions::prefilteredFaceSize);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredMipLevels", &raisin::PbrEnvironment::LoadOptions::prefilteredMipLevels);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"prefilteredSampleCount", &raisin::PbrEnvironment::LoadOptions::prefilteredSampleCount);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"brdfLutSize", &raisin::PbrEnvironment::LoadOptions::brdfLutSize);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"brdfLutSampleCount", &raisin::PbrEnvironment::LoadOptions::brdfLutSampleCount);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"strength", &raisin::PbrEnvironment::LoadOptions::strength);}
-{auto c=bound_class<raisin::PbrEnvironment::LoadOptions>(m.attr("PbrEnvironment"), "LoadOptions"); field(c,"generateEnvironmentMipmaps", &raisin::PbrEnvironment::LoadOptions::generateEnvironmentMipmaps);}
-{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); default_constructor(c);}
-{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"revision", &raisin::RaisimObject::Changes::revision);}
-{auto c=bound_class<raisin::RaisimObject::Changes>(m.attr("RaisimObject"), "Changes"); field(c,"candidate", &raisin::RaisimObject::Changes::candidate);}
 }
 }

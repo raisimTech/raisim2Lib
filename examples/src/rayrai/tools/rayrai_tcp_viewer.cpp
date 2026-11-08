@@ -61,6 +61,7 @@
 #include "TcpViewerScreenshot.hpp"
 #include "TcpViewerSession.hpp"
 #include "TcpViewerActuators.hpp"
+#include "TcpViewerSensorLimits.hpp"
 #include "TcpViewerSensors.hpp"
 #include "TcpViewerSettings.hpp"
 #include "TcpViewerSceneFiles.hpp"
@@ -177,6 +178,7 @@ using raisin::tcp_viewer::RemoteScene;
 using raisin::tcp_viewer::SelectedObjectInfo;
 using raisin::tcp_viewer::SessionRecorder;
 using raisin::tcp_viewer::SensorInfo;
+using raisin::tcp_viewer::isCameraSensor;
 using raisin::tcp_viewer::SensorPreviewInfo;
 using raisin::tcp_viewer::SensorRenderer;
 using raisin::tcp_viewer::ViewerSettings;
@@ -1312,7 +1314,8 @@ ImVec4 tcpViewerIconTint(TcpViewerIconKind kind, bool hovered, bool active) {
 
 TcpViewerIconKind sensorTypeIconKind(raisim::Sensor::Type type) {
   switch (type) {
-    case raisim::Sensor::Type::RGB: return TcpViewerIconKind::Camera;
+    case raisim::Sensor::Type::RGB:
+    case raisim::Sensor::Type::SEGMENTATION: return TcpViewerIconKind::Camera;
     case raisim::Sensor::Type::DEPTH: return TcpViewerIconKind::SensorDepth;
     case raisim::Sensor::Type::IMU: return TcpViewerIconKind::SensorImu;
     case raisim::Sensor::Type::SPINNING_LIDAR: return TcpViewerIconKind::SensorLidar;

@@ -270,6 +270,39 @@ create_rayrai_executable(rayrai_complete_showcase src/rayrai/getting_started/ray
 create_rayrai_executable(rayrai_rgb_camera src/rayrai/sensors/rayrai_rgb_camera.cpp)
 create_rayrai_executable(rayrai_depth_camera src/rayrai/sensors/rayrai_depth_camera.cpp)
 
+# Segmentation rendering requires matching RaiSim and Rayrai camera APIs.
+function(create_segmentation_camera_example)
+    include(CheckCXXSourceCompiles)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_REQUIRED_LIBRARIES raisim::raisim rayrai)
+    unset(RAISIM_EXAMPLE_HAS_SEGMENTATION_CAMERA CACHE)
+    check_cxx_source_compiles("
+        #include <memory>
+        #include <raisim/World.hpp>
+        #include <raisim/sensors/SegmentationSensor.hpp>
+        #include <rayrai/RayraiWindow.hpp>
+        int main() {
+            auto world = std::make_shared<raisim::World>();
+            world->addGround()->setSegmentationLabel(world->addSegmentationClass(\"ground\"));
+            std::vector<int32_t> ids(1);
+            std::vector<unsigned char> rgba;
+            raisim::SegmentationCamera::colorize(ids, rgba);
+            raisim::SegmentationCamera::SegmentationCameraProperties properties;
+            raisin::Camera camera(properties);
+            raisin::RayraiWindow viewer(world, 1, 1);
+            viewer.renderSegmentation(camera);
+            camera.readSegmentation(ids.data(), nullptr, nullptr, ids.size());
+        }" RAISIM_EXAMPLE_HAS_SEGMENTATION_CAMERA)
+    if(RAISIM_EXAMPLE_HAS_SEGMENTATION_CAMERA)
+        create_rayrai_executable(rayrai_segmentation_camera src/rayrai/sensors/rayrai_segmentation_camera.cpp)
+        target_compile_features(rayrai_segmentation_camera PRIVATE cxx_std_20)
+    else()
+        message(STATUS "Skipping rayrai_segmentation_camera: selected packages lack the segmentation-camera API")
+    endif()
+endfunction()
+create_segmentation_camera_example()
+
 # Noise captures require the new RaiSim measurement API; older SDKs omit this example.
 function(create_sensor_noise_example)
     include(CheckCXXSourceCompiles)

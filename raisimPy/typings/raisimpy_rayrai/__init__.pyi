@@ -9855,6 +9855,44 @@ class RayraiWindow:
         C++: void (Camera &, Shader *, bool, bool)
         """
 
+    @overload
+    def renderSegmentation(self, sensorCam: raisimpy.SegmentationCamera, cam: Camera, drawVisualizationObjects: bool = False, visualizationObjectsMustBeDetectable: bool = True) -> None:
+        """
+        /**
+           * @brief Render a segmentation image for a raisim segmentation camera.
+           *
+           * Copies the sensor's pose into @p cam (as renderWithExternalCamera() does), then behaves like
+           * the Camera overload. Read the images with Camera::getRawImage(raisim::SegmentationCamera&).
+           * @param sensorCam Raisim segmentation camera; its pose is updated and copied.
+           * @param cam Render camera to use; receives the segmentation image.
+           * @param drawVisualizationObjects Include custom and instanced visuals.
+           * @param visualizationObjectsMustBeDetectable When true, include only visualization objects
+           *        marked detectable; when false, include all visualization objects.
+           */
+        C++: void (raisim::SegmentationCamera &, Camera &, bool, bool)
+        """
+
+    @overload
+    def renderSegmentation(self, cam: Camera, drawVisualizationObjects: bool = False, visualizationObjectsMustBeDetectable: bool = True) -> None:
+        """
+        /**
+           * @brief Render a segmentation image with a given camera.
+           *
+           * Writes (world index, body index, label, 0) per pixel into @p cam's RGBA32I segmentation target
+           * (Camera::getSegmentationTexture(), Camera::readSegmentation()); pixels with no geometry hold
+           * raisim::SegmentationCamera::kBackground (-1) in every channel. The pass draws the geometry of
+           * renderDepthPlaneDistance(), so segmentation and depth images of a camera agree pixel for pixel,
+           * without antialiasing, blending, weather or post-processing. Visuals write their
+           * Visuals::getSegmentationIds(). A fisheye lens gets the color image's remap, sampled at the
+           * nearest pixel. Requires this renderer's GL context.
+           * @param cam Render camera to use; receives the segmentation image.
+           * @param drawVisualizationObjects Include custom and instanced visuals.
+           * @param visualizationObjectsMustBeDetectable When true, include only visualization objects
+           *        marked detectable; when false, include all visualization objects.
+           */
+        C++: void (Camera &, bool, bool)
+        """
+
     def getDepthPlaneTexture(self) -> int:
         """
         /**
@@ -12633,6 +12671,21 @@ class Shader:
         """C++: void (int, float, float, float, float) const"""
 
     @overload
+    def setIVec4(self, name: str, value: numpy.ndarray) -> None:
+        """
+        /**
+           * @brief Set an ivec4 uniform (not cached).
+           * @param name Uniform name.
+           * @param value Vector value.
+           */
+        C++: void (std::string_view, const glm::ivec4 &) const
+        """
+
+    @overload
+    def setIVec4(self, location: int, value: numpy.ndarray) -> None:
+        """C++: void (int, const glm::ivec4 &) const"""
+
+    @overload
     def setMat2(self, name: str, mat: numpy.ndarray) -> None:
         """
         /**
@@ -12960,6 +13013,15 @@ class Camera:
 
     @overload
     def __init__(self, viewer: RayraiWindow, properties: raisimpy.RGBCameraProperties) -> None: ...
+
+    @overload
+    def __init__(self, viewer: RayraiWindow, segmentationCam: raisimpy.SegmentationCamera) -> None: ...
+
+    @overload
+    def __init__(self, viewer: RayraiWindow, segmentationCam: raisimpy.SegmentationCamera) -> None: ...
+
+    @overload
+    def __init__(self, viewer: RayraiWindow, properties: raisimpy.SegmentationCameraProperties) -> None: ...
 
     class ProjectionMode(enum.Enum):
         PERSPECTIVE = 0
@@ -13541,6 +13603,14 @@ class Camera:
         C++: void ()
         """
 
+    def ensureSegmentationRenderTarget(self) -> None:
+        """
+        /**
+           * @brief Ensure the segmentation render target (RGBA32I color + depth24) exists.
+           */
+        C++: void ()
+        """
+
     @staticmethod
     def unbindFbo() -> None:
         """
@@ -13755,6 +13825,15 @@ class Camera:
         C++: unsigned int () const
         """
 
+    def getSegmentationTexture(self) -> int:
+        """
+        /**
+           * @brief Get the segmentation texture id (RGBA32I: world index, body index, label, 0).
+           * @return Segmentation texture id, or zero before the segmentation target is allocated.
+           */
+        C++: unsigned int () const
+        """
+
     def renderTargetDiagnostics(self) -> list[Camera.RenderTargetDiagnostics]:
         """
         /**
@@ -13934,6 +14013,14 @@ class Camera:
 
     @overload
     def getRawImage(self, sensor: raisimpy.DepthCamera, mode: Camera.SensorStorageMode = Camera.SensorStorageMode.SENSOR_SETTER, flipVertical: bool = True) -> numpy.ndarray | None: ...
+
+    @overload
+    def getRawImage(self, sensor: raisimpy.SegmentationCamera, mode: Camera.SensorStorageMode = Camera.SensorStorageMode.SENSOR_SETTER, flipVertical: bool = True) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray] | None: ...
+
+    def readSegmentation(self, flipVertical: bool = True) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+        """
+        Return int32 (objects, bodies, labels) images of the last renderSegmentation().
+        """
 
 class CameraFrustum:
     def __init__(self, viewer: RayraiWindow, visual: Visuals, mesh: OpenGLMesh) -> None: ...
@@ -14479,6 +14566,21 @@ class InstancedVisuals:
 
         @fallbackCode.setter
         def fallbackCode(self, arg: int, /) -> None: ...
+
+    class FoliageBatchSupport:
+        def __init__(self) -> None: ...
+
+        @property
+        def basicTransform(self) -> bool: ...
+
+        @basicTransform.setter
+        def basicTransform(self, arg: bool, /) -> None: ...
+
+        @property
+        def colorBatch(self) -> bool: ...
+
+        @colorBatch.setter
+        def colorBatch(self, arg: bool, /) -> None: ...
 
     class FoliageImpostorDiagnostics:
         def __init__(self) -> None: ...
@@ -15092,6 +15194,52 @@ class InstancedVisuals:
         C++: void (bool)
         """
 
+    def setSegmentationIds(self, objectIndex: int, bodyIndex: int, label: int) -> None:
+        """
+        /**
+           * @brief Set the ids a segmentation render writes for every instance
+           *        (RayraiWindow::renderSegmentation() with visualization objects).
+           *
+           * Defaults to raisim::SegmentationCamera::kNotWorldObject (-2) as object and body index and to
+           * label 0.
+           * @param objectIndex Object image value.
+           * @param bodyIndex Body image value.
+           * @param label Label image value.
+           */
+        C++: void (int32_t, int32_t, int32_t)
+        """
+
+    def setSegmentationLabel(self, label: int) -> None:
+        """
+        /**
+           * @brief Set the label image value of every instance (see setSegmentationIds()).
+           * @param label Label image value.
+           */
+        C++: void (int32_t)
+        """
+
+    def getSegmentationIds(self) -> numpy.ndarray:
+        """
+        /// @return (object index, body index, label, 0) written by segmentation renders.
+        C++: glm::ivec4 () const
+        """
+
+    def setSegmentationExcluded(self, excluded: bool) -> None:
+        """
+        /**
+           * @brief Leave this visual out of segmentation renders, e.g. a batch whose instances are also
+           *        drawn there one by one with ids of their own.
+           * @param excluded True to skip this visual in segmentation renders.
+           */
+        C++: void (bool)
+        """
+
+    def isSegmentationExcluded(self) -> bool:
+        """
+        /// @return True when segmentation renders skip this visual.
+        C++: bool () const
+        """
+
     def getPosition(self, id: int) -> numpy.ndarray:
         """
         /**
@@ -15678,6 +15826,9 @@ class InstancedVisuals:
         /// Internal: @return True when the batch can join the renderer's batched foliage color draw.
         C++: bool () const
         """
+
+    def foliageBatchSupport(self) -> InstancedVisuals.FoliageBatchSupport:
+        """C++: FoliageBatchSupport () const"""
 
     def hasDepthWritingMaterial(self) -> bool:
         """
@@ -19111,6 +19262,12 @@ class PhysicsObjectSnapshot:
     def id(self, arg: int, /) -> None: ...
 
     @property
+    def worldIndex(self) -> int: ...
+
+    @worldIndex.setter
+    def worldIndex(self, arg: int, /) -> None: ...
+
+    @property
     def type(self) -> raisimpy.ObjectType: ...
 
     @type.setter
@@ -19199,6 +19356,12 @@ class PhysicsRenderDescription:
 
     @colors.setter
     def colors(self, arg: Sequence[numpy.ndarray], /) -> None: ...
+
+    @property
+    def segmentationLabels(self) -> list[int]: ...
+
+    @segmentationLabels.setter
+    def segmentationLabels(self, arg: Sequence[int], /) -> None: ...
 
 class PhysicsShapeSnapshot:
     def __init__(self) -> None: ...
@@ -19751,10 +19914,28 @@ class RaisimObject:
     def objectId(self) -> int:
         """C++: raisim::Object::Id () const"""
 
+    def worldIndex(self) -> int:
+        """
+        /// @return Index of the object in World::getObjList() when its snapshot was captured.
+        C++: int32_t () const
+        """
+
+    def segmentationLabel(self) -> int:
+        """
+        /// @return Segmentation label of the object (of its first shape for articulated systems).
+        C++: int32_t () const
+        """
+
     def renderRevision(self) -> int:
         """
         /// @return Revision that advances whenever the drawn state changes.
         C++: uint64_t () const
+        """
+
+    def shadowGeometrySignature(self, showCollisionBodies: bool) -> int:
+        """
+        /// Internal: depth-affecting mesh readiness and material state of the drawn geometry.
+        C++: uint64_t (bool) const
         """
 
     def worldPosition(self) -> numpy.ndarray:
@@ -19774,8 +19955,9 @@ class RaisimObject:
         /**
            * @brief Draw the object using the provided shader.
            *
-           * Sets the `shadingType`, `model` and `objectColor` uniforms per mesh; the
-           * shader must already be in use. No-op when hidden.
+           * Sets the `shadingType`, `model` and `objectColor` uniforms per mesh, and
+           * `uSegmentationId` (world index, body index, label, 0) when the shader has
+           * it; the shader must already be in use. No-op when hidden.
            * @param shader Shader used for rendering.
            * @param showCollisionBodies True to render collision geometry when available
            *        (articulated systems only).
@@ -23337,6 +23519,36 @@ class Visuals:
            *        those passes.
            */
         C++: void (bool)
+        """
+
+    def setSegmentationIds(self, objectIndex: int, bodyIndex: int, label: int) -> None:
+        """
+        /**
+           * @brief Set the ids a segmentation render writes for this visual (RayraiWindow::renderSegmentation()).
+           *
+           * Visuals are not RaiSim objects, so they default to raisim::SegmentationCamera::kNotWorldObject (-2)
+           * as object and body index and to label 0. The TCP viewer gives the visuals it builds for server
+           * objects their server world index, body index and label.
+           * @param objectIndex Object image value.
+           * @param bodyIndex Body image value.
+           * @param label Label image value.
+           */
+        C++: void (int32_t, int32_t, int32_t)
+        """
+
+    def setSegmentationLabel(self, label: int) -> None:
+        """
+        /**
+           * @brief Set the label image value of this visual (see setSegmentationIds()).
+           * @param label Label image value.
+           */
+        C++: void (int32_t)
+        """
+
+    def getSegmentationIds(self) -> numpy.ndarray:
+        """
+        /// @return (object index, body index, label, 0) written by segmentation renders.
+        C++: glm::ivec4 () const
         """
 
     def getPosition(self) -> numpy.ndarray:

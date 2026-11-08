@@ -2,6 +2,29 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_035(py::module_& m) {
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"scatteringAnisotropy", &raisin::WaterBody::scatteringAnisotropy);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"indexOfRefraction", &raisin::WaterBody::indexOfRefraction);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"roughness", &raisin::WaterBody::roughness);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"rippleStrength", &raisin::WaterBody::rippleStrength);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"rippleScale", &raisin::WaterBody::rippleScale);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"rippleDirection", &raisin::WaterBody::rippleDirection);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"foamColor", &raisin::WaterBody::foamColor);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"shorelineFoamDepth", &raisin::WaterBody::shorelineFoamDepth);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"crestFoamStrength", &raisin::WaterBody::crestFoamStrength);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"crestFoamThreshold", &raisin::WaterBody::crestFoamThreshold);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"causticStrength", &raisin::WaterBody::causticStrength);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"causticScale", &raisin::WaterBody::causticScale);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"shorelineFadeDepth", &raisin::WaterBody::shorelineFadeDepth);}
+{auto c=bound_class<raisin::WaterBody>(m, "WaterBody"); field(c,"flow", &raisin::WaterBody::flow);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); default_constructor(c);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"bodyCount", &raisin::WaterDiagnostics::bodyCount);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"bodiesDrawn", &raisin::WaterDiagnostics::bodiesDrawn);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"tilesDrawn", &raisin::WaterDiagnostics::tilesDrawn);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"trianglesDrawn", &raisin::WaterDiagnostics::trianglesDrawn);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"sceneCaptured", &raisin::WaterDiagnostics::sceneCaptured);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"screenSpaceReflections", &raisin::WaterDiagnostics::screenSpaceReflections);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"cameraUnderwater", &raisin::WaterDiagnostics::cameraUnderwater);}
+{auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"underwaterFogDrawn", &raisin::WaterDiagnostics::underwaterFogDrawn);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"skyCaptureFaceSize", &raisin::WaterDiagnostics::skyCaptureFaceSize);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"skyCaptures", &raisin::WaterDiagnostics::skyCaptures);}
 {auto c=bound_class<raisin::WaterDiagnostics>(m, "WaterDiagnostics"); field(c,"timeSeconds", &raisin::WaterDiagnostics::timeSeconds);}
@@ -34,28 +57,5 @@ void define_035(py::module_& m) {
 {auto c=bound_class<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample"); field(c,"inside", &raisin::WaterSurfaceSample::inside);}
 {auto c=bound_class<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample"); field(c,"height", &raisin::WaterSurfaceSample::height);}
 {auto c=bound_class<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample"); field(c,"normal", &raisin::WaterSurfaceSample::normal);}
-{auto c=bound_class<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample"); field(c,"compression", &raisin::WaterSurfaceSample::compression);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); default_constructor(c);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"waveCount", &raisin::WaterWaveSpectrum::waveCount);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"seed", &raisin::WaterWaveSpectrum::seed);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"windAngleRadians", &raisin::WaterWaveSpectrum::windAngleRadians);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"directionSpreadRadians", &raisin::WaterWaveSpectrum::directionSpreadRadians);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"minWavelength", &raisin::WaterWaveSpectrum::minWavelength);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"maxWavelength", &raisin::WaterWaveSpectrum::maxWavelength);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"wavelengthFalloff", &raisin::WaterWaveSpectrum::wavelengthFalloff);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"minAmplitude", &raisin::WaterWaveSpectrum::minAmplitude);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"maxAmplitude", &raisin::WaterWaveSpectrum::maxAmplitude);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"amplitudeFalloff", &raisin::WaterWaveSpectrum::amplitudeFalloff);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"longWaveSteepness", &raisin::WaterWaveSpectrum::longWaveSteepness);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"shortWaveSteepness", &raisin::WaterWaveSpectrum::shortWaveSteepness);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"steepnessFalloff", &raisin::WaterWaveSpectrum::steepnessFalloff);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"randomness", &raisin::WaterWaveSpectrum::randomness);}
-{auto c=bound_class<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum"); field(c,"maxSteepnessSum", &raisin::WaterWaveSpectrum::maxSteepnessSum);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); default_constructor(c);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"enabled", &raisin::WeatherDiagnostics::enabled);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"viewerEffectsActive", &raisin::WeatherDiagnostics::viewerEffectsActive);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"affectsSensors", &raisin::WeatherDiagnostics::affectsSensors);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"preset", &raisin::WeatherDiagnostics::preset);}
-{auto c=bound_class<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics"); field(c,"quality", &raisin::WeatherDiagnostics::quality);}
 }
 }

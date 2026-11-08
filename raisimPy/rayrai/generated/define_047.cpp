@@ -2,6 +2,32 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_047(py::module_& m) {
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"prefilteredEnvironmentMap", &raisin::RayraiWindow::ReflectionProbe::prefilteredEnvironmentMap);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"brdfLut", &raisin::RayraiWindow::ReflectionProbe::brdfLut);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"strength", &raisin::RayraiWindow::ReflectionProbe::strength);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxProjection", &raisin::RayraiWindow::ReflectionProbe::boxProjection);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxMin", &raisin::RayraiWindow::ReflectionProbe::boxMin);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "ReflectionProbe"); field(c,"boxMax", &raisin::RayraiWindow::ReflectionProbe::boxMax);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"valid", &raisin::RayraiWindow::ReflectionProbeBlend::valid);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryIndex", &raisin::RayraiWindow::ReflectionProbeBlend::primaryIndex);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryIndex", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryIndex);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryWeight", &raisin::RayraiWindow::ReflectionProbeBlend::primaryWeight);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryWeight", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryWeight);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"strength", &raisin::RayraiWindow::ReflectionProbeBlend::strength);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxProjection);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxProjection);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryProbePosition", &raisin::RayraiWindow::ReflectionProbeBlend::primaryProbePosition);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryProbePosition", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryProbePosition);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxMin", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxMin);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"primaryBoxMax", &raisin::RayraiWindow::ReflectionProbeBlend::primaryBoxMax);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxMin", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxMin);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend"); field(c,"secondaryBoxMax", &raisin::RayraiWindow::ReflectionProbeBlend::secondaryBoxMax);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); default_constructor(c);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"direction", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::direction);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"up", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::up);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame"); field(c,"right", &raisin::RayraiWindow::ReflectionProbeCaptureFrame::right);}
+{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); default_constructor(c);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"resolution", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::resolution);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"drawVisualizationObjects", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::drawVisualizationObjects);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings"); field(c,"drawCoordinateFrames", &raisin::RayraiWindow::ReflectionProbeCaptureSettings::drawCoordinateFrames);}
@@ -31,31 +57,5 @@ void define_047(py::module_& m) {
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"selectedProbeCount", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::selectedProbeCount);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"boxProjectionProbeCount", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::boxProjectionProbeCount);}
 {auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"validBoxProjectionProbeCount", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::validBoxProjectionProbeCount);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"primaryIndex", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::primaryIndex);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"secondaryIndex", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::secondaryIndex);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"primaryWeight", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::primaryWeight);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"secondaryWeight", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::secondaryWeight);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"strength", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::strength);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"samplePosition", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::samplePosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"primaryPosition", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::primaryPosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"secondaryPosition", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::secondaryPosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"primaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::primaryBoxProjection);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary"); field(c,"secondaryBoxProjection", &raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary::secondaryBoxProjection);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView"); field(c,"valid", &raisin::RayraiWindow::ReflectionProbeDebugView::valid);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView"); field(c,"samplePosition", &raisin::RayraiWindow::ReflectionProbeDebugView::samplePosition);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView"); field(c,"blend", &raisin::RayraiWindow::ReflectionProbeDebugView::blend);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView"); field(c,"probes", &raisin::RayraiWindow::ReflectionProbeDebugView::probes);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"irradianceResolution", &raisin::RayraiWindow::ReflectionProbeFilterSettings::irradianceResolution);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"irradianceSamples", &raisin::RayraiWindow::ReflectionProbeFilterSettings::irradianceSamples);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"prefilteredResolution", &raisin::RayraiWindow::ReflectionProbeFilterSettings::prefilteredResolution);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"prefilteredMipLevels", &raisin::RayraiWindow::ReflectionProbeFilterSettings::prefilteredMipLevels);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"prefilteredSamples", &raisin::RayraiWindow::ReflectionProbeFilterSettings::prefilteredSamples);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"brdfLutSize", &raisin::RayraiWindow::ReflectionProbeFilterSettings::brdfLutSize);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings"); field(c,"brdfLutSamples", &raisin::RayraiWindow::ReflectionProbeFilterSettings::brdfLutSamples);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); default_constructor(c);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"valid", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::valid);}
-{auto c=bound_class<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion"); field(c,"position", &raisin::RayraiWindow::ReflectionProbePlacementSuggestion::position);}
 }
 }

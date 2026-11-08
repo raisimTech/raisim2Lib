@@ -2,6 +2,19 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_013(py::module_& m) {
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoLightAffect", &raisin::Material::aoLightAffect);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissiveStrength", &raisin::Material::emissiveStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissionOperator", &raisin::Material::emissionOperator);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularFactor", &raisin::Material::specularFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularColorFactor", &raisin::Material::specularColorFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"diffuseMode", &raisin::Material::diffuseMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"specularMode", &raisin::Material::specularMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"ior", &raisin::Material::ior);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"transmissionFactor", &raisin::Material::transmissionFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"refractionFactor", &raisin::Material::refractionFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"volumeThicknessFactor", &raisin::Material::volumeThicknessFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"dielectricPriority", &raisin::Material::dielectricPriority);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"dielectricVolumeId", &raisin::Material::dielectricVolumeId);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"volumeAttenuationDistance", &raisin::Material::volumeAttenuationDistance);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"volumeAttenuationColor", &raisin::Material::volumeAttenuationColor);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"subsurfaceScatteringStrength", &raisin::Material::subsurfaceScatteringStrength);}
@@ -44,18 +57,5 @@ void define_013(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"useFovOverride", &raisin::Material::useFovOverride);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"fovOverrideDegrees", &raisin::Material::fovOverrideDegrees);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarEnabled", &raisin::Material::triplanarEnabled);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarWorldSpace", &raisin::Material::triplanarWorldSpace);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarScale", &raisin::Material::triplanarScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarOffset", &raisin::Material::triplanarOffset);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarSharpness", &raisin::Material::triplanarSharpness);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarEnabled", &raisin::Material::uv2TriplanarEnabled);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarWorldSpace", &raisin::Material::uv2TriplanarWorldSpace);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarScale", &raisin::Material::uv2TriplanarScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarOffset", &raisin::Material::uv2TriplanarOffset);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2TriplanarSharpness", &raisin::Material::uv2TriplanarSharpness);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureUvTransforms", &raisin::Material::textureUvTransforms);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatFactor", &raisin::Material::clearcoatFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"clearcoatRoughnessFactor", &raisin::Material::clearcoatRoughnessFactor);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"iridescenceFactor", &raisin::Material::iridescenceFactor);}
 }
 }

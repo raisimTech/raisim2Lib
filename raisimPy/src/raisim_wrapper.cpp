@@ -51,6 +51,7 @@ NB_MODULE(raisimpy, m) {
 	m.attr("__license__") = "PROPRIETARY";
     m.attr("__version__") = RAISIMPY_VERSION;
     m.attr("hasWrenchSensors") = bool(RAISIMPY_HAS_WRENCH_SENSORS);
+    m.attr("hasSegmentation") = bool(RAISIMPY_HAS_SEGMENTATION);
 	py::list authors;
 	authors.append("Jemin Hwangbo (raisim)");
 	authors.append("Donho Kang (raisim)");

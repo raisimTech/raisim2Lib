@@ -58,11 +58,19 @@ object is destroyed.
 
 `RaisimServer` can have the connected rayrai TCP viewer render the images of
 RGB and depth cameras. When a `MeasurementSource::MANUAL` camera reaches its
-update period, the regular scene reply includes its pose, lens model,
+next sampling deadline, the regular scene reply includes its pose, lens model,
 resolution and clipping range. The viewer renders the camera image and returns
 BGRA pixels or metric depth values in a `REQUEST_SENSOR_UPDATE` frame. The
 server validates every entry before it replaces sensor buffers and updates
 timestamps.
+
+Requests retain a nominal grid counted in physics time, including cameras on
+visual-only articulated systems. A 30 Hz camera at 1000 Hz therefore uses mixed
+33/34-step intervals and averages 30 Hz. The server records the acquisition time
+with each request. Late replies leave future deadlines on the same grid; missed
+slots are skipped when a later acquisition is acknowledged. Repeated `needsSensorUpdate()` calls do not consume a deadline. See
+[Update timing](./Sensors.md#update-timing) for clock edits, rate changes and
+manual scheduling outside the server.
 
 IMU and spinning LiDAR measurements are always computed by RaiSim; their
 metadata is streamed for inspection, but the viewer does not return samples
@@ -176,8 +184,21 @@ bits are:
 - `PROTOCOL_FEATURE_CONTROLS`: a reply carries the application's sliders
   (see [Sliders](#sliders)) after connecting and whenever one changes, and the
   viewer sets their values with `CR_SET_CONTROL` requests.
+- `PROTOCOL_FEATURE_WRENCH_SENSORS`: joint force/torque and tactile sensors are
+  sent with their metadata and measurements.
+- `PROTOCOL_FEATURE_SEGMENTATION`: segmentation cameras are sent with the other
+  cameras, and the viewer renders the `MANUAL` ones and returns their images
+  ([Segmentation camera](./Sensors.md#segmentation-camera)). Every world object
+  record ends with the object's world index and the segmentation labels of its
+  bodies, which the viewer's segmentation images report. A segmentation reply
+  carries the segmentation type it was rendered with.
+- `PROTOCOL_FEATURE_VISUAL_ARTICULATED_TYPE`: visual articulated systems
+  (`addVisualArticulatedSystem()`) are sent with an object type of their own.
+  Without it they share one with visual objects, and a viewer reads a system
+  with fewer than two visuals, such as a camera rig without geometry, as a
+  visual object.
 
-The rayrai TCP viewer negotiates all nine bits automatically.
+The rayrai TCP viewer negotiates all twelve bits automatically.
 `sendUpdateRequest()` in `rayrai/RaisimTcpCommon.hpp` advertises every bit
 the client build supports; a custom client that writes its own request frames
 may advertise any subset (see [Rayrai TCP Viewer](./RayraiTcpViewer.md)).

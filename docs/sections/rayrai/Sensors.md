@@ -15,10 +15,10 @@ time and require the source World to be protected.
 ## Sensor alignment
 
 rayrai can align rendering to RaiSim camera sensors. Constructing a
-`raisin::Camera` from a RaiSim `RGBCamera` or `DepthCamera` copies the
+`raisin::Camera` from a RaiSim `RGBCamera`, `DepthCamera` or `SegmentationCamera` copies the
 sensor's resolution, clip planes, horizontal field of view, and lens model (a GL
 context must be current). The sensor overloads of `renderWithExternalCamera`
-and `renderDepthPlaneDistance` then copy the sensor's world pose into that
+`renderDepthPlaneDistance` and `renderSegmentation` then copy the sensor's world pose into that
 camera on every call; `syncRaisimCameraPose` does the same for other render
 paths. RaiSim sensor rendering is world-object-only: custom visuals, instanced
 visuals, point clouds, coordinate frames, and other viewer-only helpers are
@@ -32,12 +32,14 @@ avoid calling `Camera::update()` immediately afterward unless you also update
 For runnable coverage, see
 [Rayrai RGB camera](../examples/rayrai/rayrai_rgb_camera.md),
 [Rayrai depth camera](../examples/rayrai/rayrai_depth_camera.md),
+[Rayrai segmentation camera](../examples/rayrai/rayrai_segmentation_camera.md),
 [Rayrai LiDAR point cloud](../examples/rayrai/rayrai_lidar_pointcloud.md), and
 [Rayrai ArUco marker](../examples/rayrai/rayrai_aruco_marker.md) for dedicated
 sensor examples. `rayrai_complete_showcase` combines RGB/depth cameras, LiDAR
 visualization, camera frustums, raw buffer readback, and custom visuals in one
 runnable scene. The sensor overview in [Sensors](../Sensors.md) includes a
-longer RGB/depth readback example.
+longer RGB/depth readback example, and describes segmentation images in
+[Segmentation camera](../Sensors.md#segmentation-camera).
 
 To investigate stale depth geometry after removing terrain or primitives, use
 the optional [Debug Tool: Heightmap Replacement](../debug_tools/rayrai_heightmap_replacement.md) tool.
@@ -165,7 +167,9 @@ negotiated feature set. A viewer rejects newer unsupported protocol versions wit
 error instead of attempting to parse an incompatible stream.
 
 Current feature bits cover the explicit header, deformable delta streaming, sim
-control, contact ownership tags, and actuator state. Deformable objects send
+control, contact ownership tags, actuator state, scene files, body-frame
+offsets, fluid volumes, application controls, wrench sensors, segmentation
+cameras and visual articulated system records. Deformable objects send
 mesh topology during initialization or topology changes; ordinary update
 frames send vertex positions only. This keeps dynamic cloth/cube streaming
 cheaper while avoiding binary compression until network bandwidth is measured
@@ -180,8 +184,12 @@ The protocol constants are defined in `rayrai/TcpProtocolReader.hpp`, which
 - `kProtocolVersion` — the current wire version. Mismatched versions cause
   the viewer to disconnect with a versioned-protocol error.
 - `kProtocolFeatureExplicitHeader`, `kProtocolFeatureDeformableDelta`,
-  `kProtocolFeatureSimControl`, `kProtocolFeatureContactObjectTags`, and
-  `kProtocolFeatureActuatorState` — the currently negotiated feature bits;
+  `kProtocolFeatureSimControl`, `kProtocolFeatureContactObjectTags`,
+  `kProtocolFeatureActuatorState`, `kProtocolFeatureSceneFiles`,
+  `kProtocolFeatureBodyFrameOffsets`, `kProtocolFeatureFluidVolumes`,
+  `kProtocolFeatureControls`, `kProtocolFeatureWrenchSensors`,
+  `kProtocolFeatureSegmentation`, and `kProtocolFeatureVisualArticulatedType`
+  — the currently negotiated feature bits (see [RaisimServer](../RaisimServer.md));
   `kProtocolSupportedFeatures` is the OR of all bits this build understands.
   The viewer rejects a server update that sets any other bit.
 - `kMaxMessageBytes` — maximum accepted message size (default 64 MiB),

@@ -37,6 +37,7 @@
   "rayrai_custom_visuals": {"kind": "rayrai", "start": 1.5},
   "rayrai_deformable_terrain": {"args": ["--hidden"], "every_frame": true, "fps": 60, "kind": "rayrai", "load": 120, "start": 4},
   "rayrai_depth_camera": {"kind": "rayrai", "start": 1.5},
+  "rayrai_segmentation_camera": {"kind": "rayrai", "start": 1.5},
   "rayrai_fluid_waves": {"kind": "rayrai", "start": 3},
   "rayrai_forest": {"kind": "rayrai", "load": 180, "start": 20},
   "rayrai_forest_from_rscene": {"crop": {"cx": 0.33, "cy": 0.66, "zoom": 1.8}, "kind": "rayrai", "load": 180, "start": 20},

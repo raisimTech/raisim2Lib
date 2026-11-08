@@ -44,6 +44,16 @@ check_cxx_source_compiles("
         auto tactile = raisim::Sensor::Type::TACTILE;
         return int(force) == int(tactile);
     }" RAISIMPY_HAS_WRENCH_SENSORS)
+unset(RAISIMPY_HAS_SEGMENTATION CACHE)
+check_cxx_source_compiles("
+    #include <raisim/World.hpp>
+    #include <raisim/sensors/SegmentationSensor.hpp>
+    int main() {
+        raisim::World* world = nullptr;
+        auto label = &raisim::World::addSegmentationClass;
+        return world != nullptr && label != nullptr &&
+               raisim::Sensor::Type::SEGMENTATION != raisim::Sensor::Type::SEGMENTATION;
+    }" RAISIMPY_HAS_SEGMENTATION)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 # source files
@@ -62,7 +72,8 @@ if(UNIX)
 endif()
 target_compile_definitions(raisimpy PRIVATE
     RAISIMPY_VERSION="${raisim_VERSION}"
-    RAISIMPY_HAS_WRENCH_SENSORS=$<BOOL:${RAISIMPY_HAS_WRENCH_SENSORS}>)
+    RAISIMPY_HAS_WRENCH_SENSORS=$<BOOL:${RAISIMPY_HAS_WRENCH_SENSORS}>
+    RAISIMPY_HAS_SEGMENTATION=$<BOOL:${RAISIMPY_HAS_SEGMENTATION}>)
 
 option(RAISIM_PY_RAYRAI "Build the in-process Rayrai Python API" ON)
 if(RAISIM_PY_RAYRAI)
