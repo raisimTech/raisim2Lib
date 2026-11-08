@@ -15,23 +15,7 @@
 #include "rayrai/PhysicsSnapshot.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-
-namespace {
-ImVec2 fitToAspect(ImVec2 avail, float aspect) {
-  if (aspect <= 0.0f) return avail;
-  ImVec2 size = avail;
-  size.y = size.x / aspect;
-  if (size.y > avail.y) {
-    size.y = avail.y;
-    size.x = size.y * aspect;
-  }
-  return size;
-}
-}  // namespace
-
-static inline glm::vec3 toGlm(const raisim::Vec<3>& v) { return glm::vec3(v[0], v[1], v[2]); }
-
-static inline glm::mat3 toGlm(const raisim::Mat<3, 3>& R) { return glm::make_mat3(R.ptr()); }
+#include "rayrai_example_utils.hpp"
 
 int main(int argc, char* argv[]) {
   ExampleApp app;
@@ -92,8 +76,8 @@ int main(int argc, char* argv[]) {
   pointInstances.reserve(size_t((depthWidth + kPointStride - 1) / kPointStride) * size_t((depthHeight + kPointStride - 1) / kPointStride));
 
   depthCam->updatePose();
-  const glm::vec3 sensorPos = toGlm(depthCam->getPosition());
-  const glm::mat3 sensorRot = toGlm(depthCam->getOrientation());
+  const glm::vec3 sensorPos = raisim_examples::toGlm(depthCam->getPosition());
+  const glm::mat3 sensorRot = raisim_examples::toGlm(depthCam->getOrientation());
   glm::vec3 forward = glm::normalize(glm::vec3(sensorRot[0]));
   glm::vec3 up = glm::normalize(glm::vec3(sensorRot[2]));
   glm::vec3 right = glm::normalize(glm::cross(forward, up));
@@ -116,8 +100,8 @@ int main(int argc, char* argv[]) {
     // CPU-only copy immediately after physics; apply on the thread owning the GL context.
     const auto snapshot = snapshotCapture.capture(*world);
     depthCam->updatePose();
-    const glm::vec3 capturedPosition = toGlm(depthCam->getPosition());
-    const glm::mat3 capturedRotation = toGlm(depthCam->getOrientation());
+    const glm::vec3 capturedPosition = raisim_examples::toGlm(depthCam->getPosition());
+    const glm::mat3 capturedRotation = raisim_examples::toGlm(depthCam->getOrientation());
 
     // Only copied data is used below. A separate render thread would lock the window here.
     viewer->applyPhysicsSnapshot(snapshot);
@@ -140,7 +124,7 @@ int main(int argc, char* argv[]) {
         const float depth = rayraiDepth[pixel];
         // rayrai writes 0 where the ray hit nothing.
         if (!std::isfinite(depth) || !(depth > 0.0f)) continue;
-        const auto ray = toGlm(sensorRays[pixel]);
+        const auto ray = raisim_examples::toGlm(sensorRays[pixel]);
         if (!(ray.x > 0.0f)) continue;
         raisin::InstancedVisuals::InstanceSpec point;
         // Plane depth is measured along sensor +X, including for fisheye rays.
@@ -205,11 +189,7 @@ int main(int argc, char* argv[]) {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(380, 270), ImGuiCond_FirstUseEver);
     ImGui::Begin("Depth Sensor", nullptr, ImGuiWindowFlags_NoCollapse);
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    avail.y = std::max(1.0f, avail.y - 2.0f * ImGui::GetTextLineHeightWithSpacing());
-    ImVec2 size = fitToAspect(avail, aspect);
-    ImTextureID tex = (ImTextureID)(intptr_t)depthCamera->getLinearDepthTexture();
-    ImGui::Image(tex, size, ImVec2(0, 1), ImVec2(1, 0));
+    raisim_examples::drawFittedImage(depthCamera->getLinearDepthTexture(), aspect, 2);
     ImGui::Text("rayrai center depth: %.4f m", centerRayraiDepth);
     ImGui::Text("sensed points: %zu cubes", depthPoints->count());
     ImGui::End();

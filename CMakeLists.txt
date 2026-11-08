@@ -16,17 +16,15 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     endif()
 endif()
 
-set(_raisim_expected_version 2.10.2)
+set(_raisim_expected_version 2.13.0)
 if(DEFINED CACHE{RAISIM_VERSION} AND NOT "${RAISIM_VERSION}" VERSION_EQUAL "${_raisim_expected_version}")
     message(FATAL_ERROR
         "RAISIM_VERSION is ${RAISIM_VERSION}, but this checkout expects ${_raisim_expected_version}. "
         "Remove the stale CMake cache or configure with -DRAISIM_VERSION=${_raisim_expected_version}."
     )
 endif()
-set(RAISIM_VERSION 2.10.2 CACHE STRING "Raisim release version to download.")
+set(RAISIM_VERSION 2.13.0 CACHE STRING "Raisim release version to download.")
 project(raisim VERSION ${RAISIM_VERSION} LANGUAGES CXX)
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-
 # Include CMake helper modules
 include(GNUInstallDirs)
 
@@ -379,6 +377,7 @@ if(RAISIM_EXAMPLE)
 endif()
 
 if(RAISIM_PY)
+    include(CTest)
     add_subdirectory(thirdParty/nanobind)
     add_subdirectory(raisimPy)
 endif()

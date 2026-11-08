@@ -37,6 +37,8 @@ NDArray convert_vecdyn_to_np(const raisim::VecDyn &vec) {
 
 /// \brief: convert from np.array[float[n]] to raisim::VecDyn
 raisim::VecDyn convert_np_to_vecdyn(const NDArray &array) {
+    if (array.ndim() != 1)
+        throw std::invalid_argument("Expected a one-dimensional vector.");
 
     size_t size = array.size();
 

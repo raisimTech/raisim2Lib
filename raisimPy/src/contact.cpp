@@ -191,10 +191,10 @@ void init_contact(py::module_ &m) {
         .def(py::init<>())
         .def_prop_rw("min",
                       [](const ::contact::AABB &self) { return convert_vec_to_np(self.min); },
-                      [](::contact::AABB &self, NDArray value) { self.min = convert_np_to_vec<3>(value); })
+                      [](::contact::AABB &self, NDArray value) { self.min = convert_np_to_vec<3>(value); }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("max",
                       [](const ::contact::AABB &self) { return convert_vec_to_np(self.max); },
-                      [](::contact::AABB &self, NDArray value) { self.max = convert_np_to_vec<3>(value); })
+                      [](::contact::AABB &self, NDArray value) { self.max = convert_np_to_vec<3>(value); }, py::for_getter(py::rv_policy::move))
         .def("overlaps", &::contact::AABB::overlaps, py::arg("other"));
 
     /****************************/

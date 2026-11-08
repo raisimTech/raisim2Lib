@@ -1,11 +1,12 @@
 #include <iostream>
 
+#include "example_resources.hpp"
 #include "forest_viewer.hpp"
 #include "rayrai_loading_progress.hpp"
 
 int main(int argc, char** argv) {
   try {
-    std::filesystem::path assets = FOREST_ASSET_DIR;
+    std::filesystem::path assets = exampleRscPath(argv[0], "forest");
     if (argc == 3 && std::string(argv[1]) == "--assets")
       assets = argv[2];
     else if (argc != 1)

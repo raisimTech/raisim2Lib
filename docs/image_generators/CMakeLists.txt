@@ -2,8 +2,8 @@
 #
 # Each binary renders a small headless scene and writes one or more PNGs into
 # ${RAISIM_DOC_IMAGE_OUTPUT_DIR} (default: ${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/docs/image/rayrai).
-# The docs/CMakeLists.txt wires a custom target that runs every generator
-# before sphinx-build, so a fresh doc build always uses up-to-date images.
+# The docs/CMakeLists.txt makes the docs_site target depend on every generator,
+# so a fresh site build always uses up-to-date images.
 
 cmake_minimum_required(VERSION 3.18)
 
@@ -72,7 +72,10 @@ set(_doc_image_generators
     doc_image_benchmark_scenes
     doc_image_heightmap_rotation
     doc_image_deformable_solid
-    doc_image_tracks)
+    doc_image_fluids
+    doc_image_tracks
+    doc_image_home_tracks
+    doc_image_joint_friction)
 set(_gallery_scenes rayrai_blue_wall_scene granular_media_showcase
                     tendon_pulleys rayrai_nested_glass_showcase rayrai_city)
 foreach(_scene IN LISTS _gallery_scenes)
@@ -156,7 +159,13 @@ add_custom_command(
     COMMENT "Prewarming rayrai shader cache for doc image generators"
     VERBATIM)
 
+# Clips of the documentation site's home page go to rsc/docs/video/home.
+set(RAISIM_DOC_HOME_VIDEO_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/docs/video/home"
+    CACHE PATH "Directory where doc image generators write the home page clips")
+
 set(_rolling_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/rolling_friction_frames")
+set(_home_tracks_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/home_tracks_frames")
 set(_strandbeest_frames_dir "${CMAKE_CURRENT_BINARY_DIR}/strandbeest_frames")
 set(_previous_stamp "${_doc_image_shader_warmup_stamp}")
 list(APPEND _doc_image_outputs "${_doc_image_shader_warmup_stamp}")
@@ -175,6 +184,9 @@ foreach(_gen IN LISTS _doc_image_generators)
   if(_scene_name IN_LIST _gallery_scenes)
     target_include_directories(${_gen} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/include")
     target_compile_definitions(${_gen} PRIVATE DOC_IMAGE_SCENE="${_scene_name}")
+  endif()
+  if(_gen STREQUAL "doc_image_fluids")
+    target_include_directories(${_gen} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/include")
   endif()
   target_link_libraries(${_gen} PRIVATE rayrai raisim::raisim SDL2::SDL2)
   target_compile_features(${_gen} PRIVATE cxx_std_17)
@@ -206,6 +218,14 @@ foreach(_gen IN LISTS _doc_image_generators)
         COMMAND ${CMAKE_COMMAND} -E rm -rf "${_strandbeest_frames_dir}")
     set(_doc_image_model_dependencies
         "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/strandbeest/strandbeest.urdf")
+  elseif(_gen STREQUAL "doc_image_home_tracks")
+    set(_doc_image_gallery_frames_dir_arg "${_home_tracks_frames_dir}")
+    set(_doc_image_prepare_command
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${_home_tracks_frames_dir}")
+    set(_doc_image_arguments
+        "${RAISIM_DOC_IMAGE_OUTPUT_DIR};${CMAKE_CURRENT_SOURCE_DIR}/../../rsc")
+    set(_doc_image_model_dependencies
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/templatedTrackedRobot/trackedTemplate.urdf")
   elseif(_scene_name IN_LIST _gallery_scenes)
     set(_doc_image_gallery_frames_dir_arg "${CMAKE_CURRENT_BINARY_DIR}/${_gen}_frames")
     set(_doc_image_prepare_command
@@ -267,77 +287,97 @@ foreach(_gen IN LISTS _doc_image_generators)
   set(_previous_stamp "${_stamp}")
 endforeach()
 
-# All home-gallery captures use the same size, duration and GIF encoding.
+# Recorded frame sequences become H.264 MP4 clips for the documentation pages,
+# at the resolution they were rendered at, and palette-reduced 640 px GIFs for
+# the repository README, which GitHub can only animate as GIFs. Each rule
+# depends on its generator's stamp, so the frames are refreshed first.
 find_program(FFMPEG_EXECUTABLE ffmpeg)
 if(FFMPEG_EXECUTABLE)
+  function(raisim_doc_video output frames framerate stamp comment)
+    add_custom_command(
+        OUTPUT "${output}"
+        COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -framerate ${framerate} -i "${frames}"
+                -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -an -c:v libx264 -preset slow -crf 20
+                -pix_fmt yuv420p -movflags +faststart "${output}.tmp.mp4"
+        COMMAND ${CMAKE_COMMAND} -E rename "${output}.tmp.mp4" "${output}"
+        DEPENDS "${stamp}"
+        WORKING_DIRECTORY "${RAISIM_DOC_IMAGE_OUTPUT_DIR}"
+        COMMENT "${comment}"
+        VERBATIM)
+  endfunction()
+
+  function(raisim_readme_gif output frames framerate stamp palette comment)
+    add_custom_command(
+        OUTPUT "${output}"
+        COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -framerate ${framerate} -i "${frames}"
+                -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] ${palette} [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
+                -loop 0 "${output}.tmp.gif"
+        COMMAND ${CMAKE_COMMAND} -E rename "${output}.tmp.gif" "${output}"
+        DEPENDS "${stamp}"
+        WORKING_DIRECTORY "${RAISIM_DOC_IMAGE_OUTPUT_DIR}"
+        COMMENT "${comment}"
+        VERBATIM)
+  endfunction()
+
+  set(_rolling_video "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/rayrai_rolling_spinning_friction.mp4")
+  raisim_doc_video("${_rolling_video}" "${_rolling_frames_dir}/frame_%03d.png" 25
+      "${CMAKE_CURRENT_BINARY_DIR}/doc_image_rolling_friction.stamp"
+      "Encoding rolling-friction frames into a video")
+  list(APPEND _doc_image_outputs "${_rolling_video}")
+
+  # The README gallery: all captures use the same size and duration.
   foreach(_scene IN LISTS _gallery_scenes)
     set(_gif_name "${_scene}")
     if(_scene STREQUAL "granular_media_showcase")
       set(_gif_name "granular_media_kicking")
     endif()
-    set(_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/${_gif_name}.gif")
     set(_palette "palettegen=stats_mode=diff")
     if(_scene STREQUAL "rayrai_city")
       # The camera moves through a detailed street, so frames share almost no pixels;
       # 64 colors keep the GIF near the size of the others (about 7.5 MB instead of 11.7).
       set(_palette "palettegen=stats_mode=diff:max_colors=64")
     endif()
-    add_custom_command(
-        OUTPUT "${_gif}"
-        COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -framerate 15
-                -i "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}_frames/frame_%03d.png"
-                -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] ${_palette} [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
-                -loop 0 "${_gif}.tmp.gif"
-        COMMAND ${CMAKE_COMMAND} -E rename "${_gif}.tmp.gif" "${_gif}"
-        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}.stamp"
-        COMMENT "Compositing home-gallery GIF: ${_scene}"
-        VERBATIM)
+    set(_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/${_gif_name}.gif")
+    raisim_readme_gif("${_gif}"
+        "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}_frames/frame_%03d.png" 15
+        "${CMAKE_CURRENT_BINARY_DIR}/doc_image_${_scene}.stamp" "${_palette}"
+        "Compositing README GIF: ${_scene}")
     list(APPEND _doc_image_outputs "${_gif}")
   endforeach()
-endif()
 
-# Composite the recorded frame sequences into GIFs if ffmpeg is available.
-# Each rule depends on its generator's stamp so the frames are refreshed first.
-find_program(FFMPEG_EXECUTABLE ffmpeg)
-set(_rolling_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/rayrai_rolling_spinning_friction.gif")
-if(FFMPEG_EXECUTABLE)
-  set(_rolling_stamp "${CMAKE_CURRENT_BINARY_DIR}/doc_image_rolling_friction.stamp")
+  # The home page's tracked-vehicle tile, rendered at 1920 x 1200 and encoded like the other
+  # home tiles (rsc/docs/video/home/README.md), and its poster: the robot on the stair.
+  set(_home_tracks_video "${RAISIM_DOC_HOME_VIDEO_DIR}/tile_tracks.mp4")
+  set(_home_tracks_poster "${RAISIM_DOC_HOME_VIDEO_DIR}/tile_tracks.jpg")
   add_custom_command(
-      OUTPUT "${_rolling_gif}"
-      # Generate an indexed-palette GIF so the file is small.
-      COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error
-              -framerate 25
-              -i "${_rolling_frames_dir}/frame_%03d.png"
-              -filter_complex "[0:v] palettegen=stats_mode=diff [p]; [0:v][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
-              -loop 0
-              "${_rolling_gif}"
-      DEPENDS "${_rolling_stamp}"
+      OUTPUT "${_home_tracks_video}" "${_home_tracks_poster}"
+      COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -framerate 30
+              -i "${_home_tracks_frames_dir}/frame_%03d.png" -vf "scale=960:-2:flags=lanczos"
+              -an -c:v libx264 -preset slow
+              -crf 26 -maxrate 1100k -bufsize 2200k -pix_fmt yuv420p -profile:v high
+              -movflags +faststart "${_home_tracks_video}.tmp.mp4"
+      COMMAND ${CMAKE_COMMAND} -E rename "${_home_tracks_video}.tmp.mp4" "${_home_tracks_video}"
+      COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error -i "${_home_tracks_frames_dir}/frame_150.png"
+              -vf "scale=960:-2:flags=lanczos" -q:v 4 "${_home_tracks_poster}"
+      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/doc_image_home_tracks.stamp"
       WORKING_DIRECTORY "${RAISIM_DOC_IMAGE_OUTPUT_DIR}"
-      COMMENT "Compositing rolling-friction frames into GIF"
+      COMMENT "Encoding the home page's tracked-vehicle tile"
       VERBATIM)
-  list(APPEND _doc_image_outputs "${_rolling_gif}")
+  list(APPEND _doc_image_outputs "${_home_tracks_video}" "${_home_tracks_poster}")
+
   set(_strandbeest_gif "${RAISIM_DOC_IMAGE_OUTPUT_DIR}/strandbeest_closed_loops.gif")
-  add_custom_command(
-      OUTPUT "${_strandbeest_gif}"
-      COMMAND ${FFMPEG_EXECUTABLE} -y -loglevel error
-              -framerate 25
-              -i "${_strandbeest_frames_dir}/frame_%03d.png"
-              -filter_complex "[0:v] scale=640:-1:flags=lanczos,split [a][b]; [a] palettegen=stats_mode=diff [p]; [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
-              -loop 0
-              "${_strandbeest_gif}"
-      DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/doc_image_strandbeest.stamp"
-      WORKING_DIRECTORY "${RAISIM_DOC_IMAGE_OUTPUT_DIR}"
-      COMMENT "Compositing Strandbeest frames into GIF"
-      VERBATIM)
+  raisim_readme_gif("${_strandbeest_gif}" "${_strandbeest_frames_dir}/frame_%03d.png" 25
+      "${CMAKE_CURRENT_BINARY_DIR}/doc_image_strandbeest.stamp" "palettegen=stats_mode=diff"
+      "Compositing README GIF: Strandbeest")
   list(APPEND _doc_image_outputs "${_strandbeest_gif}")
 else()
-  message(STATUS "ffmpeg not found; skipping documentation GIF compositing")
+  message(STATUS "ffmpeg not found; skipping documentation video and GIF encoding")
 endif()
 
 add_custom_target(rayrai_doc_images
     DEPENDS ${_doc_image_outputs}
     COMMENT "All rayrai doc images regenerated")
 
-# Re-export the list so the parent docs CMakeLists can attach Sphinx to it.
+# Re-export the list so the parent docs CMakeLists can attach the site build to it.
 set(RAYRAI_DOC_IMAGE_TARGET rayrai_doc_images PARENT_SCOPE)
 set(RAYRAI_DOC_IMAGE_OUTPUTS ${_doc_image_outputs} PARENT_SCOPE)

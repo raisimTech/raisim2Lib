@@ -1,4 +1,4 @@
-// Renders the scenes of the benchmark page (sections/Benchmark.rst): the spring chains, ANYmal
+// Renders the scenes of the benchmark page (sections/Benchmark.md): the spring chains, ANYmal
 // standing, ANYmal falling, terrain LiDAR, primitive rays and deformables. Simulation scenes use
 // their benchmark parameters at representative poses; ray scenes show their query geometry.
 // Scenes without a ground are posed in a

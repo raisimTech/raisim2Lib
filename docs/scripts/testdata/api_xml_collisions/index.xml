@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex version="1.15.0" xml:lang="en-US">
+  <!-- Spec< int > and Spec< int * > both sanitize to Spec-int, and Spec< int, 2 >
+       already is Spec-int-2. raisim::index plans the namespace's index.md. -->
+  <compound refid="structraisim_1_1Spec_3_01int_01_4" kind="struct"><name>raisim::Spec&lt; int &gt;</name></compound>
+  <compound refid="structraisim_1_1Spec_3_01int_01_5_01_4" kind="struct"><name>raisim::Spec&lt; int * &gt;</name></compound>
+  <compound refid="structraisim_1_1Spec_3_01int_00_012_01_4" kind="struct"><name>raisim::Spec&lt; int, 2 &gt;</name></compound>
+  <compound refid="structraisim_1_1index" kind="struct"><name>raisim::index</name></compound>
+  <compound refid="classraisim_1_1Row" kind="class"><name>raisim::Row</name></compound>
+  <compound refid="namespaceraisim" kind="namespace"><name>raisim</name></compound>
+</doxygenindex>

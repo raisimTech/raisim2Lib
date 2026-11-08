@@ -4,7 +4,7 @@
 // ships with. Library defaults must produce a good base image; tuning
 // belongs in rayrai, not here.
 //
-// Used by docs/sections/Rayrai.rst "Tone mapping, exposure, and color grading".
+// Used by docs/sections/Rayrai.md "Tone mapping, exposure, and color grading".
 
 #include "doc_image_common.hpp"
 

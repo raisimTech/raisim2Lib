@@ -69,6 +69,8 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   marker examples.
 - `rayrai/visuals`: custom visuals, instancing, and point cloud examples.
 - `rayrai/dynamics`: in-process rigid-body dynamics visualizations.
+- `rayrai/robots`: interactive robot examples, such as a manipulator driven by
+  inverse kinematics.
 - `rayrai/materials`: PBR and texture material examples.
 - `rayrai/assets`: mesh and asset-processing visualization examples, including
   visual-only glTF assets kept separate from collision meshes.
@@ -97,6 +99,10 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   actuated motors whose operating regions (bus voltage and peak torque) come
   from actuator files linked in the URDF, including KAIST-Hound-style coupled
   hip/knee actuators.
+- `rayrai_inverse_kinematics`: drag a target with the mouse and a simulated Kinova
+  arm with a Robotiq 2F-85 follows it: `ArticulatedSystem::solveIK()` turns the
+  target pose into joint PD targets every frame, and the arm can push, grasp and
+  lift the cubes on its workbench.
 - `robotiq_gripper_mimic`: a Kinova arm with a wrist-mounted Robotiq 2F-85 uses PD
   joint poses to grasp a cube at one table marker, carry it to another, release it,
   then reset and repeat.
@@ -106,6 +112,15 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   interactive controls. See the [tendon examples guide](../TENDONS.md).
 - `deformable_objects`: cloth, mesh deformables, filled particles, struts,
   compliance, and elastic modulus.
+- `robotiq_cloth_fold`: a Kinova arm with a wrist-mounted Robotiq 2F-85 holds a
+  cloth by one corner, lays half of it on the table, folds the other half over
+  it, then unfolds and lifts it, and repeats.
+- `heavy_objects_on_cloth`: a 10 kg ball on a cloth, a 5 kg box on two stacked
+  cloths, and a 5 kg blanket over a 1 kg box, with the cloth solved together with
+  the bodies (`World::setMonolithicDeformables()`).
+- `cloth_on_slope`: a box on a cloth on two ramps; below the friction angle both
+  stay, above it they slide together.
+- `tablecloth_pull`: a sharp pull whips a cloth out from under three dishes.
 - `imu_sensor_model`: ideal versus modeled IMU CSV at matching acquisition times;
   includes seeded errors, bandwidth, quantization, and latency. It takes no
   arguments and prints the ideal reference alongside modeled samples. No viewer is needed.
@@ -150,6 +165,14 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   circuit with a pit lane, tyre walls, hay bales and cones it can knock over,
   spectator stands, trees and boulders. The springs are coloured by their
   compression; `--validate` runs physics checks without a window.
+- `rayrai_water_pond`: a pond in a meadow drawn with rayrai water. Grass, trees,
+  rocks and a wooden jetty stand on its banks, light ripples move over it and the
+  sun glitters on its surface. Uses the Poly Haven plants and rocks in
+  `rsc/forest`.
+- `rayrai_water_stream`: a creek running down a hillside into a pool, simulated
+  as shallow water by rayrai. The water parts around mossy rocks and foams where
+  it runs fast, and wooden balls float down it with buoyancy and drag from
+  `sampleWaterFlow()`. Uses the Poly Haven plants and rocks in `rsc/forest`.
 - `rayrai_runtime_scene_editing`: stable ids, snapshots, collision filters,
   cloning, and removal.
 - `rayrai_swept_ccd`: swept CCD settings for a fast falling sphere.
@@ -159,7 +182,7 @@ Some targets are guarded by installed RaiSim API availability. If CMake prints a
 
 ## Physics snapshots in rayrai examples
 
-14 of the 28 rayrai demos use `PhysicsSnapshotCapture` and
+15 of the 31 rayrai demos use `PhysicsSnapshotCapture` and
 `RayraiWindow::applyPhysicsSnapshot`:
 
 - `rayrai_basic_scene`, `rayrai_rgb_camera`, `rayrai_depth_camera`
@@ -167,7 +190,7 @@ Some targets are guarded by installed RaiSim API availability. If CMake prints a
 - `rayrai_rolling_spinning_friction`, `rayrai_tendons`
 - `rayrai_pbr_material_grid`, `rayrai_quality_lighting`
 - `rayrai_coacd_mesh_approximation`, `rayrai_visual_asset_support`
-- `rayrai_runtime_scene_editing`, `rayrai_swept_ccd`
+- `rayrai_runtime_scene_editing`, `rayrai_swept_ccd`, `rayrai_inverse_kinematics`
 
 `capture()` returns `std::shared_ptr<const PhysicsSnapshot>`; pass that owner directly
 into `applyPhysicsSnapshot()` and retain it while another thread consumes the frame:
@@ -215,7 +238,7 @@ them against the updated rayrai package containing `rayrai/PhysicsSnapshot.hpp`.
 
 Manual diagnostic programs live under `examples/tools/debug` and are built with
 `-DRAISIM_DEBUG_TOOLS=ON` when building the examples project. The option is off
-by default. See the [debug tools guide](../../docs/sections/DebugTools.rst) for
+by default. See the [debug tools guide](../../docs/sections/DebugTools.md) for
 build and run instructions.
 
 - `object_lifecycle_stress`: repeatedly create, simulate, and remove primitives

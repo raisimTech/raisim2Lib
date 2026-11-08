@@ -1,9 +1,11 @@
+from _example_utils import (
+    setup, simulation_steps, pace, start_server, finish_example
+)
 import os
 import numpy as np
 import raisimpy as raisim
-import time
 
-raisim.World.setLicenseFile(os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/activation.raisim")
+args = setup(raisim)
 world = raisim.World()
 world.setTimeStep(0.001)
 
@@ -35,10 +37,10 @@ anymal.setPdTarget(anymal_nominal_joint_config, np.zeros([18]))
 
 # launch raisim server
 server = raisim.RaisimServer(world)
-server.launchServer(8080)
+start_server(server, args)
 
-for i in range(500000):
+for i in simulation_steps(args, 500000):
     server.integrateWorldThreadSafe()
-    time.sleep(0.0005)
+    pace(args, 0.0005)
 
-server.killServer()
+finish_example(server, world)

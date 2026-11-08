@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex version="1.15.0" xml:lang="en-US">
+  <compound refid="classraisim_1_1Object" kind="class"><name>raisim::Object</name>
+    <member refid="classraisim_1_1Object_1a0001" kind="function"><name>Object</name></member>
+    <member refid="classraisim_1_1Object_1a0002" kind="function"><name>getName</name></member>
+    <member refid="classraisim_1_1Object_1a0003" kind="function"><name>setName</name></member>
+  </compound>
+  <compound refid="classraisim_1_1World" kind="class"><name>raisim::World</name>
+    <member refid="classraisim_1_1World_1a0101" kind="function"><name>load</name></member>
+  </compound>
+  <compound refid="structraisim_1_1World_1_1Checkpoint" kind="struct"><name>raisim::World::Checkpoint</name></compound>
+  <compound refid="structraisim_1_1World_1_1Secret" kind="struct"><name>raisim::World::Secret</name></compound>
+  <compound refid="classraisim_1_1_thing" kind="class"><name>raisim::Thing</name></compound>
+  <compound refid="classraisim_1_1thing" kind="class"><name>raisim::thing</name></compound>
+  <compound refid="structraisim_1_1Prod__op_3_01int_01_4" kind="struct"><name>raisim::Prod_op&lt; int &gt;</name></compound>
+  <compound refid="classraisim_1_1SrcOnly" kind="class"><name>raisim::SrcOnly</name></compound>
+  <compound refid="structraisim_1_1sub_1_1Scene" kind="struct"><name>raisim::sub::Scene</name></compound>
+  <!-- Hidden and foreign compounds have no files: the generator must not read them. -->
+  <compound refid="structraisim_1_1detail_1_1Hidden" kind="struct"><name>raisim::detail::Hidden</name></compound>
+  <compound refid="classcontact_1_1Detector" kind="class"><name>contact::Detector</name></compound>
+  <compound refid="namespacecontact" kind="namespace"><name>contact</name></compound>
+  <!-- Classes of the global namespace. -->
+  <compound refid="classOpenGLMesh" kind="class"><name>OpenGLMesh</name></compound>
+  <compound refid="structOpenGLMesh_1_1Stats" kind="struct"><name>OpenGLMesh::Stats</name></compound>
+  <compound refid="struct_aux" kind="struct"><name>Aux</name></compound>
+  <compound refid="struct_index" kind="struct"><name>Index</name></compound>
+  <compound refid="struct_raisim" kind="struct"><name>Raisim</name></compound>
+  <compound refid="struct_raisim_1_1_inner" kind="struct"><name>Raisim::Inner</name></compound>
+  <compound refid="namespaceraisim" kind="namespace"><name>raisim</name>
+    <member refid="namespaceraisim_1a0001" kind="function"><name>motorTorqueBounds</name></member>
+  </compound>
+  <compound refid="namespaceraisim_1_1detail" kind="namespace"><name>raisim::detail</name></compound>
+  <compound refid="namespaceraisim_1_1empty" kind="namespace"><name>raisim::empty</name></compound>
+  <compound refid="namespaceraisim_1_1sub" kind="namespace"><name>raisim::sub</name>
+    <member refid="namespaceraisim_1_1sub_1a0001" kind="function"><name>load</name></member>
+  </compound>
+  <compound refid="namespaceraisin" kind="namespace"><name>raisin</name>
+    <member refid="namespaceraisin_1a0001" kind="function"><name>rsceneVisuals</name></member>
+  </compound>
+  <compound refid="World_8hpp" kind="file"><name>World.hpp</name></compound>
+</doxygenindex>

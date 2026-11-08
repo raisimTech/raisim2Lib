@@ -566,7 +566,7 @@ void init_single_bodies(py::module_ &m) {
                 // convert from np.array to Vec<4>
                 Vec<4> vec = convert_np_to_vec<4>(param);
                 self.objectParam = vec;
-            })
+            }, py::for_getter(py::rv_policy::move))
         .def_rw("material", &raisim::Compound::CompoundObjectChild::material)
         .def_rw("appearance", &raisim::Compound::CompoundObjectChild::appearance)
         .def_rw("trans", &raisim::Compound::CompoundObjectChild::trans);

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="structraisim_1_1Prod__op_3_01int_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>raisim::Prod_op&lt; int &gt;</compoundname>
+    <templateparamlist></templateparamlist>
+    <briefdescription><para>Specialization for int.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/math/Operation.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

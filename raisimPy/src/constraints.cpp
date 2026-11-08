@@ -46,7 +46,7 @@ void init_constraints(py::module_ &m) {
         .def_rw("object", &Tendon::Site::object)
         .def_rw("localIndex", &Tendon::Site::localIndex)
         .def_prop_rw("position", [](const Tendon::Site& self) { return convert_vec_to_np(self.position); },
-            [](Tendon::Site& self, const std::array<double, 3>& p) { self.position = {p[0], p[1], p[2]}; });
+            [](Tendon::Site& self, const std::array<double, 3>& p) { self.position = {p[0], p[1], p[2]}; }, py::for_getter(py::rv_policy::move));
     auto path = py::class_<Tendon::PathElement>(tendon, "PathElement");
     py::enum_<Tendon::PathElement::Kind>(path, "Kind")
         .value("Site", Tendon::PathElement::Kind::Site)
@@ -68,7 +68,7 @@ void init_constraints(py::module_ &m) {
         .def_rw("sideSite", &Tendon::PathElement::sideSite)
         .def_rw("divisor", &Tendon::PathElement::divisor)
         .def_prop_rw("axis", [](const Tendon::PathElement& self) { return convert_vec_to_np(self.axis); },
-            [](Tendon::PathElement& self, const std::array<double, 3>& a) { self.axis = {a[0], a[1], a[2]}; });
+            [](Tendon::PathElement& self, const std::array<double, 3>& a) { self.axis = {a[0], a[1], a[2]}; }, py::for_getter(py::rv_policy::move));
     py::class_<Tendon::JointTerm>(tendon, "JointTerm")
         .def(py::init<ArticulatedSystem*, std::string, double>(),
              py::arg("system"), py::arg("joint"), py::arg("coefficient") = 1.)
@@ -93,7 +93,7 @@ void init_constraints(py::module_ &m) {
         .def_rw("actuationUpper", &Tendon::Properties::actuationUpper)
         .def_rw("width", &Tendon::Properties::width)
         .def_prop_rw("color", [](const Tendon::Properties& self) { return convert_vec_to_np(self.color); },
-            [](Tendon::Properties& self, const std::array<double, 4>& c) { self.color = {c[0], c[1], c[2], c[3]}; });
+            [](Tendon::Properties& self, const std::array<double, 4>& c) { self.color = {c[0], c[1], c[2], c[3]}; }, py::for_getter(py::rv_policy::move));
     py::class_<Tendon::Drive>(tendon, "Drive")
         .def(py::init<>())
         .def_rw("force", &Tendon::Drive::force)
@@ -103,8 +103,8 @@ void init_constraints(py::module_ &m) {
         .def_rw("velocityGain", &Tendon::Drive::velocityGain)
         .def_rw("activationTime", &Tendon::Drive::activationTime);
     py::class_<Tendon::VisualSegment>(tendon, "VisualSegment")
-        .def_prop_ro("start", [](const Tendon::VisualSegment& self) { return convert_vec_to_np(self.start); })
-        .def_prop_ro("end", [](const Tendon::VisualSegment& self) { return convert_vec_to_np(self.end); })
+        .def_prop_ro("start", [](const Tendon::VisualSegment& self) { return convert_vec_to_np(self.start); }, py::rv_policy::move)
+        .def_prop_ro("end", [](const Tendon::VisualSegment& self) { return convert_vec_to_np(self.end); }, py::rv_policy::move)
         .def_ro("wrapped", &Tendon::VisualSegment::wrapped);
     tendon
         .def("getType", &Tendon::getType)
@@ -156,23 +156,23 @@ void init_constraints(py::module_ &m) {
                         return convert_vec_to_np(self.anchor);
                       }, [](raisim::PinConstraintDefinition &self, NDArray anchor) {
                         self.anchor = convert_np_to_vec<3>(anchor);
-                      });
+                      }, py::for_getter(py::rv_policy::move));
 
     py::class_<raisim::PinConstraint>(constraints_module, "PinConstraint")
         .def(py::init<size_t, raisim::Vec<3>, size_t, raisim::Vec<3>>(),
              py::arg("local_idx1"), py::arg("pos1_b"), py::arg("local_idx2"), py::arg("pos2_b"))
         .def_prop_rw("pos1_b",
                       [](const raisim::PinConstraint &self) { return convert_vec_to_np(self.pos1_b); },
-                      [](raisim::PinConstraint &self, NDArray pos) { self.pos1_b = convert_np_to_vec<3>(pos); })
+                      [](raisim::PinConstraint &self, NDArray pos) { self.pos1_b = convert_np_to_vec<3>(pos); }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("pos2_b",
                       [](const raisim::PinConstraint &self) { return convert_vec_to_np(self.pos2_b); },
-                      [](raisim::PinConstraint &self, NDArray pos) { self.pos2_b = convert_np_to_vec<3>(pos); })
+                      [](raisim::PinConstraint &self, NDArray pos) { self.pos2_b = convert_np_to_vec<3>(pos); }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("pos1_w",
                       [](const raisim::PinConstraint &self) { return convert_vec_to_np(self.pos1_w); },
-                      [](raisim::PinConstraint &self, NDArray pos) { self.pos1_w = convert_np_to_vec<3>(pos); })
+                      [](raisim::PinConstraint &self, NDArray pos) { self.pos1_w = convert_np_to_vec<3>(pos); }, py::for_getter(py::rv_policy::move))
         .def_prop_rw("pos2_w",
                       [](const raisim::PinConstraint &self) { return convert_vec_to_np(self.pos2_w); },
-                      [](raisim::PinConstraint &self, NDArray pos) { self.pos2_w = convert_np_to_vec<3>(pos); })
+                      [](raisim::PinConstraint &self, NDArray pos) { self.pos2_w = convert_np_to_vec<3>(pos); }, py::for_getter(py::rv_policy::move))
         .def_rw("localIdx1", &raisim::PinConstraint::localIdx1)
         .def_rw("localIdx2", &raisim::PinConstraint::localIdx2);
 

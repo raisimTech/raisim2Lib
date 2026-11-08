@@ -4,7 +4,7 @@
 // If the comparison reads as too bright/dim/saturated, the fix belongs in
 // the rayrai library's default High preset, not in this generator.
 //
-// Used by docs/sections/Rayrai.rst "Tone mapping, exposure, and color grading".
+// Used by docs/sections/Rayrai.md "Tone mapping, exposure, and color grading".
 
 #include "doc_image_common.hpp"
 

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="struct_index" kind="struct" language="C++" prot="public">
+    <compoundname>Index</compoundname>
+    <briefdescription><para>Clashes with the landing page.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/rayrai/include/rayrai/Index.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

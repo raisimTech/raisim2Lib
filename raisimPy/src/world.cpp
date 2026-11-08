@@ -17,6 +17,7 @@
 #include "raisim/RaisimServer.hpp"
 
 #include "converter.hpp"  // contains code that allows to convert between the Vec, Mat to numpy arrays.
+#include "modern_bindings.hpp"
 
 namespace py = nanobind;
 using namespace raisim;
@@ -92,14 +93,14 @@ void init_world(py::module_ &m) {
           [](const raisim::PolyLine &self) { return convert_vec_to_np(self.color); },
           [](raisim::PolyLine &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("points",
           [vec3_list_to_ndarray](const raisim::PolyLine &self) {
             return vec3_list_to_ndarray(self.points);
           },
           [ndarray_to_vec3_list](raisim::PolyLine &self, const NDArray &array) {
             self.points = ndarray_to_vec3_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_rw("width", &raisim::PolyLine::width)
       .def("lockMutex", &raisim::PolyLine::lockMutex)
       .def("unlockMutex", &raisim::PolyLine::unlockMutex)
@@ -129,7 +130,7 @@ void init_world(py::module_ &m) {
           },
           [](raisim::ArticulatedSystemVisual &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_ro("obj",
           [](raisim::ArticulatedSystemVisual &self) -> raisim::ArticulatedSystem & {
             return self.obj;
@@ -176,12 +177,12 @@ void init_world(py::module_ &m) {
           [](const raisim::Visuals &self) { return convert_vec_to_np(self.color); },
           [](raisim::Visuals &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("size",
           [](const raisim::Visuals &self) { return convert_vec_to_np(self.size); },
           [](raisim::Visuals &self, const NDArray &array) {
             self.size = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_rw("name", &raisim::Visuals::name)
       .def_rw("material", &raisim::Visuals::material)
       .def_rw("glow", &raisim::Visuals::glow)
@@ -240,7 +241,7 @@ void init_world(py::module_ &m) {
           [](const raisim::HeightMapVisual &self) { return convert_vec_to_np(self.color); },
           [](raisim::HeightMapVisual &self, const NDArray &array) {
             self.color = convert_np_to_vec<4>(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_ro("obj",
           [](raisim::HeightMapVisual &self) -> raisim::HeightMap & {
             return self.obj;
@@ -294,14 +295,14 @@ void init_world(py::module_ &m) {
           },
           [ndarray_to_vec3_list](raisim::PointCloud &self, const NDArray &array) {
             self.position = ndarray_to_vec3_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def_prop_rw("color",
           [vec4_list_to_ndarray](const raisim::PointCloud &self) {
             return vec4_list_to_ndarray(self.color);
           },
           [ndarray_to_vec4_list](raisim::PointCloud &self, const NDArray &array) {
             self.color = ndarray_to_vec4_list(array);
-          })
+          }, py::for_getter(py::rv_policy::move))
       .def("lockMutex", &raisim::PointCloud::lockMutex)
       .def("unlockMutex", &raisim::PointCloud::unlockMutex)
       .def("lock", &raisim::PointCloud::lock)
@@ -327,7 +328,7 @@ void init_world(py::module_ &m) {
       .def("setData", &raisim::BarChart::setData, py::arg("data"));
 
   py::class_<raisim::RaisimServer>(m, "RaisimServer")
-      .def(py::init<raisim::World *>())
+      .def(py::init<raisim::World *>(), py::keep_alive<1, 2>())
       .def("setupSocket", &raisim::RaisimServer::setupSocket, py::arg("port") = 8080)
       .def("acceptConnection", &raisim::RaisimServer::acceptConnection, py::arg("microseconds"))
       .def("closeConnection", &raisim::RaisimServer::closeConnection)
@@ -335,6 +336,13 @@ void init_world(py::module_ &m) {
       .def("waitForMessageFromClient", &raisim::RaisimServer::waitForMessageFromClient, py::arg("seconds"))
       .def("waitForMessageToClient", &raisim::RaisimServer::waitForMessageToClient, py::arg("seconds"))
       .def("launchServer", &raisim::RaisimServer::launchServer, py::arg("port") = 8080)
+      .def("getPort", &raisim::RaisimServer::getPort)
+      .def("setBindLoopbackOnly", &raisim::RaisimServer::setBindLoopbackOnly, py::arg("loopbackOnly"))
+      .def("setSceneFileSharing", &raisim::RaisimServer::setSceneFileSharing, py::arg("enabled"))
+      .def("pauseSimulation", &raisim::RaisimServer::pauseSimulation)
+      .def("resumeSimulation", &raisim::RaisimServer::resumeSimulation)
+      .def("isSimulationPaused", &raisim::RaisimServer::isSimulationPaused)
+      .def("stepSimulation", &raisim::RaisimServer::stepSimulation, py::arg("n") = 1)
       .def("killServer", &raisim::RaisimServer::killServer)
       .def("integrateWorldThreadSafe",
            static_cast<void (raisim::RaisimServer::*)()>(&raisim::RaisimServer::integrateWorldThreadSafe))
@@ -357,6 +365,16 @@ void init_world(py::module_ &m) {
            py::arg("videoName"))
 
       .def("stopRecordingVideo", &raisim::RaisimServer::stopRecordingVideo)
+      .def("addSlider", &raisim::RaisimServer::addSlider, py::arg("name"), py::arg("min"), py::arg("max"),
+           py::arg("value"), R"mydelimiter(
+    Add a slider to the Controls window of the rayrai TCP viewer: a value the viewer's user sets within
+    [min, max] while the application reads it with getSlider().
+
+    Returns:
+        Its index for getSlider().
+    )mydelimiter")
+      .def("getSlider", &raisim::RaisimServer::getSlider, py::arg("index"),
+           "The value of a slider (addSlider()), as the viewer's user last set it.")
       .def("setCameraPositionAndLookAt", &raisim::RaisimServer::setCameraPositionAndLookAt,
            py::arg("position"), py::arg("lookAt"))
 
@@ -729,10 +747,11 @@ void init_world(py::module_ &m) {
   /*********/
   /* World */
   /*********/
-  py::class_<raisim::World>(m,
+  py::class_<raisim::World> world(m,
                             "World",
                             "Raisim world.",
-                            py::dynamic_attr()) // enable dynamic attributes for C++ class in Python
+                            py::dynamic_attr());
+  world
       .def(py::init<>(), "Initialize the World.")
       .def(py::init<const std::string &>(), "Initialize the World from the given config file.", py::arg("configFile"))
       .def(py::init<const std::string &, const std::vector<raisim::World::ParameterContainer> &>(),
@@ -1042,7 +1061,7 @@ void init_world(py::module_ &m) {
 	        Compound: the compound body instance.
 	    )mydelimiter",
            py::arg("children"),
-           py::arg("mass") = "",
+           py::arg("mass"),
            py::arg("center_of_mass"),
            py::arg("inertia"),
            py::arg("collision_group") = 1,
@@ -1182,7 +1201,7 @@ void init_world(py::module_ &m) {
 
         Returns:
             list[Object]: list of object instances.
-        )mydelimiter")
+        )mydelimiter", py::rv_policy::reference_internal)
 
       .def("addSegmentationClass", &raisim::World::addSegmentationClass, R"mydelimiter(
         Name a segmentation class, e.g. object.setSegmentationLabel(world.addSegmentationClass("box")).
@@ -1273,7 +1292,7 @@ void init_world(py::module_ &m) {
             restitution (float): coefficient of restitution.
             restitution threshold (float): restitution threshold.
         )mydelimiter",
-        py::arg("friction"), py::arg("restitution"), py::arg("restitution threshold"))
+        py::arg("friction"), py::arg("restitution"), py::arg("restitution_threshold"))
 
 
       .def("getGravity", [](raisim::World &world) {
@@ -1295,6 +1314,39 @@ void init_world(py::module_ &m) {
         Args:
             np.array[float[3]]: gravity vector.
         )mydelimiter", py::arg("gravity"))
+
+      .def("setAmbientFluid", &raisim::World::setAmbientFluid, R"mydelimiter(
+        Fill the world with a fluid, such as air (FluidMedium.air()), outside the volumes of liquid.
+
+        Args:
+            fluid (FluidMedium): the fluid; a density of zero removes it.
+        )mydelimiter", py::arg("fluid"))
+      .def("getAmbientFluid", &raisim::World::getAmbientFluid, "Get the fluid outside the volumes of liquid.")
+      .def("addFluidVolume", &raisim::World::addFluidVolume, R"mydelimiter(
+        Add a body of liquid under a free surface: a pool, a lake, the sea.
+
+        Args:
+            volume (FluidVolume): the liquid and where it is.
+
+        Returns:
+            int: its index.
+        )mydelimiter", py::arg("volume"))
+      .def("setFluidVolume", &raisim::World::setFluidVolume, R"mydelimiter(
+        Change a volume of liquid, for example its surface height or its current.
+
+        Args:
+            index (int): its index.
+            volume (FluidVolume): the liquid and where it is.
+        )mydelimiter", py::arg("index"), py::arg("volume"))
+      .def("getFluidVolumes", &raisim::World::getFluidVolumes, "Get the volumes of liquid.")
+      .def("clearFluids", &raisim::World::clearFluids, "Remove every volume of liquid and the ambient fluid.")
+      .def("setFluidCoefficients", &raisim::World::setFluidCoefficients, R"mydelimiter(
+        Set how fluids act on every collision body of an object.
+
+        Args:
+            object (Object): the object.
+            coefficients (FluidCoefficients): the coefficients.
+        )mydelimiter", py::arg("object"), py::arg("coefficients"))
 
       .def("setERP",
            &raisim::World::setERP,
@@ -1373,6 +1425,53 @@ void init_world(py::module_ &m) {
         py::arg("closestOnly") = true, py::arg("objectId") = size_t(-10),
         py::arg("localId") = size_t(-10), py::arg("collisionMask") = raisim::CollisionGroup(-1),
         py::rv_policy::reference_internal)
+      .def("addExplosion",
+           [](raisim::World& self, const NDArray& position, const raisim::ExplosionProperties& properties) {
+             return self.addExplosion(convert_np_to_vec<3>(position), properties);
+           },
+           R"mydelimiter(
+        Set off an explosion at the current world time. Its blast wave pushes every dynamic body it reaches
+        during the following steps: each patch of a body's collision geometry takes the pressure of the wave
+        when the shock arrives there, surfaces facing the charge also take the reflected pressure and the blast
+        wind, and bodies hidden behind others are spared both. A requested crater is dug at once.
+
+        Args:
+            position (np.array[float[3]]): position of the charge in the world frame (m).
+            properties (ExplosionProperties): the charge and what it affects.
+
+        Returns:
+            int: identifier of the explosion.
+        )mydelimiter", py::arg("position"), py::arg("properties") = raisim::ExplosionProperties())
+      .def("getExplosions", [](const raisim::World& self) { return self.getExplosions(); },
+           "Copies of the explosions set off most recently, oldest first: at most the last 256 and every one whose "
+           "blast still spreads; identifiers increase.")
+      .def("addProjectile",
+           [](raisim::World& self, const NDArray& position, const NDArray& velocity,
+              const raisim::ProjectileProperties& properties) {
+             return self.addProjectile(convert_np_to_vec<3>(position), convert_np_to_vec<3>(velocity), properties);
+           },
+           R"mydelimiter(
+        Launch a projectile at the current world time. Each step moves it under gravity and air drag and
+        sweeps its path with a ray, so it cannot pass through a body. At the first body on its path it
+        detonates or stops, handing its momentum to a dynamic body it hits; a time fuse detonates it in flight.
+
+        Args:
+            position (np.array[float[3]]): launch position in the world frame (m).
+            velocity (np.array[float[3]]): launch velocity in the world frame (m/s).
+            properties (ProjectileProperties): what the projectile is and does.
+
+        Returns:
+            int: identifier of the projectile.
+        )mydelimiter", py::arg("position"), py::arg("velocity"), py::arg("properties") = raisim::ProjectileProperties())
+      .def("removeProjectile", &raisim::World::removeProjectile, py::arg("id"),
+           "Remove a projectile in flight; returns whether it was in flight.")
+      .def("getProjectiles", [](const raisim::World& self) { return self.getProjectiles(); },
+           "Copies of the projectiles in flight.")
+      .def("getProjectileHits", [](const raisim::World& self) { return self.getProjectileHits(); },
+           "Copies of the most recent projectile hits (at most 256), oldest first; identifiers increase.")
+      .def("getProjectileLaunches", [](const raisim::World& self) { return self.getProjectileLaunches(); },
+           "Copies of the projectiles launched most recently, as launched (at most 256), oldest first, whatever "
+           "became of them.")
       .def("getTendons", [](raisim::World& self) {
         std::vector<raisim::Tendon*> result;
         for (const auto& tendon : self.getTendons()) result.push_back(tendon.get());
@@ -1383,15 +1482,19 @@ void init_world(py::module_ &m) {
         for (const auto& coupling : self.getTendonCouplings()) result.push_back(coupling.get());
         return result;
       }, py::rv_policy::reference_internal)
-      .def("lockMutex", &raisim::World::lockMutex)
+      .def("lockMutex", &raisim::World::lockMutex, py::call_guard<py::gil_scoped_release>())
       .def("unlockMutex", &raisim::World::unlockMutex)
-      .def("lock", &raisim::World::lock)
+      .def("lock", &raisim::World::lock, py::call_guard<py::gil_scoped_release>())
       .def("unlock", &raisim::World::unlock)
       .def("updateSelfCollisionCache", &raisim::World::updateSelfCollisionCache)
       ;
+  init_world_extensions(m, world);
+  init_particle_world(world);
 
   py::class_<RayCollisionItem>(m, "RayCollisionItem")
       .def("getPosition", &RayCollisionItem::getPosition)
+      .def("getNormal", &RayCollisionItem::getNormal,
+           "World-frame unit normal of the surface hit, pointing toward the side the ray came from.")
       .def("getObject", &RayCollisionItem::getObject, py::rv_policy::reference_internal)
       .def("getCollisionBody", &RayCollisionItem::getCollisionBody, py::rv_policy::reference_internal);
 

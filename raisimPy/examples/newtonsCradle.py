@@ -1,11 +1,13 @@
+from _example_utils import (
+    setup, simulation_steps, pace, start_server, finish_example, locked_server
+)
 import os
 import numpy as np
 import raisimpy as raisim
 import math
-import time
 
 
-raisim.World.setLicenseFile(os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/activation.raisim")
+args = setup(raisim)
 world = raisim.World()
 ground = world.addGround()
 world.setTimeStep(0.001)
@@ -102,12 +104,13 @@ actuator = world.addSpatialTendon("robot_lift", [Path.via(Site(pin7)), Path.via(
 actuator.setTension(310.0)
 
 server = raisim.RaisimServer(world)
-server.launchServer(8080)
+start_server(server, args)
 
-for i in range(500000):
-    time.sleep(0.001)
+for i in simulation_steps(args, 500000):
+    pace(args, 0.001)
     server.integrateWorldThreadSafe()
     if i == 5000:
-        world.removeTendon(actuator)
+        with locked_server(server):
+            world.removeTendon(actuator)
 
-server.killServer()
+finish_example(server, world)

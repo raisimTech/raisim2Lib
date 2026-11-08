@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceraisim_1_1sub" kind="namespace" language="C++">
+    <compoundname>raisim::sub</compoundname>
+    <innerclass refid="structraisim_1_1sub_1_1Scene" prot="public">raisim::sub::Scene</innerclass>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceraisim_1_1sub_1a0001" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structraisim_1_1sub_1_1Scene" kindref="compound">Scene</ref></type>
+        <definition>Scene raisim::sub::load</definition>
+        <argsstring>(const std::string &amp;file)</argsstring>
+        <name>load</name>
+        <briefdescription><para>Parses a scene file into a <ref refid="structraisim_1_1sub_1_1Scene" kindref="compound">Scene</ref> for a <ref refid="classraisim_1_1World" kindref="compound">World</ref>.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/sub/Loader.hpp" line="10" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription><para>Scene files.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/sub/Loader.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

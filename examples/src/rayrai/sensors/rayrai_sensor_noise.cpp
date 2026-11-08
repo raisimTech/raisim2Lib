@@ -9,13 +9,12 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
 #include "raisim/World.hpp"
 #include "raisim/sensors/RGBSensor.hpp"
 #include "raisim/sensors/DepthSensor.hpp"
 #include "rayrai/Camera.hpp"
 #include "rayrai/RayraiWindow.hpp"
+#include "rayrai_example_utils.hpp"
 #include "rayrai/Visuals.hpp"
 
 namespace {

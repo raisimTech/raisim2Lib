@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceraisin" kind="namespace" language="C++">
+    <compoundname>raisin</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceraisin_1a0001" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int raisin::rsceneVisuals</definition>
+        <argsstring>(const raisim::World &amp;world)</argsstring>
+        <name>rsceneVisuals</name>
+        <briefdescription><para>Visuals of a <ref refid="classraisim_1_1World" kindref="compound">raisim::World</ref>.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/rayrai/include/rayrai/RsceneVisuals.hpp" line="10" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/rayrai/include/rayrai/RsceneVisuals.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

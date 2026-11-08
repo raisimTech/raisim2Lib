@@ -4,6 +4,8 @@
 #include <array>
 #include <cstddef>
 #include <cstdio>
+#include <string>
+#include <utility>
 
 #include <imgui/imgui.h>
 
@@ -15,10 +17,10 @@
 /// once nothing is pending. It is drawn on ImGui's foreground layer, so it
 /// stays above the viewer without taking input or focus.
 struct RayraiLoadingProgress {
-  explicit RayraiLoadingProgress(const char* label = "Loading assets") : label(label) {}
+  explicit RayraiLoadingProgress(std::string label = "Loading assets") : label(std::move(label)) {}
 
   size_t total = 0, pending = 0;
-  const char* label;
+  std::string label;
 
   void update(size_t count) {
     if (pending == 0 && count != 0) total = count;  // A new load queue.
@@ -64,7 +66,7 @@ struct RayraiLoadingProgress {
                                    gradient[i], endColor, endColor, gradient[i]);
     }
     char text[96];
-    std::snprintf(text, sizeof(text), "%s: %zu / %zu", label, total - pending, total);
+    std::snprintf(text, sizeof(text), "%s: %zu / %zu", label.c_str(), total - pending, total);
     const ImVec2 size = ImGui::CalcTextSize(text);
     const ImVec2 textPosition((lo.x + hi.x - size.x) * .5f, (lo.y + hi.y - size.y) * .5f);
     // Keep the label readable over every color of the logo gradient.

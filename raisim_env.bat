@@ -15,6 +15,15 @@ call :AddPath "%RAYRAI_BASE%\bin"
 call :AddPath "%RAISIM_BASE%\lib"
 call :AddPath "%RAYRAI_BASE%\lib"
 
+REM raisimpy built from this checkout. Added even before the first build; multi-config
+REM generators put it under Release. Set RAISIMPY_BUILD_DIR for other trees or configs.
+if defined RAISIMPY_BUILD_DIR (
+  call :AddPythonPath "%RAISIMPY_BUILD_DIR%"
+) else (
+  call :AddPythonPath "%RAISIM_ROOT%\build-py\raisimPy"
+  call :AddPythonPath "%RAISIM_ROOT%\build-py\raisimPy\Release"
+)
+
 REM If you're using vcpkg to supply runtime DLLs (e.g. SDL2), add its bin folders too.
 if not defined VCPKG_ROOT (
   if exist "C:\vcpkg\vcpkg.exe" set "VCPKG_ROOT=C:\vcpkg"
@@ -37,4 +46,17 @@ if "%PATH%"=="" (
   set "PATH=%entry%;%PATH%"
 )
 echo Added to PATH: %entry%
+goto :eof
+
+:AddPythonPath
+set "entry=%~1"
+if "%entry%"=="" goto :eof
+echo;%PYTHONPATH%; | find /I ";%entry%;" >nul
+if not errorlevel 1 goto :eof
+if "%PYTHONPATH%"=="" (
+  set "PYTHONPATH=%entry%"
+) else (
+  set "PYTHONPATH=%entry%;%PYTHONPATH%"
+)
+echo Added to PYTHONPATH: %entry%
 goto :eof

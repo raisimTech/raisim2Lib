@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="structOpenGLMesh_1_1Stats" kind="struct" language="C++" prot="public">
+    <compoundname>OpenGLMesh::Stats</compoundname>
+    <briefdescription><para>Draw statistics.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/rayrai/include/rayrai/OpenGLMesh.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

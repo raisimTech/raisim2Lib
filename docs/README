@@ -1,20 +1,67 @@
-To build raisim doc, you need the following python packages:
+The RaiSim documentation site is built with VitePress (https://vitepress.dev)
+from the Markdown pages in this directory:
 
-* sphinx
-* sphinx-rtd-theme
-* breathe
-* sphinx-tabs
-* docutils
+* index.md                 home page (components in .vitepress/theme/components/home)
+* sections/**/*.md         documentation pages, published as /sections/<page>.html
+* .vitepress/config.mts    site configuration (navigation, search, math)
+* .vitepress/sidebar.mts   documentation sidebar; add new pages here
+* public/                  files served as they are (favicon, benchmark results)
+* api/                     API reference for previews, generated from the Doxygen
+                           XML by scripts/generate_api_docs.py (git-ignored)
 
-Recommended (avoid system Python issues on Ubuntu/Debian):
+Images and videos live in ../rsc/docs and are referenced with relative paths.
+Use MP4 (H.264) for animations, not GIF, embedded as
 
-  python3 -m venv .venv
-  . .venv/bin/activate
-  python -m pip install -r requirements.txt
-  sphinx-build -b html . _build/html
+  <video class="doc-video" src="../../rsc/docs/image/<name>.mp4" loop muted playsinline preload="metadata" aria-label="<what it shows>"></video>
 
-The CMake docs build will prefer a local venv at `docs/.venv` if it exists.
-If not found, it falls back to a system `sphinx-build`. If neither is
-available, it stops with the same venv instructions above.
+without autoplay: the theme plays a clip only while it is on screen (and never
+with reduced motion), so clips further down a page are not downloaded up front.
+Mark a plot or diagram drawn on white with {.diagram} after the image (or
+class="diagram" on an <img>): the dark theme then inverts it instead of showing
+a white box. scripts/test_docs_figures.py fails for an unmarked one.
+The example gallery (<ExampleGallery /> at the top of the Examples pages) shows
+one category of sections/examples/gallery.json at a time, with a clip of each
+example from ../rsc/docs/video/examples. Keep a category to about ten examples:
+every clip of the chosen category plays at once. A category's icon is in
+.vitepress/theme/exampleCategoryIcons.ts. image_generators/example_clips records
+the clips and explains how to add an example.
+Third-party assets: a page that shows a render of a CC BY 4.0 model (city
+cars, off-road buggy and venue props, warehouse models, YCB objects,
+MetalRoughSpheres) or of the TCP viewer's Flaticon icons links to
+sections/AssetCredits.md, which credits them; add new ones there. Never publish
+renders of assets licensed for non-commercial use only (such as DamagedHelmet)
+or carrying third-party trademarks (AntiqueCamera). scripts/test_asset_credits.py
+checks both.
+Code from ../examples is included with
+snippet imports, <<< @/../examples/<file>#<region>{cpp}, where the region is
+marked with "// #region <name>" and "// #endregion <name>" comments.
 
-You can get the latest doc from raisim.com
+Requirements: Node.js 18 or newer, Python 3 and Doxygen.
+
+Preview while editing:
+
+  npm ci
+  npm run docs:dev
+
+API pages come from the Doxygen XML of a docs build. Without them, links into
+/api/ fail the preview's dead-link check. To generate them by hand:
+
+  python3 scripts/generate_api_docs.py --xml <build>/docs/docs/doxygen/xml --out api
+
+Full build: configure raisim2Lib with -DRAISIM_DOC=ON (or configure this
+directory alone) and build the docs_site target. It writes nothing into this
+directory. It copies the directory fresh to <build>/docs/site-src/docs on every
+build, links ../rsc, ../examples and ../scripts next to the copy, runs Doxygen,
+generates the API pages into the copy, installs the Node packages in
+<build>/docs, builds the site into <build>/docs/docs/site and checks that every
+internal link and #anchor resolves (scripts/check_links.py).
+cmake/StageSiteSources.cmake does the copying. The links are directory
+junctions on Windows: delete a build directory with Explorer, "rmdir /s" or
+"cmake -E rm -rf", which remove a junction without entering it, not with
+Windows PowerShell 5.1's Remove-Item -Recurse. update_doc.sh in the raisim
+repository runs that build and publishes the site; pass --no-publish to only
+build it.
+
+Tests for the scripts: python3 -m unittest discover -s scripts
+
+You can get the latest documentation from raisim.com.

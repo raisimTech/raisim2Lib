@@ -38,7 +38,11 @@ __pycache__/
 
 # Downloaded raisim2Lib release payloads
 /raisim/
+/wasm/sdk/
+/wasm/build*/
 /rayrai/
+/web/
+/.raisim-web-stage-*/
 windows-x86-*/
 linux-x86-*/
 linux-arm64-*/
@@ -55,3 +59,12 @@ imgui.ini
 *.rimp.tmp.*
 *.rmpc
 *.rmpc.tmp.*
+
+# VitePress documentation site (docs/scripts/generate_api_docs.py writes docs/api)
+docs/node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+docs/.vitepress/dist/
+docs/api/
+# Temporary siblings that generate_api_docs.py renames into place
+docs/.api.*/

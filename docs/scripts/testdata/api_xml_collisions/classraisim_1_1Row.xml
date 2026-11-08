@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <!-- Doxygen 1.15 lists the members of an anonymous union as members of the
+       class and writes the union as an unnamed variable after them, typed
+       "union" plus the name of the enclosing class. -->
+  <compounddef id="classraisim_1_1Row" kind="class" language="C++" prot="public">
+    <compoundname>raisim::Row</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classraisim_1_1Row_1a01" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int raisim::Row::rank</definition>
+        <argsstring></argsstring>
+        <name>rank</name>
+        <briefdescription><para>Row kind.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="5" column="7"/>
+      </memberdef>
+      <memberdef kind="variable" id="classraisim_1_1Row_1a02" prot="public" static="no" mutable="no">
+        <type>double</type>
+        <definition>double raisim::Row::mass</definition>
+        <argsstring></argsstring>
+        <name>mass</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="8" column="12"/>
+      </memberdef>
+      <memberdef kind="variable" id="classraisim_1_1Row_1a03" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int raisim::Row::state</definition>
+        <argsstring></argsstring>
+        <name>state</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="9" column="9"/>
+      </memberdef>
+      <memberdef kind="variable" id="classraisim_1_1Row_1a04" prot="public" static="no" mutable="no">
+        <type>union <ref refid="classraisim_1_1Row" kindref="compound">raisim::Row</ref></type>
+        <definition>union raisim::Row raisim::Row</definition>
+        <argsstring></argsstring>
+        <name></name>
+        <qualifiedname>raisim::Row</qualifiedname>
+        <briefdescription></briefdescription>
+        <detaileddescription><para>Soil rows reuse the storage of the mass.</para></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="10" column="3"/>
+      </memberdef>
+      <memberdef kind="variable" id="classraisim_1_1Row_1a05" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t raisim::Row::pointId</definition>
+        <argsstring></argsstring>
+        <name>pointId</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="12" column="12"/>
+      </memberdef>
+      <memberdef kind="variable" id="classraisim_1_1Row_1a06" prot="public" static="no" mutable="no">
+        <type>union <ref refid="classraisim_1_1Row" kindref="compound">raisim::Row</ref></type>
+        <definition>union raisim::Row raisim::Row</definition>
+        <argsstring></argsstring>
+        <name></name>
+        <qualifiedname>raisim::Row</qualifiedname>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="14" column="3"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription><para>A solver row.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/Row.hpp" line="3" column="1"/>
+  </compounddef>
+</doxygen>

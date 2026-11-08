@@ -881,7 +881,9 @@ def generate(warehouse_dir):
         'solver 150 1e-08 1.5 accurate erp2=0.002 defaultRestitutionThreshold=0.01 '
         'defaultStaticFrictionVelocityThreshold=1 fixedContactSolverIterationOrder=true',
         'asset_root .',
-        f'environment 0.62 0.7 0.82 0.32 0.315 0.31 0.0035 true false 10 {SKY_HDR} '
+        # A low flat ambient: it lights every surface of the closed hall evenly, and the
+        # sun's black ambientColor below means it uses this one, not none.
+        f'environment 0.62 0.7 0.82 0.12 0.118 0.116 0.0035 true false 10 {SKY_HDR} '
         'backgroundMode=hdr fogColor=0.74,0.74,0.72 exposure=1 gamma=2.2 bloomIntensity=0.08 '
         'bloomThreshold=1.5 bloomRadius=4 shadowMapSize=4096 shadowedLightBudget=1 colorMode=aces_approx '
         'pbrEnvironmentLightingTint=0.92,0.9,0.86 pbrEnvironmentIntensity=0.55 fxaa=true ssao=true',

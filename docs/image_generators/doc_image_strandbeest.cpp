@@ -1,5 +1,5 @@
 // Records the walking Strandbeest for the documentation and README galleries.
-// PNG frames are composited into a GIF by CMake using ffmpeg.
+// PNG frames are composited into the README GIF by CMake using ffmpeg.
 
 #include "doc_image_common.hpp"
 

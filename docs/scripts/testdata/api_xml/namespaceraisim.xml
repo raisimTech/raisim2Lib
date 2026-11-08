@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="namespaceraisim" kind="namespace" language="C++">
+    <compoundname>raisim</compoundname>
+    <innerclass refid="classraisim_1_1Object" prot="public">raisim::Object</innerclass>
+    <innerclass refid="classraisim_1_1World" prot="public">raisim::World</innerclass>
+    <innerclass refid="classraisim_1_1_thing" prot="public">raisim::Thing</innerclass>
+    <innerclass refid="classraisim_1_1thing" prot="public">raisim::thing</innerclass>
+    <innerclass refid="structraisim_1_1Prod__op_3_01int_01_4" prot="public">raisim::Prod_op&lt; int &gt;</innerclass>
+    <innerclass refid="classraisim_1_1SrcOnly" prot="public">raisim::SrcOnly</innerclass>
+    <innernamespace refid="namespaceraisim_1_1detail">raisim::detail</innernamespace>
+    <innernamespace refid="namespaceraisim_1_1empty">raisim::empty</innernamespace>
+    <innernamespace refid="namespaceraisim_1_1sub">raisim::sub</innernamespace>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="namespaceraisim_1a0100" prot="public" static="no" strong="no">
+        <type></type>
+        <name>MotorSaturation</name>
+        <qualifiedname>raisim::MotorSaturation</qualifiedname>
+        <enumvalue id="namespaceraisim_1a0100a01" prot="public">
+          <name>NONE</name>
+          <initializer>= 0</initializer>
+          <briefdescription></briefdescription>
+          <detaileddescription></detaileddescription>
+        </enumvalue>
+        <enumvalue id="namespaceraisim_1a0100a02" prot="public">
+          <name>CLIPPED</name>
+          <briefdescription></briefdescription>
+          <detaileddescription></detaileddescription>
+        </enumvalue>
+        <briefdescription><para>How a motor torque was limited.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/ArticulatedSystem/MotorOperatingRegion.hpp" line="10" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="namespaceraisim_1a0200" prot="public" static="no">
+        <templateparamlist><param><type>size_t</type><declname>n</declname><defname>n</defname></param></templateparamlist>
+        <type>Mat&lt; n, 1 &gt;</type>
+        <definition>using raisim::Vec =  Mat&lt;n, 1&gt;</definition>
+        <argsstring></argsstring>
+        <name>Vec</name>
+        <briefdescription><para>A column vector.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/math/Matrix.hpp" line="12" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceraisim_1a0001" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double raisim::motorTorqueBounds</definition>
+        <argsstring>(double speed)</argsstring>
+        <name>motorTorqueBounds</name>
+        <briefdescription><para>Torque bounds at a speed; the result is <ref refid="namespaceraisim_1a0100a02" kindref="member">CLIPPED</ref> when saturated.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/ArticulatedSystem/MotorOperatingRegion.hpp" line="20" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceraisim_1a0002" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double raisim::motorTorqueBounds</definition>
+        <argsstring>(double speed, double voltage)</argsstring>
+        <name>motorTorqueBounds</name>
+        <briefdescription><para>Torque bounds at a speed and voltage.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/ArticulatedSystem/MotorOperatingRegion.hpp" line="22" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceraisim_1a0003" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>std::ostream &amp;</type>
+        <definition>std::ostream &amp; raisim::operator&lt;&lt;</definition>
+        <argsstring>(std::ostream &amp;os, const World &amp;world)</argsstring>
+        <name>operator&lt;&lt;</name>
+        <briefdescription><para>Prints a <ref refid="classraisim_1_1World" kindref="compound">World</ref>.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="90" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceraisim_1a0300" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>int</type>
+        <definition>constexpr int raisim::kFormatVersion</definition>
+        <argsstring></argsstring>
+        <name>kFormatVersion</name>
+        <briefdescription><para>File format version.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="8" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="6" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="structraisim_1_1index" kind="struct" language="C++" prot="public">
+    <compoundname>raisim::index</compoundname>
+    <briefdescription><para>Plans the namespace page.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/Spec.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

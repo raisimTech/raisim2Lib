@@ -8,7 +8,7 @@ modified by @kallinteris-Andreas
   <compiler angle="degree" inertiafromgeom="true"/>
   <default>
     <joint armature="0.01" damping=".1" limited="true"/>
-    <geom conaffinity="1" condim="3" contype="1" density="1000" friction=".7 .1 .1" rgba="0.8 0.6 .4 1"/>
+    <geom conaffinity="0" condim="3" contype="1" density="1000" friction=".7 .1 .1" rgba="0.8 0.6 .4 1"/>
   </default>
   <option integrator="RK4" timestep="0.002"/>
   <worldbody>

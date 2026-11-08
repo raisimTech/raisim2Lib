@@ -50,6 +50,7 @@ int main(int, char** argv) {
     auto* modeled = sensors->getSensor<raisim::InertialMeasurementUnit>("modeled");
 
     // Illustrative settings, not a calibrated preset for a particular device.
+    // #region properties
     auto properties = std::as_const(*modeled).getProperties();
     properties.seed = 43;
     properties.accelerometer.bias = {0.01, -0.02, 0.03};
@@ -66,6 +67,7 @@ int main(int, char** argv) {
     properties.maxAngVel = 2000. * kPi / 180.;
     properties.latency = 0.003;
     modeled->setProperties(properties);
+    // #endregion properties
 
     std::cout << std::setprecision(17)
               << "acquisition_s,delivery_s,ideal_ax,ideal_ay,ideal_az,measured_ax,measured_ay,measured_az,"

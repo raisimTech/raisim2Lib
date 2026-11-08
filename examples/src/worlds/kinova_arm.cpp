@@ -48,4 +48,5 @@ int main(int argc, char* argv[]) {
   std::cout << "mass " << kinova->getMassMatrix()[0] << std::endl;
 
   server.killServer();
+  return 0;
 }

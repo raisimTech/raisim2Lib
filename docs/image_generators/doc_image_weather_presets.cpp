@@ -1,7 +1,7 @@
 // Generates rayrai_weather_<preset>.png for the most visually distinct
 // weather presets.
 //
-// Used by docs/sections/Rayrai.rst "Weather, scene effects, and post-process".
+// Used by docs/sections/Rayrai.md "Weather, scene effects, and post-process".
 
 #include "doc_image_common.hpp"
 

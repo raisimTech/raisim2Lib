@@ -28,6 +28,7 @@
 #include "raisim/contact_engine/math.h"
 
 #include "converter.hpp"  // contains code that allows to convert between the Vec, Mat to numpy arrays.
+#include "modern_bindings.hpp"
 
 namespace py = nanobind;
 using namespace raisim;
@@ -67,7 +68,10 @@ void init_object(py::module_ &m) {
 	    .value("HALFSPACE", raisim::ObjectType::HALFSPACE)
 	    .value("COMPOUND", raisim::ObjectType::COMPOUND)
 	    .value("HEIGHTMAP", raisim::ObjectType::HEIGHTMAP)
-	    .value("ARTICULATED_SYSTEM", raisim::ObjectType::ARTICULATED_SYSTEM);
+	    .value("ARTICULATED_SYSTEM", raisim::ObjectType::ARTICULATED_SYSTEM)
+        .value("DEFORMABLE", raisim::ObjectType::DEFORMABLE)
+        .value("GRANULAR", raisim::ObjectType::GRANULAR)
+        .value("UNRECOGNIZED", raisim::ObjectType::UNRECOGNIZED);
 
     /*********************/
     /* MeshCollisionMode */
@@ -135,6 +139,31 @@ void init_object(py::module_ &m) {
 	    Returns:
 	        int: object index in the world.
 	    )mydelimiter")
+
+        .def("getId", &raisim::Object::getId)
+
+	    .def("getFluidForce", [](const raisim::Object &self, size_t local_idx) {
+	        return convert_vec_to_np(self.getFluidForce(local_idx));
+	    }, R"mydelimiter(
+	    Get the force the fluids exerted on a body in the last step, in the world frame.
+
+	    Args:
+	        local_idx (int): body index (0 for single bodies).
+
+	    Returns:
+	        np.array[float[3]]: force [N].
+	    )mydelimiter", py::arg("local_idx") = 0)
+	    .def("getFluidTorque", [](const raisim::Object &self, size_t local_idx) {
+	        return convert_vec_to_np(self.getFluidTorque(local_idx));
+	    }, R"mydelimiter(
+	    Get the torque the fluids exerted on a body in the last step about its center of mass, in the world frame.
+
+	    Args:
+	        local_idx (int): body index (0 for single bodies).
+
+	    Returns:
+	        np.array[float[3]]: torque [N m].
+	    )mydelimiter", py::arg("local_idx") = 0)
 
 	    .def("getContacts", py::overload_cast<>(&raisim::Object::getContacts), R"mydelimiter(
 	    Get the list of contact points.
@@ -314,5 +343,6 @@ void init_object(py::module_ &m) {
 
 	// raisim.object.terrain
 	init_terrain(m);  // object_module
+    init_particle_objects(m);
 
 }

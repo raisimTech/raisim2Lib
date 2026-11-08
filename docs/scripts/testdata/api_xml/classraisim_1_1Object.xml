@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="classraisim_1_1Object" kind="class" language="C++" prot="public" abstract="yes">
+    <compoundname>raisim::Object</compoundname>
+    <derivedcompoundref refid="classraisim_1_1World" prot="public" virt="non-virtual">raisim::World</derivedcompoundref>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classraisim_1_1Object_1a0001" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>raisim::Object::Object</definition>
+        <argsstring>()</argsstring>
+        <name>Object</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/Object.hpp" line="12" column="3"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1Object_1a0002" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>const std::string &amp;</type>
+        <definition>virtual const std::string &amp; raisim::Object::getName</definition>
+        <argsstring>() const =0</argsstring>
+        <name>getName</name>
+        <briefdescription><para>Returns the name.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/Object.hpp" line="14" column="3"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1Object_1a0003" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void raisim::Object::setName</definition>
+        <argsstring>(const std::string &amp;name)</argsstring>
+        <name>setName</name>
+        <briefdescription><para>Sets the name.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/Object.hpp" line="16" column="3"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classraisim_1_1Object_1a0004" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>virtual void raisim::Object::updateCollision</definition>
+        <argsstring>()</argsstring>
+        <name>updateCollision</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/object/Object.hpp" line="20" column="3"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription><para>Base of every simulated object.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/object/Object.hpp" line="10" column="1"/>
+    <listofallmembers>
+      <member refid="classraisim_1_1Object_1a0002" prot="public" virt="pure-virtual"><scope>raisim::Object</scope><name>getName</name></member>
+      <member refid="classraisim_1_1Object_1a0001" prot="public" virt="non-virtual"><scope>raisim::Object</scope><name>Object</name></member>
+      <member refid="classraisim_1_1Object_1a0003" prot="public" virt="non-virtual"><scope>raisim::Object</scope><name>setName</name></member>
+      <member refid="classraisim_1_1Object_1a0004" prot="protected" virt="virtual"><scope>raisim::Object</scope><name>updateCollision</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

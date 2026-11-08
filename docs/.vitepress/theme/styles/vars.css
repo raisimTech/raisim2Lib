@@ -1,0 +1,63 @@
+/*
+ * Design tokens. The brand gradient is the one in the RaiSim logo. The home page
+ * is always dark (--rs-*); the docs follow the light/dark switch (--vp-*).
+ */
+:root {
+  --rs-lime: #ccf722;
+  --rs-orange: #e7774b;
+  --rs-pink: #f2277f;
+  --rs-violet: #cf50d5;
+  --rs-blue: #5c70d3;
+  --rs-grad: linear-gradient(100deg, #ccf722 0%, #e7774b 30%, #f2277f 52%, #cf50d5 74%, #5c70d3 100%);
+  --rs-grad-loop: linear-gradient(100deg, #ccf722, #e7774b, #f2277f, #cf50d5, #5c70d3, #cf50d5, #f2277f, #e7774b, #ccf722);
+  /* Backgrounds under dark (#0b0b10) text stop before the blue, which gives less than 4.5:1. */
+  --rs-grad-warm: linear-gradient(100deg, #ccf722 0%, #e7774b 35%, #f2277f 65%, #cf50d5 100%);
+  --rs-grad-warm-loop: linear-gradient(100deg, #ccf722, #e7774b, #f2277f, #cf50d5, #f2277f, #e7774b, #ccf722);
+
+  --rs-bg: #050507;
+  --rs-bg-2: #0a0a0f;
+  --rs-card: #0f0f16;
+  --rs-card-2: #15151e;
+  --rs-line: rgba(255, 255, 255, 0.08);
+  --rs-line-2: rgba(255, 255, 255, 0.16);
+  --rs-text: #f4f4f6;
+  --rs-text-2: rgba(244, 244, 246, 0.74);
+  --rs-text-3: rgba(244, 244, 246, 0.52);
+  --rs-ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+
+  --vp-c-brand-1: #3d4fc0;
+  --vp-c-brand-2: #4a5dcc;
+  --vp-c-brand-3: #5c70d3;
+  --vp-c-brand-soft: rgba(92, 112, 211, 0.14);
+
+  --vp-button-brand-bg: #5c70d3;
+  --vp-button-brand-hover-bg: #4a5dcc;
+  --vp-button-brand-active-bg: #3d4fc0;
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--rs-grad);
+}
+
+.dark {
+  --vp-c-bg: #08080c;
+  --vp-c-bg-alt: #0c0c12;
+  --vp-c-bg-elv: #13131b;
+  --vp-c-bg-soft: #14141c;
+  --vp-c-divider: rgba(255, 255, 255, 0.09);
+  --vp-c-gutter: #000;
+  --vp-c-border: rgba(255, 255, 255, 0.14);
+
+  --vp-c-text-1: #f2f2f5;
+  --vp-c-text-2: rgba(235, 235, 245, 0.68);
+  --vp-c-text-3: rgba(235, 235, 245, 0.42);
+
+  --vp-c-brand-1: #9aa8ff;
+  --vp-c-brand-2: #8394f5;
+  --vp-c-brand-3: #5c70d3;
+  --vp-c-brand-soft: rgba(124, 140, 240, 0.16);
+
+  --vp-nav-bg-color: rgba(8, 8, 12, 0.78);
+  --vp-sidebar-bg-color: #0a0a0f;
+  --vp-code-block-bg: #0f0f16;
+  --vp-code-copy-code-bg: #15151e;
+}

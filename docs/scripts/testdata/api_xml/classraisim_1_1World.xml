@@ -1,0 +1,218 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="classraisim_1_1World" kind="class" language="C++" prot="public">
+    <compoundname>raisim::World</compoundname>
+    <basecompoundref refid="classraisim_1_1Object" prot="public" virt="non-virtual">raisim::Object</basecompoundref>
+    <basecompoundref refid="classraisim_1_1Object" prot="public" virt="non-virtual">raisim::Object</basecompoundref>
+    <innerclass refid="structraisim_1_1World_1_1Checkpoint" prot="public">raisim::World::Checkpoint</innerclass>
+    <innerclass refid="structraisim_1_1World_1_1Secret" prot="private">raisim::World::Secret</innerclass>
+    <sectiondef kind="public-type">
+      <memberdef kind="enum" id="classraisim_1_1World_1a0001" prot="public" static="no" strong="yes">
+        <type>int</type>
+        <name>Mode</name>
+        <qualifiedname>raisim::World::Mode</qualifiedname>
+        <enumvalue id="classraisim_1_1World_1a0001a01" prot="public">
+          <name>FAST</name>
+          <initializer>= 0</initializer>
+          <briefdescription><para>Fast, see <computeroutput>{{ speed }}</computeroutput>.</para></briefdescription>
+          <detaileddescription></detaileddescription>
+        </enumvalue>
+        <enumvalue id="classraisim_1_1World_1a0001a02" prot="public">
+          <name>EXACT</name>
+          <briefdescription><para>Exact | slow.</para></briefdescription>
+          <detaileddescription></detaileddescription>
+        </enumvalue>
+        <briefdescription><para>Solver mode.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="20" column="3"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classraisim_1_1World_1a0002" prot="public" static="no">
+        <type><ref refid="classraisim_1_1Object" kindref="compound">Object</ref> *</type>
+        <definition>using raisim::World::ObjectPtr =  Object*</definition>
+        <argsstring></argsstring>
+        <name>ObjectPtr</name>
+        <briefdescription><para>Object pointer.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="22" column="3"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="classraisim_1_1World_1a0003" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>class</type>
+        <definition>friend class WorldFriend</definition>
+        <argsstring></argsstring>
+        <name>WorldFriend</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="24" column="3"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classraisim_1_1World_1a0100" prot="public" static="no" const="no" explicit="yes" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>raisim::World::World</definition>
+        <argsstring>(const std::string &amp;configFile)</argsstring>
+        <name>World</name>
+        <param><type>const std::string &amp;</type><declname>configFile</declname></param>
+        <briefdescription><para>Loads a world from a file.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="30" column="3"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0105" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>raisim::World::~World</definition>
+        <argsstring>()</argsstring>
+        <name>~World</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="31" column="3"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0101" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void raisim::World::load</definition>
+        <argsstring>(const std::string &amp;path)</argsstring>
+        <name>load</name>
+        <param><type>const std::string &amp;</type><declname>path</declname></param>
+        <briefdescription><para>Loads a scene from <computeroutput>path</computeroutput>.</para></briefdescription>
+        <detaileddescription>
+<para>Costs $5 per call for a <computeroutput>std::vector&lt;T&gt;</computeroutput> of <bold>bold</bold> and <emphasis>emphasized</emphasis> items. Literal &lt;T&gt; and {{ name }} stay text; so do *stars*, _under_ and [brackets]. Energy is <formula id="0">$ E = m c^2 $</formula> and <formula id="1">\[ \sum_i x_i \]</formula> Read <ulink url="https://raisim.com">the site</ulink> and <ref refid="classraisim_1_1Object_1a0002" kindref="member">Object::getName()</ref>.<itemizedlist>
+<listitem><para>first point</para></listitem>
+<listitem><para>second point<programlisting filename=".py"><codeline><highlight class="normal">print(<sp/>1)</highlight></codeline></programlisting></para></listitem>
+</itemizedlist>
+<orderedlist>
+<listitem><para>one</para></listitem>
+<listitem><para>two</para></listitem>
+</orderedlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist><parametername direction="in">path</parametername></parameternamelist>
+<parameterdescription><para>file, as <computeroutput>a|b</computeroutput> or a|b</para></parameterdescription>
+</parameteritem></parameterlist>
+<simplesect kind="return"><para>nothing</para></simplesect>
+<simplesect kind="note"><para>Loading is slow.</para></simplesect>
+<simplesect kind="warning"><para>Not thread-safe.</para></simplesect>
+</para>
+        </detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="32" column="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0102" prot="public" static="no" const="yes" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void raisim::World::load</definition>
+        <argsstring>(int index) const noexcept</argsstring>
+        <name>load</name>
+        <param><type>int</type><declname>index</declname></param>
+        <briefdescription><para>Loads a stored scene.</para></briefdescription>
+        <detaileddescription>
+<para><xrefsect id="deprecated_1_deprecated000001"><xreftitle>Deprecated</xreftitle><xrefdescription><para>Use the path overload.</para></xrefdescription></xrefsect></para>
+        </detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="34" column="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0103" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool raisim::World::operator==</definition>
+        <argsstring>(const World &amp;other) const</argsstring>
+        <name>operator==</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="36" column="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0104" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>double</type>
+        <definition>virtual double raisim::World::operator()</definition>
+        <argsstring>(int i)</argsstring>
+        <name>operator()</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="37" column="8"/>
+      </memberdef>
+      <memberdef kind="function" id="classraisim_1_1World_1a0106" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist><param><type>typename T</type></param></templateparamlist>
+        <type>T *</type>
+        <definition>T * raisim::World::addObjectWithAVeryLongName</definition>
+        <argsstring>(const std::vector&lt; std::string &gt; &amp;names, double firstValue, double secondValue)</argsstring>
+        <name>addObjectWithAVeryLongName</name>
+        <briefdescription></briefdescription>
+        <detaileddescription>
+<para><sect1 id="classraisim_1_1World_1autotoc_md1"><title>Usage</title><para>Call it.</para></sect1></para>
+        </detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="38" column="8"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Diagnostics</header>
+      <memberdef kind="function" id="classraisim_1_1World_1a0107" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int raisim::World::counters</definition>
+        <argsstring>() const</argsstring>
+        <name>counters</name>
+        <briefdescription><para>Collision counters.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="40" column="7"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classraisim_1_1World_1a0200" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>World *</type>
+        <definition>static World * raisim::World::create</definition>
+        <argsstring>()</argsstring>
+        <name>create</name>
+        <briefdescription><para>Creates a world.</para></briefdescription>
+        <detaileddescription>
+<para><xrefsect id="deprecated_1_deprecated000002"><xreftitle>Deprecated</xreftitle><xrefdescription><para>Use the constructor.</para></xrefdescription></xrefsect></para>
+        </detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="42" column="17"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="classraisim_1_1World_1a0300" prot="public" static="no" mutable="no">
+        <type><ref refid="classraisim_1_1World_1a0001" kindref="member">Mode</ref></type>
+        <definition>Mode raisim::World::mode</definition>
+        <argsstring></argsstring>
+        <name>mode</name>
+        <briefdescription><para>Current mode; <ref refid="classraisim_1_1World_1a0001a02" kindref="member">EXACT</ref> by default.</para></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="44" column="8"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="protected-func">
+      <memberdef kind="function" id="classraisim_1_1World_1a0400" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void raisim::World::internalStep</definition>
+        <argsstring>()</argsstring>
+        <name>internalStep</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="50" column="8"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classraisim_1_1World_1a0500" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int raisim::World::secret_</definition>
+        <argsstring></argsstring>
+        <name>secret_</name>
+        <briefdescription></briefdescription>
+        <detaileddescription></detaileddescription>
+        <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="52" column="7"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription><para>The simulation world.</para></briefdescription>
+    <detaileddescription>
+<para>Owns every <ref refid="classraisim_1_1Object" kindref="compound">Object</ref> added to it.</para>
+<sect1 id="classraisim_1_1World_1autotoc_md0_1s1"><sect2 id="classraisim_1_1World_1autotoc_md0">
+<title>Quick start</title><para><programlisting><codeline><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>world<sp/>=<sp/><ref refid="classraisim_1_1World_1a0200" kindref="member">raisim::World::create</ref>();</highlight></codeline>
+</programlisting></para>
+</sect2></sect1>
+    </detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/World.hpp" line="15" column="1"/>
+    <listofallmembers>
+      <member refid="classraisim_1_1World_1a0106" prot="public" virt="non-virtual"><scope>raisim::World</scope><name>addObjectWithAVeryLongName</name></member>
+      <member refid="classraisim_1_1World_1a0200" prot="public" virt="non-virtual"><scope>raisim::World</scope><name>create</name></member>
+      <member refid="classraisim_1_1Object_1a0002" prot="public" virt="pure-virtual"><scope>raisim::World</scope><name>getName</name></member>
+      <member refid="classraisim_1_1World_1a0400" prot="protected" virt="non-virtual"><scope>raisim::World</scope><name>internalStep</name></member>
+      <member refid="classraisim_1_1World_1a0101" prot="public" virt="non-virtual"><scope>raisim::World</scope><name>load</name></member>
+      <member refid="classraisim_1_1Object_1a0001" prot="public" virt="non-virtual"><scope>raisim::World</scope><name>Object</name></member>
+      <member refid="classraisim_1_1Object_1a0003" prot="public" virt="non-virtual"><scope>raisim::World</scope><name>setName</name></member>
+      <member refid="classraisim_1_1Object_1a0004" prot="protected" virt="virtual"><scope>raisim::World</scope><name>updateCollision</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

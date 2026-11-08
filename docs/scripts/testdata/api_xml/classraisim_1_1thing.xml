@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen version="1.15.0" xml:lang="en-US">
+  <compounddef id="classraisim_1_1thing" kind="class" language="C++" prot="public">
+    <compoundname>raisim::thing</compoundname>
+    <briefdescription><para>Lower-case thing.</para></briefdescription>
+    <detaileddescription></detaileddescription>
+    <location file="/opt/sdk/raisim/include/raisim/thing.hpp" line="5" column="1"/>
+  </compounddef>
+</doxygen>

@@ -7,13 +7,13 @@
 #include <string>
 
 namespace {
-// BEGIN [common]
+// #region common
 using Path = raisim::Tendon::PathElement;
 
 void advance(raisim::World& world, int steps) {
   for (int i = 0; i < steps; ++i) world.integrate();
 }
-// END [common]
+// #endregion common
 
 void near(double actual, double expected, double tolerance, const char* message) {
   if (!std::isfinite(actual) || std::abs(actual - expected) > tolerance)
@@ -21,7 +21,7 @@ void near(double actual, double expected, double tolerance, const char* message)
 }
 
 void maximumLength() {
-// BEGIN [limit]
+// #region limit
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., 0.});
@@ -38,13 +38,13 @@ void maximumLength() {
   cable->updateGeometry();
   std::cout << "length=" << cable->getLength()
             << " speed=" << cable->getVelocity() << '\n';
-// END [limit]
+// #endregion limit
   near(cable->getLength(), 1.2, 1e-6, "maximum length");
   near(cable->getVelocity(), 0., 1e-6, "load must stop at the bound");
 }
 
 void lockCurrentLength() {
-// BEGIN [lock]
+// #region lock
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., -9.81});
@@ -67,14 +67,14 @@ void lockCurrentLength() {
   cable->updateGeometry();
   std::cout << "locked=" << lockedLength << " actual=" << cable->getLength()
             << " reaction=" << cable->getLimitForce() << '\n';
-// END [lock]
+// #endregion lock
   near(cable->getLength(), lockedLength, 0.002, "pendulum length");
-// BEGIN [release]
+// #region release
   auto released = cable->getProperties();
   released.lowerLimit = -std::numeric_limits<double>::infinity();
   released.upperLimit = std::numeric_limits<double>::infinity();
   cable->setProperties(released); // Retain other properties and drive settings.
-// END [release]
+// #endregion release
   load->setLinearVelocity({0., 0., -0.2});
   advance(world, 100);
   cable->updateGeometry();
@@ -83,7 +83,7 @@ void lockCurrentLength() {
 }
 
 void elasticSuspension() {
-// BEGIN [spring]
+// #region spring
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., -9.81});
@@ -106,13 +106,13 @@ void elasticSuspension() {
   std::cout << "length=" << cable->getLength()
             << " tension=" << cable->getTension()
             << " spring_energy=" << cable->getPotentialEnergy() << '\n';
-// END [spring]
+// #endregion spring
   near(cable->getLength(), 1. + 9.81 / 200., 0.001, "spring equilibrium");
   near(cable->getVelocity(), 0., 0.001, "suspension must settle");
 }
 
 void forceControl() {
-// BEGIN [force]
+// #region force
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., 0.});
@@ -132,13 +132,13 @@ void forceControl() {
   cable->updateGeometry();
   std::cout << "actuator_force=" << cable->getActuationForce()
             << " velocity_x=" << load->getLinearVelocity()[0] << '\n';
-// END [force]
+// #endregion force
   near(cable->getActuationForce(), -4., 1e-9, "actuator clamp");
   near(load->getLinearVelocity()[0], -0.4, 1e-9, "force-driven motion");
 }
 
 void positionServo() {
-// BEGIN [servo]
+// #region servo
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., -9.81});
@@ -163,13 +163,13 @@ void positionServo() {
   cable->updateGeometry();
   std::cout << "target=" << drive.targetLength
             << " actual=" << cable->getLength() << '\n';
-// END [servo]
+// #endregion servo
   near(cable->getLength(), 0.8, 0.001, "position servo tracking");
   near(cable->getActuationForce(), -9.81, 0.02, "gravity compensation");
 }
 
 void wrappingAndPulley() {
-// BEGIN [wrap]
+// #region wrap
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., 0.});
@@ -201,14 +201,14 @@ void wrappingAndPulley() {
   std::cout << "left_vz=" << left->getLinearVelocity()[2]
             << " output_vz=" << output->getLinearVelocity()[2]
             << " drawing_segments=" << cable->getVisualSegments().size() << '\n';
-// END [wrap]
+// #endregion wrap
   near(left->getLinearVelocity()[2], 0.004, 1e-8, "main branch force");
   near(output->getLinearVelocity()[2], 0.002, 1e-8, "pulley force ratio");
   if (cable->getVisualSegments().size() < 5)
     throw std::runtime_error("wrapped cable must have a drawable arc");
 }
 
-// BEGIN [fixed_model]
+// #region fixed_model
 raisim::ArticulatedSystem* makeTwoSliders(raisim::World& world) {
   // Two independent 1 kg sliders on a fixed base; no external model file.
   raisim::Body body(1., raisim::Mat<3, 3>::getIdentity(), {0., 0., 0.});
@@ -224,10 +224,10 @@ raisim::ArticulatedSystem* makeTwoSliders(raisim::World& world) {
   root.addChild(raisim::Child(body, y, "link_y"));
   return world.addArticulatedSystem(root);
 }
-// END [fixed_model]
+// #endregion fixed_model
 
 void fixedTransmission() {
-// BEGIN [fixed]
+// #region fixed
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., 0.});
@@ -245,14 +245,14 @@ void fixedTransmission() {
   transmission->updateGeometry();
   std::cout << "transmission=" << transmission->getLength()
             << " joints=" << robot->getGeneralizedCoordinate().e().transpose() << '\n';
-// END [fixed]
+// #endregion fixed
   near(transmission->getLength(), 0.5, 0.001, "weighted coordinate tracking");
   near(robot->getGeneralizedCoordinate()[0], 0.4, 0.001, "first slider motion");
   near(robot->getGeneralizedCoordinate()[1], 0.2, 0.001, "second slider motion");
 }
 
 void coupledCables() {
-// BEGIN [coupling]
+// #region coupling
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., 0.});
@@ -281,14 +281,14 @@ void coupledCables() {
   const double deltaB = b->getLength() - b->getReferenceLength();
   std::cout << "delta_A=" << deltaA << " delta_B=" << deltaB
             << " residual=" << deltaB + 0.65 * deltaA << '\n';
-// END [coupling]
+// #endregion coupling
   near(deltaA, 0.2, 0.001, "driven cable displacement");
   near(deltaB, -0.13, 0.001, "coupled cable displacement");
   near(deltaB + 0.65 * deltaA, 0., 1e-6, "coupling residual");
 }
 
 void exportAndInspect(const std::string& exportPath) {
-// BEGIN [export]
+// #region export
   raisim::World world;
   world.setTimeStep(0.001);
   world.setGravity({0., 0., -9.81});
@@ -318,7 +318,7 @@ void exportAndInspect(const std::string& exportPath) {
   restoredCable->updateGeometry();
   std::cout << "reloaded_length=" << restoredCable->getLength()
             << " reloaded_force=" << restoredCable->getActuationForce() << '\n';
-// END [export]
+// #endregion export
   near(restoredCable->getLength(), 1.2, 1e-6, "reloaded hard limit");
   near(restoredCable->getActuationForce(), -2., 1e-9, "reloaded drive");
   near(restoredCable->getProperties().width, 0.012, 1e-12, "reloaded appearance");
@@ -326,7 +326,7 @@ void exportAndInspect(const std::string& exportPath) {
 
 void straightConnections() {
   {
-// BEGIN [straight_lock]
+// #region straight_lock
     raisim::World world;
     world.setTimeStep(0.001);
     world.setGravity({0., 0., 0.});
@@ -343,12 +343,12 @@ void straightConnections() {
     tendon->updateGeometry();
     std::cout << "target=" << tendon->getProperties().upperLimit
               << " current=" << tendon->getLength() << '\n';
-// END [straight_lock]
+// #endregion straight_lock
     near(tendon->getLength(), 1., 0.002, "length lock length");
     near(load->getLinearVelocity()[0], 0., 0.01, "length lock stops outward motion");
   }
   {
-// BEGIN [straight_spring]
+// #region straight_spring
     raisim::World world;
     world.setTimeStep(0.001);
     world.setGravity({0., 0., 0.});
@@ -364,11 +364,11 @@ void straightConnections() {
     auto* tendon = world.addSpatialTendon("spring", {Path::via({anchor}), Path::via({load})}, p);
     world.integrate(); // Implicit spring force is approximately 10 N initially.
     std::cout << "tension=" << tendon->getTension() << '\n';
-// END [straight_spring]
+// #endregion straight_spring
     near(load->getLinearVelocity()[0], -0.01 / 1.0001, 1e-9, "implicit spring motion");
   }
   {
-// BEGIN [straight_force]
+// #region straight_force
     raisim::World world;
     world.setTimeStep(0.001);
     world.setGravity({0., 0., 0.});
@@ -381,7 +381,7 @@ void straightConnections() {
     tendon->setTension(4.); // Positive pulls the endpoints together.
     advance(world, 100);
     std::cout << "velocity_x=" << load->getLinearVelocity()[0] << '\n';
-// END [straight_force]
+// #endregion straight_force
     near(load->getLinearVelocity()[0], -0.4, 1e-9, "tendon force");
   }
 }

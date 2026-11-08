@@ -222,7 +222,7 @@ void granular(const std::filesystem::path& frames, const std::filesystem::path& 
 // it draws the scene's HDR sky and every viewer-only visual (buildings, cars, street
 // furniture), which captures through an external camera would skip.
 void city(const std::filesystem::path& frames, const std::filesystem::path& rsc) {
-  constexpr int width = 1280, height = 800;  // The gallery GIF step scales to 640 px.
+  constexpr int width = 1280, height = 800;  // The README GIF step scales to 640 px.
   auto world = std::make_shared<raisim::World>((rsc / "city/rayrai_city.rscene").string());
   // Same robot, pose and PD gains as examples/src/rayrai/worlds/rayrai_city.cpp.
   constexpr double robotX = -36., robotY = -1.6, robotYaw = 2.6;

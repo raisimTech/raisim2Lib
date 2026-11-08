@@ -1,0 +1,188 @@
+{
+  "categories": [
+    {
+      "id": "scenes",
+      "title": "Scenes",
+      "description": "Rendered environments, from minimal scenes to cities, forests, warehouses and off-road terrain.",
+      "examples": [
+        "rayrai/rayrai_offroad_buggy",
+        "rayrai/rayrai_tank_survival",
+        "rayrai/rayrai_city",
+        "rayrai/rayrai_forest",
+        "rayrai/rayrai_water_pond",
+        "rayrai/rayrai_water_stream",
+        "rayrai/rayrai_warehouse",
+        "rayrai/rayrai_city_from_xml",
+        "rayrai/rayrai_forest_from_rscene",
+        "rayrai/rayrai_complete_showcase",
+        "rayrai/rayrai_basic_scene"
+      ]
+    },
+    {
+      "id": "robots",
+      "title": "Robots",
+      "description": "Loading and controlling legged robots, arms, hands and tracked or wheeled vehicles.",
+      "examples": [
+        "server/mjcf_gymnasium_humanoid",
+        "server/nvidia_usd_robots",
+        "server/minitaur_pd",
+        "rayrai/rayrai_inverse_kinematics",
+        "worlds/kinova_arm",
+        "server/shadow_hand_usd_cube",
+        "server/templated_tracked_robot",
+        "server/wheeled_robot_force_control",
+        "server/mjcf_gymnasium_hopper",
+        "server/mjcf_gymnasium_walker2d"
+      ]
+    },
+    {
+      "id": "rendering",
+      "title": "Rendering",
+      "description": "Materials, lighting, instancing, animated point clouds and visual assets.",
+      "examples": [
+        "rayrai/rayrai_nested_glass",
+        "rayrai/rayrai_pbr_texture_maps",
+        "rayrai/rayrai_pbr_material_grid",
+        "rayrai/rayrai_quality_lighting",
+        "rayrai/rayrai_instancing_grid",
+        "rayrai/rayrai_custom_visuals",
+        "rayrai/rayrai_pointcloud_animation",
+        "rayrai/rayrai_visual_asset_support",
+        "server/visual_objects_showcase",
+        "rayrai/rayrai_blender_scene_import"
+      ]
+    },
+    {
+      "id": "sensors",
+      "title": "Sensors",
+      "description": "RGB and depth cameras, LiDAR, ray casts, markers and sensor noise.",
+      "examples": [
+        "rayrai/rayrai_lidar_pointcloud",
+        "rayrai/rayrai_rgb_camera",
+        "rayrai/rayrai_depth_camera",
+        "rayrai/rayrai_sensor_noise",
+        "rayrai/rayrai_aruco_marker",
+        "server/ray_scan_lidar",
+        "server/ray_casting",
+        "server/sensor_suite",
+        "server/imu_sensor_model"
+      ]
+    },
+    {
+      "id": "bodies",
+      "title": "Bodies",
+      "description": "Creating primitives, compound bodies and mesh objects, and inspecting convex collision shapes.",
+      "examples": [
+        "server/primitive_grid",
+        "server/compound_object",
+        "server/mesh_stack",
+        "server/ycb_objects",
+        "rayrai/rayrai_coacd_mesh_approximation"
+      ]
+    },
+    {
+      "id": "dynamics",
+      "title": "Dynamics",
+      "description": "Free rigid-body rotation, inverse dynamics, prescribed kinematic motion, and sleeping and waking bodies.",
+      "examples": [
+        "server/dzhanibekov_effect",
+        "server/inverse_dynamics",
+        "server/kinematic_platform",
+        "server/island_sleep_benchmark",
+        "rayrai/rayrai_explosion_projectile",
+        "rayrai/rayrai_spherical_joint_friction"
+      ]
+    },
+    {
+      "id": "contact",
+      "title": "Contact",
+      "description": "Friction, restitution and continuous collision detection: how bodies interact when they touch.",
+      "examples": [
+        "server/material_restitution",
+        "server/material_static_friction",
+        "rayrai/rayrai_rolling_spinning_friction",
+        "rayrai/rayrai_swept_ccd"
+      ]
+    },
+    {
+      "id": "terrain",
+      "title": "Terrain",
+      "description": "Deformable soil, height maps and granular media.",
+      "examples": [
+        "rayrai/rayrai_deformable_terrain",
+        "server/granular_media",
+        "server/dynamic_heightmap",
+        "server/procedural_heightmap",
+        "server/heightmap_from_png"
+      ]
+    },
+    {
+      "id": "deformable",
+      "title": "Deformable",
+      "description": "Cloth, soft bodies, folding and contact with rigid objects.",
+      "examples": [
+        "server/deformable_objects",
+        "server/robotiq_cloth_fold",
+        "server/heavy_objects_on_cloth",
+        "server/cloth_on_slope",
+        "server/tablecloth_pull"
+      ]
+    },
+    {
+      "id": "fluids",
+      "title": "Fluids",
+      "description": "Bodies that float, sink and swim in water and air: buoyancy, drag, lift and added mass.",
+      "examples": [
+        "server/fluid_pool",
+        "server/fluid_stream",
+        "server/fluid_stream_anymal",
+        "rayrai/rayrai_fluid_waves",
+        "server/underwater_rov"
+      ]
+    },
+    {
+      "id": "joints",
+      "title": "Mechanisms",
+      "description": "Closed loops, tendons, spring-damper joints, mimic joints and motor limits.",
+      "examples": [
+        "server/strandbeest_closed_loops",
+        "server/length_constraints_newtons_cradle",
+        "server/spring_damper_joints",
+        "server/robotiq_gripper_mimic",
+        "rayrai/rayrai_motor_operating_region"
+      ]
+    },
+    {
+      "id": "tools",
+      "title": "Tools",
+      "description": "The TCP viewer, simulation control, scene editing and serving, XML worlds and asset tools.",
+      "examples": [
+        "rayrai/rayrai_tcp_viewer",
+        "server/sim_control_demo",
+        "rayrai/rayrai_runtime_scene_editing",
+        "server/rscene_server",
+        "server/dynamic_object_addition",
+        "server/synchronous_server_update",
+        "xml/xml_world_loader",
+        "xml/xml_templated_world",
+        "server/model_asset_pipeline"
+      ]
+    },
+    {
+      "id": "benchmarks",
+      "title": "Benchmarks",
+      "description": "Speed measurements to run on your own machine.",
+      "examples": [
+        "benchmark/articulated_system_benchmark",
+        "benchmark/anymal_standing_benchmark"
+      ]
+    }
+  ],
+  "console": {
+    "rayrai/rayrai_blender_scene_import": "blender --python export_blender_scene.py",
+    "server/imu_sensor_model": "./imu_sensor_model > imu.csv",
+    "server/model_asset_pipeline": "./model_asset_pipeline",
+    "benchmark/articulated_system_benchmark": "./articulated_system_benchmark",
+    "benchmark/anymal_standing_benchmark": "./anymal_standing_benchmark --fast"
+  }
+}

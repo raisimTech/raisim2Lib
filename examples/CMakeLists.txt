@@ -104,6 +104,17 @@ function(create_executable app_name file_name)
     endif()
 
     target_include_directories(${app_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    register_server_example(${app_name} ${file_name})
+endfunction()
+
+# Viewers list the RaisimServer examples next to them from raisim_server_examples.tsv.
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ServerExamples.cmake")
+function(register_server_example app_name file_name)
+    raisim_server_example_facts("${CMAKE_CURRENT_SOURCE_DIR}" ${app_name} ${file_name} _server _category _title _signature)
+    if(_server)
+        get_property(_entries GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES)
+        set_property(GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES "${_entries}${app_name}\t${_category}\t${_title}\n")
+    endif()
 endfunction()
 
 function(create_rayrai_executable app_name file_name)
@@ -134,6 +145,16 @@ create_executable(ray_casting src/server/sensors/ray_casting.cpp)
 create_executable(large_scale_ray_test src/server/sensors/large_scale_ray_test.cpp)
 create_executable(ray_scan_lidar src/server/sensors/ray_scan_lidar.cpp)
 create_executable(sensor_suite src/server/sensor_suite.cpp)
+function(create_wrench_sensor_example)
+    include(CheckCXXSourceCompiles)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_REQUIRED_LIBRARIES raisim::raisim)
+    check_cxx_source_compiles("#include <raisim/sensors/TactileSensor.hpp>\nint main() { return int(raisim::TactileSensor::getType()); }" RAISIM_EXAMPLE_HAS_WRENCH_SENSORS)
+    if(RAISIM_EXAMPLE_HAS_WRENCH_SENSORS)
+        create_executable(force_tactile_sensors src/server/sensors/force_tactile_sensors.cpp)
+    endif()
+endfunction()
+create_wrench_sensor_example()
 # This example needs the modeled-IMU API, which older binary packages do not expose.
 function(create_imu_sensor_model_example)
     include(CheckCXXSourceCompiles)
@@ -211,6 +232,19 @@ endif()
 # Performance and deformables.
 create_executable(island_sleep_benchmark src/server/performance/island_sleep_benchmark.cpp)
 create_executable(deformable_objects src/server/deformable/deformable_objects.cpp)
+create_executable(robotiq_cloth_fold src/server/deformable/robotiq_cloth_fold.cpp)
+set_target_properties(robotiq_cloth_fold PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON)
+create_executable(heavy_objects_on_cloth src/server/deformable/heavy_objects_on_cloth.cpp)
+create_executable(cloth_on_slope src/server/deformable/cloth_on_slope.cpp)
+create_executable(tablecloth_pull src/server/deformable/tablecloth_pull.cpp)
+
+# Fluids.
+create_executable(fluid_pool src/server/fluid/fluid_pool.cpp)
+create_executable(underwater_rov src/server/fluid/underwater_rov.cpp)
+create_executable(fluid_stream src/server/fluid/fluid_stream.cpp)
+create_executable(fluid_stream_anymal src/server/fluid/fluid_stream_anymal.cpp)
 
 # benchmark examples
 create_executable(articulated_system_benchmark src/benchmark/articulated_system_benchmark.cpp)
@@ -285,8 +319,15 @@ endfunction()
 create_segmentation_example()
 
 create_rayrai_executable(rayrai_deformable_terrain src/rayrai/physics/rayrai_deformable_terrain.cpp)
+create_rayrai_executable(rayrai_fluid_waves src/rayrai/physics/rayrai_fluid_waves.cpp)
 create_rayrai_executable(rayrai_lidar_pointcloud src/rayrai/sensors/rayrai_lidar_pointcloud.cpp)
 create_rayrai_executable(rayrai_aruco_marker src/rayrai/sensors/rayrai_aruco_marker.cpp)
+
+# Robots.
+create_rayrai_executable(rayrai_inverse_kinematics src/rayrai/robots/rayrai_inverse_kinematics.cpp)
+set_target_properties(rayrai_inverse_kinematics PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON)
 
 # Visual-only overlays and GPU visual primitives.
 create_rayrai_executable(rayrai_custom_visuals src/rayrai/visuals/rayrai_custom_visuals.cpp)
@@ -365,11 +406,9 @@ if(WIN32)
   target_link_libraries(rayrai_tcp_viewer PRIVATE shell32 ws2_32)
 endif()
 
-# Terrain-grounded mixed forest. Assets stay in the checkout; --assets overrides this path.
+# Terrain-grounded mixed forest from rsc/forest; --assets overrides this path.
 create_rayrai_executable(rayrai_forest src/rayrai/worlds/rayrai_forest.cpp)
 target_compile_features(rayrai_forest PRIVATE cxx_std_20)
-target_compile_definitions(rayrai_forest PRIVATE
-    FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
 # The scene examples below build a raisim::World from a .rscene file (or an XML file that includes
 # one) and rely on raisin::RayraiWindow applying the world's scene itself. rayrai/RsceneVisuals.hpp
 # declares raisin::rsceneVisuals() since then; an older package would show only the physics bodies,
@@ -401,7 +440,22 @@ endforeach()
 # An off-road buggy with double-wishbone suspension (URDF closed by pin, equality and mimic
 # constraints) driven with the arrow keys over an eroded meadow with a dirt track.
 create_rayrai_executable(rayrai_offroad_buggy src/rayrai/worlds/rayrai_offroad_buggy.cpp)
+# Tank Survival, the game the website runs: one source (raisim2Lib/wasm/src/tank_survival) builds this
+# desktop executable and the browser page (raisim2Lib/wasm with the WebAssembly SDK).
+create_rayrai_executable(rayrai_tank_survival ${CMAKE_CURRENT_SOURCE_DIR}/../wasm/src/tank_survival/main.cpp)
+target_compile_features(rayrai_tank_survival PRIVATE cxx_std_20)
+target_compile_definitions(rayrai_tank_survival PRIVATE TANK_SURVIVAL_ASSETS="${CMAKE_CURRENT_SOURCE_DIR}/../rsc")
+# A gun firing a solid round and an explosive shell at a wall of crates, and a charge going off beside it.
+create_rayrai_executable(rayrai_explosion_projectile src/rayrai/dynamics/rayrai_explosion_projectile.cpp)
+# Three spherical pendulums with no, a little and a lot of joint friction, coming to rest inside their friction cones.
+create_rayrai_executable(rayrai_spherical_joint_friction src/rayrai/dynamics/rayrai_spherical_joint_friction.cpp)
 target_compile_features(rayrai_offroad_buggy PRIVATE cxx_std_20)
+# A pond in a meadow: rayrai water with grass and trees on its banks and the sun reflected on it.
+create_rayrai_executable(rayrai_water_pond src/rayrai/worlds/rayrai_water_pond.cpp)
+target_compile_features(rayrai_water_pond PRIVATE cxx_std_20)
+# A creek running into a pool: rayrai's shallow-water simulation with balls floating on the current.
+create_rayrai_executable(rayrai_water_stream src/rayrai/worlds/rayrai_water_stream.cpp)
+target_compile_features(rayrai_water_stream PRIVATE cxx_std_20)
 
 # Keep the URDF and its meshes together in the resource copy selected at runtime.
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ExampleResources.cmake")
@@ -423,6 +477,10 @@ if(RAISIM_FOREST_COLLISION_BENCHMARK)
     target_compile_definitions(forest_collision_benchmark PRIVATE
         FOREST_ASSET_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rsc/forest")
 endif()
+
+get_property(_server_examples GLOBAL PROPERTY RAISIM_SERVER_EXAMPLES)
+file(GENERATE OUTPUT "$<TARGET_FILE_DIR:primitive_grid>/raisim_server_examples.tsv"
+     CONTENT "# name\tcategory\ttitle\n${_server_examples}")
 
 # Manual regression and debug programs are opt-in.
 option(RAISIM_DEBUG_TOOLS "Build manual regression and debug tools" OFF)

@@ -1,6 +1,6 @@
 // Generates small gallery images for .rscene record groups that are otherwise
 // hard to understand from text alone. Each capture mirrors one group of
-// records from docs/sections/RsceneFile.rst: whole-scene environment records,
+// records from docs/sections/RsceneFile.md: whole-scene environment records,
 // resources, scene tree containers, lights/cameras, object/compound/wire
 // records, particle-like records, terrain layers, and sensor/visual-aid
 // records.

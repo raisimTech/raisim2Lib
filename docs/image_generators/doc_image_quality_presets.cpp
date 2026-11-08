@@ -1,6 +1,6 @@
 // Generates rayrai_quality_<preset>.png for Fast / Balanced / High / Ultra.
 //
-// Used by docs/sections/Rayrai.rst to illustrate "Render-quality controls".
+// Used by docs/sections/Rayrai.md to illustrate "Render-quality controls".
 
 #include "doc_image_common.hpp"
 

@@ -17,6 +17,7 @@
 #include "rayrai/Camera.hpp"
 #include "rayrai/CameraFrustum.hpp"
 #include "rayrai/example_common.hpp"
+#include "rayrai_example_utils.hpp"
 #include "rayrai_example_compat.hpp"
 
 using namespace gl;
@@ -384,16 +385,6 @@ int main(int argc, char* argv[]) {
     int fbH = 0;
     SDL_GL_GetDrawableSize(app.window, &fbW, &fbH);
 
-    auto fitToAspect = [](ImVec2 avail, float aspect) {
-      if (aspect <= 0.0f) return avail;
-      ImVec2 size = avail;
-      size.y = size.x / aspect;
-      if (size.y > avail.y) {
-        size.y = avail.y;
-        size.x = size.y * aspect;
-      }
-      return size;
-    };
 
     const float rgbAspect = rgbSensorHeight > 0 ? (float)rgbSensorWidth / (float)rgbSensorHeight : 1.0f;
     const float depthAspect = depthSensorHeight > 0 ? (float)depthSensorWidth / (float)depthSensorHeight : 1.0f;
@@ -428,7 +419,7 @@ int main(int argc, char* argv[]) {
     ImGui::Text("RGB Camera");
     ImGui::Separator();
     ImTextureID rgbTex = (ImTextureID)(intptr_t)rgbCamera->getFinalTexture();
-    ImVec2 rgbImageSize = fitToAspect(ImGui::GetContentRegionAvail(), rgbAspect);
+    ImVec2 rgbImageSize = raisim_examples::fitToAspect(ImGui::GetContentRegionAvail(), rgbAspect);
     ImGui::Image(rgbTex, rgbImageSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
     ImGui::End();
 
@@ -440,7 +431,7 @@ int main(int argc, char* argv[]) {
     ImGui::Text("Depth Camera");
     ImGui::Separator();
     ImTextureID depthTex = (ImTextureID)(intptr_t)depthCamera->getLinearDepthTexture();
-    ImVec2 depthImageSize = fitToAspect(ImGui::GetContentRegionAvail(), depthAspect);
+    ImVec2 depthImageSize = raisim_examples::fitToAspect(ImGui::GetContentRegionAvail(), depthAspect);
     ImGui::Image(depthTex, depthImageSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
     ImGui::End();
 
@@ -483,7 +474,7 @@ int main(int argc, char* argv[]) {
     if (rawRgbTexture != 0) {
       ImGui::Text("RGB Raw");
       ImVec2 rgbAvailInner = ImGui::GetContentRegionAvail();
-      ImVec2 rgbSize = fitToAspect(rgbAvailInner, rgbAspect);
+      ImVec2 rgbSize = raisim_examples::fitToAspect(rgbAvailInner, rgbAspect);
       ImGui::Image((ImTextureID)(intptr_t)rawRgbTexture, rgbSize, ImVec2(0, 1), ImVec2(1, 0));
     } else {
       ImGui::Text("RGB Raw not ready");
@@ -497,7 +488,7 @@ int main(int argc, char* argv[]) {
     if (rawDepthTexture != 0) {
       ImGui::Text("Depth Raw");
       ImVec2 depthAvailInner = ImGui::GetContentRegionAvail();
-      ImVec2 depthSize = fitToAspect(depthAvailInner, depthAspect);
+      ImVec2 depthSize = raisim_examples::fitToAspect(depthAvailInner, depthAspect);
       ImGui::Image((ImTextureID)(intptr_t)rawDepthTexture, depthSize, ImVec2(0, 1), ImVec2(1, 0));
     } else {
       ImGui::Text("Depth Raw not ready");

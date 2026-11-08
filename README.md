@@ -215,6 +215,16 @@ Use the source-built `rayrai_tcp_viewer` for applications that publish through `
 
 See the documentation page on the rayrai TCP viewer for the full panel walkthrough, the wire format, and a minimal custom-client example.
 
+## Asset credits
+
+Some images in this README and in the documentation show third-party models
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): the
+city cars, the off-road buggy and its venue props, the warehouse forklift,
+pallet jack, pallets and cartons, and the YCB objects. The TCP viewer's icons
+are [UIcons by Flaticon](https://www.flaticon.com/uicons). They are credited in
+[docs/sections/AssetCredits.md](docs/sections/AssetCredits.md), and each asset
+folder in `rsc` keeps its full license notice.
+
 ## Documentation
 
 Open the installed documentation from the package, or visit the hosted RaiSim documentation for installation, activation, API, examples, and visualization workflows.

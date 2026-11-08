@@ -1,10 +1,10 @@
 // Captures a frame sequence from the rolling/spinning friction demo for the
 // docs. The generator writes PNG frames into an intermediate directory;
-// a follow-up CMake step composites the frames into a GIF using ffmpeg.
+// a follow-up CMake step encodes the frames into an MP4 video using ffmpeg.
 //
 // The scene mirrors the in-process example
 // `examples/src/rayrai/dynamics/rayrai_rolling_spinning_friction.cpp` but
-// runs entirely headless and uses a smaller grid so the GIF stays small.
+// runs entirely headless and uses a smaller grid so the video stays small.
 
 #include "doc_image_common.hpp"
 

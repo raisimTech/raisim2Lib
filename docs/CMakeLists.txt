@@ -6,67 +6,35 @@ get_filename_component(RAISIM_DOCS_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." AB
 find_package(Doxygen REQUIRED)
 find_package(raisim CONFIG REQUIRED)
 
-option(RAISIM_DOCS_BOOTSTRAP_VENV "Automatically create docs/.venv and install Sphinx requirements when missing" ON)
 set(RAISIM_DOCS_RAISIM_INCLUDE_DIR "" CACHE PATH "Override path to RaiSim public headers directory (the folder containing raiSim headers, usually .../include/raisim)")
 set(RAISIM_DOCS_RAYRAI_INCLUDE_DIR "" CACHE PATH "Override path to Rayrai public headers directory (usually .../include/rayrai)")
 
-set(RAISIM_DOCS_VENV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.venv")
+# The site is built with VitePress (Node.js) from the Markdown pages in this
+# directory; scripts/generate_api_docs.py turns the Doxygen XML into the API pages.
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+find_program(RAISIM_DOCS_NODE NAMES node)
 if(WIN32)
-  set(RAISIM_DOCS_VENV_SPHINX "${RAISIM_DOCS_VENV_DIR}/Scripts/sphinx-build.exe")
-  set(RAISIM_DOCS_VENV_PYTHON "${RAISIM_DOCS_VENV_DIR}/Scripts/python.exe")
+  # Node.js for Windows also ships an extensionless npm shell script, which
+  # Windows cannot run.
+  find_program(RAISIM_DOCS_NPM NAMES npm.cmd)
 else()
-  set(RAISIM_DOCS_VENV_SPHINX "${RAISIM_DOCS_VENV_DIR}/bin/sphinx-build")
-  set(RAISIM_DOCS_VENV_PYTHON "${RAISIM_DOCS_VENV_DIR}/bin/python")
+  find_program(RAISIM_DOCS_NPM NAMES npm)
 endif()
-
-if(EXISTS "${RAISIM_DOCS_VENV_SPHINX}")
-  set(SPHINX_EXECUTABLE "${RAISIM_DOCS_VENV_SPHINX}" CACHE FILEPATH "Sphinx executable for docs build" FORCE)
-else()
-  set(_RAISIM_SPHINX_READY OFF)
-
-  find_package(Sphinx QUIET)
-  if(SPHINX_FOUND AND SPHINX_EXECUTABLE AND NOT SPHINX_EXECUTABLE STREQUAL "SPHINX_EXECUTABLE-NOTFOUND")
-    set(_RAISIM_SPHINX_READY ON)
-  endif()
-
-  if(NOT _RAISIM_SPHINX_READY AND RAISIM_DOCS_BOOTSTRAP_VENV)
-    find_package(Python3 COMPONENTS Interpreter REQUIRED)
-
-    if(NOT EXISTS "${RAISIM_DOCS_VENV_PYTHON}")
-      message(STATUS "Sphinx not found; creating docs virtualenv at ${RAISIM_DOCS_VENV_DIR}")
-      execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -m venv "${RAISIM_DOCS_VENV_DIR}"
-        RESULT_VARIABLE _RAISIM_VENV_RESULT
-      )
-      if(NOT _RAISIM_VENV_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to create docs venv at ${RAISIM_DOCS_VENV_DIR}. Install python3-venv and retry.")
-      endif()
-    endif()
-
-    message(STATUS "Installing docs Python requirements from ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt")
-    execute_process(
-      COMMAND "${RAISIM_DOCS_VENV_PYTHON}" -m pip install -r "${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt"
-      RESULT_VARIABLE _RAISIM_PIP_RESULT
-    )
-    if(NOT _RAISIM_PIP_RESULT EQUAL 0)
-      message(FATAL_ERROR "Failed to install docs requirements into ${RAISIM_DOCS_VENV_DIR}.")
-    endif()
-
-    if(EXISTS "${RAISIM_DOCS_VENV_SPHINX}")
-      set(SPHINX_EXECUTABLE "${RAISIM_DOCS_VENV_SPHINX}" CACHE FILEPATH "Sphinx executable for docs build" FORCE)
-      set(_RAISIM_SPHINX_READY ON)
-    endif()
-  endif()
-
-  if(NOT _RAISIM_SPHINX_READY)
-    message(FATAL_ERROR
-      "Sphinx not found. Enable RAISIM_DOCS_BOOTSTRAP_VENV=ON to auto-bootstrap docs/.venv,\n"
-      "create it manually, or provide SPHINX_EXECUTABLE explicitly.")
-  endif()
+if(NOT RAISIM_DOCS_NODE OR NOT RAISIM_DOCS_NPM)
+  message(FATAL_ERROR "Node.js and npm not found. Install Node.js 18 or newer to build the documentation site.")
 endif()
-
-set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
-set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/docs/sphinx)
+execute_process(COMMAND "${RAISIM_DOCS_NODE}" --version
+                OUTPUT_VARIABLE RAISIM_DOCS_NODE_VERSION
+                RESULT_VARIABLE _RAISIM_DOCS_NODE_RESULT
+                OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+string(REGEX REPLACE "^v" "" RAISIM_DOCS_NODE_VERSION "${RAISIM_DOCS_NODE_VERSION}")
+if(NOT _RAISIM_DOCS_NODE_RESULT EQUAL 0 OR
+   NOT RAISIM_DOCS_NODE_VERSION MATCHES "^[0-9]+\\." OR
+   RAISIM_DOCS_NODE_VERSION VERSION_LESS 18)
+  message(FATAL_ERROR
+    "The documentation site needs Node.js 18 or newer (VitePress); "
+    "${RAISIM_DOCS_NODE} reports version '${RAISIM_DOCS_NODE_VERSION}'.")
+endif()
 
 set(_RAISIM_INCLUDE_CANDIDATES)
 if(RAISIM_DOCS_RAISIM_INCLUDE_DIR)
@@ -131,28 +99,27 @@ file(GLOB_RECURSE RAISIM_PUBLIC_HEADERS CONFIGURE_DEPENDS
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen)
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 
-set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/html/index.html)
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-#Replace variables inside @@ with the current values
+# Replace variables inside @@ with the current values. A change to
+# Doxyfile.in reconfigures the project, which rewrites the Doxyfile.
 configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
-file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
-
+# Doxygen writes only XML (Doxyfile.in), which generate_api_docs.py reads.
 add_custom_target(doxygen_output ALL
-        DEPENDS ${RAISIM_PUBLIC_HEADERS}
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
-        MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
-        COMMENT "Generating docs")
+        DEPENDS ${RAISIM_PUBLIC_HEADERS} ${DOXYFILE_OUT}
+        COMMENT "Generating the Doxygen XML"
+        VERBATIM)
 
 # Optional: build and run small C++ programs that regenerate the rayrai
 # documentation images. Off by default, so the docs use the checked-in images.
 # When ON, the image generators rewrite the images in rsc/docs/image/rayrai/
-# and the Sphinx target depends on them, so a `make Sphinx` rebuild refreshes
-# the images first. Regenerating needs rayrai, SDL2 and an OpenGL context.
+# and the docs_site target depends on them, so a site rebuild refreshes the
+# images first. Regenerating needs rayrai, SDL2 and an OpenGL context.
 option(RAISIM_DOCS_BUILD_RAYRAI_IMAGES
-    "Build and run the rayrai documentation image generators before Sphinx"
+    "Build and run the rayrai documentation image generators before the site build"
     OFF)
 
 set(_RAYRAI_DOC_IMAGE_DEPS "")
@@ -164,14 +131,62 @@ if(RAISIM_DOCS_BUILD_RAYRAI_IMAGES AND
   endif()
 endif()
 
-add_custom_target(Sphinx ALL
-        DEPENDS ${RAISIM_PUBLIC_HEADERS} doxygen_output ${_RAYRAI_DOC_IMAGE_DEPS}
-        COMMAND ${CMAKE_COMMAND} -E rm -rf ${SPHINX_BUILD}
-        COMMAND ${SPHINX_EXECUTABLE} -b html -E -a
-        # Tell Breathe where to find the Doxygen output
-        -Dbreathe_projects.raisim=${DOXYGEN_OUTPUT_DIR}/xml
-        ${SPHINX_SOURCE} ${SPHINX_BUILD}
+# The site is built from a copy of the sources in the build directory, so a
+# build writes nothing into the source tree and two build directories do not
+# share any output. cmake/StageSiteSources.cmake copies this directory fresh to
+# ${RAISIM_DOCS_STAGE_DIR}/docs on every build and links the repository's
+# rsc/, examples/ and scripts/ next to it, where the relative paths of the
+# pages expect them.
+set(RAISIM_DOCS_STAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/site-src)
+add_custom_target(docs_stage
+        COMMAND ${CMAKE_COMMAND}
+                -DDOCS_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+                -DREPO_ROOT=${RAISIM_DOCS_REPO_ROOT}
+                -DSTAGE_DIR=${RAISIM_DOCS_STAGE_DIR}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/StageSiteSources.cmake
+        COMMENT "Staging the documentation sources in ${RAISIM_DOCS_STAGE_DIR}"
+        VERBATIM)
+
+# API pages: Markdown generated from the Doxygen XML into the staged sources.
+add_custom_target(docs_api
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_api_docs.py
+                --xml ${DOXYGEN_OUTPUT_DIR}/xml --out ${RAISIM_DOCS_STAGE_DIR}/docs/api
+        COMMENT "Generating the API reference pages"
+        VERBATIM)
+add_dependencies(docs_api doxygen_output docs_stage)
+
+# Node packages, installed from package-lock.json whenever it changes. They go
+# to ${CMAKE_CURRENT_BINARY_DIR}/node_modules, a parent of the staged sources,
+# where Node.js finds them.
+set(RAISIM_DOCS_NPM_STAMP ${CMAKE_CURRENT_BINARY_DIR}/npm_ci.stamp)
+add_custom_command(
+        OUTPUT ${RAISIM_DOCS_NPM_STAMP}
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/package.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/package-lock.json
+                ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${RAISIM_DOCS_NPM} ci --no-audit --no-fund
+        COMMAND ${CMAKE_COMMAND} -E touch ${RAISIM_DOCS_NPM_STAMP}
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package.json ${CMAKE_CURRENT_SOURCE_DIR}/package-lock.json
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating documentation with Sphinx")
+        COMMENT "Installing the documentation site's Node packages"
+        VERBATIM)
+
+# The static site, written to ${RAISIM_DOCS_SITE_DIR}. VitePress fails on dead
+# links, so a page that links to a missing page or API entry stops the build.
+# The browser examples (web-examples/) and the games (games/) join the site after
+# it is built, so links into them are not checked here.
+set(RAISIM_DOCS_SITE_DIR ${CMAKE_CURRENT_BINARY_DIR}/docs/site)
+add_custom_target(docs_site ALL
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${RAISIM_DOCS_SITE_DIR}
+        COMMAND ${RAISIM_DOCS_NODE} ${CMAKE_CURRENT_BINARY_DIR}/node_modules/vitepress/bin/vitepress.js
+                build ${RAISIM_DOCS_STAGE_DIR}/docs --outDir ${RAISIM_DOCS_SITE_DIR}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_links.py ${RAISIM_DOCS_SITE_DIR}
+                --ignore /web-examples/ --ignore /games/
+        DEPENDS ${RAISIM_DOCS_NPM_STAMP}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Building the documentation site with VitePress"
+        VERBATIM)
+add_dependencies(docs_site docs_api ${_RAYRAI_DOC_IMAGE_DEPS})
 
 add_custom_target(Doxygen ALL DEPENDS doxygen_output)

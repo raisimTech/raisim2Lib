@@ -1,0 +1,79 @@
+RaiSim and Rayrai WebAssembly License Agreement
+
+Copyright (c) 2026 RaiSim Tech Inc. All rights reserved.
+
+1. Scope
+
+This agreement governs the publicly distributed WebAssembly edition of RaiSim
+and Rayrai, including its browser applications and supporting files (the
+"Software"). RaiSim Tech Inc. grants you a non-exclusive, non-transferable
+license to download, cache, and run copies of the Software for the purposes
+expressly permitted below. This agreement does not grant rights to the native
+edition or implementation source code. A separate written agreement covering
+this edition governs the uses it expressly authorizes.
+
+2. Academic research
+
+You may use the Software free of charge, without a weekly time limit, solely
+for academic research if you meet the eligibility requirements in Clause 1 of
+the RaiSim Academic License Agreement:
+https://drive.google.com/file/d/10W_9H8Ur37B6GllR0Qb3JQyj7Fh-AVlx/view
+
+Those eligibility requirements are:
+  a. Students: you are a full-time student at a government-recognised
+     university, or you are 18 years old or younger.
+  b. Teachers: you teach students at a government-recognised university.
+  c. Researchers: you are employed by a government-recognised university.
+
+For these requirements, a government-recognised university is an institution
+that offers government-recognised doctoral degrees. Academic eligibility does
+not authorize commercial activities under this academic research permission.
+
+3. Commercial evaluation
+
+Commercial users may use the Software free of charge solely to evaluate its
+suitability, for a maximum of two hours (120 minutes) per individual user per
+calendar week, aggregated across all accounts, devices, and browser sessions.
+A calendar week starts on Monday at 00:00 UTC and ends at the following Monday
+at 00:00 UTC. The allowance concerns elapsed usage time, not simulated time.
+Unused time does not carry over and allowances may not be transferred or pooled.
+
+This permission does not authorize production use or providing commercial
+services to third parties. Commercial use beyond the evaluation permission,
+including production use or evaluation exceeding the weekly allowance, requires
+a separate commercial license from RaiSim Tech Inc. Contact:
+raisim@raionrobotics.com
+
+4. Compliance and reserved rights
+
+You are responsible for complying with these restrictions regardless of whether
+usage is technically monitored or limited. The absence of a timer, account
+requirement, activation check, or other technical restriction does not expand
+the permissions granted by this agreement. These terms apply to commercial
+users of every company size.
+
+All rights not expressly granted are reserved. Except as required by applicable
+law or permitted in a separate written agreement, you may not modify,
+disassemble, reverse-engineer, redistribute, or sublicense the Software. You
+must retain this agreement and the accompanying third-party notices with any
+copies you are permitted to make. If you do not comply with this agreement,
+your permission to use the Software ends and you must stop using it.
+
+5. Third-party components and user content
+
+Third-party components and assets remain subject to their respective licenses
+and notices, including THIRD_PARTY_NOTICES.txt and notices in asset packages.
+This agreement does not restrict rights granted by those third-party licenses.
+RaiSim Tech Inc. claims no ownership of scenes or other content you create
+through the Software by virtue of this agreement.
+
+6. Disclaimer
+
+To the extent permitted by applicable law, the Software is provided "AS IS",
+without express or implied warranties, including warranties of merchantability,
+fitness for a particular purpose, or non-infringement. RaiSim Tech Inc. is not
+liable for direct, indirect, incidental, special, exemplary, or consequential
+damages arising from use of the Software, including loss of use, data, or
+profits, or business interruption, even if advised of the possibility of such
+damages. Nothing in this agreement excludes liability that applicable law does
+not permit to be excluded.

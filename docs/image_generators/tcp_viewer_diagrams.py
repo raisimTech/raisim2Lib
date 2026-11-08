@@ -14,9 +14,9 @@ captions that have to fit in them. Arrowheads are declared with
 multiplies the marker by the line width and is what made the previous
 arrowheads large enough to cover the text behind them.
 
-Diagrams are kept narrow on purpose. Sphinx scales a figure to the content
-column, so every extra column of boxes shrinks the type the reader actually
-sees.
+Diagrams are kept narrow on purpose. The documentation site scales a figure to
+the content column, so every extra column of boxes shrinks the type the reader
+actually sees.
 """
 import os
 from PIL import ImageFont
@@ -27,7 +27,7 @@ LATO = "/usr/share/fonts/truetype/lato/Lato-Regular.ttf"
 LATO_BOLD = "/usr/share/fonts/truetype/lato/Lato-Bold.ttf"
 MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 
-# sphinx_rtd_theme palette
+# Light diagram palette (originally the Sphinx theme's colors)
 INK = "#404040"        # body text
 MUTED = "#666666"      # secondary text
 ACCENT = "#2980b9"     # links / primary accent

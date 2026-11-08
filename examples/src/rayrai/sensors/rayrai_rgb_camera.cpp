@@ -13,23 +13,7 @@
 #include "rayrai/PhysicsSnapshot.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-
-namespace {
-ImVec2 fitToAspect(ImVec2 avail, float aspect) {
-  if (aspect <= 0.0f) return avail;
-  ImVec2 size = avail;
-  size.y = size.x / aspect;
-  if (size.y > avail.y) {
-    size.y = avail.y;
-    size.x = size.y * aspect;
-  }
-  return size;
-}
-}  // namespace
-
-static inline glm::vec3 toGlm(const raisim::Vec<3>& v) { return glm::vec3(v[0], v[1], v[2]); }
-
-static inline glm::mat3 toGlm(const raisim::Mat<3, 3>& R) { return glm::make_mat3(R.ptr()); }
+#include "rayrai_example_utils.hpp"
 
 int main(int argc, char* argv[]) {
   ExampleApp app;
@@ -71,8 +55,8 @@ int main(int argc, char* argv[]) {
   std::vector<char> rgbImage(size_t(rgbProp.width) * size_t(rgbProp.height) * 4);
 
   rgbCam->updatePose();
-  const glm::vec3 sensorPos = toGlm(rgbCam->getPosition());
-  const glm::mat3 sensorRot = toGlm(rgbCam->getOrientation());
+  const glm::vec3 sensorPos = raisim_examples::toGlm(rgbCam->getPosition());
+  const glm::mat3 sensorRot = raisim_examples::toGlm(rgbCam->getOrientation());
   glm::vec3 forward = glm::normalize(glm::vec3(sensorRot[0]));
   glm::vec3 up = glm::normalize(glm::vec3(sensorRot[2]));
   glm::vec3 right = glm::normalize(glm::cross(forward, up));
@@ -95,8 +79,8 @@ int main(int argc, char* argv[]) {
     // CPU-only copy immediately after physics; apply on the thread owning the GL context.
     const auto snapshot = snapshotCapture.capture(*world);
     rgbCam->updatePose();
-    const glm::vec3 capturedPosition = toGlm(rgbCam->getPosition());
-    const glm::mat3 capturedRotation = toGlm(rgbCam->getOrientation());
+    const glm::vec3 capturedPosition = raisim_examples::toGlm(rgbCam->getPosition());
+    const glm::mat3 capturedRotation = raisim_examples::toGlm(rgbCam->getOrientation());
 
     // Only copied data is used below. A separate render thread would lock the window here.
     viewer->applyPhysicsSnapshot(snapshot);
@@ -122,11 +106,7 @@ int main(int argc, char* argv[]) {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(360, 220), ImGuiCond_FirstUseEver);
     ImGui::Begin("RGB Sensor", nullptr, ImGuiWindowFlags_NoCollapse);
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    avail.y = std::max(1.0f, avail.y - ImGui::GetTextLineHeightWithSpacing());
-    ImVec2 size = fitToAspect(avail, aspect);
-    ImTextureID tex = (ImTextureID)(intptr_t)rgbCamera->getFinalTexture();
-    ImGui::Image(tex, size, ImVec2(0, 1), ImVec2(1, 0));
+    raisim_examples::drawFittedImage(rgbCamera->getFinalTexture(), aspect, 1);
     const auto center = (size_t(h / 2) * size_t(w) + size_t(w / 2)) * 4;
     ImGui::Text("Center RGB: %u %u %u", unsigned(static_cast<unsigned char>(rgbImage[center + 2])), unsigned(static_cast<unsigned char>(rgbImage[center + 1])),
                 unsigned(static_cast<unsigned char>(rgbImage[center])));

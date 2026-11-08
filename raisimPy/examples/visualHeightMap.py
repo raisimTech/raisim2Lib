@@ -1,19 +1,18 @@
-import os
+from _example_utils import (
+    setup, simulation_steps, pace, start_server, finish_example, locked_server
+)
 import math
-import time
 
 import raisimpy as raisim
 
 
-rsc_dir = os.path.dirname(os.path.abspath(__file__)) + "/../../rsc/"
-raisim.World.setLicenseFile(rsc_dir + "activation.raisim")
+args = setup(raisim)
 
 world = raisim.World()
 world.setTimeStep(0.01)
 world.addGround()
 
 server = raisim.RaisimServer(world)
-server.launchServer(8080)
 
 x_samples = 40
 y_samples = 40
@@ -50,10 +49,15 @@ height_map = server.addVisualHeightMap(
 )
 height_map.setColor(0.2, 0.6, 0.2, 1.0)
 
+start_server(server, args)
+
 phase = 0.0
-while True:
+for _ in simulation_steps(args):
     phase += 0.05
-    height_map.update(center_x, center_y, x_size, y_size, build_heights(phase))
+    with locked_server(server):
+        height_map.update(center_x, center_y, x_size, y_size, build_heights(phase))
 
     server.integrateWorldThreadSafe()
-    time.sleep(world.getTimeStep())
+    pace(args, world.getTimeStep())
+
+finish_example(server, world)

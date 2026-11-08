@@ -6,7 +6,7 @@
 // render `addVisualSphere` / `addVisualBox` custom visuals reliably in the
 // offscreen-only path we use here, so this image uses raisim::World
 // primitives with setAppearance() to keep the demonstration self-contained.
-// The Material factory API is illustrated in code inside Rayrai.rst; this
+// The Material factory API is illustrated in code inside Rayrai.md; this
 // image is a visual companion to that snippet.
 
 #include "doc_image_common.hpp"
