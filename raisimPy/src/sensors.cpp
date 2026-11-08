@@ -4,12 +4,19 @@
 
 #include "nanobind_helpers.hpp"
 
+#include <algorithm>
+#include <array>
 #include <sstream>
+#include <vector>
 
+#include <nanobind/stl/array.h>
+
+#include "raisim/World.hpp"
 #include "raisim/sensors/SensorSet.hpp"
 #include "raisim/sensors/InertialMeasurementUnit.hpp"
 #include "raisim/sensors/RGBSensor.hpp"
 #include "raisim/sensors/DepthSensor.hpp"
+#include "raisim/sensors/SegmentationSensor.hpp"
 #include "raisim/sensors/SpinningLidar.hpp"
 
 #include "converter.hpp"
@@ -46,6 +53,21 @@ std::vector<raisim::Vec<3>> ndarray_to_vec3_list(const NDArray &array) {
     return out;
 }
 
+// A segmentation image as an (H, W) int32 array, or None for an image the camera does not fill.
+py::object segmentation_image(const raisim::SegmentationCamera &camera, const std::vector<int32_t> &image) {
+    if (image.empty()) return py::none();
+    const auto &properties = camera.getProperties();
+    auto *data = new int32_t[image.size()];
+    std::copy(image.begin(), image.end(), data);
+    py::capsule owner(data, [](void *p) noexcept { delete[] static_cast<int32_t *>(p); });
+    return py::cast(py::ndarray<py::numpy, int32_t, py::c_contig>(
+        data, {size_t(properties.height), size_t(properties.width)}, owner));
+}
+
+std::vector<int32_t> segmentation_ids(const py::ndarray<int32_t, py::c_contig, py::device::cpu> &ids) {
+    return std::vector<int32_t>(ids.data(), ids.data() + ids.size());
+}
+
 }  // namespace
 
 void init_wrench_sensors(py::module_& m);
@@ -58,6 +80,7 @@ void init_sensors(py::module_ &m) {
         .value("DEPTH", raisim::Sensor::Type::DEPTH)
         .value("IMU", raisim::Sensor::Type::IMU)
         .value("SPINNING_LIDAR", raisim::Sensor::Type::SPINNING_LIDAR)
+        .value("SEGMENTATION", raisim::Sensor::Type::SEGMENTATION)
 #if RAISIMPY_HAS_WRENCH_SENSORS
         .value("FORCE", raisim::Sensor::Type::FORCE)
         .value("TACTILE", raisim::Sensor::Type::TACTILE)
@@ -231,6 +254,69 @@ void init_sensors(py::module_ &m) {
         .def("getPrecomputedRayDir", [](const raisim::DepthCamera &self) {
             return vec3_list_to_ndarray(self.getPrecomputedRayDir());
         });
+
+    using SegmentationCamera = raisim::SegmentationCamera;
+    using SegmentationProperties = SegmentationCamera::SegmentationCameraProperties;
+    py::enum_<SegmentationCamera::SegmentationType>(m, "SegmentationType", py::is_arithmetic())
+        .value("SEMANTIC", SegmentationCamera::SegmentationType::SEMANTIC)
+        .value("INSTANCE", SegmentationCamera::SegmentationType::INSTANCE)
+        .value("PANOPTIC", SegmentationCamera::SegmentationType::PANOPTIC);
+
+    py::class_<SegmentationProperties>(m, "SegmentationCameraProperties")
+        .def(py::init<>())
+        .def_rw("name", &SegmentationProperties::name)
+        .def_rw("full_name", &SegmentationProperties::full_name)
+        .def_rw("width", &SegmentationProperties::width)
+        .def_rw("height", &SegmentationProperties::height)
+        .def_rw("xOffset", &SegmentationProperties::xOffset)
+        .def_rw("yOffset", &SegmentationProperties::yOffset)
+        .def_rw("clipNear", &SegmentationProperties::clipNear)
+        .def_rw("clipFar", &SegmentationProperties::clipFar)
+        .def_rw("hFOV", &SegmentationProperties::hFOV)
+        .def_rw("lens", &SegmentationProperties::lens)
+        .def_rw("segmentationType", &SegmentationProperties::segmentationType)
+        .def_static("stringToSegmentationType", &SegmentationProperties::stringToSegmentationType);
+
+    py::class_<SegmentationCamera, raisim::Sensor>(m, "SegmentationCamera",
+        "Object, body and label images: (H, W) int32 arrays, -1 where nothing was hit. "
+        "The images the segmentation type does not fill are None.")
+        .def_static("getStaticType", &SegmentationCamera::getType)
+        .def_ro_static("BACKGROUND", &SegmentationCamera::kBackground)
+        .def_ro_static("NOT_WORLD_OBJECT", &SegmentationCamera::kNotWorldObject)
+        .def("getProperties", &SegmentationCamera::getProperties, py::rv_policy::copy)
+        .def("setProperties", &SegmentationCamera::setProperties)
+        .def("getObjectImage", [](const SegmentationCamera &self) {
+            return segmentation_image(self, self.getObjectImage());
+        }, "World index (World.getObject(index)) of the object seen in each pixel.")
+        .def("getBodyImage", [](const SegmentationCamera &self) {
+            return segmentation_image(self, self.getBodyImage());
+        }, "Body index within that object.")
+        .def("getLabelImage", [](const SegmentationCamera &self) {
+            return segmentation_image(self, self.getLabelImage());
+        }, "Segmentation label (0 for unlabeled geometry).")
+        .def("setObjectImage", [](SegmentationCamera &self, const py::ndarray<int32_t, py::c_contig, py::device::cpu> &image) {
+            self.setObjectImage(segmentation_ids(image));
+        })
+        .def("setBodyImage", [](SegmentationCamera &self, const py::ndarray<int32_t, py::c_contig, py::device::cpu> &image) {
+            self.setBodyImage(segmentation_ids(image));
+        })
+        .def("setLabelImage", [](SegmentationCamera &self, const py::ndarray<int32_t, py::c_contig, py::device::cpu> &image) {
+            self.setLabelImage(segmentation_ids(image));
+        })
+        .def("update", &SegmentationCamera::update, "Ray-cast the images (the RAISIM measurement source).",
+             py::arg("world"))
+        .def_static("colorize", [](const py::ndarray<int32_t, py::c_contig, py::device::cpu> &ids,
+                                   std::array<unsigned char, 4> background) {
+            std::vector<unsigned char> rgba;
+            SegmentationCamera::colorize(segmentation_ids(ids), rgba, background);
+            auto *data = new unsigned char[rgba.size()];
+            std::copy(rgba.begin(), rgba.end(), data);
+            py::capsule owner(data, [](void *p) noexcept { delete[] static_cast<unsigned char *>(p); });
+            std::vector<size_t> shape(ids.shape_ptr(), ids.shape_ptr() + ids.ndim());
+            shape.push_back(4);
+            return py::ndarray<py::numpy, unsigned char, py::c_contig>(data, shape.size(), shape.data(), owner);
+        }, "Display colors (..., 4) uint8 for an id image; negative ids get the background color.",
+           py::arg("ids"), py::arg("background") = std::array<unsigned char, 4>{0, 0, 0, 0});
 
     py::enum_<raisim::InertialMeasurementUnit::ImuProperties::NoiseType>(m, "ImuNoiseType",
                                                                          py::is_arithmetic())

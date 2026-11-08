@@ -113,6 +113,18 @@ void init_object(py::module_ &m) {
 	    )mydelimiter",
 	    py::arg("name"))
 
+	    .def("setSegmentationLabel", &raisim::Object::setSegmentationLabel, R"mydelimiter(
+	    Set the semantic label segmentation cameras report for this object (0, the default, is unlabeled).
+
+	    Args:
+	        label (int): non-negative label.
+	    )mydelimiter",
+	    py::arg("label"))
+	    .def("getSegmentationLabel", &raisim::Object::getSegmentationLabel, R"mydelimiter(
+	    Returns:
+	        int: the label set with setSegmentationLabel().
+	    )mydelimiter")
+
 	    .def("setIndexInWorld", &raisim::Object::setIndexInWorld, R"mydelimiter(
 	    Set the object index in the world.
 

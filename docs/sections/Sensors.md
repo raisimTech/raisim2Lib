@@ -356,6 +356,22 @@ In Python, `getObjectImage()`, `getBodyImage()` and `getLabelImage()` return
 select, and `raisimpy.rayrai.Camera.readSegmentation()` returns the three
 rendered images.
 
+### Display colors and Python
+
+`SegmentationCamera::colorize(ids, rgba, background)` gives each non-negative id
+a fixed color and negative ids the background color (transparent black by
+default).
+
+```python
+camera = robot.getSensorSet("camera_link").getSensor("segmentation")
+camera.setMeasurementSource(raisim.SensorMeasurementSource.RAISIM)
+world.integrate()
+objects = camera.getObjectImage()  # (H, W) int32, -1 for background
+labels = camera.getLabelImage()
+colors = raisim.SegmentationCamera.colorize(labels)  # (H, W, 4) uint8
+mask = objects == table.getIndexInWorld()
+```
+
 ## Spinning LiDAR
 
 `raisim::SpinningLidar` uses RaiSim ray casting and returns hit points in the
