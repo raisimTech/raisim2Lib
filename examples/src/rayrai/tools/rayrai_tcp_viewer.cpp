@@ -71,6 +71,7 @@
 #include "TcpViewerSimulation.hpp"
 #include "TcpViewerInspectorLoad.hpp"
 #include "TcpViewerConnection.hpp"
+#include "TcpViewerPathText.hpp"
 
 #include "rayrai/RayraiWindow.hpp"
 #include "rayrai/TextureBindingCache.hpp"
@@ -121,6 +122,8 @@ constexpr auto kLoopbackAutoConnectInterval = std::chrono::milliseconds(250);
 // as dead. Generous next to the 60 Hz request rate, short enough that a server
 // which will never answer does not hold the pane hostage.
 constexpr auto kServerResponseTimeout = std::chrono::milliseconds(5000);
+constexpr float kMinReplaySpeed = 0.05f;
+constexpr float kMaxReplaySpeed = 8.0f;
 // Server discovery re-lists itself on this interval, so there is no rescan button.
 constexpr auto kDiscoveryRefreshInterval = std::chrono::seconds(2);
 constexpr auto kOverlayAutoCollapseDelay = std::chrono::milliseconds(3500);
@@ -408,15 +411,7 @@ struct CameraBookmark {
 // Local "AS inspector" mode: activated when the user drags a URDF/MJCF onto the viewer
 // while there is no TCP connection. The robot is loaded into the viewer's own
 // raisim::World and posed with the joint sliders — no physics, no server, just kinematics.
-struct InspectorJoint {
-  std::string name;
-  raisim::Joint::Type type = raisim::Joint::Type::FIXED;
-  int gcOffset = 0;       // start index into the ArticulatedSystem GC vector
-  int gcDim = 0;          // 0 (fixed) / 1 (rev/prismatic) / 4 (spherical) / 7 (floating)
-  double minLimit = 0.0;  // for revolute/prismatic
-  double maxLimit = 0.0;
-  bool hasLimits = false;
-};
+using raisin::tcp_viewer::InspectorJoint;
 
 struct InspectorState {
   bool active = false;
@@ -992,6 +987,18 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
 
 #include "TcpViewerUiHelpers.inl"
 
+uint64_t replayPositionMicros(uint64_t baseMicros, std::chrono::steady_clock::time_point start,
+                              std::chrono::steady_clock::time_point now, float speed) {
+  const double elapsed = std::chrono::duration<double, std::micro>(now - start).count() * speed;
+  return baseMicros + static_cast<uint64_t>(std::max(0.0, elapsed));
+}
+
+void rebaseReplayClock(uint64_t& baseMicros, std::chrono::steady_clock::time_point& start,
+                       std::chrono::steady_clock::time_point now, float previousSpeed) {
+  baseMicros = replayPositionMicros(baseMicros, start, now, previousSpeed);
+  start = now;
+}
+
 bool directoryExists(const std::filesystem::path& path) {
   std::error_code ec;
   return std::filesystem::is_directory(path, ec);
@@ -1077,7 +1084,7 @@ std::filesystem::path findRaisimLogoPath(const std::filesystem::path& binaryDir)
 // pixels and must stbi_image_free() them.
 unsigned char* loadRgba8Pixels(const std::filesystem::path& path, int& width, int& height) {
   int channels = 0;
-  unsigned char* pixels = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
+  unsigned char* pixels = stbi_load(raisim::pathUtf8(path).c_str(), &width, &height, &channels, 4);
   if (!pixels || width <= 0 || height <= 0) {
     if (pixels) {
       stbi_image_free(pixels);
@@ -2200,6 +2207,9 @@ void drawExampleOutputTab(const TcpViewerIcons& icons, const raisin::tcp_viewer:
         ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "exited (code %d)", exitCode);
       }
       break;
+    case State::TimedOut:
+      ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "stopped: no port announced");
+      break;
     default:
       ImGui::TextDisabled("stopped");
       break;
@@ -2427,10 +2437,13 @@ struct ViewerPane {
   int recordFrameIndex = 0;
   std::string recordFramePrefix = "rayrai_tcp_viewer_frame";
   std::filesystem::path serverRecordFrameDirectory;
+  /** Where the PNG sequence frames went; Encode To Video reads them from here. */
+  std::filesystem::path recordFrameDirectory;
   bool serverRequestedRecording = false;
   std::string captureStatus;
   std::vector<unsigned char> captureRgba;
   raisin::tcp_viewer::VideoEncoder videoEncoder;
+  raisin::tcp_viewer::PngSequenceEncodeJob pngEncodeJob;
   double videoFramesPerSecond = 30.0;
   int videoQuality = 20;
   char videoPathBuf[512] = "";
@@ -2472,6 +2485,9 @@ struct ViewerPane {
    * has to be torn down before the renderer itself goes away.
    */
   void shutdown() {
+    if (exampleLauncher) exampleLauncher->stop();
+    std::string ignored;
+    videoEncoder.close(ignored);
     client.disconnect();
     localSimulation.stop();
     if (viewer) clearCameraFrustums(*viewer, cameraFrustums);
@@ -2750,7 +2766,7 @@ int main(int argc, char* argv[]) {
   }
   std::vector<std::string> resourceDirs = settings.resourceDirs;
   for (const auto& dir : options.resourceDirs) {
-    recordResourceDir(resourceDirs, dir);
+    recordResourceDir(resourceDirs, raisin::tcp_viewer::utf8PathText(std::filesystem::path(dir)));
   }
   const bool defaultAutoConnect = options.autoConnectSet ? options.autoConnect :
                                   readEnvBool("RAYRAI_TCP_VIEWER_AUTO_CONNECT", true);
@@ -2807,7 +2823,7 @@ int main(int argc, char* argv[]) {
 
     setPaneEndpoint(pane, options.host, options.port);
     std::snprintf(pane.screenshotDirBuf, sizeof(pane.screenshotDirBuf), "%s",
-                  options.screenshotDir.string().c_str());
+                  raisin::tcp_viewer::utf8PathText(options.screenshotDir).c_str());
     const std::filesystem::path defaultSessionPath =
       options.recordSessionPath.empty()
         ? timestampedDataPath(options.screenshotDir,
@@ -2815,12 +2831,11 @@ int main(int argc, char* argv[]) {
             ".rrtcs")
         : options.recordSessionPath;
     std::snprintf(pane.sessionPathBuf, sizeof(pane.sessionPathBuf), "%s",
-                  defaultSessionPath.string().c_str());
+                  raisin::tcp_viewer::utf8PathText(defaultSessionPath).c_str());
     std::snprintf(pane.videoPathBuf, sizeof(pane.videoPathBuf), "%s",
-                  timestampedDataPath(options.screenshotDir,
+                  raisin::tcp_viewer::utf8PathText(timestampedDataPath(options.screenshotDir,
                     ("rayrai_tcp_viewer_video_pane" + std::to_string(pane.id)).c_str(),
-                    ".mp4")
-                    .string().c_str());
+                    ".mp4")).c_str());
     pane.videoStatus = ffmpegAvailable
       ? std::string()
       : std::string("video recording needs ffmpeg on PATH (or $RAYRAI_FFMPEG)");
@@ -3083,6 +3098,8 @@ int main(int argc, char* argv[]) {
     auto& recordFrameIndex = pane.recordFrameIndex;
     auto& recordFramePrefix = pane.recordFramePrefix;
     auto& serverRecordFrameDirectory = pane.serverRecordFrameDirectory;
+    auto& recordFrameDirectory = pane.recordFrameDirectory;
+    auto& pngEncodeJob = pane.pngEncodeJob;
     auto& serverRequestedRecording = pane.serverRequestedRecording;
     auto& captureStatus = pane.captureStatus;
     auto& captureRgba = pane.captureRgba;
@@ -3164,7 +3181,8 @@ int main(int argc, char* argv[]) {
   auto loadAsInspector = [&](const std::string& path) -> bool {
     namespace fs = std::filesystem;
     inspector.lastError.clear();
-    if (path.empty() || !fs::exists(path)) {
+    std::error_code existsError;
+    if (path.empty() || !fs::exists(raisim::pathFromUtf8(path), existsError)) {
       inspector.lastError = "file not found: " + path;
       return false;
     }
@@ -3195,7 +3213,8 @@ int main(int argc, char* argv[]) {
     inspector.sourceFile = path;
     inspector.as = model.system;
     inspector.sideObjects = std::move(model.sideObjects);
-    inspector.as->setName("inspector_" + fs::path(path).stem().string());
+    inspector.as->setName("inspector_" +
+                          raisin::tcp_viewer::utf8PathText(raisim::pathFromUtf8(path).stem()));
 
     const int gcDim = inspector.as->getGeneralizedCoordinateDim();
     inspector.gc.assign(gcDim, 0.0);
@@ -3205,49 +3224,14 @@ int main(int argc, char* argv[]) {
       for (int i = 0; i < copyN; ++i) inspector.gc[i] = q[i];
     }
 
-    // Walk all joints (including FIXED ones at the root) so we get the correct GC offset
-    // for each movable joint. movableJointNames is in joint order but skips FIXED joints;
-    // we re-pair them with their owning joint index using the same trick the server uses
-    // when the first joint is a FIXED ground attachment.
-    const auto& movableNames = inspector.as->getMovableJointNames();
-    const auto& jointLimits = inspector.as->getJointLimits();
-    const size_t numJoints = inspector.as->getNumberOfJoints();
-    int gcCursor = 0;
-    size_t movableNameIdx = 0;
-    for (size_t j = 0; j < numJoints; ++j) {
-      const raisim::Joint::Type type = inspector.as->getJointType(j);
-      int dofThisJoint = 0;
-      switch (type) {
-        case raisim::Joint::Type::FIXED: dofThisJoint = 0; break;
-        case raisim::Joint::Type::REVOLUTE:
-        case raisim::Joint::Type::PRISMATIC: dofThisJoint = 1; break;
-        case raisim::Joint::Type::SPHERICAL: dofThisJoint = 4; break;
-        case raisim::Joint::Type::FLOATING: dofThisJoint = 7; break;
-      }
-      if (type == raisim::Joint::Type::FIXED) {
-        continue; // FIXED joints don't appear in movableJointNames and consume no GC.
-      }
-      InspectorJoint info;
-      info.type = type;
-      info.gcOffset = gcCursor;
-      info.gcDim = dofThisJoint;
-      info.name = (movableNameIdx < movableNames.size())
-                      ? movableNames[movableNameIdx++]
-                      : ("joint_" + std::to_string(j));
-      if (j < jointLimits.size() && info.gcDim == 1) {
-        info.minLimit = jointLimits[j][0];
-        info.maxLimit = jointLimits[j][1];
-        info.hasLimits = (info.maxLimit > info.minLimit);
-      }
-      inspector.joints.push_back(std::move(info));
-      gcCursor += dofThisJoint;
-    }
+    inspector.joints = raisin::tcp_viewer::inspectorJoints(*inspector.as);
 
     const auto tEnd = std::chrono::steady_clock::now();
     const auto loadMs = std::chrono::duration_cast<std::chrono::milliseconds>(tEnd - tStart).count();
     awaitingResponse = false;
     awaitingSensorAck = false;
-    lastStatus = "inspector: " + fs::path(path).filename().string() +
+    lastStatus = "inspector: " +
+                 raisin::tcp_viewer::utf8PathText(raisim::pathFromUtf8(path).filename()) +
                  " (" + std::to_string(loadMs) + " ms)";
     // Frame the camera on the loaded AS directly. We can't rely on requestFrameScene
     // here because that path goes through RemoteScene::computeSceneBounds, which is
@@ -3350,14 +3334,15 @@ int main(int argc, char* argv[]) {
 
   auto loadDroppedScene = [&](const std::string& path) -> bool {
     std::string error;
-    const auto kind = raisin::tcp_viewer::classifyDroppedScene(path, error);
+    const std::filesystem::path file = raisim::pathFromUtf8(path);
+    const auto kind = raisin::tcp_viewer::classifyDroppedScene(file, error);
     if (kind == raisin::tcp_viewer::DroppedSceneKind::Invalid) {
       lastStatus = error;
       std::cerr << "Drop failed: " << error << '\n';
       return false;
     }
     if (kind == raisin::tcp_viewer::DroppedSceneKind::World) {
-      if (!localSimulation.start(binaryPath, path, options.activationKey, error)) {
+      if (!localSimulation.start(binaryPath, file, options.activationKey, error)) {
         lastStatus = error; return false;
       }
       stopExample();
@@ -3368,12 +3353,12 @@ int main(int argc, char* argv[]) {
       replayMode = false;
       autoConnect = false;
       connectingLocalSimulation = true;
-      const auto directory = std::filesystem::absolute(path).parent_path();
-      scene.addSearchPath(directory.string());
-      scene.addSearchPath((directory / "assets").string());
+      const auto directory = std::filesystem::absolute(file).parent_path();
+      scene.addSearchPath(raisin::tcp_viewer::utf8PathText(directory));
+      scene.addSearchPath(raisin::tcp_viewer::utf8PathText(directory / "assets"));
       autoFrameApplied = false;
       nextAutoConnectAttempt = std::chrono::steady_clock::now();
-      lastStatus = "Starting simulation: " + std::filesystem::path(path).filename().string();
+      lastStatus = "Starting simulation: " + raisin::tcp_viewer::utf8PathText(file.filename());
       return true;
     }
     if (client.isConnected() && !localSimulation.active()) {
@@ -3431,10 +3416,10 @@ int main(int argc, char* argv[]) {
               captureStatus = "server recording ignored while a user recording is active";
               break;
             }
-            const std::filesystem::path requested(command.path);
+            const std::filesystem::path requested = raisim::pathFromUtf8(command.path);
             recordFramePrefix = requested.stem().empty()
               ? "rayrai_tcp_viewer_video"
-              : requested.stem().string();
+              : raisin::tcp_viewer::utf8PathText(requested.stem());
             recordFrameIndex = 0;
             serverRequestedRecording = true;
             // startRecordingVideo() names a video file, so honour that when an
@@ -3445,21 +3430,22 @@ int main(int argc, char* argv[]) {
             encoderSettings.framesPerSecond = videoFramesPerSecond;
             encoderSettings.quality = videoQuality;
             const std::filesystem::path videoOutput =
-              std::filesystem::path(screenshotDirBuf) /
-              (recordFramePrefix + (requested.extension().empty()
-                                      ? std::string(".mp4")
-                                      : requested.extension().string()));
+              raisim::pathFromUtf8(screenshotDirBuf) /
+              raisim::pathFromUtf8(recordFramePrefix + (requested.extension().empty()
+                ? std::string(".mp4")
+                : raisin::tcp_viewer::utf8PathText(requested.extension())));
             if (ffmpegAvailable &&
                 videoEncoder.open(videoOutput, encoderSettings, videoStatus)) {
               recordPngSequence = false;
               serverRecordFrameDirectory.clear();
-              captureStatus = "server recording video: " + videoOutput.string();
+              captureStatus = "server recording video: " +
+                              raisin::tcp_viewer::utf8PathText(videoOutput);
             } else {
-              serverRecordFrameDirectory = std::filesystem::path(screenshotDirBuf) /
-                                           (recordFramePrefix + "_frames");
+              serverRecordFrameDirectory = raisim::pathFromUtf8(screenshotDirBuf) /
+                                           raisim::pathFromUtf8(recordFramePrefix + "_frames");
               recordPngSequence = true;
               captureStatus = "server recording PNG sequence: " +
-                              serverRecordFrameDirectory.string();
+                              raisin::tcp_viewer::utf8PathText(serverRecordFrameDirectory);
             }
           } break;
           case raisin::tcp_viewer::ViewerCommandType::StopRecording:
@@ -3502,7 +3488,7 @@ int main(int argc, char* argv[]) {
     if (disconnectRequested) {
       lastStatus = fromReplay ? "replay protocol disconnect" : "server disconnected";
     } else if (!parsedOk) {
-      lastStatus = fromReplay ? "replay parse error" : "parse error (dropped update)";
+      lastStatus = fromReplay ? "replay parse error; replay stopped" : "parse error; disconnected";
       stats.parseErrors++;
     } else {
       lastStatus = fromReplay ? "replay" : "connected";
@@ -3623,7 +3609,7 @@ int main(int argc, char* argv[]) {
           // Share the drop handler, not SDL's platform-owned drop-event transport.
           // SDL2 compatibility layers can retain/convert that transport's payload;
           // synthesizing it here breaks ownership during later event filtering.
-          if (!loadDroppedScene(options.simulationPath.string())) {
+          if (!loadDroppedScene(raisin::tcp_viewer::utf8PathText(options.simulationPath))) {
             quit = true; viewerExitCode = 1;
           }
         }
@@ -3634,7 +3620,7 @@ int main(int argc, char* argv[]) {
       // ticked N frames (lets the headless harness measure drag-drop latency after
       // the background shader warmup has run).
       if (!options.inspectorPath.empty() && options.inspectAfterFrames < 0) {
-        if (!loadAsInspector(options.inspectorPath.string())) {
+        if (!loadAsInspector(raisin::tcp_viewer::utf8PathText(options.inspectorPath))) {
           std::cerr << "ERROR: --inspect failed: " << inspector.lastError << "\n";
         }
       }
@@ -3733,6 +3719,14 @@ int main(int argc, char* argv[]) {
         lastStatus = exampleLauncher.example()->title + " exited (code " +
                      std::to_string(exampleLauncher.exitCode()) + ")";
         std::cerr << lastStatus << '\n';
+      } else if (exampleWasActive && exampleLauncher.state() == ExampleState::TimedOut) {
+        connectingExample = false;
+        selectOutputTab = true;
+        lastStatus = exampleLauncher.example()->title + " did not announce its port within " +
+                     std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+                       exampleLauncher.startTimeout()).count()) +
+                     " s (no discovery beacon reached this viewer); stopped it";
+        std::cerr << lastStatus << '\n';
       }
       if (connectingExample && exampleLauncher.state() == ExampleState::Running &&
           now >= nextAutoConnectAttempt) {
@@ -3788,6 +3782,7 @@ int main(int argc, char* argv[]) {
               std::vector<PendingSensorUpdate> ignoredSensors;
               return applyScenePayload(payload, true, now, ignoredSensors);
             })) {
+          clearSceneState();
           break;
         }
         appliedCount = i + 1u;
@@ -3799,25 +3794,29 @@ int main(int argc, char* argv[]) {
       replayBaseMicros = replayIndex == 0
         ? replayFrames.front().timeMicros
         : replayFrames[replayIndex - 1u].timeMicros;
-      lastStatus = "replay seek";
+      if (appliedCount > target) lastStatus = "replay seek";
     }
     if (replayMode && !replayFrames.empty()) {
       if (replayIndex < replayFrames.size() && (replayStep || !replayPaused)) {
         const uint64_t targetMicros = replayStep
           ? replayFrames[replayIndex].timeMicros
-          : replayBaseMicros + static_cast<uint64_t>(
-              std::chrono::duration<double, std::micro>(now - replayStart).count() * replaySpeed);
+          : replayPositionMicros(replayBaseMicros, replayStart, now, replaySpeed);
         while (replayIndex < replayFrames.size() && replayFrames[replayIndex].timeMicros <= targetMicros) {
           const auto& frame = replayFrames[replayIndex];
           stats.lastPayloadBytes = static_cast<int>(frame.payload.size());
           stats.bytes += frame.payload.size();
           stats.updates++;
           std::vector<PendingSensorUpdate> pending;
-          raisin::tcp_viewer::applyRecordedFrame(frame, clearSceneState,
+          const bool applied = raisin::tcp_viewer::applyRecordedFrame(frame, clearSceneState,
               [&](const std::vector<char>& payload) {
                 return applyScenePayload(payload, true, now, pending);
               });
           ++replayIndex;
+          if (!applied) {
+            clearSceneState();
+            replayPaused = true;
+            break;
+          }
           if (replayStep) break;
         }
         replayStep = false;
@@ -4140,7 +4139,7 @@ int main(int argc, char* argv[]) {
             refreshRequestedEntry(scene, *viewer,
                                   requestedTag, requestedIndex, requestedEntry);
             if (!parsedOk) {
-              networkFailed = lastStatus.find("disconnect") != std::string::npos;
+              networkFailed = true;
             } else if (!pending.empty()) {
               if (!sensorRenderer.render(*viewer, pending, sensorStatus)) {
                 lastStatus = "sensor render failed";
@@ -4929,7 +4928,7 @@ int main(int argc, char* argv[]) {
       std::cerr << "[inspect-after-frames] triggering inspect load at frame "
                 << frameSerial << "\n";
       const auto loadStart = std::chrono::steady_clock::now();
-      if (!loadAsInspector(options.inspectorPath.string())) {
+      if (!loadAsInspector(raisin::tcp_viewer::utf8PathText(options.inspectorPath))) {
         std::cerr << "ERROR: deferred --inspect failed: " << inspector.lastError << "\n";
       } else {
         const auto loadMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -4951,7 +4950,7 @@ int main(int argc, char* argv[]) {
         frameSerial == options.inspectCloseAfterFrames + 2) {
       std::cerr << "[inspect-close-test] reloading "
                 << options.inspectReloadPath.string() << "\n";
-      loadAsInspector(options.inspectReloadPath.string());
+      loadAsInspector(raisin::tcp_viewer::utf8PathText(options.inspectReloadPath));
       options.inspectReloadPath.clear();  // one-shot
     }
     if (options.inspectCloseAfterFrames >= 0 && !inspector.active &&
@@ -4961,7 +4960,7 @@ int main(int argc, char* argv[]) {
       quit = true;
     }
     if (screenshotRequested) {
-      const std::filesystem::path captureDir(screenshotDirBuf);
+      const std::filesystem::path captureDir = raisim::pathFromUtf8(screenshotDirBuf);
       const std::filesystem::path path = pendingScreenshotPath.empty()
         ? timestampedCapturePath(captureDir, "rayrai_tcp_viewer")
         : pendingScreenshotPath;
@@ -4984,11 +4983,11 @@ int main(int argc, char* argv[]) {
         if (wantPngFrame) {
           const std::string frameName =
             raisin::tcp_viewer::pngSequenceFrameName(recordFramePrefix, recordFrameIndex++);
-          const std::filesystem::path frameDirectory = serverRequestedRecording
+          recordFrameDirectory = serverRequestedRecording
             ? serverRecordFrameDirectory
-            : std::filesystem::path(screenshotDirBuf);
-          saveRgbaPng(captureRgba, captureWidth, captureHeight, frameDirectory / frameName,
-            captureStatus);
+            : raisim::pathFromUtf8(screenshotDirBuf);
+          saveRgbaPng(captureRgba, captureWidth, captureHeight,
+            recordFrameDirectory / raisim::pathFromUtf8(frameName), captureStatus);
         }
         if (wantVideoFrame &&
             !videoEncoder.writeTimedFrameRgba(captureRgba.data(), captureRgba.size(), videoStatus)) {
@@ -4999,6 +4998,8 @@ int main(int argc, char* argv[]) {
         }
       }
     }
+    bool encodeSucceeded = false;
+    if (pngEncodeJob.poll(encodeSucceeded, videoStatus)) captureStatus = videoStatus;
     updateStatsWindow(stats, now);
 
     const auto drawViewOptions = [&]() {
@@ -5135,10 +5136,10 @@ int main(int argc, char* argv[]) {
       drawCompactPathInput("##ScreenshotDirectory", screenshotDirBuf, sizeof(screenshotDirBuf),
         controlWidth, pathFieldEditing, "path/to/output/folder");
       drawBrowseButton("browse_screenshot_dir", FileBrowserMode::Folder, "Select output folder",
-        std::filesystem::path(screenshotDirBuf), {},
+        raisim::pathFromUtf8(screenshotDirBuf), {},
         [&](const std::filesystem::path& chosen) {
           std::snprintf(screenshotDirBuf, sizeof(screenshotDirBuf), "%s",
-                        chosen.string().c_str());
+                        raisin::tcp_viewer::utf8PathText(chosen).c_str());
         });
 
       // --- Still image ---
@@ -5161,9 +5162,10 @@ int main(int argc, char* argv[]) {
         drawCompactPathInput("##VideoFile", videoPathBuf, sizeof(videoPathBuf), controlWidth,
           pathFieldEditing, "path/to/clip.mp4");
         drawBrowseButton("browse_video_path", FileBrowserMode::SaveFile, "Select video file",
-          std::filesystem::path(videoPathBuf), {"mp4", "mov", "mkv"},
+          raisim::pathFromUtf8(videoPathBuf), {"mp4", "mov", "mkv"},
           [&](const std::filesystem::path& chosen) {
-            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s", chosen.string().c_str());
+            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
+                          raisin::tcp_viewer::utf8PathText(chosen).c_str());
           });
         float videoFpsUi = static_cast<float>(videoFramesPerSecond);
         if (drawStepperFloat("video_fps", "Frame rate (fps)", &videoFpsUi, 1.0f,
@@ -5184,9 +5186,9 @@ int main(int argc, char* argv[]) {
             encoderSettings.framesPerSecond = videoFramesPerSecond;
             encoderSettings.quality = videoQuality;
             const auto output = raisin::tcp_viewer::nextAvailableOutputPath(
-                std::filesystem::path(videoPathBuf));
+                raisim::pathFromUtf8(videoPathBuf));
             std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
-                          output.string().c_str());
+                          raisin::tcp_viewer::utf8PathText(output).c_str());
             videoEncoder.open(output, encoderSettings, videoStatus);
             captureStatus = videoStatus;
           }
@@ -5213,17 +5215,18 @@ int main(int argc, char* argv[]) {
         // Rescues a sequence recorded before ffmpeg was available, or one whose
         // recording was interrupted.
         ImGui::BeginDisabled(!ffmpegAvailable || videoEncoder.isOpen() || recordPngSequence ||
-                             recordFrameIndex <= 0);
+                             recordFrameIndex <= 0 || recordFrameDirectory.empty() ||
+                             pngEncodeJob.running());
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::Export, "Encode To Video",
                                "encode_png_sequence")) {
           raisin::tcp_viewer::VideoEncoderSettings encoderSettings;
           encoderSettings.framesPerSecond = videoFramesPerSecond;
           encoderSettings.quality = videoQuality;
-          const std::filesystem::path frameDirectory = serverRecordFrameDirectory.empty()
-            ? std::filesystem::path(screenshotDirBuf)
-            : serverRecordFrameDirectory;
-          raisin::tcp_viewer::encodePngSequenceToVideo(frameDirectory, recordFramePrefix,
-            std::filesystem::path(videoPathBuf), encoderSettings, videoStatus);
+          if (pngEncodeJob.start(recordFrameDirectory, recordFramePrefix,
+                raisim::pathFromUtf8(videoPathBuf), encoderSettings, videoStatus)) {
+            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
+                          raisin::tcp_viewer::utf8PathText(pngEncodeJob.output()).c_str());
+          }
           captureStatus = videoStatus;
         }
         ImGui::EndDisabled();
@@ -5250,17 +5253,18 @@ int main(int argc, char* argv[]) {
       drawCompactPathInput("##SessionFile", sessionPathBuf, sizeof(sessionPathBuf),
         controlWidth, pathFieldEditing, "path/to/session.rrtcs");
       drawBrowseButton("browse_session_path", FileBrowserMode::SaveFile, "Select session log",
-        std::filesystem::path(sessionPathBuf), {"rrtcs"},
+        raisim::pathFromUtf8(sessionPathBuf), {"rrtcs"},
         [&](const std::filesystem::path& chosen) {
-          std::snprintf(sessionPathBuf, sizeof(sessionPathBuf), "%s", chosen.string().c_str());
+          std::snprintf(sessionPathBuf, sizeof(sessionPathBuf), "%s",
+                        raisin::tcp_viewer::utf8PathText(chosen).c_str());
         });
       if (!sessionRecorder.active()) {
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::Save, "Start Session Log",
                                "start_session_log")) {
           const auto output = raisin::tcp_viewer::nextAvailableOutputPath(
-              std::filesystem::path(sessionPathBuf));
+              raisim::pathFromUtf8(sessionPathBuf));
           std::snprintf(sessionPathBuf, sizeof(sessionPathBuf), "%s",
-                        output.string().c_str());
+                        raisin::tcp_viewer::utf8PathText(output).c_str());
           sessionRecorder.open(output, sessionStatus);
         }
       } else {
@@ -5295,7 +5299,13 @@ int main(int argc, char* argv[]) {
           replayBaseMicros = replayFrames.empty() ? 0 : replayFrames.front().timeMicros;
           replayPaused = false;
         }
-        drawInlineLabelSliderFloat("replay_speed", "Replay speed", &replaySpeed, 0.05f, 8.0f, "%.2f");
+        const float previousReplaySpeed = replaySpeed;
+        if (drawInlineLabelSliderFloat("replay_speed", "Replay speed", &replaySpeed, kMinReplaySpeed,
+              kMaxReplaySpeed, "%.2f", 0.0f, false, ImGuiSliderFlags_AlwaysClamp) &&
+            !replayPaused) {
+          rebaseReplayClock(replayBaseMicros, replayStart, std::chrono::steady_clock::now(),
+                            previousReplaySpeed);
+        }
         const uint64_t firstMicros = replayFrames.empty() ? 0 : replayFrames.front().timeMicros;
         const uint64_t lastMicros = replayFrames.empty() ? 0 : replayFrames.back().timeMicros;
         const float durationSeconds = static_cast<float>(lastMicros - firstMicros) / 1.0e6f;
@@ -6270,10 +6280,10 @@ int main(int argc, char* argv[]) {
               // Start from the last directory added, so adding siblings is quick.
               openFileBrowser(fileBrowser, FileBrowserMode::Folder, "Select resource folder",
                 resourceDirs.empty() ? std::filesystem::path()
-                                     : std::filesystem::path(resourceDirs.back()),
+                                     : raisim::pathFromUtf8(resourceDirs.back()),
                 {},
                 [&](const std::filesystem::path& chosen) {
-                  const std::string path = chosen.string();
+                  const std::string path = raisin::tcp_viewer::utf8PathText(chosen);
                   recordResourceDir(resourceDirs, path);
                   ++resourceDirSerial;
                   settingsDirty = true;
@@ -6646,12 +6656,15 @@ int main(int argc, char* argv[]) {
               save.file = exportPath;
               // Flushed on its own frame; see the send path above.
               pendingControlRequests.push_back(std::move(save));
-              lastStatus = "world export queued";
+              lastStatus = "world export requested; a server that did not call "
+                           "setViewerWorldExport(true) ignores it";
             }
             ImGui::EndDisabled();
             ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + fontScaledTextControlWidth(26.0f));
             ImGui::TextDisabled(
-              "The server writes the file, so the path is relative to the simulation host.");
+              "The server writes the file, so the path is relative to the simulation host. "
+              "It writes only if it called RaisimServer::setViewerWorldExport(true), and the "
+              "protocol has no reply, so check the server's log.");
             ImGui::PopTextWrapPos();
             ImGui::TreePop();
           }
@@ -7638,7 +7651,7 @@ int main(int argc, char* argv[]) {
           ImGui::SetNextItemWidth(-FLT_MIN);
           if (ImGui::InputText("##file_browser_path", fileBrowser.pathBuf,
                 sizeof(fileBrowser.pathBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            navigateFileBrowser(fileBrowser, std::filesystem::path(fileBrowser.pathBuf));
+            navigateFileBrowser(fileBrowser, raisim::pathFromUtf8(fileBrowser.pathBuf));
             fileBrowser.editingPath = false;
           }
           if (ImGui::IsItemDeactivated()) {
@@ -7663,7 +7676,7 @@ int main(int argc, char* argv[]) {
             ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
           for (const auto& part : fileBrowser.current) {
             crumbPath /= part;
-            const std::string label = part.string();
+            const std::string label = raisin::tcp_viewer::utf8PathText(part);
             if (label.empty()) {
               continue;
             }
@@ -7694,7 +7707,7 @@ int main(int argc, char* argv[]) {
               crumbTarget = crumbPath;
             }
             if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("%s", crumbPath.string().c_str());
+              ImGui::SetTooltip("%s", raisin::tcp_viewer::utf8PathText(crumbPath).c_str());
             }
             ImGui::PopID();
             firstCrumb = false;
@@ -7754,8 +7767,9 @@ int main(int argc, char* argv[]) {
             for (size_t i = 0; i < fileBrowser.entries.size(); ++i) {
               const FileBrowserState::Entry& entry = fileBrowser.entries[i];
               ImGui::PushID(static_cast<int>(i));
-              const std::string name = entry.path.filename().string();
-              const std::string label = name.empty() ? entry.path.string() : name;
+              const std::string& name = entry.name;
+              const std::string label =
+                name.empty() ? raisin::tcp_viewer::utf8PathText(entry.path) : name;
               const TcpViewerIconKind kind = fileBrowserIconKind(entry.path, entry.isDirectory);
 
               // Draw the row first, then paint its icon into the leading gap,
@@ -7804,7 +7818,7 @@ int main(int argc, char* argv[]) {
         if (pickingFile) {
           chosen = fileBrowser.nameBuf[0] == '\0'
             ? std::filesystem::path()
-            : fileBrowser.current / std::filesystem::path(fileBrowser.nameBuf);
+            : fileBrowser.current / raisim::pathFromUtf8(fileBrowser.nameBuf);
         }
         std::error_code chosenEc;
         const bool chosenUsable = !fileBrowser.error.empty() || chosen.empty()

@@ -1020,6 +1020,10 @@ struct FileBrowserState {
   struct Entry {
     std::filesystem::path path;
     bool isDirectory = false;
+    /** The file name as UTF-8 text, as listed. */
+    std::string name;
+    /** Lower-case #name, the sort key. */
+    std::string sortKey;
   };
   /** Contents of `current`: directories first, then files, each sorted. */
   std::vector<Entry> entries;
@@ -1040,7 +1044,7 @@ struct FileBrowserState {
 
 /** Lower-case extension of `path` without the leading dot. */
 std::string lowerCaseFileExtension(const std::filesystem::path& path) {
-  std::string extension = path.extension().string();
+  std::string extension = raisin::tcp_viewer::utf8PathText(path.extension());
   if (!extension.empty() && extension.front() == '.') {
     extension.erase(extension.begin());
   }
@@ -1064,7 +1068,7 @@ void refreshFileBrowser(FileBrowserState& browser) {
   browser.error.clear();
   std::error_code ec;
   if (browser.current.empty() || !std::filesystem::is_directory(browser.current, ec)) {
-    browser.error = "not a directory: " + browser.current.string();
+    browser.error = "not a directory: " + raisin::tcp_viewer::utf8PathText(browser.current);
     return;
   }
   std::filesystem::directory_iterator it(browser.current, ec);
@@ -1081,11 +1085,12 @@ void refreshFileBrowser(FileBrowserState& browser) {
     // is_directory follows symlinks, which is what a picker should do; an
     // unreadable entry is skipped rather than aborting the whole listing.
     const bool isDirectory = std::filesystem::is_directory(it->path(), entryEc) && !entryEc;
-    if (isDirectory) {
-      browser.entries.push_back({it->path(), true});
-    } else if (browser.mode != FileBrowserMode::Folder &&
-               fileBrowserAcceptsExtension(browser, it->path())) {
-      browser.entries.push_back({it->path(), false});
+    if (isDirectory || (browser.mode != FileBrowserMode::Folder &&
+                        fileBrowserAcceptsExtension(browser, it->path()))) {
+      FileBrowserState::Entry entry{it->path(), isDirectory};
+      entry.name = raisin::tcp_viewer::utf8PathText(entry.path.filename());
+      entry.sortKey = toLowerAscii(entry.name);
+      browser.entries.push_back(std::move(entry));
     }
     it.increment(ec);
     if (ec) {
@@ -1099,9 +1104,10 @@ void refreshFileBrowser(FileBrowserState& browser) {
       if (a.isDirectory != b.isDirectory) {
         return a.isDirectory;
       }
-      return toLowerAscii(a.path.filename().string()) < toLowerAscii(b.path.filename().string());
+      return a.sortKey < b.sortKey;
     });
-  std::snprintf(browser.pathBuf, sizeof(browser.pathBuf), "%s", browser.current.string().c_str());
+  std::snprintf(browser.pathBuf, sizeof(browser.pathBuf), "%s",
+                raisin::tcp_viewer::utf8PathText(browser.current).c_str());
 }
 
 /** Point the browser at `path`, falling back to the process's directory. */
@@ -1144,7 +1150,7 @@ void openFileBrowser(FileBrowserState& browser, FileBrowserMode mode, std::strin
     // A file path: browse its folder and carry the name over, which makes
     // "change this output file" a one-click operation.
     startDirectory = startPath.parent_path();
-    const std::string name = startPath.filename().string();
+    const std::string name = raisin::tcp_viewer::utf8PathText(startPath.filename());
     std::snprintf(browser.nameBuf, sizeof(browser.nameBuf), "%s", name.c_str());
   }
   navigateFileBrowser(browser, startDirectory);
@@ -2555,8 +2561,9 @@ void drawObjectSensors(const TcpViewerIcons& icons, const std::vector<SensorInfo
           const float imageWidth = ImGui::GetContentRegionAvail().x;
           const float imageHeight = imageWidth * static_cast<float>(preview->height) /
                                     static_cast<float>(preview->width);
+          const float topV = preview->topRowFirst ? 0.0f : 1.0f;
           ImGui::Image(reinterpret_cast<ImTextureID>(uint64_t(preview->texture)),
-            ImVec2(imageWidth, imageHeight), ImVec2(0, 1), ImVec2(1, 0));
+            ImVec2(imageWidth, imageHeight), ImVec2(0.0f, topV), ImVec2(1.0f, 1.0f - topV));
         }
       } else if (cameraAwaitsViewerImage(sensor)) {
         if (sensor.viewerUpdateRequested) {
@@ -2803,7 +2810,7 @@ bool exportSceneJson(const std::filesystem::path& path, const RemoteScene& scene
   }
   std::ofstream output(path);
   if (!output) {
-    status = "scene export failed: cannot open " + path.string();
+    status = "scene export failed: cannot open " + raisin::tcp_viewer::utf8PathText(path);
     return false;
   }
   output << std::setprecision(9);
@@ -2849,7 +2856,7 @@ bool exportSceneJson(const std::filesystem::path& path, const RemoteScene& scene
     output << "\n";
   }
   output << "  ]\n}\n";
-  status = "exported scene " + path.string();
+  status = "exported scene " + raisin::tcp_viewer::utf8PathText(path);
   return true;
 }
 
@@ -2996,9 +3003,9 @@ bool drawCompactCheckbox(const char* label, bool* value) {
 }
 
 bool compactSliderFloat(const char* label, float* value, float min, float max,
-                        const char* format = "%.3f") {
+                        const char* format = "%.3f", ImGuiSliderFlags flags = 0) {
   CompactControlScope scope;
-  return ImGui::SliderFloat(label, value, min, max, format);
+  return ImGui::SliderFloat(label, value, min, max, format, flags);
 }
 
 bool compactSliderInt(const char* label, int* value, int min, int max,
@@ -3162,9 +3169,10 @@ bool drawInlineLabelSlider(const char* id, const char* label, const T* value, co
 }
 
 bool drawInlineLabelSliderFloat(const char* id, const char* label, float* value, float min, float max,
-                                const char* format, float itemWidth = 0.0f, bool disabled = false) {
+                                const char* format, float itemWidth = 0.0f, bool disabled = false,
+                                ImGuiSliderFlags flags = 0) {
   return drawInlineLabelSlider(id, label, value, format, itemWidth, disabled,
-    [&] { return compactSliderFloat("##slider", value, min, max, format); });
+    [&] { return compactSliderFloat("##slider", value, min, max, format, flags); });
 }
 
 bool drawInlineLabelSliderInt(const char* id, const char* label, int* value, int min, int max,

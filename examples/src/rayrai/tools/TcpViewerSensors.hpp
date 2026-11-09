@@ -150,6 +150,10 @@ struct SensorPreviewInfo {
   double renderMilliseconds = 0.0;
   float minimumDepth = 0.0f;
   float maximumDepth = 0.0f;
+  /** The texture holds the image's top row first, as the depth and segmentation previews
+   *  uploaded from top-down images do; the RGB preview is the camera's GL texture, whose first
+   *  row is the bottom of the image. */
+  bool topRowFirst = false;
 };
 
 /** Renders manual TCP camera requests and retains textures for the diagnostics UI. */

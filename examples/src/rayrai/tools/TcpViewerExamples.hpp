@@ -13,6 +13,8 @@ namespace raisin::tcp_viewer {
 
 // The file, next to the example executables, that lists the RaisimServer examples among them.
 inline constexpr const char* kServerExampleManifest = "raisim_server_examples.tsv";
+// How long a started example may run before it tells its port (with its discovery beacon).
+inline constexpr std::chrono::seconds kExampleStartTimeout{60};
 
 struct ServerExample {
   std::string name;      // executable name without extension
@@ -31,8 +33,9 @@ std::string stripTerminalEscapes(const std::string& text);
 // browser they are compiled into the viewer and run on a worker thread.
 class ExampleLauncher {
  public:
-  // Stopped is an example that terminate() ended: like Exited, it keeps its output.
-  enum class State { Idle, Starting, Running, Exited, Stopped };
+  // Stopped is an example that terminate() ended: like Exited, it keeps its output. TimedOut is
+  // one that poll() ended because it did not tell its port within the start timeout.
+  enum class State { Idle, Starting, Running, Exited, Stopped, TimedOut };
 
   explicit ExampleLauncher(const std::filesystem::path& directory);
   ~ExampleLauncher();
@@ -51,9 +54,13 @@ class ExampleLauncher {
   // Ends the example if it still runs, but keeps it and its output to read: the state becomes
   // Stopped, or Exited if the example had ended by itself.
   void terminate();
-  // Follows the running example. beacons are the discovered servers; the one with the
-  // example's process id tells its port.
+  // Follows the running example. beacons are the discovered servers; the one from this computer
+  // with the example's process id tells its port. An example that has not told its port within
+  // the start timeout is ended and becomes TimedOut.
   void poll(const std::vector<DiscoveredServer>& beacons);
+  // How long a started example may take to tell its port; kExampleStartTimeout by default.
+  void setStartTimeout(std::chrono::steady_clock::duration timeout);
+  std::chrono::steady_clock::duration startTimeout() const;
 
   State state() const;
   // Whether the started example is Starting or Running.

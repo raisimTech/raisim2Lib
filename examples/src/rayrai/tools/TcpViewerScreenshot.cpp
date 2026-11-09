@@ -6,9 +6,12 @@
 #include <chrono>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <system_error>
+
+#include "TcpViewerPathText.hpp"
 
 #include <glbinding/gl/gl.h>
 
@@ -51,9 +54,10 @@ std::filesystem::path nextAvailableOutputPath(const std::filesystem::path& reque
   std::error_code ec;
   if (!std::filesystem::exists(requested, ec) && !ec) return requested;
   for (unsigned int suffix = 1; suffix < 100000; ++suffix) {
-    const auto candidate = requested.parent_path() /
-        (requested.stem().string() + "_" + std::to_string(suffix) +
-         requested.extension().string());
+    std::filesystem::path name = requested.stem();
+    name += "_" + std::to_string(suffix);
+    name += requested.extension();
+    const auto candidate = requested.parent_path() / name;
     ec.clear();
     if (!std::filesystem::exists(candidate, ec) && !ec) return candidate;
   }
@@ -99,11 +103,16 @@ bool saveRgbaPng(const std::vector<unsigned char>& rgba, int width, int height,
     }
   }
 
-  if (!stbi_write_png(path.string().c_str(), width, height, 4, rgba.data(), width * 4)) {
+  std::ofstream file(path, std::ios::binary | std::ios::trunc);
+  const auto write = [](void* stream, void* data, int size) {
+    static_cast<std::ofstream*>(stream)->write(static_cast<const char*>(data), size);
+  };
+  if (!file || !stbi_write_png_to_func(write, &file, width, height, 4, rgba.data(), width * 4) ||
+      !file.flush()) {
     status = "capture failed: PNG write failed";
     return false;
   }
-  status = "saved " + path.string();
+  status = "saved " + utf8PathText(path);
   return true;
 }
 

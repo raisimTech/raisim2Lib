@@ -154,7 +154,14 @@ bool ChildProcess::start(const fs::path& executable, const std::vector<fs::path>
     posix_spawn_file_actions_addclose(&actions, pipeFds[0]);
     posix_spawn_file_actions_addclose(&actions, pipeFds[1]);
     posix_spawn_file_actions_addclose(&actions, log);
-    const int result = posix_spawn(&p.process, executable.c_str(), &actions, nullptr, pointers.data(), environ);
+    posix_spawnattr_t attributes;
+    posix_spawnattr_init(&attributes);
+#if defined(POSIX_SPAWN_CLOEXEC_DEFAULT)
+    posix_spawnattr_setflags(&attributes, POSIX_SPAWN_CLOEXEC_DEFAULT);
+#endif
+    const int result =
+      posix_spawn(&p.process, executable.c_str(), &actions, &attributes, pointers.data(), environ);
+    posix_spawnattr_destroy(&attributes);
     posix_spawn_file_actions_destroy(&actions);
     close(pipeFds[0]);
     close(log);

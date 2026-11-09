@@ -11,18 +11,26 @@
 #include <sstream>
 #include <system_error>
 
+#include "TcpViewerPathText.hpp"
+#include "TcpViewerScreenshot.hpp"
+
 #if defined(_WIN32)
 #include <cstdio>
 #define RAYRAI_POPEN _popen
 #define RAYRAI_PCLOSE _pclose
 #define RAYRAI_PIPE_MODE "wb"
 #else
+#include <fcntl.h>
 #include <sys/wait.h>
 
 #include <csignal>
 #define RAYRAI_POPEN popen
 #define RAYRAI_PCLOSE pclose
+#if defined(__GLIBC__)
+#define RAYRAI_PIPE_MODE "we"
+#else
 #define RAYRAI_PIPE_MODE "w"
+#endif
 #endif
 
 namespace raisin::tcp_viewer
@@ -178,7 +186,7 @@ std::vector<std::string> buildPngSequenceEncodeArguments(
   std::vector<std::string> arguments{
     "-hide_banner",
     "-loglevel", "error",
-    "-y",
+    "-n",
     "-framerate", formatFrameRate(sanitized.framesPerSecond),
     "-start_number", "0",
     "-i", inputPattern.string(),
@@ -223,6 +231,11 @@ std::string buildShellCommand(
     command.push_back(' ');
     command += quote(argument);
   }
+#if defined(_WIN32)
+  // cmd.exe /c strips the first and the last quote of a command line with more
+  // than two quotes, so wrap the command in a pair for it to strip.
+  command = '"' + command + '"';
+#endif
   return command;
 }
 
@@ -295,7 +308,7 @@ bool VideoEncoder::open(const std::filesystem::path& output,
   if (!output.parent_path().empty()) {
     std::filesystem::create_directories(output.parent_path(), ec);
     if (ec) {
-      status = "video recording failed: cannot create " + output.parent_path().string();
+      status = "video recording failed: cannot create " + utf8PathText(output.parent_path());
       return false;
     }
   }
@@ -314,6 +327,9 @@ bool VideoEncoder::open(const std::filesystem::path& output,
     status = "video recording failed: could not start ffmpeg";
     return false;
   }
+#if !defined(_WIN32) && !defined(__GLIBC__)
+  fcntl(fileno(pipe_), F_SETFD, FD_CLOEXEC);
+#endif
 
   path_ = output;
   settings_ = sanitized;
@@ -323,7 +339,7 @@ bool VideoEncoder::open(const std::filesystem::path& output,
   started_ = clock_();
   lastFrame_.clear();
   timed_ = false;
-  status = "recording video to " + output.string();
+  status = "recording video to " + utf8PathText(output);
   return true;
 }
 
@@ -393,7 +409,7 @@ bool VideoEncoder::close(std::string& status) {
     status = "video recording failed: ffmpeg exited with code " + std::to_string(exitCode);
     return false;
   }
-  status = "wrote " + std::to_string(frames) + " frame(s) to " + finished.string();
+  status = "wrote " + std::to_string(frames) + " frame(s) to " + utf8PathText(finished);
   return true;
 }
 
@@ -408,12 +424,12 @@ bool encodePngSequenceToVideo(
   }
   std::error_code ec;
   if (!std::filesystem::is_directory(frameDirectory, ec)) {
-    status = "PNG sequence encode failed: no such directory " + frameDirectory.string();
+    status = "PNG sequence encode failed: no such directory " + utf8PathText(frameDirectory);
     return false;
   }
-  if (!std::filesystem::is_regular_file(frameDirectory / pngSequenceFrameName(framePrefix, 0),
-                                        ec)) {
-    status = "PNG sequence encode failed: " + frameDirectory.string() +
+  if (!std::filesystem::is_regular_file(
+        frameDirectory / raisim::pathFromUtf8(pngSequenceFrameName(framePrefix, 0)), ec)) {
+    status = "PNG sequence encode failed: " + utf8PathText(frameDirectory) +
              " has no frame 0 for prefix " + framePrefix;
     return false;
   }
@@ -424,12 +440,13 @@ bool encodePngSequenceToVideo(
   if (!output.parent_path().empty()) {
     std::filesystem::create_directories(output.parent_path(), ec);
     if (ec) {
-      status = "PNG sequence encode failed: cannot create " + output.parent_path().string();
+      status = "PNG sequence encode failed: cannot create " + utf8PathText(output.parent_path());
       return false;
     }
   }
 
-  const std::filesystem::path pattern = frameDirectory / pngSequenceFramePattern(framePrefix);
+  const std::filesystem::path pattern =
+    frameDirectory / raisim::pathFromUtf8(pngSequenceFramePattern(framePrefix));
   const std::string command = buildShellCommand(
     ffmpeg, buildPngSequenceEncodeArguments(pattern, settings, output));
   const int exitCode = processExitCode(std::system(command.c_str()));
@@ -437,7 +454,42 @@ bool encodePngSequenceToVideo(
     status = "PNG sequence encode failed: ffmpeg exited with code " + std::to_string(exitCode);
     return false;
   }
-  status = "encoded " + output.string();
+  status = "encoded " + utf8PathText(output);
+  return true;
+}
+
+PngSequenceEncodeJob::~PngSequenceEncodeJob() {
+  if (result_.valid()) result_.wait();
+}
+
+bool PngSequenceEncodeJob::start(
+    const std::filesystem::path& frameDirectory, const std::string& framePrefix,
+    const std::filesystem::path& output, const VideoEncoderSettings& settings,
+    std::string& status) {
+  if (running()) {
+    status = "PNG sequence encode already running for " + utf8PathText(output_);
+    return false;
+  }
+  output_ = nextAvailableOutputPath(output);
+  result_ = std::async(std::launch::async, [frameDirectory, framePrefix, output = output_, settings] {
+    std::string result;
+    const bool succeeded = encodePngSequenceToVideo(frameDirectory, framePrefix, output, settings, result);
+    return std::make_pair(succeeded, result);
+  });
+  status = "encoding " + utf8PathText(output_);
+  return true;
+}
+
+bool PngSequenceEncodeJob::running() const {
+  return result_.valid() &&
+         result_.wait_for(std::chrono::seconds(0)) != std::future_status::ready;
+}
+
+bool PngSequenceEncodeJob::poll(bool& succeeded, std::string& status) {
+  if (!result_.valid() || running()) return false;
+  auto result = result_.get();
+  succeeded = result.first;
+  status = std::move(result.second);
   return true;
 }
 

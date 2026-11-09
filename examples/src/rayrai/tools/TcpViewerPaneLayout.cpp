@@ -17,6 +17,8 @@ namespace
 {
 constexpr float kMinSplitRatio = 0.05f;
 constexpr float kMaxSplitRatio = 0.95f;
+constexpr uint32_t kFirstPlaceholderId = 0x80000000u;
+constexpr int kMaxLayoutDepth = 64;
 
 float clampRatio(float ratio) {
   if (!(ratio == ratio)) return 0.5f; // NaN
@@ -261,8 +263,8 @@ std::string PaneLayout::serialize() const {
 
 bool PaneLayout::parseNode(const std::string& text, size_t& pos,
                            std::unordered_map<uint32_t, Node>& nodes, uint32_t parent,
-                           uint32_t& nextId, uint32_t& out) {
-  if (pos >= text.size()) return false;
+                           uint32_t& nextId, uint32_t& out, int depth) {
+  if (pos >= text.size() || depth > kMaxLayoutDepth) return false;
   const char kind = text[pos];
   if (kind == 'L') {
     ++pos;
@@ -270,7 +272,7 @@ bool PaneLayout::parseNode(const std::string& text, size_t& pos,
     while (pos < text.size() && std::isdigit(static_cast<unsigned char>(text[pos]))) ++pos;
     if (pos == start) return false;
     const unsigned long value = std::strtoul(text.substr(start, pos - start).c_str(), nullptr, 10);
-    if (value == 0 || value > 0xffffffffUL) return false;
+    if (value == 0 || value >= kFirstPlaceholderId) return false;
     const auto id = static_cast<uint32_t>(value);
     if (nodes.count(id) != 0) return false; // duplicate pane id
     Node leaf;
@@ -295,7 +297,7 @@ bool PaneLayout::parseNode(const std::string& text, size_t& pos,
   // The split node needs an id before its children so they can point at it, but
   // its id must not collide with a pane id that appears later in the text. Take
   // a placeholder now and renumber once the whole subtree is known.
-  const uint32_t placeholder = 0x80000000u + static_cast<uint32_t>(nodes.size());
+  const uint32_t placeholder = kFirstPlaceholderId + static_cast<uint32_t>(nodes.size());
   Node split;
   split.leaf = false;
   split.orientation = kind == 'H' ? SplitOrientation::Horizontal : SplitOrientation::Vertical;
@@ -304,11 +306,11 @@ bool PaneLayout::parseNode(const std::string& text, size_t& pos,
   nodes.emplace(placeholder, split);
 
   uint32_t firstChild = 0;
-  if (!parseNode(text, pos, nodes, placeholder, nextId, firstChild)) return false;
+  if (!parseNode(text, pos, nodes, placeholder, nextId, firstChild, depth + 1)) return false;
   if (pos >= text.size() || text[pos] != ',') return false;
   ++pos;
   uint32_t secondChild = 0;
-  if (!parseNode(text, pos, nodes, placeholder, nextId, secondChild)) return false;
+  if (!parseNode(text, pos, nodes, placeholder, nextId, secondChild, depth + 1)) return false;
   if (pos >= text.size() || text[pos] != ')') return false;
   ++pos;
 
@@ -324,7 +326,7 @@ bool PaneLayout::deserialize(const std::string& text) {
   uint32_t nextId = 1;
   size_t pos = 0;
   uint32_t root = 0;
-  if (!parseNode(text, pos, parsed, 0, nextId, root)) return false;
+  if (!parseNode(text, pos, parsed, 0, nextId, root, 0)) return false;
   if (pos != text.size()) return false;
 
   // Renumber the placeholder ids handed to split nodes into the shared id space,
@@ -332,7 +334,7 @@ bool PaneLayout::deserialize(const std::string& text) {
   std::unordered_map<uint32_t, uint32_t> remap;
   for (const auto& [id, node] : parsed) {
     (void)node;
-    if (id >= 0x80000000u) remap.emplace(id, nextId++);
+    if (id >= kFirstPlaceholderId) remap.emplace(id, nextId++);
   }
   std::unordered_map<uint32_t, Node> finalNodes;
   finalNodes.reserve(parsed.size());

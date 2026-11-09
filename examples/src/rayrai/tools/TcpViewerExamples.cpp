@@ -115,6 +115,7 @@ struct ExampleLauncher::Impl {
   int port = 0;
   int exitCode = -1;
   Clock::time_point started;
+  Clock::duration startTimeout = kExampleStartTimeout;
 
   fs::path executable(const ServerExample& example) const {
 #if defined(_WIN32)
@@ -215,11 +216,15 @@ void ExampleLauncher::poll(const std::vector<DiscoveredServer>& beacons) {
   const std::string pid = std::to_string(p.process.pid());
   for (const auto& beacon : beacons) {
     const auto id = beacon.metadata.find("pid");
-    if (id == beacon.metadata.end() || id->second != pid) continue;
+    if (id == beacon.metadata.end() || id->second != pid || !isLocalAddress(beacon.endpointHost)) continue;
     p.host = "127.0.0.1";
     p.port = beacon.endpointPort;
     p.state = State::Running;
     return;
+  }
+  if (Clock::now() - p.started > p.startTimeout) {
+    p.process.stop();
+    p.state = State::TimedOut;
   }
 }
 
@@ -261,6 +266,7 @@ struct ExampleLauncher::Impl {
   int exitCode = -1;
   std::string output;
   Clock::time_point started;
+  Clock::duration startTimeout = kExampleStartTimeout;
 };
 
 ExampleLauncher::ExampleLauncher(const fs::path&) : impl_(std::make_unique<Impl>()) {
@@ -341,12 +347,21 @@ void ExampleLauncher::poll(const std::vector<DiscoveredServer>&) {
   } else if (state == "running" && port > 0) {
     p.port = port;
     p.state = State::Running;
+  } else if (p.state == State::Starting && Clock::now() - p.started > p.startTimeout) {
+    p.output = takeText(pageExampleOutput(p.id));
+    pageStopExample(p.id);
+    p.id = 0;
+    p.state = State::TimedOut;
   }
 }
 
 #endif
 
 bool ExampleLauncher::active() const { return state() == State::Starting || state() == State::Running; }
+
+void ExampleLauncher::setStartTimeout(Clock::duration timeout) { impl_->startTimeout = timeout; }
+
+Clock::duration ExampleLauncher::startTimeout() const { return impl_->startTimeout; }
 
 bool ExampleLauncher::conflictsWith(const std::string& host, int port,
                                     const std::vector<DiscoveredServer>& beacons) const {

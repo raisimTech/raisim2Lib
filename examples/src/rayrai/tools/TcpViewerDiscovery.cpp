@@ -205,7 +205,12 @@ class DiscoveryBeaconReceiver::Impl {
       return false;
     }
 #else
+#if defined(SOCK_CLOEXEC)
+    socketFd_ = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+#else
     socketFd_ = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socketFd_ >= 0) fcntl(socketFd_, F_SETFD, FD_CLOEXEC);
+#endif
     if (socketFd_ < 0) {
       status = std::string("LAN beacon listener unavailable: ") + std::strerror(errno);
       return false;

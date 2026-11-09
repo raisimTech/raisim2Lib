@@ -342,6 +342,34 @@ function(create_fem_workbench_example)
     if(_has_fem)
         create_rayrai_executable(rayrai_fem_workbench src/rayrai/fem/rayrai_fem_workbench.cpp)
         target_compile_features(rayrai_fem_workbench PRIVATE cxx_std_20)
+        if(NOT EMSCRIPTEN)
+            set(RAISIM_FEM_MESHER_EXECUTABLE "" CACHE FILEPATH "Use an existing native RaiSim FEM mesher")
+            if(NOT TARGET raisim::fem_mesher AND RAISIM_FEM_MESHER_EXECUTABLE)
+                if(NOT EXISTS "${RAISIM_FEM_MESHER_EXECUTABLE}")
+                    message(FATAL_ERROR "RAISIM_FEM_MESHER_EXECUTABLE does not exist")
+                endif()
+                add_executable(raisim::fem_mesher IMPORTED GLOBAL)
+                set_target_properties(raisim::fem_mesher PROPERTIES
+                    IMPORTED_LOCATION "${RAISIM_FEM_MESHER_EXECUTABLE}")
+            endif()
+            set(_mesher_source "${CMAKE_CURRENT_SOURCE_DIR}/../../raisim/cmake/RaisimFemMesher.cmake")
+            if(NOT TARGET raisim::fem_mesher AND EXISTS "${_mesher_source}")
+                enable_language(C)
+                include("${_mesher_source}")
+            endif()
+            if(NOT TARGET raisim::fem_mesher)
+                message(FATAL_ERROR "The FEM workbench requires a RaiSim SDK built with RAISIM_BUILD_FEM_MESHER=ON, or RAISIM_FEM_MESHER_EXECUTABLE")
+            endif()
+            add_custom_command(TARGET rayrai_fem_workbench POST_BUILD
+                COMMAND "${CMAKE_COMMAND}"
+                    "-DMESHER=$<TARGET_FILE:raisim::fem_mesher>"
+                    "-DDESTINATION=$<TARGET_FILE_DIR:rayrai_fem_workbench>/fem-mesher"
+                    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/copy_fem_mesher_runtime.cmake" VERBATIM)
+            set_property(TARGET rayrai_fem_workbench APPEND PROPERTY LINK_DEPENDS
+                "$<TARGET_FILE:raisim::fem_mesher>"
+                "${CMAKE_CURRENT_SOURCE_DIR}/cmake/copy_fem_mesher_runtime.cmake")
+            add_dependencies(rayrai_fem_workbench raisim::fem_mesher)
+        endif()
         if(BUILD_TESTING)
             add_test(NAME rayrai_fem_workbench.model COMMAND rayrai_fem_workbench --self-test)
             set_tests_properties(rayrai_fem_workbench.model PROPERTIES LABELS "rayrai;fem" RUN_SERIAL TRUE)

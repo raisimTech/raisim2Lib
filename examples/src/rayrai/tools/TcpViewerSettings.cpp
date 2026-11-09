@@ -794,12 +794,9 @@ EM_JS(int, pageStoreViewerSettings, (const char* text), {
 void readViewerSettings(std::istream& input, ViewerSettings& settings) {
   std::string line;
   while (std::getline(input, line)) {
-    for (size_t i = 0; i < line.size(); ++i) {
-      if (line[i] == '#' && (i == 0 || line[i - 1] == ' ' ||
-                             line[i - 1] == '\t')) {
-        line.resize(i);
-        break;
-      }
+    const size_t first = line.find_first_not_of(" \t");
+    if (first == std::string::npos || line[first] == '#') {
+      continue;
     }
     const auto sep = line.find(':');
     if (sep == std::string::npos) {

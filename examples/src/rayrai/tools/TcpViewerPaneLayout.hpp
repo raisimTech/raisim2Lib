@@ -118,7 +118,8 @@ class PaneLayout
 
   /**
    * @brief Replace the layout with the tree encoded by @p text.
-   * @return False when @p text does not parse, leaving the layout unchanged.
+   * @return False when @p text does not parse, leaving the layout unchanged. Pane ids
+   *   must be below 0x80000000 and splits may nest at most 64 deep.
    */
   bool deserialize(const std::string& text);
 
@@ -142,7 +143,7 @@ class PaneLayout
   [[nodiscard]] uint32_t firstPaneOf(uint32_t node) const;
   static bool parseNode(const std::string& text, size_t& pos,
                         std::unordered_map<uint32_t, Node>& nodes, uint32_t parent,
-                        uint32_t& nextId, uint32_t& out);
+                        uint32_t& nextId, uint32_t& out, int depth);
 
   std::unordered_map<uint32_t, Node> nodes_;
   uint32_t root_ = 0;

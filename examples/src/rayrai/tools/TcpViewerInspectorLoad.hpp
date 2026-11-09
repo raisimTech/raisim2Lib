@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "raisim/object/ArticulatedSystem/JointAndBodies.hpp"
+
 namespace raisim {
 class ArticulatedSystem;
 class Object;
@@ -27,4 +29,20 @@ struct InspectorModel {
 // RaiSim with a fatal error, throws std::exception and leaves the world without
 // any object of the load.
 InspectorModel loadInspectorModel(raisim::World& world, const std::string& path);
+
+// A movable joint of an inspected model, as its pose slider edits it.
+struct InspectorJoint {
+  std::string name;
+  raisim::Joint::Type type = raisim::Joint::Type::FIXED;
+  int gcOffset = 0;       // start index into the ArticulatedSystem GC vector
+  int gcDim = 0;          // 1 (revolute/prismatic) / 4 (spherical) / 7 (floating)
+  double minLimit = 0.0;  // for revolute/prismatic
+  double maxLimit = 0.0;
+  bool hasLimits = false;
+};
+
+// The movable joints of `system` in joint order, with their generalized-coordinate ranges and
+// the position limits of the revolute and prismatic ones (getJointLimits() is indexed by
+// generalized velocity).
+std::vector<InspectorJoint> inspectorJoints(const raisim::ArticulatedSystem& system);
 } // namespace raisin::tcp_viewer

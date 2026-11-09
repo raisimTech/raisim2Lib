@@ -13,18 +13,22 @@
 #include <filesystem>
 #include <fstream>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <locale>
 #include <memory>
 #include <numeric>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "example_resources.hpp"
 #include "fem_workbench_import.hpp"
 #include "fem_workbench_model.hpp"
+#include "fem_workbench_view.hpp"
 #include "raisim/World.hpp"
+#include "raisim/fem/MeshResolution.hpp"
 #include "rayrai/AssimpMeshLoader.hpp"
 #include "rayrai/example_common.hpp"
 
@@ -62,9 +66,14 @@ struct Workbench {
   std::shared_ptr<raisin::Visuals> solid;
   std::vector<Vertex> vertices;
   std::unique_ptr<fem_workbench::MeshJob> meshJob;
+  fem_workbench::GeometrySource pendingSource;
+  bool previewJob = false, pendingGmsh = false;
+  double pendingEdge = 0., pendingTolerance = 0., surfaceTolerance = 0.,
+         actualMaximumEdge = 0.;
   std::string importName,
       message = "Select a surface, add supports and loads, then Solve.";
-  std::array<char, 2048> file{}, project{}, exportPath{}, gmsh{};
+  std::array<char, 2048> file{}, project{}, exportPath{}, gmsh{},
+      nativeMesher{};
   double importScale = 1., elementSize = .05, pendingScale = 1.,
          deformation = 100., colorMin = 0., colorMax = 1.;
   double boundsMin[3]{}, boundsMax[3]{};
@@ -73,14 +82,15 @@ struct Workbench {
   Vec<3> cylinderCenter{0., 0., 0.}, cylinderAxis{0., 0., 1.};
   double cylinderRadius = .05, cylinderMinimum = -1., cylinderMaximum = 1.;
   bool autoSolve = false, autoRange = true, edges = false, undeformed = false,
-       visualDirty = true, append = false;
+       visualDirty = true, append = false, externalGmsh = false;
   ImVec2 boxStart{};
   bool selectingBox = false;
   glm::mat4 screenMatrix{1.f};
   float sidebarWidth = 380.f;
 
   Workbench() {
-    std::snprintf(gmsh.data(), gmsh.size(), "%s", "gmsh");
+    const auto executable = fem_workbench::defaultGmshExecutable();
+    std::snprintf(gmsh.data(), gmsh.size(), "%s", executable.c_str());
     std::snprintf(project.data(), project.size(), "%s", "analysis.rfem");
     std::snprintf(exportPath.data(), exportPath.size(), "%s", "analysis.vtk");
   }
@@ -93,7 +103,7 @@ struct Workbench {
     }
   }
   void fit() {
-    const auto& x = model.solver->mesh().vertices;
+    const auto& x = model.mesh().vertices;
     for (int a = 0; a < 3; ++a) {
       boundsMin[a] = boundsMax[a] = x[0][a];
       for (const auto& p : x) {
@@ -107,10 +117,7 @@ struct Workbench {
                          float(boundsMax[2])};
     auto& cam = viewer->getCamera();
     const float extent = std::max(glm::length(high - low), .001f);
-    cam.target = .5f * (low + high);
-    cam.position = cam.target + extent * glm::vec3(1.1f, -1.45f, .85f);
-    cam.yaw = 126.f;
-    cam.pitch = -25.f;
+    fem_workbench::frameMeshCamera(cam, low, high);
     plane = boundsMin[planeAxis];
     tolerance = extent * .001;
     cylinderCenter = {(boundsMin[0] + boundsMax[0]) * .5,
@@ -122,16 +129,49 @@ struct Workbench {
     cylinderMinimum = -extent;
     cylinderMaximum = extent;
   }
-  void replaceVisual() {
+  void replaceVisual(bool frame = true) {
     if (solid) {
       viewer->removeVisualObject("fem_solid");
       solid.reset();
     }
     vertices.clear();
+    actualMaximumEdge = 0.;
+    if (model.solver) {
+      double squared = 0.;
+      for (const auto& cell : model.mesh().tetrahedra)
+        for (size_t a = 0; a < 4; ++a)
+          for (size_t b = 0; b < a; ++b)
+            squared = std::max(squared, (model.mesh().vertices[cell[a]].e() -
+                                         model.mesh().vertices[cell[b]].e())
+                                            .squaredNorm());
+      actualMaximumEdge = std::sqrt(squared);
+    }
     visualDirty = true;
-    fit();
+    if (frame) {
+      fit();
+      if (!(model.source.referenceExtent > 0.))
+        model.source.referenceExtent =
+            std::hypot(boundsMax[0] - boundsMin[0], boundsMax[1] - boundsMin[1],
+                       boundsMax[2] - boundsMin[2]);
+    }
   }
-  void solve() {
+  double effectiveTolerance() const {
+    if (model.source.volume) return 0.;
+    if (surfaceTolerance > 0.) return surfaceTolerance;
+    return std::min(elementSize * .01, model.source.referenceExtent * .001);
+  }
+  bool needsMesh() const {
+    return !model.solver || model.source.meshedEdge != elementSize ||
+           model.source.meshedTolerance != effectiveTolerance() ||
+           model.source.meshedExternalGmsh !=
+               (externalGmsh && !model.source.volume);
+  }
+  void syncSettings() {
+    model.source.maximumEdge = elementSize;
+    model.source.surfaceTolerance = surfaceTolerance;
+    model.source.externalGmsh = externalGmsh;
+  }
+  void finishSolve() {
     model.solve();
     visualDirty = true;
     const auto& s = model.solver->statistics();
@@ -145,33 +185,133 @@ struct Workbench {
         s.relativeResidual);
     message = text;
   }
+  void solve() {
+    if (meshJob)
+      throw std::runtime_error(previewJob
+                                   ? "Wait for the geometry to load"
+                                   : "Volume meshing is already running");
+    if (!model.hasGeometry()) throw std::runtime_error("Open a solid first");
+    if (!(elementSize > 0.) || !std::isfinite(elementSize) ||
+        surfaceTolerance < 0. || !std::isfinite(surfaceTolerance))
+      throw std::runtime_error(
+          "Element size must be positive; surface tolerance must be finite and "
+          "nonnegative");
+    syncSettings();
+    if (!needsMesh()) {
+      finishSolve();
+      return;
+    }
+    auto job = std::make_unique<fem_workbench::MeshJob>();
+    pendingSource = model.source;
+    if (pendingSource.bytes.empty() && !pendingSource.volume) {
+      if (model.solver)
+        pendingSource.volume = std::make_shared<TetMesh>(model.mesh());
+      else {
+        fem_workbench::SurfaceGeometry surface;
+        surface.mesh.vertices = model.mesh().vertices;
+        surface.faces = model.boundaryFaces();
+        surface.parts = model.faceParts();
+        pendingSource.bytes = surface.encode();
+        pendingSource.extension = ".rfs";
+        pendingSource.scale = 1.;
+      }
+      model.source = pendingSource;
+    }
+    std::string ext = pendingSource.volume ? ".rvm" : pendingSource.extension;
+    auto bytes = pendingSource.volume
+                     ? fem_workbench::encodeVolume(*pendingSource.volume)
+                     : pendingSource.bytes;
+    if (externalGmsh && ext == ".rfs") {
+      const auto surface = fem_workbench::SurfaceGeometry::decode(bytes);
+      if (*std::max_element(surface.parts.begin(), surface.parts.end()) > 1)
+        throw std::runtime_error(
+            "Use the built-in mesher for separate surface parts, or import a "
+            "STEP assembly for Gmsh");
+      std::ostringstream stl;
+      stl.imbue(std::locale::classic());
+      stl << std::setprecision(17) << "solid source\n";
+      for (const auto& face : surface.faces) {
+        stl << "facet normal 0 0 0\nouter loop\n";
+        for (const auto v : face.vertices) {
+          const auto& p = surface.mesh.vertices[v];
+          stl << "vertex " << p[0] << ' ' << p[1] << ' ' << p[2] << '\n';
+        }
+        stl << "endloop\nendfacet\n";
+      }
+      stl << "endsolid source\n";
+      bytes = stl.str();
+      ext = ".stl";
+    }
+    std::ofstream output(job->directory / ("source" + ext), std::ios::binary);
+    output.write(bytes.data(), std::streamsize(bytes.size()));
+    output.close();
+    if (!output) throw std::runtime_error("Cannot prepare source geometry");
+    pendingEdge = elementSize;
+    pendingTolerance = effectiveTolerance();
+    const bool gmshJob = externalGmsh && !pendingSource.volume;
+    pendingGmsh = gmshJob;
+    job->start(gmshJob ? gmsh.data() : nativeMesher.data(), ext,
+               pendingEdge / pendingSource.scale,
+               gmshJob ? fem_workbench::MesherBackend::Gmsh
+                       : fem_workbench::MesherBackend::Native,
+               pendingTolerance / pendingSource.scale);
+    previewJob = false;
+    meshJob = std::move(job);
+    model.changed();
+    visualDirty = true;
+    message =
+        "Meshing at the current resolution; supports and loads will be "
+        "retained...";
+  }
   void demo() {
+    meshJob.reset();
     model.demo();
+    elementSize = .06;
+    surfaceTolerance = 0.;
     edited = 1;
     replaceVisual();
+    model.source.volume = std::make_shared<TetMesh>(model.mesh());
+    syncSettings();
+    model.source.meshedEdge = elementSize;
+    model.source.meshedTolerance = effectiveTolerance();
     message = "Demo solved. Change the tip force to reuse the factorization.";
   }
   void import(const std::string& path) {
-    if (meshJob)
-      throw std::runtime_error(
-          "Finish or cancel the current mesh import first");
     if (!std::isfinite(importScale) || importScale <= 0.)
       throw std::runtime_error(
           "Import scale must be positive (metres per file unit)");
     const auto ext = extension(path);
+    const auto title = raisim::pathUtf8(raisim::pathFromUtf8(path).filename());
     if (ext == ".rfem") {
-      model.loadProject(path);
+      Model next;
+#if defined(__EMSCRIPTEN__)
+      next.loadProject(path, false);
+#else
+      next.loadProject(path);
+#endif
+      meshJob.reset();
+      model = std::move(next);
+      elementSize = model.source.maximumEdge;
+      surfaceTolerance = model.source.surfaceTolerance;
+      externalGmsh = model.source.externalGmsh;
       edited = -1;
       replaceVisual();
-      message = "Project loaded; ready to solve.";
+      if (model.solver && !model.source.volume && model.source.bytes.empty())
+        model.source.volume = std::make_shared<TetMesh>(model.mesh());
+      message = "Project loaded. Solve uses its current meshing settings.";
       return;
     }
     if (ext == ".msh" || ext == ".mesh" || ext == ".vtk") {
-      model.setMesh(TetMesh::load(path, importScale),
-                    raisim::pathUtf8(raisim::pathFromUtf8(path).filename()));
+      auto mesh = TetMesh::load(path, importScale);
+      meshJob.reset();
+      model.setMesh(std::move(mesh), title);
+      model.source.volume = std::make_shared<TetMesh>(model.mesh());
+      syncSettings();
       edited = -1;
       replaceVisual();
-      message = "Volume imported. Select supports and loads.";
+      message =
+          "Volume displayed. Solve refines to the selected maximum edge; "
+          "existing regions and interfaces are retained.";
       return;
     }
     const bool cad = ext == ".step" || ext == ".stp" || ext == ".brep" ||
@@ -179,58 +319,142 @@ struct Workbench {
     if (!cad && ext != ".stl" && ext != ".obj" && ext != ".ply" &&
         ext != ".glb" && ext != ".gltf" && ext != ".dae")
       throw std::runtime_error(
-          "Supported: .msh .mesh .vtk .rfem; watertight .stl .obj .ply .glb "
-          ".gltf .dae; CAD .step .stp .brep .iges "
-          ".igs");
-    auto job = std::make_unique<fem_workbench::MeshJob>();
-    std::string mesherExtension = ext;
-    if (cad || ext == ".stl") {
-      std::filesystem::copy_file(raisim::pathFromUtf8(path),
-                                 job->directory / ("source" + ext));
-    } else {
-      const auto meshes = raisin::assimp::loadModel(path);
-      if (!meshes || meshes->empty())
-        throw std::runtime_error("Surface import produced no triangles");
-      std::ofstream stl(job->directory / "source.stl");
-      stl.imbue(std::locale::classic());
-      stl.precision(9);
-      stl << "solid model\n";
-      for (const auto& mesh : *meshes)
-        for (size_t i = 0; i + 2 < mesh->indices.size(); i += 3) {
-          stl << "facet normal 0 0 0\nouter loop\n";
-          for (size_t j = 0; j < 3; ++j) {
-            const auto& p = mesh->vertices.at(mesh->indices[i + j]).Position;
-            stl << "vertex " << p.x << ' ' << p.y << ' ' << p.z << '\n';
-          }
-          stl << "endloop\nendfacet\n";
-        }
-      stl << "endsolid model\n";
-      stl.close();
-      if (!stl) throw std::runtime_error("Cannot prepare surface for meshing");
-      mesherExtension = ".stl";
+          "Supported: .msh .mesh .vtk .rfem; .stl .obj .ply .glb .gltf .dae; "
+          "CAD .step .stp .brep .iges .igs");
+    if (cad) {
+      const auto size = std::filesystem::file_size(raisim::pathFromUtf8(path));
+      if (size > 128u * 1024u * 1024u)
+        throw std::runtime_error("CAD file exceeds 128 MB");
+      std::ifstream input(raisim::pathFromUtf8(path), std::ios::binary);
+      fem_workbench::GeometrySource source;
+      source.extension = ext;
+      source.scale = ext == ".brep" ? importScale : 1.;
+      source.maximumEdge = elementSize;
+      source.surfaceTolerance = surfaceTolerance;
+      source.bytes.assign(std::istreambuf_iterator<char>(input), {});
+      if (source.bytes.size() != size)
+        throw std::runtime_error("Cannot read CAD file");
+      auto job = std::make_unique<fem_workbench::MeshJob>();
+      std::ofstream out(job->directory / ("source" + ext), std::ios::binary);
+      out.write(source.bytes.data(), std::streamsize(source.bytes.size()));
+      out.close();
+      if (!out) throw std::runtime_error("Cannot prepare CAD preview");
+      meshJob.reset();
+      job->start(nativeMesher.data(), ext, 1.,
+                 fem_workbench::MesherBackend::Native,
+                 source.surfaceTolerance / source.scale, true);
+      pendingSource = std::move(source);
+      previewJob = true;
+      meshJob = std::move(job);
+      importName = title;
+      message = "Reading CAD surfaces for display...";
+      return;
     }
-    job->start(gmsh.data(), mesherExtension,
-               elementSize / (cad ? 1. : importScale));
-    meshJob = std::move(job);
-    pendingScale = cad ? 1. : importScale;
-    importName = raisim::pathUtf8(raisim::pathFromUtf8(path).filename());
-#if defined(__EMSCRIPTEN__)
-    message = "Generating volume tetrahedra in a browser worker...";
-#else
-    message = "Generating volume tetrahedra with Gmsh...";
-#endif
+    const auto meshes = raisin::assimp::loadModel(path);
+    if (!meshes || meshes->empty())
+      throw std::runtime_error("Surface import produced no triangles");
+    fem_workbench::SurfaceGeometry surface;
+    for (const auto& mesh : *meshes) {
+      const auto offset = unsigned(surface.mesh.vertices.size());
+      for (const auto& v : mesh->vertices)
+        surface.mesh.vertices.push_back({double(v.Position.x) * importScale,
+                                         double(v.Position.y) * importScale,
+                                         double(v.Position.z) * importScale});
+      for (size_t f = 0; f + 2 < mesh->indices.size(); f += 3) {
+        surface.faces.push_back(
+            {{offset + mesh->indices[f], offset + mesh->indices[f + 1],
+              offset + mesh->indices[f + 2]},
+             0});
+        surface.parts.push_back(1);
+      }
+    }
+    surface.normalize();
+    const auto bytes = surface.encode();
+    meshJob.reset();
+    model.setSurface(std::move(surface), title);
+    model.source.extension = ".rfs";
+    model.source.bytes = bytes;
+    model.source.scale = 1.;
+    syncSettings();
+    edited = -1;
+    replaceVisual();
+    message =
+        "Surface displayed. Define supports and loads, set resolution, then "
+        "Solve.";
   }
   void pollMesh() {
     if (!meshJob || !meshJob->poll()) return;
     auto job = std::move(meshJob);
-    auto mesh = job->result(pendingScale);
-    model.setMesh(std::move(mesh), importName);
-    edited = -1;
-    replaceVisual();
-    message = "Solid meshed. Select supports and loads.";
+    if (previewJob) {
+      auto surface = job->surfaceResult(pendingSource.scale);
+      model.setSurface(std::move(surface), importName);
+      model.source = std::move(pendingSource);
+      edited = -1;
+      replaceVisual();
+      model.source.recordPreviewAccuracy();
+      syncSettings();
+      message =
+          "CAD displayed. Define supports and loads, set resolution, then "
+          "Solve.";
+      return;
+    }
+    if (elementSize != pendingEdge ||
+        effectiveTolerance() != pendingTolerance ||
+        pendingGmsh != (externalGmsh && !pendingSource.volume)) {
+      message =
+          "Meshing settings changed. Press Solve to generate the new "
+          "resolution.";
+      return;
+    }
+    auto volume = job->result(pendingSource.scale);
+    if (pendingGmsh)
+      volume = raisim::fem::refineToMaximumEdge(std::move(volume), pendingEdge);
+    const double diagonal =
+        std::hypot(boundsMax[0] - boundsMin[0], boundsMax[1] - boundsMin[1],
+                   boundsMax[2] - boundsMin[2]);
+    const double mappingTolerance =
+        std::max({diagonal * 1e-8, pendingTolerance * 4.,
+                  model.source.meshedTolerance * 4.,
+                  model.source.previewTolerance * 2.});
+    model.setMeshed(std::move(volume), mappingTolerance, pendingTolerance);
+    model.source.meshedEdge = pendingEdge;
+    model.source.meshedTolerance = pendingTolerance;
+    model.source.meshedExternalGmsh = pendingGmsh;
+    replaceVisual(false);
+    finishSolve();
   }
   void pollBrowserErrors() {
 #if defined(__EMSCRIPTEN__)
+    if (EM_ASM_INT({ return !!globalThis['raisimFemSolveRequest']; })) {
+      const bool configureOnly = EM_ASM_INT(
+          { return !!globalThis['raisimFemSolveRequest']['configureOnly']; });
+      double settings[2]{elementSize, surfaceTolerance};
+      EM_ASM(
+          {
+            const request = globalThis['raisimFemSolveRequest'];
+            if (typeof request['maximumEdge'] != 'undefined')
+              HEAPF64[$0 / 8] = Number(request['maximumEdge']);
+            if (typeof request['surfaceTolerance'] != 'undefined')
+              HEAPF64[$0 / 8 + 1] = Number(request['surfaceTolerance']);
+            delete globalThis['raisimFemSolveRequest'];
+          },
+          settings);
+      if (!(settings[0] > 0.) || !std::isfinite(settings[0]) ||
+          settings[1] < 0. || !std::isfinite(settings[1])) {
+        message =
+            "Maximum edge must be positive and surface tolerance must be "
+            "nonnegative and finite";
+        return;
+      }
+      elementSize = settings[0];
+      surfaceTolerance = settings[1];
+      if (configureOnly) {
+        syncSettings();
+        model.changed();
+        visualDirty = true;
+      } else
+        attempt([&] { solve(); });
+    }
     const int size = EM_ASM_INT({
       const error = globalThis['raisimFemError'];
       return error ? new TextEncoder().encode(error).length : 0;
@@ -248,10 +472,19 @@ struct Workbench {
     }
     EM_ASM(
         {
-          if (globalThis['raisimFemState'])
-            globalThis['raisimFemState']['message'] = UTF8ToString($0);
+          if (globalThis['raisimFemState']) {
+            const state = globalThis['raisimFemState'];
+            state['message'] = UTF8ToString($0);
+            state['meshing'] = !!$1;
+            state['preview'] = !!$2;
+            state['requestedEdge'] = $3;
+            state['meshedEdge'] = $4;
+            state['surfaceTolerance'] = $5;
+            state['actualMaximumEdge'] = $6;
+          }
         },
-        message.c_str());
+        message.c_str(), int(bool(meshJob)), int(!model.solver), elementSize,
+        model.source.meshedEdge, effectiveTolerance(), actualMaximumEdge);
 #endif
   }
   double scalar(size_t element) const {
@@ -260,7 +493,7 @@ struct Workbench {
     if (field == 0) return r.vonMises;
     if (field == 1) {
       double sum = 0.;
-      for (const auto v : model.solver->mesh().tetrahedra[element])
+      for (const auto v : model.mesh().tetrahedra[element])
         sum += .25 * model.solver->displacements()[v].e().norm();
       return sum;
     }
@@ -270,20 +503,20 @@ struct Workbench {
     return r.strain[field - 10];
   }
   glm::vec3 position(unsigned int node, bool deformed = true) const {
-    auto p = vector(model.solver->mesh().vertices[node]);
+    auto p = vector(model.mesh().vertices[node]);
     if (deformed && model.hasSolution)
       p += float(deformation) * vector(model.solver->displacements()[node]);
     return p;
   }
   void updateVisual() {
-    if (!visualDirty || !model.solver) return;
+    if (!visualDirty || !model.hasGeometry()) return;
     if (!std::isfinite(deformation) ||
         !autoRange && (!std::isfinite(colorMin) || !std::isfinite(colorMax) ||
                        colorMax <= colorMin))
       throw std::runtime_error(
           "Display scale and color limits must be finite; maximum must exceed "
           "minimum");
-    const auto& faces = model.solver->boundaryFaces();
+    const auto& faces = model.boundaryFaces();
     if (autoRange) {
       colorMin = std::numeric_limits<double>::infinity();
       colorMax = -colorMin;
@@ -327,18 +560,18 @@ struct Workbench {
       raisin::Material appearance;
       appearance.useVertexColorAsAlbedo = true;
       appearance.roughnessFactor = 1.f;
-      appearance.unlit = true;
+      appearance.unlit = false;
       solid->setMaterialOverride(appearance);
     } else if (!solid->updateSingleMeshVertices(vertices))
       throw std::runtime_error("Cannot update FEM surface buffer");
     visualDirty = false;
 #if defined(__EMSCRIPTEN__)
-    auto regions = model.solver->mesh().regions;
+    auto regions = model.faceParts();
     std::sort(regions.begin(), regions.end());
     regions.erase(std::unique(regions.begin(), regions.end()), regions.end());
     EM_ASM(
         {
-          const state = {};
+          const state = globalThis['raisimFemState'] || {};
           state['name'] = UTF8ToString($0);
           state['nodes'] = $1;
           state['tetrahedra'] = $2;
@@ -349,7 +582,7 @@ struct Workbench {
           globalThis['raisimFemState'] = state;
         },
         model.name.c_str(), model.selected.size(),
-        model.solver->mesh().tetrahedra.size(), model.hasSolution,
+        model.mesh().tetrahedra.size(), model.hasSolution,
         model.hasSolution ? model.solver->statistics().relativeResidual : 0.,
         model.hasSolution ? model.solver->statistics().strainEnergy : 0.,
         regions.size());
@@ -414,7 +647,7 @@ struct Workbench {
   void input(const ExampleApp::Viewport& vp) {
     screenMatrix = viewProjection();
     if (!vp.hovered || ImGui::GetIO().MousePos.x < sidebarWidth + 20.f ||
-        !model.solver)
+        !model.hasGeometry())
       return;
     const bool add = append || ImGui::GetIO().KeyShift;
     if (selectionMode == 3) {
@@ -441,12 +674,12 @@ struct Workbench {
       selectFace(pick(vp), selectionMode == 2, add);
   }
   void overlays(const ExampleApp::Viewport& vp) {
-    if (!model.solver) return;
+    if (!model.hasGeometry()) return;
     screenMatrix = viewProjection();
     auto* draw = ImGui::GetForegroundDrawList();
     draw->PushClipRect(ImVec2(sidebarWidth + 25.f, 60.f),
                        ImVec2(vp.size.x - 15.f, vp.size.y - 74.f), true);
-    const auto& faces = model.solver->boundaryFaces();
+    const auto& faces = model.boundaryFaces();
     if (edges && faces.size() <= 18000)
       for (size_t f = 0; f < faces.size(); ++f) {
         ImVec2 p[3];
@@ -526,6 +759,10 @@ struct Workbench {
   }
   bool editFixture(Condition& c) {
     bool changed = false;
+    if (c.faces.empty() && !c.nodes.empty())
+      ImGui::TextWrapped(
+          "Point selection: remeshing keeps these locations. Select a surface "
+          "for a continuous support.");
     if (c.kind == Kind::Directional || c.kind == Kind::Slider ||
         c.kind == Kind::Bearing || c.kind == Kind::BoltHole ||
         c.kind == Kind::Spring) {
@@ -678,7 +915,12 @@ struct Workbench {
       ImGui::InputText("##source", file.data(), file.size());
 #endif
       ImGui::InputDouble("Metres / file unit", &importScale, 0., 0., "%.6g");
-      ImGui::InputDouble("Element size (m)", &elementSize, 0., 0., "%.5g");
+      if (ImGui::InputDouble("Max element edge (m)", &elementSize, 0., 0.,
+                             "%.5g")) {
+        syncSettings();
+        model.changed();
+        visualDirty = true;
+      }
       if (ImGui::Button("Import", ImVec2(90, 0)))
         attempt([&] {
 #if defined(__EMSCRIPTEN__)
@@ -690,6 +932,19 @@ struct Workbench {
       ImGui::SameLine();
       if (ImGui::Button("Demo beam")) attempt([&] { demo(); });
       if (ImGui::TreeNode("Mesher / file formats")) {
+        ImGui::BeginDisabled(bool(model.source.volume));
+        if (ImGui::InputDouble("Surface error, 0 = auto (m)", &surfaceTolerance,
+                               0., 0., "%.5g")) {
+          syncSettings();
+          model.changed();
+          visualDirty = true;
+        }
+        ImGui::EndDisabled();
+        if (!model.source.volume)
+          ImGui::TextDisabled("Surface tolerance: %.4g m",
+                              effectiveTolerance());
+        else
+          ImGui::TextDisabled("Existing volume geometry is retained.");
 #if defined(__EMSCRIPTEN__)
         ImGui::TextWrapped(
             "Open MSH, MESH, VTK, RFEM, or watertight STL/OBJ/PLY/glTF/DAE "
@@ -697,31 +952,56 @@ struct Workbench {
             "fTetWild (MPL-2.0). Include companion files when importing glTF "
             "or OBJ.");
 #else
-        ImGui::SetNextItemWidth(-1);
-        ImGui::InputText("##gmsh", gmsh.data(), gmsh.size());
         ImGui::TextWrapped(
-            "Gmsh is required for watertight STL/OBJ/PLY/glTF/DAE and "
-            "STEP/BREP/IGES. Native tetrahedral MSH, MESH and "
-            "VTK files open directly.");
+            "Opening a file displays its geometry. Solve generates tetrahedra "
+            "at the maximum edge setting. Open CASCADE "
+            "reads solid STEP/BREP/IGES files. Each CAD solid becomes a "
+            "separate region. Set metres per unit for BREP and surface files. "
+            "Imported volumes retain their region interfaces and refine to the "
+            "requested maximum edge.");
+        if (ImGui::Checkbox("Use external Gmsh", &externalGmsh)) {
+          syncSettings();
+          model.changed();
+          visualDirty = true;
+        }
+        ImGui::SetNextItemWidth(-1);
+        if (externalGmsh)
+          ImGui::InputText("##gmsh", gmsh.data(), gmsh.size());
+        else
+          ImGui::InputText("##nativeMesher", nativeMesher.data(),
+                           nativeMesher.size());
 #endif
         ImGui::TreePop();
       }
       if (meshJob) {
-        ImGui::TextColored(ImVec4(1.f, .8f, .3f, 1.f), "Meshing solid...");
+        ImGui::TextColored(
+            ImVec4(1.f, .8f, .3f, 1.f),
+            previewJob ? "Reading CAD..." : "Meshing for solve...");
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) {
           meshJob.reset();
-          message = "Import cancelled.";
+          message =
+              previewJob
+                  ? "CAD import cancelled."
+                  : "Meshing cancelled; geometry and conditions retained.";
         }
       }
     }
-    if (!model.solver) {
+    if (!model.hasGeometry()) {
       ImGui::PopItemWidth();
       ImGui::End();
       return;
     }
-    ImGui::TextDisabled("%zu nodes   %zu tetrahedra", model.selected.size(),
-                        model.solver->mesh().tetrahedra.size());
+    ImGui::TextDisabled("%zu nodes   %zu triangles   %zu tetrahedra",
+                        model.selected.size(), model.boundaryFaces().size(),
+                        model.mesh().tetrahedra.size());
+    if (model.solver)
+      ImGui::TextDisabled("Mesh maximum edge: %.5g m", actualMaximumEdge);
+    if (!model.solver)
+      ImGui::TextWrapped(
+          "Geometry preview. Volume meshing starts when you press Solve.");
+    else if (needsMesh())
+      ImGui::TextWrapped("Resolution changed. Solve will rebuild the mesh.");
     if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
       double gpa = model.material.youngsModulus / 1e9;
       if (ImGui::InputDouble("Young's modulus (GPa)", &gpa, 0., 0., "%.4g")) {
@@ -907,6 +1187,7 @@ struct Workbench {
       ImGui::InputText("Project", project.data(), project.size());
       if (ImGui::Button("Save project"))
         attempt([&] {
+          syncSettings();
           model.save(project.data());
           download(project.data());
           message = "Project saved.";
@@ -1001,6 +1282,41 @@ struct Workbench {
 };
 
 bool selfTest() {
+  raisin::Camera camera;
+  for (const float scale : {1e-4f, 1.f, 100.f}) {
+    const glm::vec3 low =
+        scale < .01f ? glm::vec3(0.f) : glm::vec3(3.f, -2.f, 1.f);
+    const glm::vec3 high = low + scale * glm::vec3(1.f, 2.f, 3.f);
+    const auto center = low + .5f * (high - low);
+    fem_workbench::frameMeshCamera(camera, low, high);
+    if (!camera.isCameraFixedTarget() || !camera.isCameraFixedDistance() ||
+        glm::length(camera.getTargetPosition() - center) > 1e-5f)
+      return false;
+    const float distance = glm::distance(camera.position, center);
+    for (const float angle : {0.f, 30.f, -90.f}) {
+      camera.mouseDelta(angle, 5.f);
+      camera.update(false);
+      const auto projected = camera.getProjectionMatrix() *
+                             camera.getViewMatrix() * glm::vec4(center, 1.f);
+      if (std::abs(projected.x / projected.w) > 1e-4f ||
+          std::abs(projected.y / projected.w) > 1e-4f ||
+          std::abs(glm::distance(camera.position, center) - distance) >
+              1e-4f * distance)
+        return false;
+    }
+    camera.moveForward(-8.f);
+    camera.update(false);
+    if (!(glm::distance(camera.position, center) < distance * .3f))
+      return false;
+    camera.moveForward(30.f);
+    camera.update(false);
+    fem_workbench::updateMeshCameraClipping(camera);
+    const auto clipped = camera.getProjectionMatrix() * camera.getViewMatrix() *
+                         glm::vec4(center, 1.f);
+    if (clipped.z / clipped.w < -1.f || clipped.z / clipped.w > 1.f ||
+        glm::length(camera.getTargetPosition() - center) > 1e-5f)
+      return false;
+  }
   Model model;
   model.demo();
   const auto first = model.solver->displacements();
@@ -1021,7 +1337,7 @@ bool selfTest() {
   if (restored.conditions.size() != 2) return false;
   restored.solver->writeVtk(raisim::pathUtf8(temp.directory / "case.vtk"));
   return TetMesh::load(raisim::pathUtf8(temp.directory / "case.vtk"))
-             .tetrahedra.size() == model.solver->mesh().tetrahedra.size();
+             .tetrahedra.size() == model.mesh().tetrahedra.size();
 }
 void capture(const std::string& path, SDL_Window* window) {
 #if !defined(__EMSCRIPTEN__)
@@ -1099,15 +1415,23 @@ int main(int argc, char** argv) {
   int exitCode = 0;
   {
     Workbench workbench;
+    const auto nativeMesher =
+        fem_workbench::defaultNativeMesherExecutable(argv[0]);
+    std::snprintf(workbench.nativeMesher.data(), workbench.nativeMesher.size(),
+                  "%s", nativeMesher.c_str());
     workbench.viewer = std::make_shared<raisin::RayraiWindow>(
         std::make_shared<raisim::World>(), width, height);
-    workbench.viewer->setRenderQualitySettings(
-        raisin::RayraiWindow::defaultRenderQualitySettings(
-            raisin::RayraiWindow::RenderQualityPreset::Balanced));
+    auto quality = raisin::RayraiWindow::defaultRenderQualitySettings(
+        raisin::RayraiWindow::RenderQualityPreset::Balanced);
+    quality.mainLightDirection = glm::normalize(glm::vec3(-.35f, .55f, -1.f));
+    quality.mainLightAmbient = glm::vec3(.28f);
+    quality.mainLightDiffuse = glm::vec3(.95f);
+    quality.mainLightSpecular = glm::vec3(.02f);
+    quality.pbrEnvironmentIntensity = .12f;
+    quality.addViewerFillLights = false;
+    workbench.viewer->setRenderQualitySettings(quality);
     workbench.viewer->setBackgroundColorLinear(
         glm::vec4(.025f, .035f, .055f, 1.f));
-    if (const char* gmsh = std::getenv("RAISIM_FEM_GMSH"))
-      std::snprintf(workbench.gmsh.data(), workbench.gmsh.size(), "%s", gmsh);
     workbench.attempt([&] { workbench.demo(); });
     if (!input.empty()) workbench.attempt([&] { workbench.import(input); });
     if (!drop.empty()) {
@@ -1165,10 +1489,11 @@ int main(int argc, char** argv) {
       }
       app.beginFrame();
       workbench.panel();
-      if (workbench.autoSolve && workbench.model.dirty &&
-          !ImGui::IsAnyItemActive())
+      if (workbench.autoSolve && !workbench.meshJob && !workbench.needsMesh() &&
+          workbench.model.dirty && !ImGui::IsAnyItemActive())
         workbench.attempt([&] { workbench.solve(); });
       workbench.attempt([&] { workbench.updateVisual(); });
+      fem_workbench::updateMeshCameraClipping(workbench.viewer->getCamera());
       auto viewport = app.beginViewport();
       workbench.input(viewport);
       if (ImGui::GetIO().MousePos.x < workbench.sidebarWidth + 25.f)
@@ -1176,6 +1501,25 @@ int main(int argc, char** argv) {
       app.endViewport(*workbench.viewer, viewport, workbench.selectionMode == 0,
                       false);
       workbench.overlays(viewport);
+#if defined(__EMSCRIPTEN__)
+      const auto& camera = workbench.viewer->getCamera();
+      const auto center = camera.getTargetPosition();
+      const auto projection = workbench.viewProjection();
+      EM_ASM(
+          {
+            const state = globalThis['raisimFemState'];
+            if (state) {
+              state['frame'] = $3;
+              state['orbitCenter'] =
+                  Array.from(HEAPF32.subarray($0 / 4, $0 / 4 + 3));
+              state['cameraPosition'] =
+                  Array.from(HEAPF32.subarray($1 / 4, $1 / 4 + 3));
+              state['viewProjection'] =
+                  Array.from(HEAPF32.subarray($2 / 4, $2 / 4 + 16));
+            }
+          },
+          &center.x, &camera.position.x, &projection[0][0], frame);
+#endif
       ++frame;
       const bool finished =
           maxFrames > 0 && frame >= maxFrames && !workbench.meshJob;

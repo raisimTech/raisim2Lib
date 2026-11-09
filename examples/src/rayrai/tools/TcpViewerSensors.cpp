@@ -39,8 +39,11 @@ void configureCamera(Camera& camera, const PendingSensorUpdate& update) {
   const auto& info = update.info;
   camera.ensureRenderTargets(info.width, info.height);
   camera.aspect = static_cast<float>(info.width) / static_cast<float>(info.height);
-  camera.nearPlane = camera.zNear = static_cast<float>(std::max(1.0e-4, info.clipNear));
-  camera.farPlane = camera.zFar = static_cast<float>(std::max(info.clipFar, info.clipNear + 1.0e-3));
+  camera.nearPlane = camera.zNear =
+    static_cast<float>(sensorRenderNearClip(info.clipNear, info.clipFar));
+  camera.farPlane = camera.zFar = static_cast<float>(info.clipFar);
+  camera.setImageWindowOffset(glm::vec2(static_cast<float>(info.xOffset) / static_cast<float>(info.width),
+                                        static_cast<float>(info.yOffset) / static_cast<float>(info.height)));
   camera.setLensModel(info.lens, info.hFov);
   const double rasterHFov = info.lens.isFisheye() ? std::min(info.hFov, 3.124139361) : info.hFov;
   camera.zoom = glm::degrees(static_cast<float>(
@@ -74,6 +77,8 @@ Properties sensorCameraProperties(const SensorInfo& info) {
   properties.clipFar = info.clipFar;
   properties.hFOV = info.hFov;
   properties.lens = info.lens;
+  properties.xOffset = info.xOffset;
+  properties.yOffset = info.yOffset;
   return properties;
 }
 
@@ -85,7 +90,9 @@ Properties sensorCameraProperties(const SensorInfo& info) {
 template <typename SensorType, typename Properties>
 SensorType& readbackSensor(std::unique_ptr<SensorType>& sensor, const SensorInfo& info) {
   if (!sensor || sensor->getProperties().width != info.width ||
-      sensor->getProperties().height != info.height) {
+      sensor->getProperties().height != info.height ||
+      sensor->getProperties().xOffset != info.xOffset ||
+      sensor->getProperties().yOffset != info.yOffset) {
     raisim::Vec<3> position;
     position.setZero();
     raisim::Mat<3, 3> rotation;
@@ -775,7 +782,8 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
   // are filtered, and the server can continue serving scene frames.
   updates.erase(std::remove_if(updates.begin(), updates.end(),
       [](const PendingSensorUpdate& update) {
-        return !validSensorDimensions(update.info.width, update.info.height);
+        return !validSensorDimensions(update.info.width, update.info.height) ||
+               !validSensorClipRange(update.info.clipNear, update.info.clipFar);
       }), updates.end());
   RayraiWindow::RenderOverrides overrides;
   overrides.doShadows = true;
@@ -813,6 +821,7 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
       cached->camera->getRawImage(sensor, Camera::SensorStorageMode::CUSTOM_BUFFER,
         reinterpret_cast<char*>(update.colorBgra.data()), update.colorBgra.size(), true);
       cached->preview.texture = cached->camera->getFinalTexture();
+      cached->preview.topRowFirst = false;
     } else if (info.type == raisim::Sensor::Type::SEGMENTATION) {
       cached->camera->ensureSegmentationRenderTarget();
       viewer.renderSegmentation(*cached->camera, true, true);
@@ -826,6 +835,7 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
         instances ? update.bodies.data() : nullptr, labels ? update.labels.data() : nullptr, pixels);
       uploadSegmentationPreview(cached->previewTexture, update, cached->previewRgba);
       cached->preview.texture = cached->previewTexture.texture;
+      cached->preview.topRowFirst = true;
     } else {
       cached->camera->ensureLinearDepthRenderTarget();
       // TCP physical geometry is marked detectable when RemoteScene reconstructs
@@ -847,6 +857,7 @@ bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdat
         *cached->depthShading, cached->previewRgba, cached->preview.minimumDepth,
         cached->preview.maximumDepth);
       cached->preview.texture = cached->previewTexture.texture;
+      cached->preview.topRowFirst = true;
     }
     update.renderMilliseconds = std::chrono::duration<double, std::milli>(
       std::chrono::steady_clock::now() - started).count();

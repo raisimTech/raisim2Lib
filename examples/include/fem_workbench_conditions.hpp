@@ -2,6 +2,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <memory>
 #include <vector>
 
 #include "raisim/fem/LinearElasticity.hpp"
@@ -46,6 +47,7 @@ inline const char* kindName(Kind kind) {
                                    "Bonded surface tie"};
   return names[static_cast<int>(kind)];
 }
+struct SelectionAnchor;
 struct Condition {
   std::string name;
   Kind kind = Kind::Fixed;
@@ -59,6 +61,7 @@ struct Condition {
   LinearElasticity::BoltProperties bolt;
   std::vector<unsigned int> targetNodes;
   std::vector<size_t> targetFaces;
+  std::shared_ptr<const SelectionAnchor> primaryGeometry, targetGeometry;
 };
 
 }  // namespace fem_workbench

@@ -20,30 +20,60 @@ class SurfaceProjection {
   };
   SurfaceProjection(const LinearElasticity& solver,
                     const std::vector<size_t>& faces)
-      : solver_(solver), faces_(faces) {
+      : SurfaceProjection(solver.mesh(), solver.boundaryFaces(), faces) {}
+  SurfaceProjection(const raisim::fem::TetMesh& mesh,
+                    const std::vector<LinearElasticity::BoundaryFace>& boundary,
+                    const std::vector<size_t>& faces)
+      : mesh_(mesh), boundary_(boundary), faces_(faces) {
     order_.resize(faces.size());
     std::iota(order_.begin(), order_.end(), 0u);
     if (!order_.empty()) build(0, order_.size());
   }
   Result project(unsigned int node) const {
+    return project(mesh_.vertices.at(node).e());
+  }
+  Result project(const Eigen::Vector3d& point,
+                 const Eigen::Vector3d* direction = nullptr) const {
     Result result;
-    if (!tree_.empty()) query(0, solver_.mesh().vertices.at(node).e(), result);
+    if (!tree_.empty()) query(0, point, result, direction);
+    return result;
+  }
+
+  std::vector<size_t> overlapping(const Eigen::Vector3d& low,
+                                  const Eigen::Vector3d& high) const {
+    std::vector<size_t> result;
+    if (!tree_.empty()) overlap(0, low, high, result);
     return result;
   }
 
  private:
+  void overlap(int index, const Eigen::Vector3d& low,
+               const Eigen::Vector3d& high, std::vector<size_t>& result) const {
+    const auto& n = tree_[index];
+    if ((n.low.array() > high.array()).any() ||
+        (n.high.array() < low.array()).any())
+      return;
+    if (n.left < 0) {
+      for (size_t i = n.begin; i < n.end; ++i)
+        result.push_back(faces_[order_[i]]);
+    } else {
+      overlap(n.left, low, high, result);
+      overlap(n.right, low, high, result);
+    }
+  }
   struct Node {
     Eigen::Vector3d low, high;
     size_t begin, end;
     int left = -1, right = -1;
   };
-  const LinearElasticity& solver_;
+  const raisim::fem::TetMesh& mesh_;
+  const std::vector<LinearElasticity::BoundaryFace>& boundary_;
   const std::vector<size_t>& faces_;
   std::vector<size_t> order_;
   std::vector<Node> tree_;
   Eigen::Vector3d center(size_t i) const {
-    const auto& ids = solver_.boundaryFaces().at(faces_[i]).vertices;
-    const auto& x = solver_.mesh().vertices;
+    const auto& ids = boundary_.at(faces_[i]).vertices;
+    const auto& x = mesh_.vertices;
     return x[ids[0]].e() +
            ((x[ids[1]].e() - x[ids[0]].e()) + (x[ids[2]].e() - x[ids[0]].e())) /
                3.;
@@ -55,10 +85,9 @@ class SurfaceProjection {
     node.low.setConstant(std::numeric_limits<double>::infinity());
     node.high = -node.low;
     for (size_t i = begin; i < end; ++i)
-      for (const auto v :
-           solver_.boundaryFaces().at(faces_[order_[i]]).vertices) {
-        node.low = node.low.cwiseMin(solver_.mesh().vertices[v].e());
-        node.high = node.high.cwiseMax(solver_.mesh().vertices[v].e());
+      for (const auto v : boundary_.at(faces_[order_[i]]).vertices) {
+        node.low = node.low.cwiseMin(mesh_.vertices[v].e());
+        node.high = node.high.cwiseMax(mesh_.vertices[v].e());
       }
     const int index = static_cast<int>(tree_.size());
     tree_.push_back(node);
@@ -80,10 +109,10 @@ class SurfaceProjection {
     const auto& node = tree_[index];
     return (node.low - p).cwiseMax(p - node.high).cwiseMax(0.).squaredNorm();
   }
-  void triangle(size_t index, const Eigen::Vector3d& point,
-                Result& best) const {
-    const auto& ids = solver_.boundaryFaces().at(faces_[index]).vertices;
-    const auto& x = solver_.mesh().vertices;
+  void triangle(size_t index, const Eigen::Vector3d& point, Result& best,
+                const Eigen::Vector3d* direction) const {
+    const auto& ids = boundary_.at(faces_[index]).vertices;
+    const auto& x = mesh_.vertices;
     const Eigen::Vector3d a = x[ids[0]].e(), e0 = x[ids[1]].e() - a,
                           e1 = x[ids[2]].e() - a;
     const Eigen::Vector3d normal = e0.cross(e1), offset = point - a;
@@ -91,6 +120,8 @@ class SurfaceProjection {
     if (!(denominator > 0.) || !std::isfinite(denominator))
       throw std::runtime_error(
           "Tie surface is degenerate or outside floating-point range");
+    if (direction && normal.dot(*direction) <= .5 * std::sqrt(denominator))
+      return;
     const double u = offset.dot(e1.cross(normal)) / denominator,
                  v = offset.dot(normal.cross(e0)) / denominator;
     const auto candidate = [&](const Eigen::Vector3d& weights) {
@@ -114,18 +145,19 @@ class SurfaceProjection {
       candidate(weights);
     }
   }
-  void query(int index, const Eigen::Vector3d& point, Result& best) const {
+  void query(int index, const Eigen::Vector3d& point, Result& best,
+             const Eigen::Vector3d* direction) const {
     if (distance(index, point) > best.distance) return;
     const auto& node = tree_[index];
     if (node.left < 0) {
       for (size_t i = node.begin; i < node.end; ++i)
-        triangle(order_[i], point, best);
+        triangle(order_[i], point, best, direction);
       return;
     }
     const bool leftFirst =
         distance(node.left, point) <= distance(node.right, point);
-    query(leftFirst ? node.left : node.right, point, best);
-    query(leftFirst ? node.right : node.left, point, best);
+    query(leftFirst ? node.left : node.right, point, best, direction);
+    query(leftFirst ? node.right : node.left, point, best, direction);
   }
 };
 }  // namespace fem_workbench

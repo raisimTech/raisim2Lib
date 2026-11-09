@@ -7,7 +7,9 @@
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
+#include <future>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace raisin
@@ -59,7 +61,12 @@ std::vector<std::string> buildPngSequenceEncodeArguments(
   const std::filesystem::path& inputPattern, const VideoEncoderSettings& settings,
   const std::filesystem::path& output);
 
-/** Quote @p arguments into a command line that popen()/system() can run. */
+/**
+ * @brief Quote @p arguments into a command line that popen()/system() can run.
+ *
+ * On Windows the line is wrapped in one more pair of quotes, which cmd.exe /c
+ * strips before it runs the command.
+ */
 std::string buildShellCommand(
   const std::string& executable, const std::vector<std::string>& arguments);
 
@@ -138,12 +145,51 @@ class VideoEncoder
  * @brief Encode a directory of numbered PNG frames into a video file.
  *
  * Complements the live encoder: an interrupted recording, or one made before
- * ffmpeg was installed, can still be turned into a playable file.
+ * ffmpeg was installed, can still be turned into a playable file. ffmpeg never
+ * replaces an existing @p output: the encode fails instead.
  */
 bool encodePngSequenceToVideo(
   const std::filesystem::path& frameDirectory, const std::string& framePrefix,
   const std::filesystem::path& output, const VideoEncoderSettings& settings,
   std::string& status);
+
+/**
+ * @brief Runs encodePngSequenceToVideo() on a worker thread, so the viewer keeps
+ * drawing while ffmpeg encodes.
+ *
+ * Destroying a job waits for its encode to finish.
+ */
+class PngSequenceEncodeJob
+{
+ public:
+  PngSequenceEncodeJob() = default;
+  PngSequenceEncodeJob(const PngSequenceEncodeJob&) = delete;
+  PngSequenceEncodeJob& operator=(const PngSequenceEncodeJob&) = delete;
+  ~PngSequenceEncodeJob();
+
+  /**
+   * @brief Start encoding into @p output, or into the next free name next to it
+   * (nextAvailableOutputPath()) when that file exists.
+   * @return False (with @p status set) while another encode of this job runs.
+   */
+  bool start(const std::filesystem::path& frameDirectory, const std::string& framePrefix,
+             const std::filesystem::path& output, const VideoEncoderSettings& settings,
+             std::string& status);
+  /** True while an encode runs. */
+  bool running() const;
+  /** The file the running or last encode writes. */
+  const std::filesystem::path& output() const { return output_; }
+  /**
+   * @brief Take the result of a finished encode, once.
+   * @return True when an encode finished since the last call; @p succeeded and
+   *   @p status then hold its result.
+   */
+  bool poll(bool& succeeded, std::string& status);
+
+ private:
+  std::future<std::pair<bool, std::string>> result_;
+  std::filesystem::path output_;
+};
 
 } // namespace tcp_viewer
 } // namespace raisin

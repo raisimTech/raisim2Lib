@@ -1,9 +1,11 @@
 // Copyright (c) 2026 Raion Robotics Inc. All rights reserved.
 #include "TcpViewerSimulation.hpp"
+#include "TcpViewerPathText.hpp"
 #include "TcpViewerProcess.hpp"
 #include "tinyxml_rai/tinyxml_rai.h"
 #include <chrono>
 #include <fstream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -46,9 +48,9 @@ std::string readFailure(const fs::path& directory) {
 DroppedSceneKind classifyDroppedScene(const fs::path& path, std::string& error) {
   error.clear();
   std::error_code ec;
-  if (!fs::is_regular_file(path, ec)) { error = "File not found: " + path.string(); return DroppedSceneKind::Invalid; }
+  if (!fs::is_regular_file(path, ec)) { error = "File not found: " + utf8PathText(path); return DroppedSceneKind::Invalid; }
   const std::string root = xmlRootElement(path);
-  if (root.empty()) { error = "Cannot read scene XML: " + path.string(); return DroppedSceneKind::Invalid; }
+  if (root.empty()) { error = "Cannot read scene XML: " + utf8PathText(path); return DroppedSceneKind::Invalid; }
   if (root == "raisim") return DroppedSceneKind::World;
   if (root == "robot" || root == "mujoco") return DroppedSceneKind::Robot;
   error = "Expected a RaiSim world, URDF robot, or MJCF model";
@@ -56,8 +58,12 @@ DroppedSceneKind classifyDroppedScene(const fs::path& path, std::string& error) 
 }
 
 std::string xmlRootElement(const fs::path& path) {
-  raisim::TiXmlDocument doc(path.string().c_str());
-  if (!doc.LoadFile() || !doc.RootElement()) return {};
+  std::ifstream file(path, std::ios::binary);
+  if (!file) return {};
+  const std::string text{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+  raisim::TiXmlDocument doc;
+  doc.Parse(text.c_str());
+  if (doc.Error() || !doc.RootElement()) return {};
   return doc.RootElement()->Value();
 }
 

@@ -5,7 +5,9 @@
 #include <functional>
 #include <stdexcept>
 
+#include "raisim/PathUtils.hpp"
 #include "raisim/World.hpp"
+#include "raisim/object/ArticulatedSystem/ArticulatedSystem.hpp"
 #include "raisim/raisim_message_logger.hpp"
 #include "TcpViewerSimulation.hpp"
 
@@ -13,7 +15,7 @@ namespace raisin::tcp_viewer {
 
 InspectorModel loadInspectorModel(raisim::World& world, const std::string& path) {
   InspectorModel model;
-  model.mjcf = xmlRootElement(path) == "mujoco";
+  model.mjcf = xmlRootElement(raisim::pathFromUtf8(path)) == "mujoco";
   std::vector<raisim::Object*> before(world.getObjList().begin(), world.getObjList().end());
   std::sort(before.begin(), before.end(), std::less<>());
   const auto added = [&] {
@@ -60,6 +62,43 @@ InspectorModel loadInspectorModel(raisim::World& world, const std::string& path)
   for (raisim::Object* object : objects)
     if (object != model.system) model.sideObjects.push_back(object);
   return model;
+}
+
+std::vector<InspectorJoint> inspectorJoints(const raisim::ArticulatedSystem& system) {
+  std::vector<InspectorJoint> joints;
+  const auto& movableNames = system.getMovableJointNames();
+  const auto& jointLimits = system.getJointLimits();
+  int gcCursor = 0;
+  int gvCursor = 0;
+  size_t movableNameIdx = 0;
+  for (size_t j = 0; j < system.getNumberOfJoints(); ++j) {
+    const raisim::Joint::Type type = system.getJointType(j);
+    int gcDim = 0;
+    int gvDim = 0;
+    switch (type) {
+      case raisim::Joint::Type::FIXED: break;
+      case raisim::Joint::Type::REVOLUTE:
+      case raisim::Joint::Type::PRISMATIC: gcDim = gvDim = 1; break;
+      case raisim::Joint::Type::SPHERICAL: gcDim = 4; gvDim = 3; break;
+      case raisim::Joint::Type::FLOATING: gcDim = 7; gvDim = 6; break;
+    }
+    if (type == raisim::Joint::Type::FIXED) continue;
+    InspectorJoint info;
+    info.type = type;
+    info.gcOffset = gcCursor;
+    info.gcDim = gcDim;
+    info.name = movableNameIdx < movableNames.size() ? movableNames[movableNameIdx++]
+                                                     : "joint_" + std::to_string(j);
+    if (gcDim == 1 && static_cast<size_t>(gvCursor) < jointLimits.size()) {
+      info.minLimit = jointLimits[static_cast<size_t>(gvCursor)][0];
+      info.maxLimit = jointLimits[static_cast<size_t>(gvCursor)][1];
+      info.hasLimits = info.maxLimit > info.minLimit;
+    }
+    joints.push_back(std::move(info));
+    gcCursor += gcDim;
+    gvCursor += gvDim;
+  }
+  return joints;
 }
 
 } // namespace raisin::tcp_viewer

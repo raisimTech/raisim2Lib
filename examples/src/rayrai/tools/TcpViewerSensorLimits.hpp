@@ -17,6 +17,19 @@ inline bool isCameraSensor(raisim::Sensor::Type type) {
          type == raisim::Sensor::Type::SEGMENTATION;
 }
 
+/// Near plane a camera with this clip range renders with, the rule of rayrai's Camera: a clipNear
+/// of 0 (at most 1e-6 m) renders with clipFar * 1e-4.
+inline double sensorRenderNearClip(double clipNear, double clipFar) {
+  return clipNear > 1.0e-6 ? clipNear : clipFar * 1.0e-4;
+}
+
+/// @return True when a camera with this clip range can render: its near plane (see
+///   sensorRenderNearClip()) exceeds 1e-6 m and lies before clipFar.
+inline bool validSensorClipRange(double clipNear, double clipFar) {
+  const double nearClip = sensorRenderNearClip(clipNear, clipFar);
+  return nearClip > 1.0e-6 && clipFar > nearClip;
+}
+
 inline bool validSensorDimensions(int width, int height) {
   constexpr int kMaxSide = 8192;
   constexpr int64_t kMaxPixels = 8 * 1024 * 1024;

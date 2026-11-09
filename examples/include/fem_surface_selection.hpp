@@ -13,13 +13,17 @@ namespace fem_workbench {
 enum class SurfaceSelection { Triangle, Planar, Smooth };
 class SurfaceSelector {
  public:
-  explicit SurfaceSelector(const LinearElasticity& solver) : solver_(solver) {}
+  explicit SurfaceSelector(const LinearElasticity& solver)
+      : SurfaceSelector(solver.mesh(), solver.boundaryFaces()) {}
+  SurfaceSelector(const raisim::fem::TetMesh& mesh,
+                  const std::vector<LinearElasticity::BoundaryFace>& faces)
+      : mesh_(mesh), faces_(faces) {}
   std::vector<size_t> collect(size_t seed, SurfaceSelection mode) {
-    const auto& faces = solver_.boundaryFaces();
+    const auto& faces = faces_;
     (void)faces.at(seed);
     if (mode == SurfaceSelection::Triangle) return {seed};
     if (neighbors_.empty()) build();
-    const auto& x = solver_.mesh().vertices;
+    const auto& x = mesh_.vertices;
     const Eigen::Vector3d origin = x[faces[seed].vertices[0]].e();
     std::vector<unsigned char> visited(faces.size(), 0);
     std::vector<size_t> pending{seed}, result;
@@ -48,7 +52,8 @@ class SurfaceSelector {
   }
 
  private:
-  const LinearElasticity& solver_;
+  const raisim::fem::TetMesh& mesh_;
+  const std::vector<LinearElasticity::BoundaryFace>& faces_;
   std::vector<std::vector<size_t>> neighbors_;
   std::vector<Eigen::Vector3d> normals_;
   double extent_ = 0.;
@@ -58,8 +63,8 @@ class SurfaceSelector {
       size_t face;
     };
     std::vector<Edge> edges;
-    const auto& faces = solver_.boundaryFaces();
-    const auto& x = solver_.mesh().vertices;
+    const auto& faces = faces_;
+    const auto& x = mesh_.vertices;
     neighbors_.resize(faces.size());
     normals_.resize(faces.size());
     edges.reserve(3 * faces.size());

@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 
+#include "raisim/PathUtils.hpp"
 #include "rayrai/RaisimTcpCommon.hpp"
 #include "rayrai/RayraiWindow.hpp"
 #include "rayrai/Visuals.hpp"
@@ -37,7 +38,10 @@ ViewerSceneFiles::ViewerSceneFiles(std::filesystem::path cacheRoot)
   : sync_(syncOptions(std::move(cacheRoot))) {}
 
 void ViewerSceneFiles::setResourceDirs(const std::vector<std::string>& dirs) {
-  sync_.setResourceDirs({dirs.begin(), dirs.end()});
+  std::vector<std::filesystem::path> paths;
+  paths.reserve(dirs.size());
+  for (const auto& dir : dirs) paths.push_back(raisim::pathFromUtf8(dir));
+  sync_.setResourceDirs(std::move(paths));
 }
 
 void ViewerSceneFiles::reset(RayraiWindow& viewer, RemoteScene& scene) {
