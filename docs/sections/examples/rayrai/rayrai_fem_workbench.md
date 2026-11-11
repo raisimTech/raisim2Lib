@@ -262,6 +262,17 @@ flip, edit or remove a mate, and removing one leaves the parts where they are.
   other part moves instead.
 - Projects save positions, fixed parts and mates.
 
+## Quick supports and loads
+
+Clicking a face of one part opens a small toolbar beside the pointer with the
+supports and loads that fit it: **Fixed** and **Roller** for a plane, **Fixed**,
+**Bearing** and **Bolt hole** for a cylinder (their axis and centre are fitted
+to the faces), **Fixed** and **Ball** for a sphere, and **Force** and
+**Pressure**. A button applies the condition to the selected faces and opens it
+in the **Loads** tab to set its values; **...** opens the tab with every support
+and load, and the cross closes the toolbar. Ctrl/Shift+click adds faces first.
+Selecting faces on two parts shows the connection toolbar instead.
+
 ## Connecting parts
 
 Parts are separate bodies until they are connected. Selecting faces on two parts

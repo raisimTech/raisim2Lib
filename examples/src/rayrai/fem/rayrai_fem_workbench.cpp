@@ -159,6 +159,14 @@ bool axisInput(const char* label, double* value, int axis,
   axisBar(axis);
   return changed;
 }
+/// An integer input whose -/+ step buttons are centered, as the workbench
+/// aligns button text to the left.
+bool stepInput(const char* label, int* value, int step = 1) {
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(.5f, .5f));
+  const bool changed = ImGui::InputInt(label, value, step);
+  ImGui::PopStyleVar();
+  return changed;
+}
 bool axisButton(const char* label, int axis) {
   pushBarPadding();
   const bool pressed = ImGui::Button(label);
@@ -481,6 +489,8 @@ struct Workbench {
   bool quickDismissed = false, quickMore = false, quickMoveSecond = false,
        quickMoreMates = false;
   std::vector<fem_workbench::MateType> quickTypes;
+  fem_workbench::FaceShape::Type quickShape = fem_workbench::FaceShape::Type::Other;
+  size_t quickPartCount = 0;
   int quickHovered = -1;
   std::string quickHoverError, quickAdded;
   std::vector<fem_workbench::Pose> quickAddedMotions;
@@ -3329,7 +3339,7 @@ struct Workbench {
         ImGui::TreeNode(withIcon(kIconSliders, "Refinement").c_str())) {
       bool changed =
           ImGui::InputDouble("Target error (%)", &targetError, 0., 0., "%.3g");
-      changed |= ImGui::InputInt("Refinement steps", &refinementSteps);
+      changed |= stepInput("Refinement steps", &refinementSteps);
       changed |= ImGui::InputDouble("Minimum edge, 0 = none (m)",
                                     &minimumEdge, 0., 0., "%.5g");
       changed |= ImGui::InputInt("Element limit", &elementLimit, 0);
@@ -4049,6 +4059,94 @@ struct Workbench {
       closeEditor();
     });
   }
+  static const char* fixtureName(Kind kind) {
+    switch (kind) {
+      case Kind::Fixed:
+        return "Fixed";
+      case Kind::Roller:
+        return "Roller";
+      case Kind::Bearing:
+        return "Bearing";
+      case Kind::BoltHole:
+        return "Bolt hole";
+      case Kind::Ball:
+        return "Ball";
+      case Kind::Force:
+        return "Force";
+      case Kind::Pressure:
+        return "Pressure";
+      default:
+        return fem_workbench::kindName(kind);
+    }
+  }
+  /// Supports and loads that fit the faces selected on one part, beside the
+  /// pointer, like the quick connection toolbar for two parts.
+  void quickFixtures(const ImVec2& display) {
+    using Shape = fem_workbench::FaceShape::Type;
+    ImGui::SetNextWindowPos(
+        ImVec2(std::max(sidebarWidth + 8.f,
+                        std::min(quickAnchor.x + 18.f,
+                                 display.x - quickSize.x - 8.f)),
+               std::max(8.f, std::min(quickAnchor.y + 18.f,
+                                      display.y - quickSize.y - 8.f))));
+    ImGui::SetNextWindowBgAlpha(.95f);
+    ImGui::Begin("Quick fixture", nullptr,
+                 ImGuiWindowFlags_NoDecoration |
+                     ImGuiWindowFlags_AlwaysAutoResize |
+                     ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing);
+    const auto* part = model.findPart(model.faceParts()[quickFaces.front()]);
+    constexpr const char* kShapes[] = {"Faces", "Plane", "Cylinder", "Sphere"};
+    const size_t surfaces = surfaceCount(quickFaces);
+    ImGui::TextDisabled("%s%s%s, %zu face%s",
+                        part && model.parts.size() > 1 ? part->name.c_str() : "",
+                        part && model.parts.size() > 1 ? " - " : "",
+                        kShapes[static_cast<int>(quickShape)], surfaces,
+                        surfaces == 1 ? "" : "s");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(kIconCancel)) quickDismissed = true;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Close");
+    std::vector<Kind> supports{Kind::Fixed};
+    if (quickShape == Shape::Plane) supports.push_back(Kind::Roller);
+    if (quickShape == Shape::Cylinder) {
+      supports.push_back(Kind::Bearing);
+      supports.push_back(Kind::BoltHole);
+    }
+    if (quickShape == Shape::Sphere) supports.push_back(Kind::Ball);
+    std::optional<Kind> chosen;
+    const auto row = [&](const char* title, const std::vector<Kind>& kinds,
+                         ImVec4 color) {
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextColored(color, "%s", title);
+      for (const auto kind : kinds) {
+        ImGui::SameLine(kinds.front() == kind ? 70.f : 0.f);
+        if (ImGui::Button(
+                (withIcon(kindIcon(kind), fixtureName(kind)) + "##quickfix")
+                    .c_str()))
+          chosen = kind;
+        if (ImGui::IsItemHovered()) fem_workbench::conditionTooltip(kind);
+      }
+    };
+    row("Support", supports, ImVec4(.45f, .9f, .6f, 1.f));
+    row("Load", {Kind::Force, Kind::Pressure}, ImVec4(.95f, .55f, .95f, 1.f));
+    ImGui::SameLine();
+    if (ImGui::Button((std::string(kIconDots) + "##morefixtures").c_str()))
+      requestedTab = kLoadsTab;
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("All supports and loads in the Loads tab");
+    quickSize = ImGui::GetWindowSize();
+    ImGui::End();
+    if (!chosen) return;
+    if (*chosen == Kind::Bearing || *chosen == Kind::BoltHole)
+      attempt([&] {
+        const auto shape = model.faceShape(quickFaces, mateTolerance());
+        cylinderAxis.e() = shape.direction;
+        cylinderCenter.e() = shape.point;
+      });
+    addCondition(*chosen);
+    requestedTab = kLoadsTab;
+  }
   void quickMates(const ImVec2& display) {
     const auto clearHover = [&]() {
       if (quickHovered >= 0) setPreview({});
@@ -4095,6 +4193,10 @@ struct Workbench {
       quickA.clear();
       quickB.clear();
       quickTypes.clear();
+      quickPartCount = parts.size();
+      quickShape = parts.size() == 1
+                       ? model.faceShape(quickFaces, mateTolerance()).type
+                       : fem_workbench::FaceShape::Type::Other;
       clearHover();
       if (reselected) {
         quickDismissed = quickMore = quickMoreMates = quickMoveSecond = false;
@@ -4118,7 +4220,16 @@ struct Workbench {
                                      mateTolerance());
       }
     }
-    if (quickA.empty() || quickB.empty() || quickDismissed) {
+    if (quickDismissed) {
+      clearHover();
+      return;
+    }
+    if (quickPartCount == 1 && shownTab != kConnectTab) {
+      clearHover();
+      quickFixtures(display);
+      return;
+    }
+    if (quickA.empty() || quickB.empty()) {
       clearHover();
       return;
     }
@@ -4480,7 +4591,7 @@ struct Workbench {
       ImGui::SeparatorText("Contours");
       if (ImGui::Checkbox("Smooth (node-averaged)", &smoothContours))
         visualDirty = true;
-      if (ImGui::InputInt("Color bands, 0 = continuous", &bands)) {
+      if (stepInput("Color bands, 0 = continuous", &bands)) {
         bands = std::clamp(bands, 0, 64);
         visualDirty = true;
       }
