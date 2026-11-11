@@ -54,9 +54,16 @@ Shape gradients and volumes are computed once. The solver assembles the lower
 triangle of the sparse stiffness using analytical 3×3 element blocks, eliminates
 prescribed degrees of freedom exactly, equilibrates the reduced matrix, and
 uses sparse LDLT for small models and bolt connectors. At 5,000 free degrees of
-freedom, models without bolts automatically use incomplete-Cholesky-preconditioned
-conjugate gradients (ICCG), including directional fixtures, multipoint constraints
-and elastic foundations. Axis-aligned fixture equations use Cartesian elimination.
+freedom, models without bolts automatically use conjugate gradients preconditioned
+by smoothed-aggregation algebraic multigrid (multigrid CG), including directional
+fixtures, multipoint constraints and elastic foundations. The multigrid hierarchy
+aggregates the unknowns of neighbouring vertices and spans each aggregate's
+coarse space with the six rigid-body modes; one symmetric V-cycle with
+Gauss-Seidel smoothing preconditions each CG iteration. Iteration counts stay
+almost constant as meshes grow: on a 258,000-unknown CAD part, multigrid CG needed
+62 iterations where incomplete-Cholesky CG (ICCG) needed 3,868, and the solve took
+3.4 s instead of 60 s. Both stop at the same relative residual, 1e-11.
+Axis-aligned fixture equations use Cartesian elimination.
 Load, prescribed motion, spring rest displacement and density-only edits reuse the
 factorization or preconditioner. Material stiffness edits reuse symbolic analysis
 when the reduced sparsity pattern is unchanged. A cache of up to eight independent
@@ -83,8 +90,9 @@ and elasticity integrator (BSD-3-Clause), and
 [SOFA's tetrahedral FEM formulation](https://github.com/sofa-framework/sofa/tree/master/Sofa/Component/SolidMechanics/FEM/Elastic)
 (LGPL-2.1-or-later). Their implementation code is not incorporated into this solver.
 
-Try the [Rayrai FEM Workbench](./examples/rayrai/rayrai_fem_workbench.md) to import
-models and edit loads interactively on desktop or on the website.
+Try the [Rayrai FEM Workbench](./examples/rayrai/rayrai_fem_workbench.md) to open
+STEP, IGES or BREP solids and apply supports and loads to their faces interactively
+on desktop or on the website.
 
 ## General fixtures and connectors
 
@@ -113,13 +121,72 @@ node-to-surface displacement coupling, not mortar contact. Use coincident
 interfaces: a tolerated geometric gap approximates the displacement connection
 and does not preserve rigid rotations across the gap.
 
-`setSolverBackend(Automatic/SparseLDLT/IncompleteCholeskyCG)` controls the
-backend. ICCG accepts Cartesian and general linear constraints and springs;
-bolt connectors use LDLT. Iteration counts and the selected backend are reported
+`setSolverBackend(Automatic/SparseLDLT/IncompleteCholeskyCG/AlgebraicMultigridCG)`
+controls the backend. Both iterative backends accept Cartesian and general linear
+constraints and springs; bolt connectors use LDLT. Iteration counts and the
+selected backend (`statistics().iterative`, `statistics().multigrid`) are reported
 in statistics. Independent load directions initially require iterations; later
 linear combinations can reuse the response cache. Direct solvers can still be
 faster for many unrelated loads. See the reproducible
 [solver benchmarks](./LinearElasticityBenchmarks.md).
+
+`setProgressCallback(callback)` reports the progress of `solve()`: the callback
+receives a `SolveStage` (`Assembly`, `Factorization`, `Iteration`, `Results`) and
+the completed fraction of that stage in [0, 1]. Iterative solves report their iterations as the
+logarithmic reduction of the residual toward the tolerance, at most every 50 ms;
+direct factorizations report only their start and end. The callback runs on the
+thread that calls `solve()` and does not change the solution. An exception thrown
+by the callback stops `solve()` and propagates, which lets an application cancel
+a long solve; the next `solve()` repeats the interrupted work.
+
+```cpp
+solid.setProgressCallback([&](LinearElasticity::SolveStage stage, double fraction) {
+  if (cancelled) throw std::runtime_error("Solve cancelled");
+  showProgress(stage, fraction);
+});
+```
+
+## Error estimation and adaptive refinement
+
+`raisim/fem/ErrorEstimation.hpp` estimates the discretization error of a solved
+model. `estimateRecoveryError(mesh, elementResults, materials)` recovers a
+continuous stress by volume-weighted averaging of the element stresses at each
+vertex, separately per region, and integrates the energy of its difference to the
+element stress exactly over every tetrahedron (a Zienkiewicz-Zhu estimate).
+It returns the squared error of each element and `relative()`, the error relative
+to the estimated exact energy norm. On a cantilever the estimate is within 30% of
+the true energy error and approaches it as the mesh is refined.
+
+`refinementTargets(mesh, estimate, minimumEdge, fraction, maximumCells)` marks the
+elements with the largest errors that together hold `fraction` of the error
+(Doerfler marking, default one half) and gives them half their longest edge as a
+target. `raisim/fem/MeshResolution.hpp` then bisects them:
+`refineElements(mesh, elementTargets, maximumCells, &parents)` splits every
+tetrahedron longer than its target across its longest edge, and splits longer
+neighbouring edges first, which keeps the mesh conforming and bounds element
+quality. Existing vertices keep their indices, regions are copied, and `parents`
+lists the two end vertices of every new vertex, so boundary conditions and fields
+can be mapped exactly. `refineToEdgeTargets` takes per-vertex targets instead, and
+`refineToMaximumEdge` refines uniformly.
+
+```cpp
+solid.solve();
+for (int step = 0; step < 3; ++step) {
+  const auto estimate = raisim::fem::estimateRecoveryError(
+      solid.mesh(), solid.elementResults(), {material});
+  if (estimate.relative() < 0.05) break;
+  auto mesh = raisim::fem::refineElements(
+      solid.mesh(), raisim::fem::refinementTargets(solid.mesh(), estimate, 0.));
+  // Build a new LinearElasticity on mesh, apply the same supports and loads,
+  // and solve again.
+}
+```
+
+Where the error concentrates, the adaptive mesh is far smaller than a uniform one
+of the same accuracy: under a pressure patch on a block, three refinement steps
+reach a lower energy error with 11,620 tetrahedra than uniform refinement with
+41,472. A sharp re-entrant corner or a fully clamped edge has infinite stress,
+and refinement keeps concentrating there; limit the steps or the element size.
 
 The optional `RAISIM_FEM_REFERENCE_TESTS` tests compare displacement, reaction,
 engineering strain, stress, principal stress, von Mises stress and energy against

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <algorithm>
+#include <utility>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -23,10 +24,14 @@ struct SurfaceGeometry {
   raisim::fem::TetMesh mesh;
   std::vector<raisim::fem::LinearElasticity::BoundaryFace> faces;
   std::vector<int> parts;
+  std::vector<int> brepFaces;
 
   void normalize() {
     if (mesh.vertices.empty() || faces.empty() || parts.size() != faces.size())
       throw std::runtime_error("Surface contains no complete triangles");
+    if (!brepFaces.empty() && brepFaces.size() != faces.size())
+      throw std::runtime_error(
+          "Surface B-rep faces do not match its triangles");
     auto low = mesh.vertices[0].e().eval(), high = low;
     for (const auto& v : mesh.vertices) {
       if (!v.e().allFinite())
@@ -140,13 +145,17 @@ struct SurfaceGeometry {
     std::ostringstream out;
     out.imbue(std::locale::classic());
     out << std::setprecision(17);
-    out << "RAISIM_FEM_SURFACE 1\n"
+    const bool brep = !brepFaces.empty();
+    out << "RAISIM_FEM_SURFACE " << (brep ? 2 : 1) << '\n'
         << mesh.vertices.size() << ' ' << faces.size() << '\n';
     for (const auto& p : mesh.vertices)
       out << p[0] << ' ' << p[1] << ' ' << p[2] << '\n';
-    for (size_t f = 0; f < faces.size(); ++f)
+    for (size_t f = 0; f < faces.size(); ++f) {
       out << faces[f].vertices[0] << ' ' << faces[f].vertices[1] << ' '
-          << faces[f].vertices[2] << ' ' << parts[f] << '\n';
+          << faces[f].vertices[2] << ' ' << parts[f];
+      if (brep) out << ' ' << brepFaces[f];
+      out << '\n';
+    }
     return out.str();
   }
   static SurfaceGeometry decode(const std::string& bytes, double scale = 1.,
@@ -159,7 +168,8 @@ struct SurfaceGeometry {
     int version;
     size_t points = 0, triangles = 0;
     in >> magic >> version >> points >> triangles;
-    if (!in || magic != "RAISIM_FEM_SURFACE" || version != 1 ||
+    if (!in || magic != "RAISIM_FEM_SURFACE" ||
+        (version != 1 && version != 2) ||
         points > 10000000 || triangles > 10000000 || points > bytes.size() ||
         triangles > bytes.size())
       throw std::runtime_error("Invalid surface preview header");
@@ -167,13 +177,20 @@ struct SurfaceGeometry {
     result.mesh.vertices.resize(points);
     result.faces.resize(triangles);
     result.parts.resize(triangles);
+    if (version == 2) result.brepFaces.resize(triangles);
     for (auto& p : result.mesh.vertices) {
       in >> p[0] >> p[1] >> p[2];
       p *= scale;
     }
-    for (size_t f = 0; f < triangles; ++f)
+    for (size_t f = 0; f < triangles; ++f) {
       in >> result.faces[f].vertices[0] >> result.faces[f].vertices[1] >>
           result.faces[f].vertices[2] >> result.parts[f];
+      if (version == 2) {
+        in >> result.brepFaces[f];
+        if (in && result.brepFaces[f] <= 0)
+          throw std::runtime_error("Invalid surface B-rep face");
+      }
+    }
     if (!in) throw std::runtime_error("Truncated surface preview");
     if (normalize)
       result.normalize();
@@ -198,11 +215,69 @@ inline std::string encodeVolume(const raisim::fem::TetMesh& mesh) {
         << (mesh.regions.empty() ? 0 : mesh.regions[t]) << '\n';
   return out.str();
 }
+/// Appends the volume mesh of another CAD file. Its regions, or region 1 when
+/// it has none, are numbered after @p regionOffset.
+inline void appendVolume(raisim::fem::TetMesh& into, raisim::fem::TetMesh part,
+                         int regionOffset) {
+  if (into.regions.size() != into.tetrahedra.size())
+    into.regions.assign(into.tetrahedra.size(), 1);
+  if (!part.regions.empty() && part.regions.size() != part.tetrahedra.size())
+    throw std::runtime_error("Volume regions do not match its tetrahedra");
+  const auto offset = static_cast<unsigned int>(into.vertices.size());
+  into.vertices.insert(into.vertices.end(), part.vertices.begin(),
+                       part.vertices.end());
+  for (size_t t = 0; t < part.tetrahedra.size(); ++t) {
+    auto cell = part.tetrahedra[t];
+    for (auto& v : cell) {
+      if (v >= part.vertices.size())
+        throw std::runtime_error("Invalid volume vertex index");
+      v += offset;
+    }
+    into.tetrahedra.push_back(cell);
+    into.regions.push_back((part.regions.empty() ? 1 : part.regions[t]) +
+                           regionOffset);
+  }
+}
+/// A CAD file added to an assembly after the first; its solids become regions
+/// numbered after @p regionOffset.
+struct CadFile {
+  std::string name, extension, bytes;
+  double scale = 1.;
+  int regionOffset = 0;
+};
+/// Removes the tetrahedra of @p excluded regions and the vertices only they use.
+inline void removeRegions(raisim::fem::TetMesh& mesh,
+                          const std::vector<int>& excluded) {
+  if (excluded.empty() || mesh.regions.size() != mesh.tetrahedra.size())
+    return;
+  std::vector<unsigned int> index(mesh.vertices.size(), ~0u);
+  raisim::fem::TetMesh kept;
+  for (size_t t = 0; t < mesh.tetrahedra.size(); ++t) {
+    if (std::find(excluded.begin(), excluded.end(), mesh.regions[t]) !=
+        excluded.end())
+      continue;
+    auto cell = mesh.tetrahedra[t];
+    for (auto& v : cell) {
+      if (index[v] == ~0u) {
+        index[v] = static_cast<unsigned int>(kept.vertices.size());
+        kept.vertices.push_back(mesh.vertices[v]);
+      }
+      v = index[v];
+    }
+    kept.tetrahedra.push_back(cell);
+    kept.regions.push_back(mesh.regions[t]);
+  }
+  mesh = std::move(kept);
+}
 struct GeometrySource {
   std::string extension, bytes;
+  /// Regions of the first file are numbered after this offset.
+  int regionOffset = 0;
+  std::vector<CadFile> assembly;
+  /// Removed parts of files that still have other parts.
+  std::vector<int> excludedRegions;
   double scale = 1., maximumEdge = .05, surfaceTolerance = 0., meshedEdge = 0.,
          meshedTolerance = 0., previewTolerance = 0., referenceExtent = 0.;
-  bool externalGmsh = false, meshedExternalGmsh = false;
   std::shared_ptr<const raisim::fem::TetMesh> volume;
   void recordPreviewAccuracy() {
     previewTolerance =

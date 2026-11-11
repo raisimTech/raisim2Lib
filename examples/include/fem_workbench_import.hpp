@@ -1,13 +1,17 @@
 // Copyright (c) 2026 Raion Robotics Inc. All rights reserved.
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <iterator>
+#include <locale>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -34,7 +38,6 @@
 #include "raisim/fem/LinearElasticity.hpp"
 
 namespace fem_workbench {
-enum class MesherBackend { Native, Gmsh };
 class MeshJob {
  public:
   std::filesystem::path directory;
@@ -61,41 +64,20 @@ class MeshJob {
   MeshJob& operator=(const MeshJob&) = delete;
 
   void start(const std::string& executable, const std::string& extension,
-             double elementSize, MesherBackend backend = MesherBackend::Gmsh,
-             double surfaceTolerance = 0., bool surfaceOnly = false) {
+             double elementSize, double surfaceTolerance = 0.,
+             bool surfaceOnly = false) {
     if (running) throw std::logic_error("Meshing is already running");
     if (!std::isfinite(elementSize) || elementSize <= 0.)
       throw std::invalid_argument("Element size must be positive");
     if (surfaceTolerance < 0. || !std::isfinite(surfaceTolerance))
       throw std::invalid_argument("Surface tolerance must be finite and nonnegative");
-    backend_ = backend;
     surfaceOnly_ = surfaceOnly; surfaceTolerance_ = surfaceTolerance;
     error.clear();
-    for (const auto* stale : {"launch-error", "gmsh.log", "volume.msh",
-                              "volume.mesh", "surface.rfs", "done", "error.txt"})
+    for (const auto* stale : {"launch-error", "mesher.log", "volume.mesh",
+                              "surface.rfs", "done", "error.txt"})
       std::filesystem::remove(directory / stale);
     elementSize_ = elementSize;
     extension_ = extension;
-    std::ofstream geo(directory / "model.geo");
-    geo.imbue(std::locale::classic());
-    geo.precision(17);
-    geo << "General.NumThreads = 1;\nMesh.MaxNumThreads1D = "
-           "1;\nMesh.MaxNumThreads2D = 1;\nMesh.MaxNumThreads3D = "
-           "1;\nMesh.ElementOrder = 1;\nMesh.MshFileVersion = "
-           "4.1;\nMesh.Binary = 0;\n";
-    if (extension == ".stl") {
-      geo << "Merge \"source.stl\";\nClassifySurfaces{40*Pi/180, 1, 1, "
-             "Pi};\nCreateGeometry;\ns() = "
-             "Surface{:};\nSurface Loop(1) = {s()};\nVolume(1) = {1};\n";
-    } else {
-      geo << "SetFactory(\"OpenCASCADE\");\nGeometry.OCCTargetUnit = "
-             "\"M\";\nMerge \"source"
-          << extension << "\";\n";
-    }
-    geo << "Mesh.MeshSizeMin = " << elementSize * .35
-        << ";\nMesh.MeshSizeMax = " << elementSize << ";\nMesh.Optimize = 1;\n";
-    geo.close();
-    if (!geo) throw std::runtime_error("Cannot write meshing input");
 #if defined(__EMSCRIPTEN__)
     launch(executable);
 #else
@@ -103,12 +85,8 @@ class MeshJob {
     if (executable_.empty())
       throw std::runtime_error(
           mesherName() + " executable '" + executable +
-          "' was not found or is not executable. " +
-          (backend_ == MesherBackend::Native
-               ? "Build/install the RaiSim native FEM mesher or set "
-                 "RAISIM_FEM_MESHER."
-               : "Install Gmsh, then set its path under Mesher / file formats "
-                 "or set RAISIM_FEM_GMSH."));
+          "' was not found or is not executable. Build/install the RaiSim "
+          "native FEM mesher or set RAISIM_FEM_MESHER.");
     launch(executable_);
 #endif
   }
@@ -190,6 +168,39 @@ class MeshJob {
                                failure.what() + "\n" + logTail());
     }
   }
+  struct Progress {
+    double fraction = -1.;
+    std::string stage;
+  };
+  Progress progress() const {
+    Progress result;
+    std::ifstream log(directory / "mesher.log", std::ios::binary);
+    if (!log) return result;
+    log.seekg(0, std::ios::end);
+    const std::streamoff size = log.tellg();
+    if (size <= 0) return result;
+    log.seekg(std::max<std::streamoff>(0, size - 4096));
+    const std::string tail{std::istreambuf_iterator<char>(log), {}};
+    constexpr std::string_view kMarker = "RAISIM_FEM_PROGRESS ";
+    for (size_t end = tail.rfind('\n'); end != std::string::npos && end > 0;) {
+      const size_t start = tail.rfind('\n', end - 1) + 1;
+      if (tail.compare(start, kMarker.size(), kMarker) == 0) {
+        std::istringstream line(
+            tail.substr(start + kMarker.size(), end - start - kMarker.size()));
+        line.imbue(std::locale::classic());
+        double fraction = -1.;
+        if (line >> fraction && fraction >= 0. && fraction <= 1.)
+          result.fraction = fraction;
+        std::getline(line >> std::ws, result.stage);
+        if (!result.stage.empty() && result.stage.back() == '\r')
+          result.stage.pop_back();
+        return result;
+      }
+      if (start == 0) break;
+      end = start - 1;
+    }
+    return result;
+  }
   SurfaceGeometry surfaceResult(double scale) const {
     if (running || !error.empty()) throw std::runtime_error(error.empty() ? "Surface import is still running" : error);
     std::ifstream input(directory / "surface.rfs", std::ios::binary);
@@ -215,27 +226,20 @@ class MeshJob {
   }
 
  private:
-  MesherBackend backend_ = MesherBackend::Gmsh;
   bool surfaceOnly_ = false;
   double surfaceTolerance_ = 0.;
   std::string mesherName() const {
 #if defined(__EMSCRIPTEN__)
     return "Browser mesher";
 #else
-    return backend_ == MesherBackend::Native ? "Native fTetWild mesher"
-                                             : "Gmsh";
+    return "RaiSim FEM mesher";
 #endif
   }
   const char* outputName() const {
-    if (surfaceOnly_) return "surface.rfs";
-#if defined(__EMSCRIPTEN__)
-    return "volume.mesh";
-#else
-    return backend_ == MesherBackend::Native ? "volume.mesh" : "volume.msh";
-#endif
+    return surfaceOnly_ ? "surface.rfs" : "volume.mesh";
   }
   std::string logTail() const {
-    std::ifstream log(directory / "gmsh.log");
+    std::ifstream log(directory / "mesher.log");
     std::string contents((std::istreambuf_iterator<char>(log)), {});
     if (contents.size() > 3000) contents.erase(0, contents.size() - 3000);
     return contents;
@@ -297,29 +301,26 @@ class MeshJob {
         },
         path.c_str(), size, extension_.c_str(), surfaceTolerance_, int(surfaceOnly_));
 #else
-    std::vector<std::string> args;
-    if (backend_ == MesherBackend::Native) {
-      std::ostringstream size;
-      size.imbue(std::locale::classic());
-      size << std::setprecision(17) << elementSize_;
-      args = {executable, "--input",     "source" + extension_,
-              "--output", "volume.mesh", "--edge-length",
-              size.str()};
-      if (surfaceOnly_) {
-        args[4] = "surface.rfs";
-        args.push_back("--surface-only");
-      }
-      if (surfaceTolerance_ > 0.) {
-        std::ostringstream tolerance; tolerance.imbue(std::locale::classic());
-        tolerance << std::setprecision(17) << surfaceTolerance_;
-        args.push_back("--surface-tolerance"); args.push_back(tolerance.str());
-      }
+    std::ostringstream size;
+    size.imbue(std::locale::classic());
+    size << std::setprecision(17) << elementSize_;
+    std::vector<std::string> args{executable, "--input", "source" + extension_,
+                                  "--output", "volume.mesh", "--edge-length",
+                                  size.str()};
+    if (surfaceOnly_) {
+      args[4] = "surface.rfs";
+      args.push_back("--surface-only");
     } else {
-      args = {executable,   "model.geo", "-3", "-format", "msh4", "-o",
-              "volume.msh", "-nt",       "1",  "-v",      "3"};
+      args.push_back("--threads");
+      args.push_back("auto");
+    }
+    if (surfaceTolerance_ > 0.) {
+      std::ostringstream tolerance; tolerance.imbue(std::locale::classic());
+      tolerance << std::setprecision(17) << surfaceTolerance_;
+      args.push_back("--surface-tolerance"); args.push_back(tolerance.str());
     }
 #if defined(_WIN32)
-    const auto logPath = (directory / "gmsh.log").wstring();
+    const auto logPath = (directory / "mesher.log").wstring();
     SECURITY_ATTRIBUTES security{sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE};
     HANDLE log =
         CreateFileW(logPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, &security,
@@ -360,7 +361,7 @@ class MeshJob {
     CloseHandle(process.hThread);
     process_ = process.hProcess;
 #else
-    const auto logPath = (directory / "gmsh.log").string();
+    const auto logPath = (directory / "mesher.log").string();
     std::vector<char*> argv;
     for (auto& arg : args) argv.push_back(arg.data());
     argv.push_back(nullptr);

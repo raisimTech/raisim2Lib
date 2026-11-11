@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <stdexcept>
 #include <vector>
 
 #include "fem_workbench_conditions.hpp"
@@ -49,6 +50,32 @@ class SurfaceSelector {
       }
     }
     return result;
+  }
+  std::vector<int> partition(const std::vector<int>& parts) {
+    if (parts.size() != faces_.size())
+      throw std::invalid_argument("Surface parts do not match its faces");
+    if (faces_.empty()) return {};
+    if (neighbors_.empty()) build();
+    std::vector<int> labels(faces_.size(), 0);
+    std::vector<size_t> pending;
+    int count = 0;
+    for (size_t seed = 0; seed < faces_.size(); ++seed) {
+      if (labels[seed]) continue;
+      labels[seed] = ++count;
+      pending.push_back(seed);
+      while (!pending.empty()) {
+        const size_t current = pending.back();
+        pending.pop_back();
+        for (const auto neighbor : neighbors_[current])
+          if (!labels[neighbor] && parts[neighbor] == parts[current] &&
+              normals_[current].dot(normals_[neighbor]) >=
+                  kSmoothSurfaceCosine) {
+            labels[neighbor] = count;
+            pending.push_back(neighbor);
+          }
+      }
+    }
+    return labels;
   }
 
  private:

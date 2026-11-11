@@ -6,8 +6,10 @@
 #include <Eigen/LU>
 #include <algorithm>
 #include <cmath>
+#include <initializer_list>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "fem_surface_projection.hpp"
@@ -170,6 +172,62 @@ class FixtureCache {
         bolts.push_back({patch(solver, c.nodes, c.faces),
                          patch(solver, c.targetNodes, c.targetFaces), c.bolt});
         boltConditions.push_back(index);
+      }
+      if (static_cast<int>(c.kind) >= static_cast<int>(Kind::Hinge)) {
+        if (c.targetNodes.empty())
+          throw std::runtime_error(std::string(kindName(c.kind)) +
+                                   " needs faces on the second part");
+        const auto a = patch(solver, c.nodes, c.faces),
+                   b = patch(solver, c.targetNodes, c.targetFaces);
+        Vec<3> first, second;
+        first.e() = n.e().unitOrthogonal();
+        second = n.cross(first);
+        const auto relative = [&](Terms terms, const Terms& other) {
+          for (auto term : other) {
+            term.weight = -term.weight;
+            terms.push_back(term);
+          }
+          add(std::move(terms));
+        };
+        const auto along = [](const LinearElasticity::CouplingPatch& p,
+                               const Vec<3>& d) {
+          Terms terms;
+          for (size_t i = 0; i < p.nodes.size(); ++i)
+            for (unsigned int k = 0; k < 3; ++k)
+              if (d[k] != 0.)
+                terms.push_back({p.nodes[i], k, p.weights[i] * d[k]});
+          return terms;
+        };
+        const auto pointMotion = [&](const LinearElasticity::CouplingPatch& p,
+                                     const Vec<3>& d) {
+          auto terms = along(p, d);
+          Eigen::Vector3d center = Eigen::Vector3d::Zero();
+          for (size_t i = 0; i < p.nodes.size(); ++i)
+            center += p.weights[i] * solver.mesh().vertices[p.nodes[i]].e();
+          const Eigen::Vector3d offset = c.center.e() - center,
+                                arm = offset.cross(d.e());
+          if (arm.norm() > 1e-12 * offset.norm()) {
+            const auto spin = rotation(solver, p, {arm[0], arm[1], arm[2]});
+            terms.insert(terms.end(), spin.begin(), spin.end());
+          }
+          return terms;
+        };
+        const auto translation = [&](const Vec<3>& d) {
+          relative(pointMotion(a, d), pointMotion(b, d));
+        };
+        const auto spin = [&](const Vec<3>& d) {
+          relative(rotation(solver, a, d), rotation(solver, b, d));
+        };
+        const bool hinge = c.kind == Kind::Hinge,
+                   slider = c.kind == Kind::SliderJoint;
+        translation(first);
+        translation(second);
+        if (!slider && (!hinge || c.axes[2])) translation(n);
+        if (hinge || slider || c.kind == Kind::RigidLink) {
+          spin(first);
+          spin(second);
+        }
+        if (slider || c.kind == Kind::RigidLink) spin(n);
       }
       if (c.kind == Kind::Tie) {
         if (c.targetFaces.empty() || !std::isfinite(c.tolerance) ||
@@ -347,7 +405,8 @@ class FixtureCache {
     if (eigen.info() != Eigen::Success ||
         eigen.eigenvalues().minCoeff() <=
             1e-12 * eigen.eigenvalues().maxCoeff())
-      throw std::runtime_error("Bearing region must be non-collinear");
+      throw std::runtime_error(
+          "A bearing or joint region must not lie on one line");
     const Eigen::Vector3d weighted = moment.inverse() * axis.e();
     Terms terms;
     for (size_t i = 0; i < p.nodes.size(); ++i) {
@@ -360,4 +419,238 @@ class FixtureCache {
     return terms;
   }
 };
+/// Axis shared by the normals of cylindrical or extruded faces: the direction
+/// most nearly perpendicular to all of them. Returns false when the faces do
+/// not define one direction (a plane, a sphere).
+inline bool fitFaceAxis(
+    const raisim::fem::TetMesh& mesh,
+    const std::vector<LinearElasticity::BoundaryFace>& boundary,
+    const std::vector<size_t>& faces, Vec<3>& axis) {
+  Eigen::Matrix3d covariance = Eigen::Matrix3d::Zero();
+  for (const auto f : faces) {
+    const auto& ids = boundary.at(f).vertices;
+    const auto& x = mesh.vertices;
+    const Eigen::Vector3d normal =
+        (x[ids[1]].e() - x[ids[0]].e()).cross(x[ids[2]].e() - x[ids[0]].e());
+    const double area = normal.norm();
+    if (area > 0.) covariance.noalias() += normal * normal.transpose() / area;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen(covariance);
+  if (eigen.info() != Eigen::Success) return false;
+  const auto& values = eigen.eigenvalues();
+  if (!(values[2] > 0.) || !(values[0] < .05 * values[1])) return false;
+  const Eigen::Vector3d d = eigen.eigenvectors().col(0);
+  axis = {d[0], d[1], d[2]};
+  return true;
+}
+/// Point through which the normals of the faces pass in the least-squares
+/// sense: the center of a sphere, or a point on the axis of a cylinder at the
+/// mean axial position. Returns false for faces with one normal direction.
+inline bool fitJointPoint(
+    const raisim::fem::TetMesh& mesh,
+    const std::vector<LinearElasticity::BoundaryFace>& boundary,
+    const std::vector<size_t>& faces, Vec<3>& point) {
+  Eigen::Matrix3d lhs = Eigen::Matrix3d::Zero();
+  Eigen::Vector3d rhs = Eigen::Vector3d::Zero();
+  for (const auto f : faces) {
+    const auto& ids = boundary.at(f).vertices;
+    const auto& x = mesh.vertices;
+    const Eigen::Vector3d cross =
+        (x[ids[1]].e() - x[ids[0]].e()).cross(x[ids[2]].e() - x[ids[0]].e());
+    const double area = cross.norm();
+    if (!(area > 0.)) continue;
+    const Eigen::Vector3d n = cross / area,
+                          centroid = (x[ids[0]].e() + x[ids[1]].e() +
+                                      x[ids[2]].e()) /
+                                     3.;
+    const Eigen::Matrix3d projector =
+        area * (Eigen::Matrix3d::Identity() - n * n.transpose());
+    lhs += projector;
+    rhs += projector * centroid;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen(lhs);
+  if (eigen.info() != Eigen::Success ||
+      !(eigen.eigenvalues()[0] > 1e-3 * eigen.eigenvalues()[2]))
+    return false;
+  const Eigen::Vector3d c = lhs.ldlt().solve(rhs);
+  if (!c.allFinite()) return false;
+  point = {c[0], c[1], c[2]};
+  return true;
+}
+/// Shape of a face set: planar (within @p flatness of a plane), cylindrical or
+/// spherical when every face normal agrees with that shape.
+struct FaceShape {
+  enum class Type { Other, Plane, Cylinder, Sphere };
+  Type type = Type::Other;
+  /// Plane: centroid. Cylinder: a point on the axis. Sphere: the center.
+  Eigen::Vector3d point = Eigen::Vector3d::Zero();
+  /// Plane: mean normal. Cylinder: axis.
+  Eigen::Vector3d direction = Eigen::Vector3d::Zero();
+  double radius = 0., size = 0.;
+};
+inline FaceShape describeFaces(
+    const raisim::fem::TetMesh& mesh,
+    const std::vector<LinearElasticity::BoundaryFace>& boundary,
+    const std::vector<size_t>& faces, double flatness) {
+  struct Patch {
+    Eigen::Vector3d center, normal;
+    double area;
+  };
+  std::vector<Patch> patches;
+  FaceShape shape;
+  double area = 0.;
+  Eigen::Matrix3d covariance = Eigen::Matrix3d::Zero();
+  Eigen::Vector3d normalSum = Eigen::Vector3d::Zero(),
+                  centroid = Eigen::Vector3d::Zero(),
+                  low = Eigen::Vector3d::Constant(
+                      std::numeric_limits<double>::infinity()),
+                  high = -low;
+  for (const auto f : faces) {
+    const auto& ids = boundary.at(f).vertices;
+    const Eigen::Vector3d a = mesh.vertices[ids[0]].e(),
+                          b = mesh.vertices[ids[1]].e(),
+                          c = mesh.vertices[ids[2]].e();
+    const Eigen::Vector3d cross = (b - a).cross(c - a);
+    const double twice = cross.norm();
+    if (!(twice > 0.)) continue;
+    const Patch patch{(a + b + c) / 3., cross / twice, .5 * twice};
+    patches.push_back(patch);
+    area += patch.area;
+    covariance.noalias() += patch.area * patch.normal * patch.normal.transpose();
+    normalSum += patch.area * patch.normal;
+    centroid += patch.area * patch.center;
+    low = low.cwiseMin(a).cwiseMin(b).cwiseMin(c);
+    high = high.cwiseMax(a).cwiseMax(b).cwiseMax(c);
+  }
+  if (!(area > 0.)) return shape;
+  centroid /= area;
+  shape.size = (high - low).norm();
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen(covariance / area);
+  if (eigen.info() != Eigen::Success) return shape;
+  const auto& values = eigen.eigenvalues();
+  if (values[0] + values[1] < .02 && normalSum.norm() > .95 * area) {
+    const Eigen::Vector3d normal = normalSum.normalized();
+    double deviation = 0.;
+    for (const auto f : faces)
+      for (const auto v : boundary.at(f).vertices)
+        deviation = std::max(
+            deviation, std::abs((mesh.vertices[v].e() - centroid).dot(normal)));
+    if (deviation <= flatness) {
+      shape.type = FaceShape::Type::Plane;
+      shape.point = centroid;
+      shape.direction = normal;
+      return shape;
+    }
+  }
+  Vec<3> fitted;
+  if (!fitJointPoint(mesh, boundary, faces, fitted)) return shape;
+  const Eigen::Vector3d center = fitted.e();
+  const bool cylinder = values[0] < .02;
+  const Eigen::Vector3d axis = eigen.eigenvectors().col(0);
+  const auto radial = [&](const Eigen::Vector3d& x) {
+    const Eigen::Vector3d d = x - center;
+    return cylinder ? Eigen::Vector3d(d - axis * axis.dot(d)) : d;
+  };
+  double radius = 0., aligned = 0.;
+  for (const auto& patch : patches) {
+    const Eigen::Vector3d r = radial(patch.center);
+    const double length = r.norm();
+    radius += patch.area * length;
+    if (length > 0.) aligned += patch.area * std::abs(patch.normal.dot(r)) / length;
+  }
+  radius /= area;
+  double spread = 0.;
+  for (const auto& patch : patches)
+    spread += patch.area * std::abs(radial(patch.center).norm() - radius);
+  if (!(radius > 0.) || aligned < .98 * area || spread > .05 * radius * area)
+    return shape;
+  shape.type =
+      cylinder ? FaceShape::Type::Cylinder : FaceShape::Type::Sphere;
+  shape.point = center;
+  shape.direction = cylinder ? axis : Eigen::Vector3d::Zero();
+  shape.radius = radius;
+  return shape;
+}
+/// Connections that fit two face sets on different parts, best first, judged
+/// from their shapes and placement like the quick mates of a CAD assembly.
+/// A tie (glue) is offered when every node of one set lies on the other set;
+/// @p tieReversed means the second set must be the tie's first faces.
+struct MateSuggestion {
+  std::string relation;
+  std::vector<Kind> kinds;
+  bool tieReversed = false;
+  FaceShape first, second;
+};
+inline MateSuggestion suggestMates(
+    const raisim::fem::TetMesh& mesh,
+    const std::vector<LinearElasticity::BoundaryFace>& boundary,
+    const std::vector<size_t>& facesA, const std::vector<size_t>& facesB,
+    double tolerance) {
+  MateSuggestion result;
+  if (facesA.empty() || facesB.empty()) return result;
+  const auto a = describeFaces(mesh, boundary, facesA, tolerance);
+  const auto b = describeFaces(mesh, boundary, facesB, tolerance);
+  result.first = a;
+  result.second = b;
+  const auto near = [&](const std::vector<size_t>& from,
+                        const std::vector<size_t>& to, bool all) {
+    std::vector<size_t> targets;
+    for (const auto f : to) {
+      const auto& ids = boundary.at(f).vertices;
+      const auto& x = mesh.vertices;
+      if ((x[ids[1]].e() - x[ids[0]].e())
+              .cross(x[ids[2]].e() - x[ids[0]].e())
+              .squaredNorm() > 0.)
+        targets.push_back(f);
+    }
+    const SurfaceProjection projection(mesh, boundary, targets);
+    for (const auto f : from)
+      for (const auto v : boundary.at(f).vertices)
+        if ((projection.project(v).distance <= tolerance * tolerance) != all)
+          return !all;
+    return all;
+  };
+  const bool touching = near(facesA, facesB, false) || near(facesB, facesA, false);
+  const bool bondForward = touching && near(facesA, facesB, true);
+  result.tieReversed = touching && !bondForward && near(facesB, facesA, true);
+  const bool bondable = bondForward || result.tieReversed;
+  const double parallel = std::cos(3. * std::acos(-1.) / 180.);
+  const auto suggest = [&](const char* relation,
+                           std::initializer_list<Kind> kinds) {
+    result.relation = relation;
+    for (const auto kind : kinds)
+      if (kind != Kind::Tie || bondable) result.kinds.push_back(kind);
+    return result;
+  };
+  using Type = FaceShape::Type;
+  if (a.type == Type::Cylinder && b.type == Type::Cylinder &&
+      std::abs(a.direction.dot(b.direction)) > parallel) {
+    const Eigen::Vector3d d = b.point - a.point;
+    if ((d - a.direction * a.direction.dot(d)).norm() <=
+        std::max(tolerance, .05 * std::max(a.radius, b.radius)))
+      return suggest("Concentric cylinders",
+                     {Kind::Hinge, Kind::SliderJoint, Kind::Tie,
+                      Kind::RigidLink});
+  }
+  if (a.type == Type::Sphere && b.type == Type::Sphere &&
+      (b.point - a.point).norm() <=
+          std::max(tolerance, .05 * std::max(a.radius, b.radius)))
+    return suggest("Concentric spheres",
+                   {Kind::BallJoint, Kind::Tie, Kind::RigidLink});
+  if (a.type == Type::Plane && b.type == Type::Plane &&
+      a.direction.dot(b.direction) < -parallel) {
+    const Eigen::Vector3d d = b.point - a.point;
+    const double gap = d.dot(a.direction);
+    if (std::abs(gap) <= tolerance && bondable)
+      return suggest("Coincident planes", {Kind::Tie, Kind::RigidLink});
+    if (gap < -tolerance &&
+        (d - a.direction * gap).norm() <= .25 * std::max(a.size, b.size))
+      return suggest("Opposite seats",
+                     {Kind::BoltConnector, Kind::RigidLink});
+    return suggest("Parallel planes", {Kind::RigidLink});
+  }
+  return suggest(touching ? "Touching faces" : "Separate faces",
+                 {Kind::Tie, Kind::RigidLink});
+}
 }  // namespace fem_workbench
+

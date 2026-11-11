@@ -27,6 +27,10 @@ MFEM backends or make a claim against AMG, PETSc, parallel or high-order FEM.
 
 ## Representative measurements
 
+The tables in this section predate the multigrid backend (see
+[Multigrid preconditioner](#multigrid-preconditioner)); they use incomplete-Cholesky
+CG for the iterative cases.
+
 Values below are milliseconds, homogeneous material at Poisson ratio 0.3.
 Cold time includes assembly, solver setup and solve. RaiSim includes stress,
 strain, principal stress, von Mises, reactions, energy and residual recovery.
@@ -66,6 +70,44 @@ the raw CSV; their averages are:
 
 Density edits change gravity loads and leave stiffness unchanged;
 the benchmark checks that no assembly or factorization is repeated.
+
+## Multigrid preconditioner
+
+Since 2026-11-09 the Automatic backend preconditions CG with smoothed-aggregation
+algebraic multigrid instead of incomplete Cholesky. Both stop at the same
+relative residual (1e-11), and the cantilever results below agree to ten digits.
+Measured on an Intel Core Ultra 7 265K pinned to one core, Clang 20 Release;
+times are cold solves in milliseconds (assembly, preconditioner setup, solve and
+recovery).
+
+Cantilever bending (`linear_fem_bending iccg` and `linear_fem_bending multigrid`),
+end shear load:
+
+| Tetrahedra | Poisson ratio | ICCG ms | ICCG iterations | Multigrid ms | Multigrid iterations |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 30,720 | 0.3 | 364 | 445 | 147 | 27 |
+| 245,760 | 0.3 | 8,025 | 1,005 | 1,890 | 27 |
+| 30,720 | 0.49 | 1,232 | 1,689 | 231 | 93 |
+| 245,760 | 0.49 | 32,070 | 4,125 | 3,570 | 97 |
+
+Multigrid iteration counts stay nearly constant as the mesh grows, while ICCG's
+grow with it. Bending and nearly incompressible material are where ICCG is slow.
+On a 52,000-tetrahedron STEP part refined adaptively to 394,000 tetrahedra
+(258,000 unknowns), one solve took 3.4 s and 62 iterations with multigrid against
+60 s and 3,868 iterations with ICCG.
+
+Axial tension of the box sweep (`linear_fem_benchmark`) converges quickly with
+either preconditioner, so multigrid's setup dominates at medium size:
+
+| Tetrahedra | ICCG setup + solve ms | Multigrid setup + solve ms |
+| ---: | ---: | ---: |
+| 12,288 | 30.5 | 36.7 |
+| 41,472 | 141.5 | 211.8 |
+| 331,776 | 2,613 | 2,233 |
+
+Load-only edits reuse the multigrid hierarchy like the IC factor. Raw data:
+`benchmark/results/fem/bending-*.csv` and `axial-*.csv`.
+`setSolverBackend(IncompleteCholeskyCG)` keeps the previous behaviour.
 
 The ordering experiment compared Eigen IC with AMD and natural ordering.
 Natural ordering reduced setup and solve costs on this structured mesh sweep.
@@ -194,105 +236,54 @@ from the rendering thread and can be cancelled.
 
 ## Native meshing
 
-### Deferred meshing and enforced resolution
+The workbench meshes with RaiSim's constrained Delaunay mesher, natively and in
+the browser. The surface is remeshed to the element size and the CAD curvature
+with every CAD face boundary kept; points are inserted with exact predicates, the
+surface is recovered in the tetrahedralization, and the volume is refined and
+optimized. **Max element edge** is a hard bound. Automatic surface error is
+`min(0.01 * edge, 0.001 * geometry_diagonal)`.
 
-The current workbench displays a surface first and tetrahedralizes on **Solve**.
-Native and browser builds share the source-built serial kernel. **Max element edge**
-is enforced by conforming refinement, independently of surface approximation.
-Automatic surface error is `min(0.01 * edge, 0.001 * geometry_diagonal)`;
-CAD tessellation receives one quarter of that budget. This replaces the earlier
-fixed envelope tolerance and ideal-size hint, so the resulting meshes differ
-from the historical measurements below.
+Measurements on 2026-11-11: Intel Core Ultra 7 265K, one performance core, Clang 20
+Release, Open CASCADE 7.7.2, deterministic mode. Times are three-run medians that
+include helper startup, CAD translation, meshing and output. Raw data:
+`benchmark/results/fem/delaunay-mesher.csv` and
+`delaunay-mesher-vs-ftetwild.csv` in the RaiSim source checkout.
 
-Three-run serial medians on the same shared Ryzen 9 3950X host, Clang 20 Release,
-with the benchmark pinned to one logical CPU. Times include helper startup,
-translation/meshing and output; quality calculations are outside the timed interval.
-Raw data: `benchmark/results/fem/native-mesher-resolution.csv`.
+| Geometry | Maximum edge (mm) | Delaunay (s) | fTetWild (s) | Tetrahedra (Delaunay / fTetWild) | Minimum mean ratio (Delaunay / fTetWild) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Two-part assembly | 20 | 0.021 | 0.318 | 1,352 / 1,517 | 0.40 / 0.34 |
+| Two-part assembly | 10 | 0.023 | 0.208 | 4,285 / 3,075 | 0.33 / 0.50 |
+| Two-part assembly | 5 | 0.055 | 0.558 | 28,584 / 26,970 | 0.30 / 0.47 |
+| Hollow cylinder | 15 | 0.163 | 4.654 | 45,857 / 10,776 | 0.41 / 0.29 |
+| Sphere | 15 | 0.107 | 4.250 | 21,264 / 14,306 | 0.44 / 0.36 |
 
-| Geometry | Maximum edge (mm) | Preview (ms) | Optimized (s) | Original sampler (s) | Speedup | Tetrahedra |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Two-part assembly | 20 | 42.5 | 0.978 | 2.707 | 2.77× | 1,517 |
-| Two-part assembly | 10 | 38.0 | 0.472 | 1.989 | 4.22× | 3,075 |
-| Two-part assembly | 5 | 45.6 | 1.786 | 8.804 | 4.93× | 26,970 |
-| Hollow cylinder | 15 | 22.3 | 11.706 | 12.302 | 1.05× | 10,776 |
-| Sphere | 15 | 47.3 | 10.492 | 9.644 | 0.92× | 14,306 |
+Volume errors are zero for the planar assembly, 0.11% for the hollow cylinder and
+0.43% for the sphere (fTetWild: 0.002%, 0.10% and 0.27%). The Delaunay mesher
+places more elements on curved parts, because its surface follows the CAD within
+the surface error with curvature-sized triangles. Its 1st-percentile mean ratio is
+about 0.50 on all fixtures (fTetWild 0.43-0.56). On a 141,000-node robot knee mount
+from a STEP file (5 mm), meshing takes 3.7 s on one core and 3.4 s with all threads,
+compared with 141 s for fTetWild.
 
-Every optimized/original-sampler pair produced byte-identical deterministic meshes
-in all three runs. All native maximum-edge ratios were at most one (within
-roundoff). Volume error was at most 0.00234% for the assembly, 0.102% for the hollow
-cylinder and 0.272% for the sphere. Minimum mean ratios were 0.342–0.496 for the
-assembly, 0.293 for the cylinder and 0.360 for the sphere.
-
-The planar certificate helps the assembly substantially. It gives only a small
-cylinder gain, and the sphere's certificate attempts add about 9% overhead in
-this run. Curved meshing still takes around 10–12 seconds on these cases; opening
-them requires only the 22–47 ms surface preparation, followed by display rendering.
-Surface preview always contains zero tetrahedra.
-
-Raw Gmsh times were 35–117 ms for the assembly, 40 ms for the cylinder and 32 ms
-for the sphere. Its actual maximum edges were 1.41–2.24 times the requested size,
-and the sphere's volume error was 2.93%, marked `volume_error`. These are different
-meshes and geometric accuracies. The CSV reports actual edge lengths, counts and
-quality; these raw Gmsh timings exclude the workbench's maximum-edge refinement.
+Narrow CAD faces and sharp wedges are meshed with triangles sized to their width;
+folds are prevented, and CAD tessellation defects (tiny edges, unsewn faces, small
+holes and folded triangles) are repaired. `benchmark/results/fem/step-corpus.csv`
+meshes 68 public STEP models at three element sizes: 64 meshed at every size.
 
 Provided volume meshes use the independent refiner, retaining original vertices
 and region interfaces. Refining a 1 m cube from six supplied tetrahedra to maximum
-edges of 0.2, 0.1 and 0.05 m took 20.4, 50.0 and 291.1 ms, producing 6,144, 49,152
-and 393,216 tetrahedra. Volume was preserved to reporting precision and minimum
-mean ratio was 0.762 in all cases.
+edges of 0.2, 0.1 and 0.05 m takes 10, 23 and 113 ms, producing 6,144, 49,152
+and 393,216 tetrahedra with exact volume and a minimum mean ratio of 0.762.
 
 ```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  python3 benchmark/fem_mesher_benchmark.py --mesher /path/to/raisim_fem_mesher \
-  --geometry all --preview --compare-sampling --repetitions 3 \
-  --gmsh /optional/path/to/gmsh
-```
-
-### Historical fixed-tolerance configuration
-
-Measurements on 2026-11-09: AMD Ryzen 9 3950X, Linux x86-64, Clang 20.1.8 Release,
-fTetWild at the pinned browser revision, Open CASCADE 7.7.2 and Gmsh 4.15.2.
-Each completed result is the median of three serial runs with one computational
-thread. Timings include process startup, CAD translation, tetrahedralization and
-file output. Python quality calculations are outside the timed interval. The host
-is shared. Raw results are in `benchmark/results/fem/native-mesher.csv` in the
-RaiSim source checkout.
-
-| Geometry | Edge (mm) | Optimized (s) | Original sampler (s) | Speedup | Gmsh (s) |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Two-part assembly | 20 | 1.453 | 47.477 | 32.68× | 0.034 |
-| Two-part assembly | 10 | 1.229 | 50.346 | 40.97× | 0.047 |
-| Two-part assembly | 5 | 1.548 | 62.849 | 40.60× | 0.115 |
-| Hollow cylinder | 15 | 95.417 | 147.172 | 1.54× | 0.040 |
-| Sphere | 15 | 19.862 | 24.444 | 1.23× | 0.031 |
-
-All optimized native meshes were byte-identical to the original sampler outputs
-across all three repetitions. The benchmark fixes the surface and Delaunay input
-order with `--deterministic`; ordinary imports retain randomized ordering and can
-have different timings. The acceleration preserves the original tolerances and
-energy threshold of that earlier configuration. These measurements predate the
-shared source-built browser kernel and strict maximum-edge enforcement.
-
-Equal requested edge lengths produce different meshes across backends. Native
-volume errors were at most 0.000056% for the assembly, 0.110% for the hollow
-cylinder and 0.291% for the sphere. The sphere has 12,309 native tetrahedra and
-865 Gmsh tetrahedra; Gmsh has 2.926% volume error there. Its CSV status is
-`volume_error`, which flags a completed result exceeding the 1% benchmark target.
-Those timings therefore represent different geometric accuracy. The raw CSV also
-records node counts, minimum tetrahedron mean ratio and the fraction of envelope
-queries certified directly. Curved imports remain expensive: the hollow cylinder
-improves by 1.54× and the sphere by 1.23×, compared with 33–41× on the flat assembly.
-
-Reproduce from the RaiSim source checkout:
-
-```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  python3 benchmark/fem_mesher_benchmark.py --mesher /path/to/raisim_fem_mesher \
-  --compare-sampling --geometry all --repetitions 3 --gmsh /optional/path/to/gmsh
+python3 benchmark/fem_mesher_benchmark.py --mesher /path/to/raisim_fem_mesher \
+  --geometry all --repetitions 3 --compare-mesher /optional/other/raisim_fem_mesher
+python3 benchmark/fem_mesher_corpus_benchmark.py --mesher /path/to/raisim_fem_mesher \
+  --folder /path/to/step/files
 ```
 
 The benchmark reports timeouts explicitly and retains accuracy-target misses.
-The native geometry regression suite independently checks stricter volume limits,
-positive tetrahedra, CAD units, separate solid regions and preservation of holes.
-Benchmark reporting tests cover accuracy misses, partial timeouts, empty output
-and changes to deterministic mesh output.
+The native geometry regression suite independently checks volume limits, positive
+tetrahedra, CAD units, separate solid regions, preservation of holes and the CAD
+repairs. Benchmark reporting tests cover accuracy misses, partial timeouts, empty
+output and changes to deterministic mesh output.

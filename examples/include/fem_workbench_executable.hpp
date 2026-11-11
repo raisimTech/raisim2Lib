@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
-#include <vector>
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -96,30 +95,5 @@ inline std::string defaultNativeMesherExecutable(const char* application) {
   const auto searchPath = environmentValue("PATH");
   const auto found = findExecutable("raisim_fem_mesher", searchPath);
   return found.empty() ? "raisim_fem_mesher" : found;
-}
-inline std::string defaultGmshExecutable() {
-  const auto requested = environmentValue("RAISIM_FEM_GMSH");
-  if (!requested.empty()) return requested;
-  auto found = findExecutable("gmsh", environmentValue("PATH"));
-  if (!found.empty()) return found;
-  std::vector<std::filesystem::path> candidates;
-#if defined(_WIN32)
-  const auto userDirectory = environmentValue("USERPROFILE");
-#else
-  const auto userDirectory = environmentValue("HOME");
-#endif
-  if (!userDirectory.empty())
-    candidates.push_back(raisim::pathFromUtf8(userDirectory) /
-                         ".local/bin/gmsh");
-#if defined(__APPLE__)
-  candidates.emplace_back("/opt/homebrew/bin/gmsh");
-  candidates.emplace_back("/usr/local/bin/gmsh");
-  candidates.emplace_back("/Applications/Gmsh.app/Contents/MacOS/gmsh");
-#endif
-  for (const auto& candidate : candidates) {
-    found = findExecutable(raisim::pathUtf8(candidate), "");
-    if (!found.empty()) return found;
-  }
-  return "gmsh";
 }
 }  // namespace fem_workbench
