@@ -68,10 +68,100 @@ bool isLoad(Kind kind) {
          kind == Kind::Pressure || kind == Kind::Gravity;
 }
 constexpr unsigned char kSupportMark = 1, kLoadMark = 2, kHoverMark = 4,
-                        kSelectionMark = 8, kReferenceMark = 16;
+                        kSelectionMark = 8, kReferenceMark = 16,
+                        kFocusMark = 32;
+/// RaiSim brand colors: the gradient of the logo (raisim2Lib/docs/.vitepress/
+/// theme/styles/vars.css) on neutral graphite surfaces.
+namespace brand {
+constexpr ImVec4 kLime{.800f, .969f, .133f, 1.f};
+constexpr ImVec4 kOrange{.906f, .467f, .294f, 1.f};
+constexpr ImVec4 kPink{.949f, .153f, .498f, 1.f};
+constexpr ImVec4 kViolet{.812f, .314f, .835f, 1.f};
+constexpr ImVec4 kBlue{.361f, .439f, .827f, 1.f};
+constexpr ImVec4 kAccent = kPink;
+constexpr ImVec4 kSurface{.086f, .086f, .1f, 1.f};
+constexpr ImVec4 kCard{.11f, .11f, .127f, 1.f};
+constexpr ImVec4 kCard2{.15f, .15f, .172f, 1.f};
+constexpr ImVec4 kField{.18f, .18f, .207f, 1.f};
+constexpr ImVec4 kRaised{.2f, .2f, .23f, 1.f};
+constexpr ImVec4 kText{.957f, .957f, .965f, 1.f};
+constexpr ImVec4 kError{1.f, .42f, .42f, 1.f};
+constexpr ImVec4 tint(ImVec4 c, float alpha) {
+  return ImVec4(c.x, c.y, c.z, alpha);
+}
+}  // namespace brand
 const glm::vec4 kSupportColor{.16f, .78f, .42f, 1.f},
     kLoadColor{.86f, .32f, .86f, 1.f}, kSelectionColor{1.f, .74f, .12f, 1.f},
     kReferenceColor{.15f, .8f, 1.f, 1.f};
+const ImVec4 kSupportText{.45f, .9f, .6f, 1.f}, kLoadText{.95f, .55f, .95f, 1.f};
+/// Fills a rectangle with colors spread evenly from left to right.
+void gradientRect(ImDrawList* draw, ImVec2 low, ImVec2 high,
+                  std::initializer_list<ImVec4> stops) {
+  const std::vector<ImVec4> colors(stops);
+  const float step = (high.x - low.x) / float(colors.size() - 1);
+  for (size_t i = 0; i + 1 < colors.size(); ++i) {
+    const ImU32 left = ImGui::GetColorU32(colors[i]),
+                right = ImGui::GetColorU32(colors[i + 1]);
+    draw->AddRectFilledMultiColor(ImVec2(low.x + step * float(i), low.y),
+                                  ImVec2(low.x + step * float(i + 1), high.y),
+                                  left, right, right, left);
+  }
+}
+/// The RaiSim look: graphite surfaces and controls with the logo's pink as the
+/// accent.
+void applyBrandStyle(ImGuiStyle& style) {
+  using namespace brand;
+  style.FrameBorderSize = 1.f;
+  auto* c = style.Colors;
+  c[ImGuiCol_Text] = kText;
+  c[ImGuiCol_TextDisabled] = tint(kText, .52f);
+  c[ImGuiCol_WindowBg] = kSurface;
+  c[ImGuiCol_ChildBg] = ImVec4(0.f, 0.f, 0.f, 0.f);
+  c[ImGuiCol_PopupBg] = kCard;
+  c[ImGuiCol_Border] = ImVec4(1.f, 1.f, 1.f, .12f);
+  c[ImGuiCol_BorderShadow] = ImVec4(0.f, 0.f, 0.f, 0.f);
+  c[ImGuiCol_FrameBg] = kField;
+  c[ImGuiCol_FrameBgHovered] = tint(kAccent, .28f);
+  c[ImGuiCol_FrameBgActive] = tint(kAccent, .42f);
+  c[ImGuiCol_TitleBg] = kCard;
+  c[ImGuiCol_TitleBgActive] = kCard2;
+  c[ImGuiCol_TitleBgCollapsed] = kCard;
+  c[ImGuiCol_MenuBarBg] = kCard;
+  c[ImGuiCol_ScrollbarBg] = ImVec4(0.f, 0.f, 0.f, 0.f);
+  c[ImGuiCol_ScrollbarGrab] = ImVec4(1.f, 1.f, 1.f, .12f);
+  c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(1.f, 1.f, 1.f, .2f);
+  c[ImGuiCol_ScrollbarGrabActive] = ImVec4(1.f, 1.f, 1.f, .28f);
+  c[ImGuiCol_CheckMark] = kText;
+  c[ImGuiCol_SliderGrab] = kAccent;
+  c[ImGuiCol_SliderGrabActive] = kText;
+  c[ImGuiCol_Button] = kRaised;
+  c[ImGuiCol_ButtonHovered] = tint(kAccent, .5f);
+  c[ImGuiCol_ButtonActive] = kAccent;
+  c[ImGuiCol_Header] = kRaised;
+  c[ImGuiCol_HeaderHovered] = tint(kAccent, .42f);
+  c[ImGuiCol_HeaderActive] = tint(kAccent, .6f);
+  c[ImGuiCol_Separator] = ImVec4(1.f, 1.f, 1.f, .12f);
+  c[ImGuiCol_SeparatorHovered] = kAccent;
+  c[ImGuiCol_SeparatorActive] = kAccent;
+  c[ImGuiCol_ResizeGrip] = tint(kAccent, .2f);
+  c[ImGuiCol_ResizeGripHovered] = tint(kAccent, .6f);
+  c[ImGuiCol_ResizeGripActive] = kAccent;
+  c[ImGuiCol_Tab] = kCard2;
+  c[ImGuiCol_TabHovered] = tint(kAccent, .5f);
+  c[ImGuiCol_TabActive] = tint(kAccent, .7f);
+  c[ImGuiCol_TabUnfocused] = kCard2;
+  c[ImGuiCol_TabUnfocusedActive] = tint(kAccent, .45f);
+  c[ImGuiCol_PlotHistogram] = kPink;
+  c[ImGuiCol_PlotHistogramHovered] = kOrange;
+  c[ImGuiCol_TableHeaderBg] = kCard2;
+  c[ImGuiCol_TableBorderStrong] = ImVec4(1.f, 1.f, 1.f, .09f);
+  c[ImGuiCol_TableBorderLight] = ImVec4(1.f, 1.f, 1.f, .06f);
+  c[ImGuiCol_TableRowBgAlt] = ImVec4(1.f, 1.f, 1.f, .03f);
+  c[ImGuiCol_TextSelectedBg] = tint(kAccent, .35f);
+  c[ImGuiCol_DragDropTarget] = kLime;
+  c[ImGuiCol_NavHighlight] = kAccent;
+  c[ImGuiCol_ModalWindowDimBg] = ImVec4(0.f, 0.f, 0.f, .6f);
+}
 constexpr const char* kIconPlay = "\xef\xaa\x9e";
 constexpr const char* kIconFolderOpen = "\xef\x9a\xb5";
 constexpr const char* kIconCube = "\xef\x94\x80";
@@ -387,12 +477,23 @@ struct Workbench {
   int pickingReference = -1;
   bool solveRequested = false;
   std::shared_ptr<raisin::RayraiWindow> viewer;
-  std::shared_ptr<raisin::Visuals> solid, glyphs, boundaries, meshLines;
+  std::shared_ptr<raisin::Visuals> solid, ghost, glyphs, boundaries, meshLines;
   size_t glyphCount = 0, cadFaceCount = 0;
   bool boundariesBuilt = false;
   std::vector<std::array<unsigned int, 2>> boundaryEdges, surfaceEdges;
   std::vector<std::array<size_t, 2>> boundaryEdgeFaces, surfaceEdgeFaces;
-  std::vector<Vertex> vertices, glyphVertices;
+  std::vector<Vertex> vertices, ghostVertices, glyphVertices;
+  bool solidTwoSided = false;
+  /// Faces kept in focus are lit from both sides so that they show through
+  /// the half transparent rest of the model even when they face away.
+  static raisin::Material surfaceMaterial(bool twoSided) {
+    raisin::Material appearance;
+    appearance.useVertexColorAsAlbedo = true;
+    appearance.roughnessFactor = 1.f;
+    appearance.unlit = false;
+    appearance.doubleSided = twoSided;
+    return appearance;
+  }
   std::unique_ptr<fem_workbench::MeshJob> meshJob;
   struct FileJob {
     std::unique_ptr<fem_workbench::MeshJob> job;
@@ -407,7 +508,7 @@ struct Workbench {
   bool previewJob = false;
   double pendingEdge = 0., pendingTolerance = 0., surfaceTolerance = 0.,
          actualMaximumEdge = 0.;
-  int deformationMode = 0, bands = 0;
+  int deformationMode = 0;
   double customDeformation = 100., animationFactor = 1.;
   bool smoothContours = true, animate = false, labelExtremes = true,
        labelFieldRange = false, labelConnections = true, probing = false;
@@ -458,7 +559,7 @@ struct Workbench {
   std::string editorStatus;
   std::vector<fem_workbench::Pose> previewMotions;
   ImVec2 boxStart{}, pressPosition{};
-  enum class Drag { None, Pending, Orbit, Pan, Move, Label };
+  enum class Drag { None, Pending, Orbit, Pan, Move, Held, Label };
   struct LabelBox {
     int id;
     ImVec2 low, high, point;
@@ -485,7 +586,13 @@ struct Workbench {
   std::vector<double> quickKey;
   fem_workbench::MateSuggestion quickSuggestion;
   std::vector<int> selectionParts;
-  ImVec2 quickAnchor{}, quickSize{}, lastClick{};
+  ImVec2 quickAnchor{}, quickSize{}, quickPosition{}, lastClick{};
+  bool quickMoved = false, quickGrab = false;
+  const char* quickToolbar = "";
+  int hoveredMate = -1, hoveredConnection = -1, hoveredCondition = -1,
+      hoveredQuickKind = -1;
+  int pendingMate = -1, pendingConnection = -1, pendingCondition = -1,
+      pendingQuickKind = -1;
   bool quickDismissed = false, quickMore = false, quickMoveSecond = false,
        quickMoreMates = false;
   std::vector<fem_workbench::MateType> quickTypes;
@@ -558,6 +665,10 @@ struct Workbench {
     if (solid) {
       viewer->removeVisualObject("fem_solid");
       solid.reset();
+    }
+    if (ghost) {
+      viewer->removeVisualObject("fem_ghost");
+      ghost.reset();
     }
     if (glyphs) {
       viewer->removeVisualObject("fem_glyphs");
@@ -1094,10 +1205,13 @@ struct Workbench {
             state['meshedEdge'] = $4;
             state['surfaceTolerance'] = $5;
             state['actualMaximumEdge'] = $6;
+            state['quickToolbar'] = UTF8ToString($7);
+            state['resultView'] = !!$8;
           }
         },
         message.c_str(), int(bool(meshJob)), int(publishedPreview), elementSize,
-        publishedMeshedEdge, publishedTolerance, actualMaximumEdge);
+        publishedMeshedEdge, publishedTolerance, actualMaximumEdge, quickToolbar,
+        int(resultView));
 #endif
   }
   bool results() const { return resultView && model.hasSolution; }
@@ -1211,7 +1325,10 @@ struct Workbench {
         colorMax = std::min(colorMax, std::max(4., 4. * colorMin));
     }
     const auto marks = faceMarks();
+    const auto focus = focusFaces();
+    const float lift = 2e-4f * glm::length(boundsHigh() - boundsLow());
     vertices.resize(3 * faces.size());
+    ghostVertices.resize(3 * faces.size());
     for (size_t f = 0; f < faces.size(); ++f) {
       const auto& ids = faces[f].vertices;
       const int part = model.faceParts()[f];
@@ -1221,8 +1338,10 @@ struct Workbench {
       const glm::vec3 normal =
           glm::length(cross) > 0.f ? glm::normalize(cross) : glm::vec3(0, 0, 1);
       const double element = results() ? scalar(faces[f].element) : 0.;
+      const bool faded = !focus.empty() && !focus[f];
       for (size_t j = 0; j < 3; ++j) {
         auto& v = vertices[3 * f + j];
+        auto& g = ghostVertices[3 * f + j];
         v.Position = p[j];
         v.Normal = normal;
         v.Color = shade(
@@ -1230,6 +1349,14 @@ struct Workbench {
                                                        : nodalValues[ids[j]])
                       : partColor(part),
             marks[f]);
+        g = v;
+        g.Color.a = .5f;
+        if (faded) {
+          v.Position = p[0];
+        } else {
+          g.Position = p[0];
+          if (!focus.empty()) v.Position -= normal * lift;
+        }
       }
     }
     if (!solid) {
@@ -1243,13 +1370,35 @@ struct Workbench {
                                           false);
       solid->setUseMeshColor(true);
       solid->setDetectable(false);
+      solidTwoSided = !focus.empty();
+      solid->setMaterialOverride(surfaceMaterial(solidTwoSided));
+    } else if (!solid->updateSingleMeshVertices(vertices)) {
+      throw std::runtime_error("Cannot update FEM surface buffer");
+    } else if (solidTwoSided != !focus.empty()) {
+      solidTwoSided = !focus.empty();
+      solid->setMaterialOverride(surfaceMaterial(solidTwoSided));
+    }
+    if (!ghost && !focus.empty()) {
+      std::vector<unsigned int> indices(ghostVertices.size());
+      std::iota(indices.begin(), indices.end(), 0u);
+      auto meshes =
+          std::make_shared<std::vector<std::shared_ptr<OpenGLMesh>>>();
+      meshes->push_back(std::make_shared<OpenGLMesh>(
+          ghostVertices, indices, std::vector<Texture>{}));
+      ghost = viewer->addVisualCustomMesh("fem_ghost", meshes, glm::vec4(1.f),
+                                          false);
+      ghost->setUseMeshColor(true);
+      ghost->setDetectable(false);
+      ghost->setShadowCastingMode(raisin::Visuals::ShadowCastingMode::Off);
       raisin::Material appearance;
       appearance.useVertexColorAsAlbedo = true;
       appearance.roughnessFactor = 1.f;
-      appearance.unlit = false;
-      solid->setMaterialOverride(appearance);
-    } else if (!solid->updateSingleMeshVertices(vertices))
-      throw std::runtime_error("Cannot update FEM surface buffer");
+      appearance.alphaMode = raisin::Material::AlphaMode::Blend;
+      ghost->setMaterialOverride(appearance);
+    } else if (ghost && !focus.empty() &&
+               !ghost->updateSingleMeshVertices(ghostVertices))
+      throw std::runtime_error("Cannot update FEM ghost buffer");
+    if (ghost) ghost->setColorPassVisible(!focus.empty());
     updateGlyphs();
     updateBoundaries();
     visualDirty = false;
@@ -1269,13 +1418,15 @@ struct Workbench {
           state['regions'] = $6;
           state['cadFaces'] = $7;
           state['selectedFaces'] = $8;
+          state['focusFaces'] = $9;
           globalThis['raisimFemState'] = state;
         },
         model.name.c_str(), model.selected.size(),
         model.mesh().tetrahedra.size(), model.hasSolution,
         model.hasSolution ? model.solver->statistics().relativeResidual : 0.,
         model.hasSolution ? model.solver->statistics().strainEnergy : 0.,
-        regions.size(), cadFaceCount, surfaceCount(model.selectedFaces()));
+        regions.size(), cadFaceCount, surfaceCount(model.selectedFaces()),
+        int(std::count(focus.begin(), focus.end(), 1)));
 #endif
   }
   void updateBoundaries() {
@@ -1477,6 +1628,209 @@ struct Workbench {
     appearance.roughnessFactor = .6f;
     glyphs->setMaterialOverride(appearance);
   }
+  /// The two face sets of the mate or connection under the pointer in the
+  /// panel, or of the connection hovered in the quick toolbar.
+  /// Draws what the hovered mate or connection does: plane normals, cylinder
+  /// axes and sphere centers of a mate, and the axis, center or link of a
+  /// connection, with a short label.
+  void hoverOverlay(const ExampleApp::Viewport& vp, ImDrawList* draw) {
+    using Shape = fem_workbench::FaceShape;
+    const float size = std::max(glm::length(boundsHigh() - boundsLow()), 1e-6f);
+    const ImU32 first = toImColor(kSelectionColor),
+                second = toImColor(kReferenceColor),
+                outline = IM_COL32(20, 24, 30, 255);
+    const auto toGlm = [](const Eigen::Vector3d& v) {
+      return glm::vec3(float(v.x()), float(v.y()), float(v.z()));
+    };
+    const auto line = [&](const glm::vec3& a, const glm::vec3& b, ImU32 color) {
+      ImVec2 p, q;
+      if (!projectPoint(a, vp, p) || !projectPoint(b, vp, q)) return;
+      draw->AddLine(p, q, outline, 5.f);
+      draw->AddLine(p, q, color, 2.5f);
+    };
+    const auto point = [&](const glm::vec3& a, ImU32 color, float radius) {
+      ImVec2 p;
+      if (!projectPoint(a, vp, p)) return;
+      draw->AddCircleFilled(p, radius, color);
+      draw->AddCircle(p, radius, outline, 0, 1.5f);
+    };
+    const auto label = [&](const glm::vec3& at, const std::string& text) {
+      ImVec2 p;
+      if (!projectPoint(at, vp, p)) return;
+      const ImVec2 extent = ImGui::CalcTextSize(text.c_str());
+      const ImVec2 low(p.x + 12.f, p.y - extent.y - 14.f),
+          high(low.x + extent.x + 12.f, low.y + extent.y + 8.f);
+      draw->AddRectFilled(low, high, IM_COL32(24, 28, 34, 235), 4.f);
+      draw->AddRect(low, high, IM_COL32(240, 242, 245, 120), 4.f);
+      draw->AddText(ImVec2(low.x + 6.f, low.y + 4.f),
+                    IM_COL32(240, 242, 245, 255), text.c_str());
+    };
+    const auto centroid = [&](const std::vector<size_t>& faces) {
+      glm::vec3 sum(0.f);
+      size_t count = 0;
+      for (const auto f : faces)
+        if (f < model.boundaryFaces().size())
+          for (const auto v : model.boundaryFaces()[f].vertices) {
+            sum += position(v);
+            ++count;
+          }
+      return count ? sum / float(count) : sum;
+    };
+    const auto shape = [&](const Shape& s, ImU32 color) {
+      const glm::vec3 at = toGlm(s.point), along = toGlm(s.direction);
+      if (s.type == Shape::Type::Plane) {
+        line(at, at + along * (.2f * size), color);
+        point(at, color, 4.f);
+      } else if (s.type == Shape::Type::Cylinder) {
+        const float half = .5f * float(s.size) + .1f * size;
+        line(at - along * half, at + along * half, color);
+      } else if (s.type == Shape::Type::Sphere) {
+        point(at, color, 6.f);
+      }
+    };
+    if (hoveredCondition >= 0 &&
+        size_t(hoveredCondition) < model.conditions.size()) {
+      const auto& c = model.conditions[size_t(hoveredCondition)];
+      label(c.faces.empty() ? .5f * (boundsLow() + boundsHigh())
+                            : centroid(c.faces),
+            c.name + (c.enabled ? "" : " (disabled)"));
+      return;
+    }
+    if (hoveredMate >= 0 && size_t(hoveredMate) < model.mates.size()) {
+      const auto& mate = model.mates[size_t(hoveredMate)];
+      const auto* moving = model.findPart(mate.moving);
+      const auto* reference = model.findPart(mate.reference);
+      if (!moving || !reference) return;
+      std::vector<Shape> placedMoving, placedReference;
+      for (const auto& face : mate.referenceFaces) {
+        placedReference.push_back(
+            fem_workbench::transformed(face, Model::placement(*reference)));
+        shape(placedReference.back(), second);
+      }
+      for (const auto& face : mate.movingFaces) {
+        placedMoving.push_back(
+            fem_workbench::transformed(face, Model::placement(*moving)));
+        shape(placedMoving.back(), first);
+      }
+      if (placedMoving.empty() || placedReference.empty()) return;
+      glm::vec3 anchor = toGlm(placedMoving.front().point);
+      if (mate.type == fem_workbench::MateType::Distance) {
+        const auto& m = placedMoving.front();
+        const auto& r = placedReference.front();
+        glm::vec3 foot = toGlm(r.point);
+        if (r.type == Shape::Type::Plane)
+          foot = toGlm(m.point - r.direction * r.direction.dot(m.point - r.point));
+        line(toGlm(m.point), foot, IM_COL32(240, 242, 245, 255));
+        anchor = .5f * (toGlm(m.point) + foot);
+      }
+      label(anchor, mateLabel(size_t(hoveredMate)) + "\n" +
+                        fem_workbench::mateTypeHelp(mate.type));
+      return;
+    }
+    std::array<std::vector<size_t>, 2> faces;
+    Kind kind;
+    std::string name;
+    std::optional<glm::vec3> center, axis;
+    if (hoveredConnection >= 0 &&
+        size_t(hoveredConnection) < model.conditions.size()) {
+      const auto& c = model.conditions[size_t(hoveredConnection)];
+      kind = c.kind;
+      name = c.name;
+      faces = {c.faces, c.targetFaces};
+      if (kind == Kind::Hinge || kind == Kind::SliderJoint ||
+          kind == Kind::BallJoint)
+        center = toGlm(c.center.e());
+      if (kind == Kind::Hinge || kind == Kind::SliderJoint)
+        axis = glm::normalize(toGlm(c.axis.e()));
+    } else if (hoveredQuickKind >= 0 && !quickA.empty() && !quickB.empty()) {
+      kind = static_cast<Kind>(hoveredQuickKind);
+      name = connectionName(kind);
+      faces = {quickA, quickB};
+      for (const auto& s : {quickSuggestion.first, quickSuggestion.second}) {
+        if ((kind == Kind::Hinge || kind == Kind::SliderJoint) &&
+            s.type == Shape::Type::Cylinder && !axis) {
+          center = toGlm(s.point);
+          axis = glm::normalize(toGlm(s.direction));
+        }
+        if (kind == Kind::BallJoint && s.type == Shape::Type::Sphere && !center)
+          center = toGlm(s.point);
+      }
+    } else {
+      return;
+    }
+    const glm::vec3 a = centroid(faces[0]), b = centroid(faces[1]);
+    const char* action = "";
+    switch (kind) {
+      case Kind::Tie:
+        action = "the faces stay glued together";
+        break;
+      case Kind::BoltConnector:
+        action = "a bolt clamps these two seats";
+        break;
+      case Kind::Hinge:
+        action = "the parts turn about this axis";
+        break;
+      case Kind::SliderJoint:
+        action = "the parts slide along this axis";
+        break;
+      case Kind::BallJoint:
+        action = "the parts turn about this point";
+        break;
+      default:
+        action = "the faces move as one rigid body";
+        break;
+    }
+    if (axis && center) {
+      line(*center - *axis * (.35f * size), *center + *axis * (.35f * size),
+           second);
+      point(*center, second, 5.f);
+    } else if (center) {
+      point(*center, second, 7.f);
+    } else {
+      line(a, b, second);
+      point(a, first, 5.f);
+      point(b, second, 5.f);
+    }
+    label(center ? *center : .5f * (a + b), name + ": " + action);
+  }
+  std::array<std::vector<size_t>, 2> hoverFaces() const {
+    if (hoveredMate >= 0 && size_t(hoveredMate) < model.mates.size())
+      return model.mateFaces(size_t(hoveredMate));
+    if (hoveredConnection >= 0 &&
+        size_t(hoveredConnection) < model.conditions.size()) {
+      const auto& c = model.conditions[size_t(hoveredConnection)];
+      return {c.faces, c.targetFaces};
+    }
+    if (hoveredQuickKind >= 0 && !quickA.empty() && !quickB.empty())
+      return {quickA, quickB};
+    return {};
+  }
+  /// Faces that stay opaque while a mate, connection, support or load is
+  /// hovered in the panel; the rest of the model turns half transparent, all
+  /// of it for gravity or conditions on nodes only. Empty when nothing is
+  /// hovered.
+  std::vector<unsigned char> focusFaces() const {
+    const bool condition = hoveredCondition >= 0 &&
+                           size_t(hoveredCondition) < model.conditions.size();
+    const bool joint =
+        (hoveredMate >= 0 && size_t(hoveredMate) < model.mates.size()) ||
+        (hoveredConnection >= 0 &&
+         size_t(hoveredConnection) < model.conditions.size()) ||
+        (hoveredQuickKind >= 0 && !quickA.empty() && !quickB.empty());
+    if (resultView || !(condition || joint)) return {};
+    std::vector<size_t> list;
+    if (condition) {
+      list = model.conditions[size_t(hoveredCondition)].faces;
+    } else {
+      const auto hovered = hoverFaces();
+      list = hovered[0];
+      list.insert(list.end(), hovered[1].begin(), hovered[1].end());
+    }
+    std::vector<unsigned char> focus(model.boundaryFaces().size(), 0);
+    for (const auto f : list)
+      if (f < focus.size()) focus[f] = 1;
+    return focus;
+  }
   std::vector<unsigned char> faceMarks() const {
     std::vector<unsigned char> marks(model.boundaryFaces().size(), 0);
     if (resultView) return marks;
@@ -1494,6 +1848,22 @@ struct Workbench {
         if (surfaces[f] == hoveredSurface && parts[f] == hoveredPart)
           marks[f] |= kHoverMark;
     }
+    if (hoveredCondition >= 0 &&
+        size_t(hoveredCondition) < model.conditions.size()) {
+      const auto& c = model.conditions[size_t(hoveredCondition)];
+      for (const auto f : c.faces)
+        if (f < marks.size())
+          marks[f] = (isLoad(c.kind) ? kLoadMark : kSupportMark) | kFocusMark;
+      return marks;
+    }
+    const auto hovered = hoverFaces();
+    if (!hovered[0].empty() || !hovered[1].empty()) {
+      for (const auto f : hovered[0])
+        if (f < marks.size()) marks[f] |= kSelectionMark;
+      for (const auto f : hovered[1])
+        if (f < marks.size()) marks[f] |= kReferenceMark;
+      return marks;
+    }
     if (edited >= 0 && size_t(edited) < model.conditions.size())
       for (const auto f : model.conditions[size_t(edited)].targetFaces)
         if (f < marks.size()) marks[f] |= kReferenceMark;
@@ -1508,14 +1878,13 @@ struct Workbench {
     return marks;
   }
   /// Contour color: blue (low) to red (high), reversed for the factor of
-  /// safety, quantized into bands when requested, and grey below the
-  /// highlight threshold or where the value is unknown.
+  /// safety, and grey below the highlight threshold or where the value is
+  /// unknown.
   glm::vec4 valueColor(double value) const {
     if (std::isnan(value)) return glm::vec4(.62f, .64f, .67f, 1.f);
     double t = std::clamp((value - colorMin) / std::max(colorMax - colorMin, 1e-30),
                           0., 1.);
     if (field == kSafetyField) t = 1. - t;
-    if (bands > 0) t = std::min(1., (std::floor(t * bands) + .5) / bands);
     if (highlightAbove > 0.f && t < highlightAbove * .01)
       return glm::vec4(.72f, .74f, .77f, 1.f);
     return heat(t);
@@ -1539,6 +1908,7 @@ struct Workbench {
     if (mark & kReferenceMark) color = glm::mix(color, kReferenceColor, .8f);
     if (mark & kSelectionMark) color = glm::mix(color, kSelectionColor, .9f);
     if (mark & kHoverMark) color = glm::mix(color, glm::vec4(1.f), .35f);
+    if (mark & kFocusMark) color = glm::mix(color, glm::vec4(1.f), .2f);
     return color;
   }
   ExampleApp::Viewport layoutViewport(SDL_Window* window) const {
@@ -1749,7 +2119,7 @@ struct Workbench {
   }
   bool canMoveParts() const {
     return moveParts && !resultView && !solveTask && !meshJob &&
-           model.parts.size() > 1 && !boxSelect;
+           !model.parts.empty() && !boxSelect;
   }
   /// Mouse handling for the 3D view: orbit, pan, zoom about the cursor, face
   /// selection and moving parts. Runs every frame; touches the model only
@@ -1803,20 +2173,24 @@ struct Workbench {
       }
       dragButton = ImGui::IsMouseClicked(2) ? 2 : ImGui::IsMouseClicked(1) ? 1 : 0;
     }
+    const float dragThreshold = io.MouseDragThreshold * io.MouseDragThreshold;
     if (drag == Drag::Pan && dragButton == 1) {
       const float dx = io.MousePos.x - rightPress.x,
                   dy = io.MousePos.y - rightPress.y;
-      rightMoved = rightMoved || dx * dx + dy * dy > 16.f;
+      rightMoved = rightMoved || dx * dx + dy * dy > dragThreshold;
     }
     if (drag == Drag::Pending && ImGui::IsMouseDown(0)) {
       const float dx = io.MousePos.x - pressPosition.x,
                   dy = io.MousePos.y - pressPosition.y;
-      if (dx * dx + dy * dy > 16.f) {
+      if (dx * dx + dy * dy > dragThreshold) {
         const auto* grabbed =
-            canMoveParts() && pressFace >= 0 && editor == Editor::None
+            canMoveParts() && pressFace >= 0
                 ? model.findPart(model.faceParts()[size_t(pressFace)])
                 : nullptr;
-        if (grabbed && !grabbed->fixed) {
+        if (grabbed && grabbed->fixed) {
+          drag = Drag::Held;
+          dragPart = grabbed->region;
+        } else if (grabbed) {
           drag = Drag::Move;
           dragPart = grabbed->region;
           dragRotate = io.KeyShift;
@@ -1850,6 +2224,10 @@ struct Workbench {
       cam.update(false);
       fem_workbench::updateMeshCameraClipping(cam);
     }
+    if (drag == Drag::Held)
+      if (const auto* held = model.findPart(dragPart))
+        ImGui::SetTooltip("%s is fixed; uncheck Fixed in Parts to move it",
+                          held->name.c_str());
     if (drag == Drag::Move) {
       fem_workbench::Pose motion = dragMotion;
       if (dragRotate) {
@@ -1893,6 +2271,7 @@ struct Workbench {
     if (drag != Drag::None && !ImGui::IsMouseDown(dragButton)) {
       const auto finished = drag;
       drag = Drag::None;
+      if (finished == Drag::Held) dragPart = -1;
       if (finished == Drag::Move) {
         const int region = dragPart;
         const auto motion = dragMotion;
@@ -1932,11 +2311,14 @@ struct Workbench {
         peekHide(rightFace);
       } else if (finished == Drag::Pending && geometry && !resultView &&
                  vp.hovered) {
-        click(pressFace, append || io.KeyCtrl || io.KeyShift ||
-                             (shownTab == kConnectTab && pressFace >= 0));
+        click(pressFace, append || io.KeyCtrl || io.KeyShift);
       } else if (finished == Drag::Pending && geometry && resultView &&
                  probing && pressFace >= 0 && results()) {
         probes.push_back(model.boundaryFaces()[size_t(pressFace)].element);
+      } else if (finished == Drag::Pending && geometry && resultView &&
+                 !probing && pressFace >= 0 && vp.hovered) {
+        setResultView(false);
+        click(pressFace, false);
       }
     }
     if (!geometry) {
@@ -2007,7 +2389,8 @@ struct Workbench {
                 scalar(model.boundaryFaces()[size_t(hoveredFace)].element),
                 fieldUnit())
                 .c_str(),
-            probing ? "\nClick to pin a probe here" : "");
+            probing ? "\nClick to pin a probe here"
+                    : "\nClick to add a support or load here");
       return;
     }
     std::vector<unsigned char> onFace(model.selected.size(), 0);
@@ -2022,26 +2405,35 @@ struct Workbench {
     if (selectingBox)
       draw->AddRect(boxStart, ImGui::GetIO().MousePos,
                     IM_COL32(255, 214, 80, 255), 0.f, 0, 1.5f);
+    hoverOverlay(vp, draw);
     draw->PopClipRect();
     const auto* hoveredPartInfo =
         hoveredFace >= 0 && model.parts.size() > 1
             ? model.findPart(model.faceParts()[size_t(hoveredFace)])
             : nullptr;
-    if (hoveredFace >= 0 && !ImGui::IsAnyMouseDown() && !boxSelect)
+    const auto mouse = ImGui::GetIO().MousePos;
+    const bool coversQuickWindow =
+        !quickFaces.empty() && !quickDismissed &&
+        std::abs(mouse.x - lastClick.x) + std::abs(mouse.y - lastClick.y) < 4.f;
+    if (hoveredFace >= 0 && !ImGui::IsAnyMouseDown() && !boxSelect &&
+        !coversQuickWindow) {
+      const auto* hoveredPart = model.findPart(model.faceParts()[size_t(hoveredFace)]);
+      const char* drag = !canMoveParts() || !hoveredPart ? ""
+                         : hoveredPart->fixed ? "\nFixed: drag empty space to turn the view"
+                                              : "\nDrag to move the part, Shift+drag to turn it";
       ImGui::SetTooltip(
-          "%s%s%s %d%s", hoveredPartInfo ? hoveredPartInfo->name.c_str() : "",
+          "%s%s%s %d%s%s%s", hoveredPartInfo ? hoveredPartInfo->name.c_str() : "",
           hoveredPartInfo ? "\n" : "",
           model.hasCadFaces() ? "CAD face" : "Surface", hoveredSurface,
           pickingReference >= 0 ? "\nClick to set the force direction normal to it"
           : model.faceSelected(size_t(hoveredFace))
-              ? (model.parts.size() > 1
-                     ? " (selected)\nCtrl/Shift+click removes it\nRight-click "
-                       "hides the part"
-                     : " (selected)\nCtrl/Shift+click removes it")
-          : model.parts.size() > 1
-              ? "\nClick to select, Ctrl/Shift+click to add\nRight-click hides "
-                "the part until you pick a face"
-              : "\nClick to select, Ctrl/Shift+click to add");
+              ? " (selected)\nCtrl/Shift+click removes it"
+              : "\nClick to select, Ctrl/Shift+click to add",
+          pickingReference >= 0 ? "" : drag,
+          pickingReference < 0 && model.parts.size() > 1
+              ? "\nRight-click hides the part until you pick a face"
+              : "");
+    }
   }
   glm::vec3 elementCenter(size_t element) const {
     glm::vec3 center(0.f);
@@ -2558,7 +2950,7 @@ struct Workbench {
   }
   void errorNotice() {
     if (errorText.empty()) return;
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, .45f, .4f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, brand::kError);
     ImGui::TextWrapped("%s", errorText.c_str());
     ImGui::PopStyleColor();
     if (ImGui::SmallButton(withIcon(kIconCopy, "Copy").c_str()))
@@ -2614,7 +3006,7 @@ struct Workbench {
                         : "Click the face whose normal sets the force direction.";
     }
     if (c.targetFaces.empty())
-      ImGui::TextColored(ImVec4(1.f, .78f, .3f, 1.f), "No reference face picked");
+      ImGui::TextColored(brand::kOrange, "No reference face picked");
     else
       ImGui::TextDisabled("Reference: %zu face%s (shown in cyan)",
                           surfaceCount(c.targetFaces),
@@ -2626,19 +3018,27 @@ struct Workbench {
     ImGui::TextDisabled("Icons: Uicons by Flaticon (flaticon.com/uicons)");
   }
   void panel() {
+    pendingMate = pendingConnection = pendingCondition = pendingQuickKind = -1;
     const auto display = ImGui::GetIO().DisplaySize;
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
     ImGui::SetNextWindowSize(ImVec2(sidebarWidth, display.y));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.f);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(.075f, .085f, .1f, 1.f));
     ImGui::Begin("FEM Workbench", nullptr,
                  ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoCollapse);
-    ImGui::PopStyleColor();
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     ImGui::PopStyleVar(2);
+    {
+      auto* draw = ImGui::GetWindowDrawList();
+      const ImVec2 at = ImGui::GetWindowPos();
+      draw->PushClipRect(at, ImVec2(at.x + sidebarWidth, at.y + 4.f), false);
+      gradientRect(draw, at, ImVec2(at.x + sidebarWidth, at.y + 4.f),
+                   {brand::kLime, brand::kOrange, brand::kPink, brand::kViolet,
+                    brand::kBlue});
+      draw->PopClipRect();
+    }
     ImGui::PushItemWidth(115.f);
-    ImGui::TextColored(ImVec4(.35f, .85f, .9f, 1.f), "LINEAR ELASTICITY");
+    ImGui::TextDisabled("LINEAR ELASTICITY");
     if (!solveTask) {
       shownName = model.name;
       shownGeometry = model.hasGeometry();
@@ -2646,10 +3046,9 @@ struct Workbench {
     }
     ImGui::TextWrapped("%s", shownName.c_str());
     modeTabs();
-    ImGui::Separator();
     errorNotice();
     if (solveTask) {
-      ImGui::TextColored(ImVec4(1.f, .8f, .3f, 1.f), "Solving the model");
+      ImGui::TextColored(brand::kOrange, "Solving the model");
       progressBar(-1.f);
       if (ImGui::Button(withIcon(kIconCancel, "Cancel").c_str())) cancelBusy();
       finishPanel(display, false);
@@ -2675,9 +3074,9 @@ struct Workbench {
       if (ImGui::Button(withIcon(kIconCancel, "Cancel").c_str())) cancelBusy();
     }
     ImGui::Spacing();
-    ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(.13f, .15f, .18f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(.25f, .38f, .58f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_TabActive, ImVec4(.2f, .32f, .5f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Tab, brand::kCard2);
+    ImGui::PushStyleColor(ImGuiCol_TabHovered, brand::tint(brand::kAccent, .5f));
+    ImGui::PushStyleColor(ImGuiCol_TabActive, brand::tint(brand::kAccent, .7f));
     const bool tabs =
         ImGui::BeginTabBar("steps", ImGuiTabBarFlags_FittingPolicyResizeDown);
     ImGui::PopStyleColor(3);
@@ -3003,7 +3402,7 @@ struct Workbench {
       const float nameWidth =
           labels - materialWidth - (materialWidth > 0.f ? style.ItemSpacing.x : 0.f);
       if (active)
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(.2f, .3f, .44f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Header, brand::tint(brand::kAccent, .45f));
       if (!shown)
         ImGui::PushStyleColor(ImGuiCol_Text,
                               style.Colors[ImGuiCol_TextDisabled]);
@@ -3196,6 +3595,24 @@ struct Workbench {
       });
     if (removed >= 0) attempt([&] { removePart(removed); });
   }
+  /// "Distance1: Block to Plate, 0.12 m".
+  std::string mateLabel(size_t index) const {
+    using fem_workbench::MateType;
+    const auto& mate = model.mates[index];
+    const auto* mover = model.findPart(mate.moving);
+    const auto* other = model.findPart(mate.reference);
+    std::string label = mate.name + ": " + (mover ? mover->name : "?") +
+                        " to " + (other ? other->name : "?");
+    char value[48] = "";
+    const double v = mate.options.value.value_or(0.);
+    if (mate.type == MateType::Distance ||
+        (mate.type == MateType::ProfileCenter && v != 0.))
+      std::snprintf(value, sizeof(value), ", %.4g m", v);
+    if (mate.type == MateType::Angle)
+      std::snprintf(value, sizeof(value), ", %.4g deg",
+                    v * 180. / 3.14159265358979323846);
+    return label + value;
+  }
   void mateList() {
     using fem_workbench::MateType;
     if (model.mates.empty()) {
@@ -3209,19 +3626,9 @@ struct Workbench {
     for (size_t i = 0; i < model.mates.size(); ++i) {
       const auto& mate = model.mates[i];
       ImGui::PushID(("mate " + std::to_string(i)).c_str());
+      const ImVec2 row = ImGui::GetCursorScreenPos();
       const auto* mover = model.findPart(mate.moving);
-      const auto* other = model.findPart(mate.reference);
-      std::string label = mate.name + ": " + (mover ? mover->name : "?") +
-                          " to " + (other ? other->name : "?");
-      char value[48] = "";
-      const double v = mate.options.value.value_or(0.);
-      if (mate.type == MateType::Distance ||
-          (mate.type == MateType::ProfileCenter && v != 0.))
-        std::snprintf(value, sizeof(value), ", %.4g m", v);
-      if (mate.type == MateType::Angle)
-        std::snprintf(value, sizeof(value), ", %.4g deg",
-                      v * 180. / 3.14159265358979323846);
-      label += value;
+      const std::string label = mateLabel(i);
       ImGui::AlignTextToFramePadding();
       ImGui::TextUnformatted(
           fitText(label, right - ImGui::GetCursorPosX() - 3.f * frame -
@@ -3244,8 +3651,13 @@ struct Workbench {
       if (ImGui::Button(kIconTrash, ImVec2(frame, frame))) removed = i;
       if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Remove this mate; the parts stay where they are");
+      if (ImGui::IsWindowHovered() &&
+          ImGui::IsMouseHoveringRect(
+              row, ImVec2(ImGui::GetWindowPos().x + right, row.y + frame)))
+        pendingMate = int(i);
       ImGui::PopID();
     }
+    if (removed || flipped || opened) pendingMate = -1;
     if (removed) attempt([&] { model.removeMate(*removed); });
     if (flipped)
       attempt([&] {
@@ -3272,7 +3684,7 @@ struct Workbench {
     const size_t selectedNodes =
         size_t(std::count(model.selected.begin(), model.selected.end(), 1));
     if (selectedNodes == 0) {
-      ImGui::TextColored(ImVec4(1.f, .78f, .3f, 1.f),
+      ImGui::TextColored(brand::kOrange,
                          "Selected: nothing");
       return;
     }
@@ -3443,7 +3855,7 @@ struct Workbench {
     const size_t selectedNodes =
         size_t(std::count(model.selected.begin(), model.selected.end(), 1));
     const bool nodes = selectedNodes > 0, faces = !selectedFaces.empty();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.45f, .9f, .6f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, kSupportText);
     ImGui::SeparatorText("Supports");
     ImGui::PopStyleColor();
     button(Kind::Fixed, nodes, false);
@@ -3479,7 +3891,7 @@ struct Workbench {
       ImGui::EndCombo();
     }
     ImGui::EndDisabled();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.95f, .55f, .95f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, kLoadText);
     ImGui::SeparatorText("Loads");
     ImGui::PopStyleColor();
     button(Kind::Force, nodes, false);
@@ -3516,6 +3928,7 @@ struct Workbench {
     for (size_t i = 0; i < model.conditions.size(); ++i) {
       if (isConnection(model.conditions[i].kind) != mates) continue;
       ImGui::PushID(int(i));
+      const ImVec2 row = ImGui::GetCursorScreenPos();
       if (ImGui::Checkbox("##enabled", &model.conditions[i].enabled)) {
         model.changed();
         visualDirty = true;
@@ -3533,6 +3946,12 @@ struct Workbench {
         pickingReference = -1;
         visualDirty = true;
       }
+      if (ImGui::IsWindowHovered() &&
+          ImGui::IsMouseHoveringRect(
+              row, ImVec2(ImGui::GetWindowPos().x +
+                              ImGui::GetWindowContentRegionMax().x,
+                          row.y + ImGui::GetFrameHeight())))
+        (mates ? pendingConnection : pendingCondition) = int(i);
       ImGui::PopID();
     }
     ImGui::EndChild();
@@ -3638,8 +4057,8 @@ struct Workbench {
   }
   bool connectionButton(Kind kind, bool recommended) {
     ImGui::PushStyleColor(ImGuiCol_Button, recommended
-                                               ? ImVec4(.2f, .32f, .5f, 1.f)
-                                               : ImVec4(.16f, .18f, .22f, 1.f));
+                                               ? brand::tint(brand::kAccent, .7f)
+                                               : brand::kCard2);
     const bool pressed = ImGui::Button(
         (withIcon(kindIcon(kind), connectionName(kind)) + "##connect").c_str());
     ImGui::PopStyleColor();
@@ -3866,10 +4285,9 @@ struct Workbench {
         mate ? (editing ? "Edit " + model.mates[size_t(editingMate)].name
                         : std::string("New mate"))
              : std::string("New ") + fem_workbench::kindName(editorKind);
-    ImGui::TextColored(ImVec4(.35f, .85f, .9f, 1.f), "%s",
-                       withIcon(mate ? kIconArrowsToLine : kindIcon(editorKind),
-                                title)
-                           .c_str());
+    ImGui::TextUnformatted(
+        withIcon(mate ? kIconArrowsToLine : kindIcon(editorKind), title)
+            .c_str());
     const float width = ImGui::GetContentRegionAvail().x;
     if (!editing) {
       for (int b = 0; b < 2; ++b) {
@@ -3933,7 +4351,7 @@ struct Workbench {
           ImGui::BeginDisabled(!fits);
           const bool chosen = type == editorMate;
           if (chosen)
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.2f, .42f, .6f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Button, brand::kAccent);
           if (ImGui::Button(withIcon(mateIcon(type),
                                      fem_workbench::mateTypeName(type))
                                 .c_str(),
@@ -4011,7 +4429,7 @@ struct Workbench {
       }
       ImGui::PushTextWrapPos(0.f);
       if (editorFailed)
-        ImGui::TextColored(ImVec4(1.f, .45f, .4f, 1.f), "%s",
+        ImGui::TextColored(brand::kError, "%s",
                            editorStatus.c_str());
       else
         ImGui::TextDisabled("%s", editorStatus.c_str());
@@ -4020,7 +4438,7 @@ struct Workbench {
     const bool ready = mate ? !editorFailed && (editing || !editorFits.empty())
                             : !editorFaces[0].empty() && !editorFaces[1].empty();
     ImGui::BeginDisabled(!ready);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.07f, .45f, .52f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Button, brand::kAccent);
     const bool ok = ImGui::Button(withIcon(kIconCheck, "OK").c_str(),
                                   ImVec2(110.f, 0.f));
     ImGui::PopStyleColor();
@@ -4059,6 +4477,42 @@ struct Workbench {
       closeEditor();
     });
   }
+  /// The quick toolbars open beside the pointer. Dragging one by its
+  /// background keeps it where it is dropped until it closes.
+  void beginQuickWindow(const char* name, const ImVec2& display) {
+    if (quickMoved && !quickGrab)
+      ImGui::SetNextWindowPos(quickPosition);
+    else if (!quickGrab)
+      ImGui::SetNextWindowPos(
+          ImVec2(std::max(sidebarWidth + 8.f,
+                          std::min(quickAnchor.x + 18.f,
+                                   display.x - quickSize.x - 8.f)),
+                 std::max(8.f, std::min(quickAnchor.y + 18.f,
+                                        display.y - quickSize.y - 8.f))));
+    ImGui::SetNextWindowBgAlpha(.95f);
+    ImGui::Begin(name, nullptr,
+                 ImGuiWindowFlags_NoDecoration |
+                     ImGuiWindowFlags_AlwaysAutoResize |
+                     ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing);
+  }
+  void endQuickWindow() {
+    if (ImGui::IsWindowHovered()) {
+      if (!ImGui::IsAnyItemHovered())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+      if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemActive())
+        quickGrab = true;
+    }
+    if (quickGrab) {
+      if (ImGui::IsMouseDragging(0, 2.f)) quickMoved = true;
+      if (!ImGui::IsMouseDown(0)) quickGrab = false;
+    }
+    quickSize = ImGui::GetWindowSize();
+    if (quickMoved) quickPosition = ImGui::GetWindowPos();
+    ImGui::End();
+  }
+  /// A quick toolbar that closes forgets where it was dragged.
+  void closeQuickWindow() { quickMoved = quickGrab = false; }
   static const char* fixtureName(Kind kind) {
     switch (kind) {
       case Kind::Fixed:
@@ -4083,19 +4537,7 @@ struct Workbench {
   /// pointer, like the quick connection toolbar for two parts.
   void quickFixtures(const ImVec2& display) {
     using Shape = fem_workbench::FaceShape::Type;
-    ImGui::SetNextWindowPos(
-        ImVec2(std::max(sidebarWidth + 8.f,
-                        std::min(quickAnchor.x + 18.f,
-                                 display.x - quickSize.x - 8.f)),
-               std::max(8.f, std::min(quickAnchor.y + 18.f,
-                                      display.y - quickSize.y - 8.f))));
-    ImGui::SetNextWindowBgAlpha(.95f);
-    ImGui::Begin("Quick fixture", nullptr,
-                 ImGuiWindowFlags_NoDecoration |
-                     ImGuiWindowFlags_AlwaysAutoResize |
-                     ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoFocusOnAppearing);
+    beginQuickWindow("Quick fixture", display);
     const auto* part = model.findPart(model.faceParts()[quickFaces.front()]);
     constexpr const char* kShapes[] = {"Faces", "Plane", "Cylinder", "Sphere"};
     const size_t surfaces = surfaceCount(quickFaces);
@@ -4128,15 +4570,16 @@ struct Workbench {
         if (ImGui::IsItemHovered()) fem_workbench::conditionTooltip(kind);
       }
     };
-    row("Support", supports, ImVec4(.45f, .9f, .6f, 1.f));
-    row("Load", {Kind::Force, Kind::Pressure}, ImVec4(.95f, .55f, .95f, 1.f));
+    row("Support", supports, kSupportText);
+    row("Load", {Kind::Force, Kind::Pressure}, kLoadText);
     ImGui::SameLine();
     if (ImGui::Button((std::string(kIconDots) + "##morefixtures").c_str()))
       requestedTab = kLoadsTab;
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("All supports and loads in the Loads tab");
-    quickSize = ImGui::GetWindowSize();
-    ImGui::End();
+    if (shownTab == kConnectTab && model.parts.size() > 1)
+      ImGui::TextDisabled("Ctrl+click a face on another part to connect them");
+    endQuickWindow();
     if (!chosen) return;
     if (*chosen == Kind::Bearing || *chosen == Kind::BoltHole)
       attempt([&] {
@@ -4148,6 +4591,7 @@ struct Workbench {
     requestedTab = kLoadsTab;
   }
   void quickMates(const ImVec2& display) {
+    quickToolbar = "";
     const auto clearHover = [&]() {
       if (quickHovered >= 0) setPreview({});
       quickHovered = -1;
@@ -4157,6 +4601,7 @@ struct Workbench {
       quickFaces.clear();
       quickA.clear();
       clearHover();
+      closeQuickWindow();
       return;
     }
     auto faces = model.selectedFaces();
@@ -4222,32 +4667,24 @@ struct Workbench {
     }
     if (quickDismissed) {
       clearHover();
+      closeQuickWindow();
       return;
     }
-    if (quickPartCount == 1 && shownTab != kConnectTab) {
+    if (quickPartCount == 1) {
       clearHover();
       quickFixtures(display);
+      quickToolbar = "fixture";
       return;
     }
     if (quickA.empty() || quickB.empty()) {
       clearHover();
+      closeQuickWindow();
       return;
     }
     const auto& moving = quickMoveSecond ? quickB : quickA;
     const auto& staying = quickMoveSecond ? quickA : quickB;
-    ImGui::SetNextWindowPos(
-        ImVec2(std::max(sidebarWidth + 8.f,
-                        std::min(quickAnchor.x + 18.f,
-                                 display.x - quickSize.x - 8.f)),
-               std::max(8.f, std::min(quickAnchor.y + 18.f,
-                                      display.y - quickSize.y - 8.f))));
-    ImGui::SetNextWindowBgAlpha(.95f);
-    ImGui::Begin("Quick connection", nullptr,
-                 ImGuiWindowFlags_NoDecoration |
-                     ImGuiWindowFlags_AlwaysAutoResize |
-                     ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoFocusOnAppearing);
+    quickToolbar = "connection";
+    beginQuickWindow("Quick connection", display);
     const auto* mover = model.findPart(model.faceParts()[moving.front()]);
     const auto* other = model.findPart(model.faceParts()[staying.front()]);
     const std::string moverName = mover ? mover->name : "the part",
@@ -4272,8 +4709,8 @@ struct Workbench {
       for (size_t i = 0; i < shown; ++i) {
         if (i) ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button,
-                              i == 0 ? ImVec4(.2f, .32f, .5f, 1.f)
-                                     : ImVec4(.16f, .18f, .22f, 1.f));
+                              i == 0 ? brand::tint(brand::kAccent, .7f)
+                                     : brand::kCard2);
         if (ImGui::Button((withIcon(mateIcon(quickTypes[i]),
                                     fem_workbench::mateTypeName(quickTypes[i])) +
                            "##mate")
@@ -4350,6 +4787,7 @@ struct Workbench {
     for (size_t i = 0; i < kinds.size(); ++i) {
       ImGui::SameLine();
       if (connectionButton(kinds[i], i == 0)) chosen = kinds[i];
+      if (ImGui::IsItemHovered()) pendingQuickKind = static_cast<int>(kinds[i]);
     }
     if (!quickMore && kinds.size() < 6) {
       ImGui::SameLine();
@@ -4357,8 +4795,7 @@ struct Workbench {
         quickMore = true;
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("All connections");
     }
-    quickSize = ImGui::GetWindowSize();
-    ImGui::End();
+    endQuickWindow();
     if (hovered != quickHovered) {
       quickHovered = hovered;
       quickHoverError.clear();
@@ -4483,46 +4920,75 @@ struct Workbench {
           "contact sets SolidWorks finds automatically");
     conditionList(true);
   }
+  /// The call to action of the RaiSim website: dark text on the warm half of
+  /// the logo gradient.
   bool solveButton() {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.07f, .45f, .52f, 1.f));
-    const bool pressed =
-        ImGui::Button(withIcon(kIconPlay, "SOLVE").c_str(), ImVec2(140, 30));
-    ImGui::PopStyleColor();
+    const ImVec2 size(140.f, 30.f);
+    const bool pressed = ImGui::InvisibleButton("##solve", size);
+    const ImVec2 low = ImGui::GetItemRectMin(), high = ImGui::GetItemRectMax();
+    auto* draw = ImGui::GetWindowDrawList();
+    const float r = ImGui::GetStyle().FrameRounding;
+    const float lift = ImGui::IsItemActive() ? .8f : ImGui::IsItemHovered() ? 1.f : .9f;
+    const auto shade = [&](ImVec4 color) {
+      return ImVec4(color.x * lift, color.y * lift, color.z * lift, 1.f);
+    };
+    draw->AddRectFilled(low, high, ImGui::GetColorU32(shade(brand::kAccent)), r);
+    const std::string label = withIcon(kIconPlay, "SOLVE");
+    const ImVec2 text = ImGui::CalcTextSize(label.c_str());
+    draw->AddText(ImVec2(low.x + ImGui::GetStyle().FramePadding.x + 4.f,
+                         .5f * (low.y + high.y - text.y)),
+                  ImGui::GetColorU32(brand::kText), label.c_str());
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Mesh if needed and solve");
     if (pressed) solveRequested = true;
     return pressed;
   }
   void modeTabs() {
-    const float width =
-        (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) *
-        .5f;
+    const float width = .5f * ImGui::GetContentRegionAvail().x;
+    const float height = 32.f, underline = 3.f;
+    const float rounding = ImGui::GetStyle().FrameRounding;
+    auto* draw = ImGui::GetWindowDrawList();
+    const ImVec2 origin = ImGui::GetCursorScreenPos();
     const auto tab = [&](bool active, const char* icon, const char* label) {
-      ImGui::PushStyleColor(ImGuiCol_Button, active
-                                                 ? ImVec4(.2f, .32f, .5f, 1.f)
-                                                 : ImVec4(.13f, .15f, .18f, 1.f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            active ? ImVec4(.25f, .38f, .58f, 1.f)
-                                   : ImVec4(.2f, .23f, .28f, 1.f));
-      ImGui::PushStyleColor(
-          ImGuiCol_Text, active ? ImVec4(1.f, 1.f, 1.f, 1.f)
-                                : ImVec4(.65f, .68f, .72f, 1.f));
       const bool pressed =
-          ImGui::Button(withIcon(icon, label).c_str(), ImVec2(width, 30.f));
-      ImGui::PopStyleColor(3);
+          ImGui::InvisibleButton(label, ImVec2(width, height));
+      const bool hovered = ImGui::IsItemHovered();
+      const ImVec2 low = ImGui::GetItemRectMin(), high = ImGui::GetItemRectMax();
+      if (active || hovered)
+        draw->AddRectFilled(
+            low, high,
+            ImGui::GetColorU32(active ? brand::kCard2
+                                      : brand::tint(brand::kText, .05f)),
+            rounding, ImDrawFlags_RoundCornersTop);
+      if (active)
+        draw->AddRectFilled(ImVec2(low.x, high.y - underline), high,
+                            ImGui::GetColorU32(brand::kAccent));
+      const std::string text = withIcon(icon, label);
+      const ImVec2 size = ImGui::CalcTextSize(text.c_str());
+      draw->AddText(ImVec2(.5f * (low.x + high.x - size.x),
+                           .5f * (low.y + high.y - underline - size.y)),
+                    ImGui::GetColorU32(
+                        active    ? brand::kText
+                        : hovered ? brand::tint(brand::kText, .85f)
+                                  : brand::tint(brand::kText, .5f)),
+                    text.c_str());
       return pressed;
     };
     if (tab(!resultView, kIconPencil, "Edit")) setResultView(false);
-    ImGui::SameLine();
+    ImGui::SameLine(0.f, 0.f);
     if (tab(resultView, kIconChart, "Result view")) setResultView(true);
+    draw->AddLine(ImVec2(origin.x, origin.y + height - .5f),
+                  ImVec2(origin.x + 2.f * width, origin.y + height - .5f),
+                  ImGui::GetColorU32(ImGuiCol_Separator));
   }
   void resultPanel() {
     if (meshJob && !previewJob) {
-      ImGui::TextColored(ImVec4(1.f, .8f, .3f, 1.f), "Meshing for the solve");
+      ImGui::TextColored(brand::kOrange, "Meshing for the solve");
       progressBar(-1.f);
       if (ImGui::Button(withIcon(kIconCancel, "Cancel").c_str())) cancelBusy();
       return;
     }
     if (!model.hasSolution) {
-      ImGui::TextColored(ImVec4(1.f, .78f, .35f, 1.f),
+      ImGui::TextColored(brand::kOrange,
                          "No results for the current model");
       if (!model.hasGeometry()) {
         ImGui::TextDisabled("No model open");
@@ -4548,7 +5014,7 @@ struct Workbench {
             "safety when its strength is set");
       const bool wasProbing = probing;
       if (wasProbing)
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.2f, .32f, .5f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Button, brand::kAccent);
       if (ImGui::Button(withIcon(kIconCrosshairs,
                                  wasProbing ? "Probing: click the part"
                                             : "Probe values")
@@ -4591,10 +5057,6 @@ struct Workbench {
       ImGui::SeparatorText("Contours");
       if (ImGui::Checkbox("Smooth (node-averaged)", &smoothContours))
         visualDirty = true;
-      if (stepInput("Color bands, 0 = continuous", &bands)) {
-        bands = std::clamp(bands, 0, 64);
-        visualDirty = true;
-      }
       if (ImGui::SliderFloat("Grey below (%)", &highlightAbove, 0.f, 95.f,
                              "%.0f"))
         visualDirty = true;
@@ -4609,7 +5071,6 @@ struct Workbench {
       if (ImGui::Checkbox("Mesh edges", &edges)) visualDirty = true;
       ImGui::SameLine();
       ImGui::Checkbox("Rest outline", &undeformed);
-      if (ImGui::Button(withIcon(kIconExpand, "Fit view").c_str())) fit();
     }
     if (ImGui::CollapsingHeader(withIcon(kIconListCheck, "Summary").c_str(),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -4626,8 +5087,8 @@ struct Workbench {
       for (size_t e = 0; e < model.solver->elementResults().size(); ++e)
         if (std::isfinite(safety(e))) weakest = std::min(weakest, safety(e));
       if (std::isfinite(weakest))
-        ImGui::TextColored(weakest < 1. ? ImVec4(1.f, .45f, .4f, 1.f)
-                                        : ImVec4(.85f, .87f, .9f, 1.f),
+        ImGui::TextColored(weakest < 1. ? brand::kError
+                                        : brand::kText,
                            "Min factor of safety: %.3g%s", weakest,
                            weakest < 1. ? " (yields)" : "");
       bool header = false;
@@ -4742,8 +5203,8 @@ struct Workbench {
               "Moment about the center of the first faces");
         }
         if (std::isfinite(safety))
-          ImGui::TextColored(safety < 1. ? ImVec4(1.f, .45f, .4f, 1.f)
-                                         : ImVec4(.85f, .87f, .9f, 1.f),
+          ImGui::TextColored(safety < 1. ? brand::kError
+                                         : brand::kText,
                              "Factor of safety %.3g%s", safety,
                              safety < 1. ? " (fails)" : "");
         else if (c.kind == Kind::Tie || c.kind == Kind::BoltConnector)
@@ -4757,28 +5218,39 @@ struct Workbench {
       ImGui::PopID();
     }
   }
+  /// Draws a three-byte UTF-8 icon centered on the last item by the bounds of
+  /// its glyph, which the font's line metrics do not center.
+  static void centerIcon(ImFont* font, const char* icon) {
+    const auto* bytes = reinterpret_cast<const unsigned char*>(icon);
+    const ImWchar code = ImWchar(((bytes[0] & 0x0Fu) << 12) |
+                                 ((bytes[1] & 0x3Fu) << 6) | (bytes[2] & 0x3Fu));
+    const ImFontGlyph* glyph = font->FindGlyph(code);
+    if (!glyph) return;
+    const ImVec2 low = ImGui::GetItemRectMin(), high = ImGui::GetItemRectMax();
+    const ImVec2 at(std::round(.5f * (low.x + high.x - glyph->X0 - glyph->X1)),
+                    std::round(.5f * (low.y + high.y - glyph->Y0 - glyph->Y1)));
+    ImGui::GetWindowDrawList()->AddText(font, font->FontSize, at,
+                                        ImGui::GetColorU32(ImGuiCol_Text), icon);
+  }
   bool overlayButton(const char* icon, const char* name, const char* help,
                      bool active) {
     const ImVec2 size =
         toolbarIcons
-            ? ImVec2(38.f, 34.f)
+            ? ImVec2(36.f, 36.f)
             : ImVec2(ImGui::CalcTextSize(name).x +
                          2.f * ImGui::GetStyle().FramePadding.x,
-                     34.f);
+                     36.f);
     const auto at = ImGui::GetCursorScreenPos();
     const bool hovered =
         ImGui::IsMouseHoveringRect(at, ImVec2(at.x + size.x, at.y + size.y));
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, hovered ? 1.f : .5f);
-    ImGui::PushStyleColor(ImGuiCol_Button, active
-                                               ? ImVec4(.2f, .32f, .5f, 1.f)
-                                               : ImVec4(.1f, .11f, .13f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          active ? brand::kAccent : brand::kCard2);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          active ? ImVec4(.25f, .38f, .58f, 1.f)
-                                 : ImVec4(.2f, .23f, .28f, 1.f));
-    if (toolbarIcons) ImGui::PushFont(toolbarIcons);
+                          active ? brand::kAccent : brand::tint(brand::kAccent, .55f));
     const bool pressed = ImGui::Button(
-        (std::string(toolbarIcons ? icon : name) + "##" + name).c_str(), size);
-    if (toolbarIcons) ImGui::PopFont();
+        (std::string(toolbarIcons ? "" : name) + "##" + name).c_str(), size);
+    if (toolbarIcons) centerIcon(toolbarIcons, icon);
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar();
     if (ImGui::IsItemHovered()) {
@@ -4793,7 +5265,7 @@ struct Workbench {
   }
   void viewToolbar(const ImVec2& display, bool fields) {
     ImGui::SetNextWindowPos(
-        ImVec2(sidebarWidth + .5f * (display.x - sidebarWidth), display.y),
+        ImVec2(sidebarWidth + .5f * (display.x - sidebarWidth), display.y - 12.f),
         ImGuiCond_Always, ImVec2(.5f, 1.f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 0.f));
     ImGui::Begin("View tools", nullptr,
@@ -4811,7 +5283,7 @@ struct Workbench {
     if (overlayButton(kIconExpand, "Fit all",
                       "Look at the center and zoom to show every part", false))
       lookAtCenter(true);
-    if (!resultView && shownParts > 1) {
+    if (!resultView && shownParts > 0) {
       ImGui::SameLine();
       if (overlayButton(kIconArrows, "Move parts",
                         moveParts
@@ -4855,7 +5327,7 @@ struct Workbench {
                      ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_NoFocusOnAppearing);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.2f, .32f, .5f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Button, brand::tint(brand::kAccent, .7f));
     if (ImGui::Button(withIcon(kIconEye, "Show all parts").c_str(),
                       ImVec2(0.f, 30.f))) {
       hiddenParts.clear();
@@ -4876,6 +5348,15 @@ struct Workbench {
     if (shownGeometry) viewToolbar(display, viewOverlays && results());
     if (shownGeometry && !hiddenParts.empty()) showPartsButton(display);
     quickMates(display);
+    if (pendingMate != hoveredMate || pendingConnection != hoveredConnection ||
+        pendingCondition != hoveredCondition ||
+        pendingQuickKind != hoveredQuickKind) {
+      hoveredMate = pendingMate;
+      hoveredConnection = pendingConnection;
+      hoveredCondition = pendingCondition;
+      hoveredQuickKind = pendingQuickKind;
+      visualDirty = true;
+    }
     if (!viewOverlays && !resultView) return;
     const float statusWidth =
         std::max(0.f, display.x - 16.f - (sidebarWidth + 16.f));
@@ -4890,8 +5371,6 @@ struct Workbench {
     const auto& style = ImGui::GetStyle();
     const float wrap = std::max(1.f, statusWidth - style.WindowPadding.x);
     ImGui::PushTextWrapPos(wrap);
-    ImGui::TextColored(ImVec4(.5f, .85f, .9f, 1.f),
-                       "RAISIM  /  SOLID MECHANICS");
     ImGui::Text("Small displacement | linear tetrahedra | SI units");
     const bool busyNow = solveTask || meshJob;
     if (resultView && busyNow) {
@@ -4918,7 +5397,7 @@ struct Workbench {
           s.assemblyMs, s.iterative ? "Preconditioner" : "Factor",
           s.factorizationMs, s.solveMs);
     } else
-      ImGui::TextColored(ImVec4(1.f, .78f, .35f, 1.f),
+      ImGui::TextColored(brand::kOrange,
                          "Results pending - solve the current model");
     if (resultView && !busyNow && !message.empty()) {
       ImGui::PushTextWrapPos(std::min(ImGui::GetCursorPosX() + 560.f, wrap));
@@ -5155,6 +5634,7 @@ int main(int argc, char** argv) {
   }
   ImGui::StyleColorsDark();
   auto& style = ImGui::GetStyle();
+  applyBrandStyle(style);
   style.WindowRounding = 7.f;
   style.FrameRounding = 4.f;
   style.ItemSpacing = ImVec2(7, 6);

@@ -105,8 +105,8 @@ class Model {
     /// about the CAD origin, then the offset.
     Vec<3> offset{0., 0., 0.};
     Eigen::Matrix3d rotation = Eigen::Matrix3d::Identity();
-    /// A fixed part is never moved: mates move the other part. The first part
-    /// of a new model is fixed.
+    /// A fixed part is never moved: mates move the other part and it cannot
+    /// be dragged.
     bool fixed = false;
   };
   std::unique_ptr<LinearElasticity> solver;
@@ -1206,6 +1206,154 @@ class Model {
     applyMotions(preview.motions);
     mates[index] = preview.mate;
   }
+  /// The boundary faces where each side of a mate lies now: the moving part's
+  /// faces first, then the reference part's. Mates keep shapes rather than
+  /// faces so that they survive remeshing; the faces are found again on the
+  /// placed shapes within the extent of the stored patch, grouped by surface
+  /// (CAD face or smooth patch), keeping the surfaces whose faces best
+  /// reproduce the size and center of the stored shape. A whole-surface
+  /// selection is found exactly. Part of a plane comes back as the faces of
+  /// that surface near it, part of a cylinder as its whole circumference within
+  /// the patch's bounding-box diagonal of the stored axis point along the axis,
+  /// and part of a sphere as the whole sphere, because curved shapes keep only
+  /// their axis or center, not where the patch was.
+  std::array<std::vector<size_t>, 2> mateFaces(size_t index) const {
+    const auto& mate = mates.at(index);
+    std::array<std::vector<size_t>, 2> result;
+    const auto& faces = boundaryFaces();
+    const auto& x = mesh().vertices;
+    const auto collect = [&](int region, const std::vector<FaceShape>& shapes,
+                             std::vector<size_t>& out) {
+      const auto* part = findPart(region);
+      if (!part) return;
+      const Pose pose = placement(*part);
+      for (const auto& local : shapes) {
+        const FaceShape shape = transformed(local, pose);
+        const double tolerance = mate.tolerance + 1e-6 * shape.size;
+        std::vector<size_t> candidates;
+        for (size_t f = 0; f < faces.size(); ++f) {
+          if (faceParts()[f] != region) continue;
+          const auto& ids = faces[f].vertices;
+          const Eigen::Vector3d a = x[ids[0]].e(), b = x[ids[1]].e(),
+                                c = x[ids[2]].e();
+          const Eigen::Vector3d cross = (b - a).cross(c - a);
+          if (!(cross.norm() > 0.)) continue;
+          const Eigen::Vector3d normal = cross.normalized();
+          const Eigen::Vector3d offset = (a + b + c) / 3. - shape.point;
+          bool on = false;
+          switch (shape.type) {
+            case FaceShape::Type::Plane:
+              on = offset.norm() <= shape.size + tolerance &&
+                   normal.dot(shape.direction) > .95 &&
+                   std::abs(offset.dot(shape.direction)) <= tolerance;
+              break;
+            case FaceShape::Type::Cylinder: {
+              const double along = shape.direction.dot(offset);
+              const Eigen::Vector3d radial = offset - shape.direction * along;
+              on = std::abs(along) <= shape.size + tolerance &&
+                   std::abs(normal.dot(shape.direction)) < .3 &&
+                   std::abs(radial.norm() - shape.radius) <=
+                       .08 * shape.radius + tolerance;
+              break;
+            }
+            case FaceShape::Type::Sphere:
+              on = std::abs(offset.norm() - shape.radius) <=
+                       .08 * shape.radius + tolerance &&
+                   std::abs(normal.dot(offset)) > .7 * offset.norm();
+              break;
+            default:
+              break;
+          }
+          if (on) candidates.push_back(f);
+        }
+        struct Piece {
+          int surface = 0;
+          std::vector<size_t> faces;
+          double area = 0.;
+          Eigen::Vector3d moment = Eigen::Vector3d::Zero(),
+                          low = Eigen::Vector3d::Constant(
+                              std::numeric_limits<double>::infinity()),
+                          high = -low;
+        };
+        std::vector<Piece> pieces;
+        for (const auto f : candidates) {
+          auto piece = std::find_if(pieces.begin(), pieces.end(),
+                                    [&](const Piece& p) {
+                                      return p.surface == faceSurfaces_[f];
+                                    });
+          if (piece == pieces.end()) {
+            pieces.emplace_back();
+            pieces.back().surface = faceSurfaces_[f];
+            piece = pieces.end() - 1;
+          }
+          const auto& ids = faces[f].vertices;
+          const Eigen::Vector3d a = x[ids[0]].e(), b = x[ids[1]].e(),
+                                c = x[ids[2]].e();
+          const double area = .5 * (b - a).cross(c - a).norm();
+          piece->faces.push_back(f);
+          piece->area += area;
+          piece->moment += area * (a + b + c) / 3.;
+          piece->low = piece->low.cwiseMin(a).cwiseMin(b).cwiseMin(c);
+          piece->high = piece->high.cwiseMax(a).cwiseMax(b).cwiseMax(c);
+        }
+        const double scale = std::max(shape.size, 1e-12);
+        const auto error = [&](const std::vector<char>& chosen) {
+          Piece sum;
+          for (size_t k = 0; k < pieces.size(); ++k) {
+            if (!chosen[k]) continue;
+            sum.area += pieces[k].area;
+            sum.moment += pieces[k].moment;
+            sum.low = sum.low.cwiseMin(pieces[k].low);
+            sum.high = sum.high.cwiseMax(pieces[k].high);
+          }
+          if (!(sum.area > 0.)) return std::numeric_limits<double>::infinity();
+          double e = std::abs((sum.high - sum.low).norm() - shape.size) / scale;
+          if (shape.type == FaceShape::Type::Plane)
+            e += (sum.moment / sum.area - shape.point).norm() / scale;
+          return e;
+        };
+        std::vector<char> best(pieces.size(), 0);
+        double bestError = std::numeric_limits<double>::infinity();
+        if (pieces.size() <= 12) {
+          std::vector<char> chosen(pieces.size());
+          for (size_t mask = 1; mask < (size_t(1) << pieces.size()); ++mask) {
+            for (size_t k = 0; k < pieces.size(); ++k)
+              chosen[k] = char(mask >> k & 1);
+            const double e = error(chosen);
+            if (e < bestError) {
+              bestError = e;
+              best = chosen;
+            }
+          }
+        } else {
+          for (bool improved = true; improved;) {
+            improved = false;
+            auto step = best;
+            for (size_t k = 0; k < pieces.size(); ++k) {
+              if (best[k]) continue;
+              auto trial = best;
+              trial[k] = 1;
+              const double e = error(trial);
+              if (e < bestError) {
+                bestError = e;
+                step = std::move(trial);
+                improved = true;
+              }
+            }
+            best = std::move(step);
+          }
+        }
+        for (size_t k = 0; k < pieces.size(); ++k)
+          if (best[k])
+            out.insert(out.end(), pieces[k].faces.begin(), pieces[k].faces.end());
+      }
+      std::sort(out.begin(), out.end());
+      out.erase(std::unique(out.begin(), out.end()), out.end());
+    };
+    collect(mate.moving, mate.movingFaces, result[0]);
+    collect(mate.reference, mate.referenceFaces, result[1]);
+    return result;
+  }
   /// Removes a mate; the parts stay where they are.
   void removeMate(size_t index) {
     if (index >= mates.size()) throw std::runtime_error("Unknown mate");
@@ -1830,7 +1978,6 @@ class Model {
           throw std::runtime_error("Invalid FEM project part");
         *existing = part;
       }
-      if (version < 10 && !next.parts.empty()) next.parts.front().fixed = true;
       next.source.assembly.resize(readCount());
       for (auto& file : next.source.assembly) {
         in >> std::quoted(file.name) >> std::quoted(file.extension) >>
@@ -2239,7 +2386,6 @@ class Model {
         parts.push_back(std::move(part));
       }
     }
-    if (previous.empty() && !parts.empty()) parts.front().fixed = true;
     mates.erase(
         std::remove_if(mates.begin(), mates.end(),
                        [&](const PositionMate& mate) {

@@ -47,9 +47,11 @@ shows the deformed, colored solid and the display, summary and export controls.
    **Gravity**. Gravity acts on the whole body and needs no selection; the other
    buttons stay disabled until something is selected. Supports appear as green
    cones and loads as magenta arrows in the 3D view, hidden by the solid where it
-   is in front of them, and their faces are tinted. Choose a condition in the list
-   to edit its values, select its region
-   again, or delete it. Conditions can also be disabled. A **Total force** on
+   is in front of them, and their faces are tinted. Hovering over a condition in
+   the list makes the rest of the model half transparent and shows its faces
+   opaque and brightened, also where they face away or lie behind other faces,
+   with its name. Choose a condition in the list to edit its values, select its
+   region again, or delete it. Conditions can also be disabled. A **Total force** on
    faces acts normal to them by default: its magnitude is spread over the faces
    as a uniform pressure and a positive value pushes into them. Its **Direction**
    can instead be X/Y/Z components, or **Normal to a reference face**: choose
@@ -136,14 +138,15 @@ or hides it and a remove button:
   the shown field** does the same for the selected field. Drag a label to move
   it out of the way (its leader line follows); double-click it to put it back.
 - **Probe values**: click points on the solid to pin numbered probes; their
-  values follow the selected field and are listed in the panel.
+  values follow the selected field and are listed in the panel. Without it, a
+  click on a face returns to Edit with the quick supports and loads toolbar.
 - **Deformation**: Automatic scales the largest displacement to 5% of the model
   size, True scale shows it unmagnified, Custom takes a factor. **Animate** cycles
   the deformation.
 - **Contours**: **Smooth** averages element values at the nodes (displacement is
   exact at the nodes); turn it off to see the constant value of each element.
-  **Color bands** quantizes the scale into discrete bands, and **Grey below**
-  greys out the lower part of the range to show where a value is high.
+  Colors are continuous. **Grey below** greys out the lower part of the range to
+  show where a value is high.
 - **Factor of safety**: yield strength divided by von Mises stress, red where it
   is lowest. Library materials include strengths; enter your own under the
   part's material (zero leaves it unknown and the part grey).
@@ -176,7 +179,7 @@ or hides it and a remove button:
 | Zoom about the point under the cursor | scroll wheel |
 | Rotate | drag empty space with the left button, or drag with the middle button |
 | Pan | drag with the right button, or Ctrl and the middle button |
-| Move a part (Edit mode, several parts) | drag the part with the left button |
+| Move a part (Edit mode) | drag the part with the left button; Shift+drag turns it |
 | Hide a part until you pick a face | right-click the part |
 
 Zooming keeps the point under the cursor in place, as in SolidWorks, so you can
@@ -202,12 +205,12 @@ nodes with another part cannot be moved on its own.
 ## Positioning parts with mates
 
 Parts open where their CAD files put them. Mates place them against each
-other, as in a SolidWorks assembly. The first part of a model is **Fixed**:
-mates move the other part, and dragging a fixed part turns the view. Uncheck
-**Fixed** in the **Parts** tab to move it, or fix another part there.
+other, as in a SolidWorks assembly. Check **Fixed** in the **Parts** tab to
+keep a part in place: mates then move the other part, and dragging it does not
+move it.
 
-**Quick mates.** Select a face on each part (plain clicks in the **Connect**
-tab, Ctrl/Shift+click elsewhere). The toolbar beside the pointer offers the
+**Quick mates.** Select a face on each part: click one, then Ctrl/Shift+click
+the other (a plain click always selects a single face). The toolbar beside the pointer offers the
 mates that fit those faces, most likely first, under **Place** followed by the
 part that moves (the part clicked first, unless it is fixed; the arrows button
 places the other part instead). Hovering over a mate shows where the part would
@@ -250,6 +253,10 @@ part keeps. **OK** adds the mate, **Cancel** leaves everything as it was.
 **Mates stay with the parts.** They are listed under **Mates** in the
 **Connect** tab, named as in SolidWorks (Coincident1, Distance2): the buttons
 flip, edit or remove a mate, and removing one leaves the parts where they are.
+Hovering over a mate shows it in the 3D view: the rest of the model turns half
+transparent, the moving part's faces turn yellow and the reference part's cyan, plane normals, cylinder axes and sphere
+centers are drawn, a Distance mate gets a dimension line, and a label names the
+mate and what it keeps.
 
 - A part keeps all of its mates, so a second mate on a side face fixes how it
   turns on the first. A mate that contradicts the others is refused and nothing
@@ -265,21 +272,31 @@ flip, edit or remove a mate, and removing one leaves the parts where they are.
 ## Quick supports and loads
 
 Clicking a face of one part opens a small toolbar beside the pointer with the
-supports and loads that fit it: **Fixed** and **Roller** for a plane, **Fixed**,
+supports and loads that fit it, in every tab and also in Result view (which
+switches back to Edit): **Fixed** and **Roller** for a plane, **Fixed**,
 **Bearing** and **Bolt hole** for a cylinder (their axis and centre are fitted
 to the faces), **Fixed** and **Ball** for a sphere, and **Force** and
 **Pressure**. A button applies the condition to the selected faces and opens it
 in the **Loads** tab to set its values; **...** opens the tab with every support
 and load, and the cross closes the toolbar. Ctrl/Shift+click adds faces first.
-Selecting faces on two parts shows the connection toolbar instead.
+Selecting faces on two parts shows the connection toolbar instead; in the
+**Connect** tab, the first face shows the supports and loads with a hint to
+Ctrl+click a face on another part. A press counts as a click until the pointer moves more
+than a few pixels. Drag either
+toolbar by its background to move it out of the way; it stays there while it is
+open and returns beside the pointer the next time it opens.
 
 ## Connecting parts
 
 Parts are separate bodies until they are connected. Selecting faces on two parts
 offers the connections that fit in the **Connect** row of the quick toolbar,
-best first (highlighted). Hovering over one shows its animation, **...** adds
-the others and the cross closes the toolbar. The faces of the part clicked
-first are the first faces in the table below.
+best first (highlighted). Hovering over one shows its animation and, in the 3D
+view, the faces it joins (first faces yellow, second faces cyan, the rest of the
+model half transparent) with the axis
+of a pin or slider, the center of a ball joint or the line of a link; **...**
+adds the others and the cross closes the toolbar. Hovering over a connection in
+the **Connect** tab list shows the same for the connections already made. The
+faces of the part clicked first are the first faces in the table below.
 
 | Selected faces | Suggestions |
 | --- | --- |
