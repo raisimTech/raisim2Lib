@@ -394,10 +394,10 @@ triangle surface meshes (STL, OBJ, PLY, glTF and similar) are rejected; export a
 STEP solid from the CAD program instead. Each B-rep face of the CAD file is one
 selectable face in the workbench.
 
-The browser translates CAD with the separately loaded occt-import-js/Open CASCADE
-WebAssembly library and meshes it with RaiSim's Delaunay mesher compiled to
-WebAssembly. Desktop uses the same mesher in the bundled native helper with shared
-Open CASCADE libraries; no external mesher or Python is needed. Each CAD solid is
+CAD files are read by RaiSim's own STEP, IGES and BREP readers and meshed with
+RaiSim's Delaunay mesher, compiled to WebAssembly in the browser and run as the
+bundled native helper on desktop; no external CAD library, mesher or Python is
+needed. Each CAD solid is
 meshed separately and retained as a distinct region, including touching assembly
 parts. The boundaries of CAD faces are kept exactly in the mesh, so supports and
 loads on whole CAD faces transfer to it. STEP and IGES units are read from the CAD
@@ -414,9 +414,9 @@ separate proprietary-format translator; export STEP from SolidWorks.
 ## Run on desktop
 
 Build the RaiSim SDK with `RAISIM_BUILD_FEM_MESHER=ON` (the default for native
-builds with CMake 3.20 or newer). This builds the pinned meshing dependencies from
-source and installs `bin/raisim_fem_mesher`, its shared CAD libraries and
-notices. Linux builds use Clang 20. The workbench finds the SDK helper
+builds with CMake 3.20 or newer). This builds the mesher from source (it needs only
+the pinned Eigen headers) and installs `bin/raisim_fem_mesher` and its notices; the
+helper needs no shared libraries besides the C++ runtime. Linux builds use Clang 20. The workbench finds the SDK helper
 automatically; a sibling RaiSim source checkout also supports building it locally.
 `RAISIM_FEM_MESHER_EXECUTABLE` selects an existing helper at example configuration.
 

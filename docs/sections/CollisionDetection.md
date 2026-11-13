@@ -26,6 +26,15 @@ whichever of these runs. Bodies that collide with nothing (collision group or ma
 not checked. A deformable particle that diverged makes no contact instead (see
 [Deformable Objects](./DeformableObject.md)).
 
+## Sampling contacts without integrating
+
+For configuration rejection sampling, call `World::integrate1()`, inspect
+`Object::getContacts()`, then call `World::discardPendingStep()`. Discarding clears
+the prepared contacts and constraints and permits object creation and removal
+without solving or advancing world time. Preparation already performed by
+`integrate1()` is not undone. See [Stepping and time](./WorldSystem.md#stepping-and-time)
+for the cancellation contract and C++ and Python examples.
+
 ## Global contact limits and merging
 
 - **Per-pair limit**: `ContactSettings::maxContactsPerPair` (default 8)

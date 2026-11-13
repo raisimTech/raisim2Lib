@@ -1173,6 +1173,16 @@ void init_world(py::module_ &m) {
         2. collision detection
         3. register contacts to each body
         4. calls `preContactSolverUpdate1()` of each object
+        Opens a split step. Object, tendon and wire creation/removal is blocked until
+        integrate2() completes it or discardPendingStep() cancels it.
+        )mydelimiter")
+
+      .def("discardPendingStep", &raisim::World::discardPendingStep, R"mydelimiter(
+        Cancel a prepared step without solving, integrating objects, or advancing world time.
+        Clears prepared contacts and constraints, invalidating references to them, and allows
+        scene edits again. Does nothing if no step is pending. Preparation already performed
+        by integrate1(), including waking bodies and advancing projectiles, is not rolled back.
+        Start the next step with integrate1() or integrate().
         )mydelimiter")
 
       .def("integrate2", &raisim::World::integrate2, R"mydelimiter(

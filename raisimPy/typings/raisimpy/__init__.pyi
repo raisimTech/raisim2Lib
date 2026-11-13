@@ -6955,6 +6955,12 @@ class World:
         4. calls `preContactSolverUpdate1()` of each object
         """
 
+    def discardPendingStep(self) -> None:
+        """Cancel preparation without advancing time; clear contacts and allow scene edits.
+
+        Does nothing without a pending step. Does not undo integrate1() preparation side effects.
+        """
+
     def integrate2(self) -> None:
         """
         It performs

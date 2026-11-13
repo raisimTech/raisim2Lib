@@ -244,8 +244,10 @@ optimized. **Max element edge** is a hard bound. Automatic surface error is
 `min(0.01 * edge, 0.001 * geometry_diagonal)`.
 
 Measurements on 2026-11-11: Intel Core Ultra 7 265K, one performance core, Clang 20
-Release, Open CASCADE 7.7.2, deterministic mode. Times are three-run medians that
-include helper startup, CAD translation, meshing and output. Raw data:
+Release, deterministic mode. Times are three-run medians that include helper
+startup, CAD translation, meshing and output. CAD was still translated with Open
+CASCADE 7.7.2 then; see [CAD translation](#cad-translation) for the original
+reader that replaced it. Raw data:
 `benchmark/results/fem/delaunay-mesher.csv` and
 `delaunay-mesher-vs-ftetwild.csv` in the RaiSim source checkout.
 
@@ -266,9 +268,10 @@ from a STEP file (5 mm), meshing takes 3.7 s on one core and 3.4 s with all thre
 compared with 141 s for fTetWild.
 
 Narrow CAD faces and sharp wedges are meshed with triangles sized to their width;
-folds are prevented, and CAD tessellation defects (tiny edges, unsewn faces, small
-holes and folded triangles) are repaired. `benchmark/results/fem/step-corpus.csv`
-meshes 68 public STEP models at three element sizes: 64 meshed at every size.
+folds are prevented, and tessellation defects from tiny CAD edges and folded
+triangles are repaired. `benchmark/results/fem/step-corpus.csv` meshed 68 public
+STEP models at three element sizes, 64 at every size, with the earlier Open CASCADE
+reader; it has not been repeated with the original reader.
 
 Provided volume meshes use the independent refiner, retaining original vertices
 and region interfaces. Refining a 1 m cube from six supplied tetrahedra to maximum
@@ -287,3 +290,31 @@ The native geometry regression suite independently checks volume limits, positiv
 tetrahedra, CAD units, separate solid regions, preservation of holes and the CAD
 repairs. Benchmark reporting tests cover accuracy misses, partial timeouts, empty
 output and changes to deterministic mesh output.
+
+### CAD translation
+
+Since 2026-11-13 the workbench reads STEP, IGES and ASCII BREP files with original
+RaiSim code instead of Open CASCADE, natively and in the browser. Measurements:
+AMD Ryzen 9 3950X, Clang 20.1.8 Release, three-run serial medians. Raw data:
+`benchmark/results/fem/original-cad-preview.csv` and `original-cad-volume.csv` in
+the RaiSim source checkout. Reading and tessellating a file for the preview, with
+automatic preview tolerances and without file I/O:
+
+| File | Parts | Triangles | Time (ms) |
+| --- | ---: | ---: | ---: |
+| Two-part STEP assembly | 2 | 24 | 0.85 |
+| Block (IGES) | 1 | 12 | 0.23 |
+| Block (BREP) | 1 | 12 | 0.25 |
+| Sphere (BREP) | 1 | 25,844 | 1,489 |
+| Hollow cylinder (BREP) | 1 | 16,524 | 214 |
+| Torus, Gmsh example `step_header_data.stp` | 1 | 28,002 | 864 |
+| Freeform part, Gmsh example `component8.step` | 1 | 11,196 | 182 |
+| 18-solid assembly, Gmsh example `as1-tu-203.stp` | 18 | 75,488 | 839 |
+
+Meshing with the native helper, including process startup and output, takes
+12.5, 19.2 and 78.5 ms for the two-part assembly at 20, 10 and 5 mm, 513 ms for the
+hollow cylinder and 1.87 s for the sphere at 15 mm. Volume errors are 0, 0.11% and
+0.30%, every requested maximum edge holds, and repeated runs give byte-identical
+meshes. These times are on a different machine from the table above. The preview
+table is reproduced by the `fem_cad_benchmark` target of the RaiSim build with the
+files as arguments, and the meshing times by `benchmark/fem_mesher_benchmark.py`.
