@@ -283,6 +283,7 @@ calling `integrate1()` and then `integrate2()`.
 | --- | --- |
 | `setTimeStep(dt)` | Updates the world timestep, contact solver timestep, and object-local timestep state. A non-finite or non-positive `dt` is a fatal error. |
 | `integrate1()` | Clears previous contacts, runs collision detection, registers contacts, and calls each object's first pre-solver update hook. |
+| `discardPendingStep()` | Cancels a prepared step, clears its contacts and constraint rows, and allows scene edits without solving or advancing time. |
 | `integrate2()` | Runs the second pre-solver update hook, solves contacts, integrates object state, and advances the world time. |
 | `integrate()` | Runs `integrate1(); integrate2();`. |
 | `integrateNoContactDetection()` | Replaces `integrate1()` when contacts are not needed: clears previous contacts and updates collision geometry and the first pre-solver hook, but skips collision detection and contact-problem construction. Call `integrate2()` afterwards to complete the step. |
@@ -291,8 +292,37 @@ Between `integrate1()` and `integrate2()`, which works on the contacts
 and states `integrate1()` made for every object, adding or removing an
 object, a tendon or a wire throws `std::logic_error` and leaves the world as
 it was. The step stays open until `integrate2()` (or the next
-`integrate()`) completes it, so code that calls `integrate1()` only to read
-contacts must complete the step before it edits the scene.
+`integrate()`) completes it, or `discardPendingStep()` cancels it. For rejection
+sampling, read the contacts before discarding:
+
+```cpp
+robot->setGeneralizedCoordinate(candidate);
+world.integrate1();
+bool selfCollision = false;
+for (const auto& contact : robot->getContacts())
+  selfCollision = selfCollision || contact.isSelfCollision();
+world.discardPendingStep();
+// Object creation and removal are allowed again; world time has not advanced.
+```
+
+`discardPendingStep()` also cancels `integrateNoContactDetection()`. It clears
+contacts and constraint rows, invalidating references to them. With no pending
+step it does nothing, so contacts from a completed step stay available. Begin
+the next step with `integrate1()` or `integrate()`.
+
+Cancellation is not a rollback: preparation already performed by `integrate1()`,
+such as waking bodies, advancing projectiles, and preparing forces or sensors,
+is not undone. Use this pattern for sampled configurations when those preparation
+side effects are acceptable. The same methods are available on `raisimpy.World`:
+
+```python
+robot.setGeneralizedCoordinate(candidate)
+world.integrate1()
+try:
+    self_collision = any(contact.isSelfCollision() for contact in robot.getContacts())
+finally:
+    world.discardPendingStep()
+```
 
 `getWorldTime()` returns the integrated simulation time, and
 `setWorldTime(time)` can manually adjust it. For visualization through
