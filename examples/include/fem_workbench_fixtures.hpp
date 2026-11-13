@@ -592,8 +592,8 @@ inline MateSuggestion suggestMates(
   const auto b = describeFaces(mesh, boundary, facesB, tolerance);
   result.first = a;
   result.second = b;
-  const auto near = [&](const std::vector<size_t>& from,
-                        const std::vector<size_t>& to, bool all) {
+  const auto facesWithinTolerance = [&](const std::vector<size_t>& from,
+                                        const std::vector<size_t>& to, bool all) {
     std::vector<size_t> targets;
     for (const auto f : to) {
       const auto& ids = boundary.at(f).vertices;
@@ -610,9 +610,11 @@ inline MateSuggestion suggestMates(
           return !all;
     return all;
   };
-  const bool touching = near(facesA, facesB, false) || near(facesB, facesA, false);
-  const bool bondForward = touching && near(facesA, facesB, true);
-  result.tieReversed = touching && !bondForward && near(facesB, facesA, true);
+  const bool touching = facesWithinTolerance(facesA, facesB, false) ||
+                        facesWithinTolerance(facesB, facesA, false);
+  const bool bondForward = touching && facesWithinTolerance(facesA, facesB, true);
+  result.tieReversed =
+      touching && !bondForward && facesWithinTolerance(facesB, facesA, true);
   const bool bondable = bondForward || result.tieReversed;
   const double parallel = std::cos(3. * std::acos(-1.) / 180.);
   const auto suggest = [&](const char* relation,
