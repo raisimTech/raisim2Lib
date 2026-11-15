@@ -1,0 +1,86 @@
+{
+  "cpu_price_usd": 339.99,
+  "gpu_price_usd": 899.99,
+  "rows": [
+    {
+      "model": "anymal",
+      "worlds": 1,
+      "workers": 1,
+      "cpu_fps": 363311.8079503846,
+      "gpu_fps": 4997.791555967575
+    },
+    {
+      "model": "anymal",
+      "worlds": 64,
+      "workers": 16,
+      "cpu_fps": 4469529.898267284,
+      "gpu_fps": 289656.2022265538
+    },
+    {
+      "model": "anymal",
+      "worlds": 256,
+      "workers": 20,
+      "cpu_fps": 5314376.150910803,
+      "gpu_fps": 1060678.6196973568
+    },
+    {
+      "model": "anymal",
+      "worlds": 1024,
+      "workers": 20,
+      "cpu_fps": 4542418.255013703,
+      "gpu_fps": 3385513.736358559
+    },
+    {
+      "model": "anymal",
+      "worlds": 4096,
+      "workers": 20,
+      "cpu_fps": 4186036.795672227,
+      "gpu_fps": 5948433.0029645655
+    },
+    {
+      "model": "strandbeest",
+      "worlds": 1,
+      "workers": 1,
+      "cpu_fps": 39984.34650153188,
+      "gpu_fps": 2966.965870302041
+    },
+    {
+      "model": "strandbeest",
+      "worlds": 64,
+      "workers": 16,
+      "cpu_fps": 507800.5332607792,
+      "gpu_fps": 114385.2778172809
+    },
+    {
+      "model": "strandbeest",
+      "worlds": 256,
+      "workers": 20,
+      "cpu_fps": 528134.8581880206,
+      "gpu_fps": 329329.7196708315
+    },
+    {
+      "model": "strandbeest",
+      "worlds": 1024,
+      "workers": 20,
+      "cpu_fps": 514468.7025062396,
+      "gpu_fps": 545917.6884733313
+    },
+    {
+      "model": "strandbeest",
+      "worlds": 4096,
+      "workers": 20,
+      "cpu_fps": 513763.0554172586,
+      "gpu_fps": 658998.4963095878
+    }
+  ],
+  "price_sources": {
+    "cpu_basis": "Recent Newegg advertised $339.99 scenario; indexed promotion crawled last month; direct listing currently out of stock, no buyable quote verified",
+    "gpu_basis": "Newegg new, sold/shipped Newegg, Add to cart, 2026-11-15",
+    "gpu_url": "https://www.newegg.com/msi-geforce-rtx-5070-12g-ventus-2x-oc-video-card/p/N82E16814137994?Item=N82E16814137994",
+    "manufacturer_reference_usd": {
+      "cpu": 394,
+      "gpu": 549
+    },
+    "cpu_url": "https://www.newegg.com/Intel-x-Newegg-Anniversary-Deals/EventSaleStore/ID-10632"
+  }
+}

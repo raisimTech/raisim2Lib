@@ -92,6 +92,11 @@ function(create_executable app_name file_name)
         endif()
     endif()
 
+    if(MSVC)
+        # Template-heavy examples can exceed the default COFF section limit.
+        target_compile_options(${app_name} PRIVATE /bigobj)
+    endif()
+
     if(APPLE)
         execute_process(COMMAND sysctl -q hw.optional.arm64
                 OUTPUT_VARIABLE _sysctl_stdout
