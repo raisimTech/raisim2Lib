@@ -1,39 +1,46 @@
 # RaiSim vs Newton
 
-## Ten-step performance per USD
+**At the recorded hardware prices, RaiSim delivers about 2× or more physics
+performance per dollar at every scale measured for both engines.** With
+**1–64 worlds**, the advantage grows to **11.75–192.43×** across ANYmal and
+Strandbeest: **over 10× in both benchmarks**.
 
-This benchmark compares **ten-step RaiSim scheduling on a Core Ultra 7 265K**
-with **Newton SolverMuJoCo / MuJoCo Warp on an RTX 5070**. Higher is better.
-FPS/USD means aggregate world physics steps per second divided by the entire component
-price, including when only one CPU worker is used. Each environment has its own world, ground and robot.
+The gap is largest at smaller, practical batch sizes, where fast simulation
+supports frequent policy updates without waiting to fill a massive batch.
 
-[Open the interactive ten-step FPS/USD report](/raisim_newton_ten_step_value.html)
-· [Download the recorded data](/raisim_newton_ten_step_value.json).
+- **Fast from one environment.** In the ANYmal and Strandbeest benchmarks below,
+  one CPU worker is **72.69× and 13.48× faster**, respectively, than Newton on the
+  GPU. At 64–256 environments, RaiSim still delivers **1.60–15.43× higher throughput**.
+  It scales efficiently without needing a massive batch to become competitive.
+- **Update the policy sooner.** [Rollout-based learners such as PPO](https://spinningup.openai.com/en/latest/algorithms/ppo.html#pseudocode)
+  collect experience before updating. Increasing that collection batch to fill a GPU
+  can delay the next update. RaiSim's small-batch speed lets you choose rollout size
+  for the learning algorithm and update frequently, rather than for GPU occupancy.
+- **Handle uneven workloads.** Different robots, contacts, resets, and solver work
+  make environments take different amounts of time. Independent CPU worlds can be
+  scheduled separately; divergent GPU work and batch synchronization can leave
+  resources waiting. This makes CPU execution a flexible fit for heterogeneous tasks.
+  See [CUDA's control-flow guidance](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html#basics-of-simt)
+  and [MJWarp's batch solver behavior](https://mujoco.readthedocs.io/en/latest/mjwarp/index.html#solver-iterations).
 
-Prices checked 15 November 2026: **265K $339.99**, a recent
-[Newegg advertised-price scenario](https://www.newegg.com/Intel-x-Newegg-Anniversary-Deals/EventSaleStore/ID-10632)
-from an index crawled last month; the
-[direct CPU listing](https://www.newegg.com/intel-core-ultra-7-265k-arrow-lake-lga-1851-desktop-cpu-processor/p/N82E16819118506?Item=N82E16819118506)
-is now out of stock, so this is not a verified currently buyable quote.
-**RTX 5070 $899.99** comes from the
-[new MSI Ventus listing sold/shipped by Newegg](https://www.newegg.com/msi-geforce-rtx-5070-12g-ventus-2x-oc-video-card/p/N82E16814137994?Item=N82E16814137994),
-shown with Add to cart. That board is a pricing proxy for the measured RTX 5070.
-Tax, host system, RAM, motherboard, cooling, energy and licensing are excluded;
-the GPU also needs a host CPU. Prices are editable in the interactive report.
+Choose environment count by **time per policy update and time to target reward**.
+The results below measure physics throughput; training speed also depends on
+rollout scheduling, data transfers, inference, and optimization.
 
-### Reading the price-normalized results
+## Measured physics performance
 
-At the prices above, the RTX 5070 costs **2.65× as much as the 265K**
-($899.99 / $339.99). Its throughput must therefore be 2.65× higher to match
-RaiSim's FPS/USD. Dividing GPU throughput by the higher price reduces its value score.
+RaiSim runs on a Core Ultra 7 265K; Newton SolverMuJoCo / MuJoCo Warp runs on an
+RTX 5070. Each environment has its own world, ground, and robot. At the recorded
+component prices, RaiSim provides **1.88–192.43× more steps per dollar** across
+all ten paired comparisons. GPU throughput can lead at large batches; CPU
+performance above 4,096 environments has not been measured here.
 
-At 4,096 worlds, Newton's measured throughput is **1.41× higher for ANYmal** and
-**1.27× higher for Strandbeest**. These gains are smaller than the 2.65× price difference,
-so RaiSim provides **1.88× and 2.08× the FPS/USD**, respectively.
-The last column below is a **performance-per-dollar ratio**, not a hardware-price ratio
-or a raw-throughput ratio:
+[Explore throughput and change prices](/raisim_newton_ten_step_value.html)
+· [Download recorded results](/raisim_newton_ten_step_value.json).
 
-`RaiSim / Newton FPS-per-dollar = (RaiSim FPS / Newton FPS) × ($899.99 / $339.99)`.
+FPS/USD is aggregate world physics steps/s divided by the full component price:
+**$339.99 for the CPU and $899.99 for the GPU**. The GPU costs 2.65× as much;
+at 4,096 worlds, RaiSim retains **1.88× / 2.08×** the FPS/USD for ANYmal / Strandbeest.
 
 ### ANYmal standing
 
@@ -70,6 +77,9 @@ or a raw-throughput ratio:
 | 8,192 | — | Not measured | 740.77 | — |
 | 16,384 | — | Not measured | 714.88 | — |
 
+<details>
+<summary>Scaling beyond 4,096 worlds</summary>
+
 ### Scaling beyond 4,096 worlds
 
 Newton supports more than 4,096 environments; this was a benchmark sweep endpoint,
@@ -98,6 +108,22 @@ are not zero or extrapolated. GPU results through 1,024 worlds remain historical
 14 November measurements; GPU results at 4,096 and above are fresh 15 November runs.
 [Download full scaling measurements, validation and GPU-memory samples](/raisim_newton_large_worlds.json).
 
+</details>
+
+<details>
+<summary>Hardware prices, measurement protocol, and limits</summary>
+
+Prices checked 15 November 2026: **265K $339.99**, a recent
+[Newegg advertised-price scenario](https://www.newegg.com/Intel-x-Newegg-Anniversary-Deals/EventSaleStore/ID-10632)
+from an index crawled last month; the
+[direct CPU listing](https://www.newegg.com/intel-core-ultra-7-265k-arrow-lake-lga-1851-desktop-cpu-processor/p/N82E16819118506?Item=N82E16819118506)
+is now out of stock, so this is not a verified currently buyable quote.
+**RTX 5070 $899.99** comes from the
+[new MSI Ventus listing sold/shipped by Newegg](https://www.newegg.com/msi-geforce-rtx-5070-12g-ventus-2x-oc-video-card/p/N82E16814137994?Item=N82E16814137994),
+shown with Add to cart. That board is a pricing proxy for the measured RTX 5070.
+Tax, host system, RAM, motherboard, cooling, energy and licensing are excluded;
+the GPU also needs a host CPU. Prices are editable in the interactive report.
+
 ### Protocol and limits
 
 CPU workers integrate each world ten times before visiting the next world. Newton
@@ -121,5 +147,7 @@ count of one/world is a different statistic. RaiSim merges fixed links (74 bodie
 while Newton retains them (92). All 18 CPU scheduling cases matched final state hashes
 and contacts against one-step scheduling, with six extra partial-block/uneven-range checks.
 The tables retain the ten primary CPU comparison cases and add the measured larger GPU batches.
+
+</details>
 
 For the single-threaded CPU comparison, see [RaiSim vs MuJoCo](./Benchmark.md).
