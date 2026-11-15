@@ -1,0 +1,376 @@
+{
+  "results": [
+    {
+      "engine": "newton-mujoco",
+      "scenario": "anymal",
+      "profile": "stiff",
+      "worlds": 4096,
+      "steps": 5000,
+      "dt": 0.002,
+      "seconds": [
+        3.478375604026951,
+        3.4765947819687426,
+        3.479016010009218
+      ],
+      "aggregate_fps": 5887805.78390962,
+      "batch_steps_per_second": 1437.4525839623095,
+      "mean_contacts_per_world": 4.0,
+      "min_batch_average_contacts": 4.0,
+      "max_batch_average_contacts": 4.0,
+      "max_loop_gap_m": 0.0,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 3.1773000955581665e-05,
+      "contact_solref": [
+        0.01,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.4819871485233307,
+      "base_height_max": 0.48198795318603516,
+      "walked_min_m": 0.00015756356879137456,
+      "walked_max_m": 0.000160575655172579,
+      "max_abs_velocity": 0.0022557456977665424,
+      "mass_per_world": 30.421396462,
+      "bodies_per_world": 13,
+      "shapes_per_world": 13,
+      "mujoco_nv": 18,
+      "mujoco_equalities": 0,
+      "eq_solref": [],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 18.77742075920105,
+      "sampled_process_peak_gpu_mib": 486.0,
+      "sampled_total_peak_gpu_mib": 1080.0,
+      "gpu_memory_samples": 32
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "anymal",
+      "profile": "stiff",
+      "worlds": 8192,
+      "steps": 5000,
+      "dt": 0.002,
+      "seconds": [
+        5.9536425119731575,
+        5.938875072984956,
+        5.953837823995855
+      ],
+      "aggregate_fps": 6879821.876712753,
+      "batch_steps_per_second": 839.8220064346623,
+      "mean_contacts_per_world": 4.0,
+      "min_batch_average_contacts": 4.0,
+      "max_batch_average_contacts": 4.0,
+      "max_loop_gap_m": 0.0,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 3.180280327796936e-05,
+      "contact_solref": [
+        0.01,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.4819870889186859,
+      "base_height_max": 0.48198795318603516,
+      "walked_min_m": 0.00015760470705572516,
+      "walked_max_m": 0.00016075513849500567,
+      "max_abs_velocity": 0.0022562691010534763,
+      "mass_per_world": 30.421396462,
+      "bodies_per_world": 13,
+      "shapes_per_world": 13,
+      "mujoco_nv": 18,
+      "mujoco_equalities": 0,
+      "eq_solref": [],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 29.98878836631775,
+      "sampled_process_peak_gpu_mib": 774.0,
+      "sampled_total_peak_gpu_mib": 1368.0,
+      "gpu_memory_samples": 53
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "anymal",
+      "profile": "stiff",
+      "worlds": 16384,
+      "steps": 5000,
+      "dt": 0.002,
+      "seconds": [
+        11.680853031983133,
+        11.525660366984084,
+        11.524807028996293
+      ],
+      "aggregate_fps": 7107618.773381918,
+      "batch_steps_per_second": 433.8146223987987,
+      "mean_contacts_per_world": 4.0,
+      "min_batch_average_contacts": 4.0,
+      "max_batch_average_contacts": 4.0,
+      "max_loop_gap_m": 0.0,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 3.180280327796936e-05,
+      "contact_solref": [
+        0.01,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.4819871187210083,
+      "base_height_max": 0.48198798298835754,
+      "walked_min_m": 0.00015759070811327547,
+      "walked_max_m": 0.0001608642633073032,
+      "max_abs_velocity": 0.002256338484585285,
+      "mass_per_world": 30.421396462,
+      "bodies_per_world": 13,
+      "shapes_per_world": 13,
+      "mujoco_nv": 18,
+      "mujoco_equalities": 0,
+      "eq_solref": [],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 54.72248554229736,
+      "sampled_process_peak_gpu_mib": 1318.0,
+      "sampled_total_peak_gpu_mib": 2240.0,
+      "gpu_memory_samples": 98
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "anymal",
+      "profile": "stiff",
+      "worlds": 32768,
+      "steps": 5000,
+      "dt": 0.002,
+      "seconds": [
+        23.595916274993215,
+        23.941243636014406,
+        23.621637907985132
+      ],
+      "aggregate_fps": 6936013.524473467,
+      "batch_steps_per_second": 211.67033460917563,
+      "mean_contacts_per_world": 4.0,
+      "min_batch_average_contacts": 4.0,
+      "max_batch_average_contacts": 4.0,
+      "max_loop_gap_m": 0.0,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 3.181770443916321e-05,
+      "contact_solref": [
+        0.01,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.4819870889186859,
+      "base_height_max": 0.48198795318603516,
+      "walked_min_m": 0.00015745848941151053,
+      "walked_max_m": 0.0001609201863175258,
+      "max_abs_velocity": 0.0022575929760932922,
+      "mass_per_world": 30.421396462,
+      "bodies_per_world": 13,
+      "shapes_per_world": 13,
+      "mujoco_nv": 18,
+      "mujoco_equalities": 0,
+      "eq_solref": [],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 107.49614477157593,
+      "sampled_process_peak_gpu_mib": 2438.0,
+      "sampled_total_peak_gpu_mib": 3360.0,
+      "gpu_memory_samples": 194
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "strandbeest",
+      "profile": "stiff",
+      "worlds": 4096,
+      "steps": 3000,
+      "dt": 0.001,
+      "seconds": [
+        18.823625432967674,
+        18.798071657016408,
+        18.8217277249787
+      ],
+      "aggregate_fps": 652862.4884787991,
+      "batch_steps_per_second": 159.39025597626932,
+      "mean_contacts_per_world": 0.6993455290794373,
+      "min_batch_average_contacts": 0.0,
+      "max_batch_average_contacts": 1.526611328125,
+      "max_loop_gap_m": 5.319176125340164e-05,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 0.0005038771778345108,
+      "contact_solref": [
+        0.002,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.8501080274581909,
+      "base_height_max": 0.8574215173721313,
+      "walked_min_m": 3.7538204193115234,
+      "walked_max_m": 3.9785971641540527,
+      "max_abs_velocity": 10.303977966308594,
+      "mass_per_world": 92.0,
+      "bodies_per_world": 92,
+      "shapes_per_world": 12,
+      "mujoco_nv": 79,
+      "mujoco_equalities": 84,
+      "eq_solref": [
+        [
+          0.0020000000949949026,
+          1.0
+        ]
+      ],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 91.17907309532166,
+      "sampled_process_peak_gpu_mib": 1674.0,
+      "sampled_total_peak_gpu_mib": 2561.0,
+      "gpu_memory_samples": 166
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "strandbeest",
+      "profile": "stiff",
+      "worlds": 8192,
+      "steps": 3000,
+      "dt": 0.001,
+      "seconds": [
+        36.84560409898404,
+        36.862880138040055,
+        37.04083232401172
+      ],
+      "aggregate_fps": 666686.9194151543,
+      "batch_steps_per_second": 81.3826805926702,
+      "mean_contacts_per_world": 0.6996967792510986,
+      "min_batch_average_contacts": 0.0,
+      "max_batch_average_contacts": 1.523681640625,
+      "max_loop_gap_m": 5.324288213159889e-05,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 0.0005044732242822647,
+      "contact_solref": [
+        0.002,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.8500064611434937,
+      "base_height_max": 0.8591449856758118,
+      "walked_min_m": 3.7544543743133545,
+      "walked_max_m": 3.9696455001831055,
+      "max_abs_velocity": 10.297619819641113,
+      "mass_per_world": 92.0,
+      "bodies_per_world": 92,
+      "shapes_per_world": 12,
+      "mujoco_nv": 79,
+      "mujoco_equalities": 84,
+      "eq_solref": [
+        [
+          0.0020000000949949026,
+          1.0
+        ]
+      ],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 174.2374668121338,
+      "sampled_process_peak_gpu_mib": 3050.0,
+      "sampled_total_peak_gpu_mib": 3933.0,
+      "gpu_memory_samples": 320
+    },
+    {
+      "engine": "newton-mujoco",
+      "scenario": "strandbeest",
+      "profile": "stiff",
+      "worlds": 16384,
+      "steps": 3000,
+      "dt": 0.001,
+      "seconds": [
+        76.38177478004945,
+        76.3962898220052,
+        76.42642793495907
+      ],
+      "aggregate_fps": 643382.0296053467,
+      "batch_steps_per_second": 39.268922705404464,
+      "mean_contacts_per_world": 0.6998426914215088,
+      "min_batch_average_contacts": 0.0,
+      "max_batch_average_contacts": 1.53094482421875,
+      "max_loop_gap_m": 5.3232419304549694e-05,
+      "overflow_bitmask": 0,
+      "finite": true,
+      "max_ground_penetration_m": 0.0005043242126703262,
+      "contact_solref": [
+        0.002,
+        1.0
+      ],
+      "contact_solimp": [
+        0.99,
+        0.999,
+        0.001,
+        0.5,
+        2.0
+      ],
+      "base_height_min": 0.8500489592552185,
+      "base_height_max": 0.8596846461296082,
+      "walked_min_m": 3.766479253768921,
+      "walked_max_m": 3.9783287048339844,
+      "max_abs_velocity": 10.301664352416992,
+      "mass_per_world": 92.0,
+      "bodies_per_world": 92,
+      "shapes_per_world": 12,
+      "mujoco_nv": 79,
+      "mujoco_equalities": 84,
+      "eq_solref": [
+        [
+          0.0020000000949949026,
+          1.0
+        ]
+      ],
+      "quality_pass": true,
+      "exit_code": 0,
+      "wall_seconds": 354.7663106918335,
+      "sampled_process_peak_gpu_mib": 5770.0,
+      "sampled_total_peak_gpu_mib": 6357.0,
+      "gpu_memory_samples": 654
+    }
+  ],
+  "provenance": {
+    "script_sha256": "9fd415488500e99707761fc44ada4bcd19a13cb10c825a19f2034e8704bed865",
+    "script": "/tmp/raisim-newton-20261114/benchmark_newton.py",
+    "gpu": "NVIDIA GeForce RTX 5070, 595.99.02, 12227",
+    "historical_protocol": "unchanged: stiff profile, 10-step graphs, 3 trials, full validation, steps5000 ANYmal/3000 Strandbeest",
+    "sampling": "nvidia-smi per-process used GPU memory every ~0.5s; sampled peak, not allocator-exact peak"
+  }
+}
