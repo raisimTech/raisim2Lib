@@ -153,7 +153,14 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
       },
       { text: 'Project Layout', link: '/sections/ProjectLayout.md' },
       { text: 'Performance', link: '/sections/Performance.md' },
-      { text: 'Benchmark', link: '/sections/Benchmark.md' },
+      {
+        text: 'Benchmarks',
+        collapsed: false,
+        items: [
+          { text: 'RaiSim vs MuJoCo', link: '/sections/Benchmark.md' },
+          { text: 'RaiSim vs Newton', link: '/sections/BenchmarkNewton.md' },
+        ],
+      },
       { text: 'Troubleshooting', link: '/sections/Troubleshooting.md' },
       {
         text: 'Changelog',
