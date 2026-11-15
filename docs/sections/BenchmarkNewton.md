@@ -1,6 +1,8 @@
 # RaiSim vs Newton
 
-## Ten-step performance per USD
+For changing control targets, see [Random actuation with RL-style control intervals](#random-actuation).
+
+## Fixed-target ten-step performance per USD
 
 This benchmark compares **ten-step RaiSim scheduling on a Core Ultra 7 265K**
 with **Newton SolverMuJoCo / MuJoCo Warp on an RTX 5070**. Higher is better.
@@ -121,5 +123,95 @@ count of one/world is a different statistic. RaiSim merges fixed links (74 bodie
 while Newton retains them (92). All 18 CPU scheduling cases matched final state hashes
 and contacts against one-step scheduling, with six extra partial-block/uneven-range checks.
 The tables retain the ten primary CPU comparison cases and add the measured larger GPU batches.
+
+
+## Random actuation with RL-style control intervals {#random-actuation}
+
+This workload changes each environment's control targets independently every ten physics
+steps, instead of holding a standing pose or a constant crank speed. It measures
+**random action generation, target updates and physics**, with a CPU worker barrier at
+each control interval and ordered GPU graph execution. It does **not** include a
+learned policy, observations, rewards, episode resets or rendering, so it is not a
+full RL-training throughput measurement. Each control transition contains ten physics
+steps: divide the reported physics FPS/USD by **10** for control transitions/s/USD.
+
+- **ANYmal:** 12 joint-position targets, sampled uniformly within ±0.15 rad of the
+  nominal pose, with position gain 200 and damping 10. Actions update every 20 ms.
+- **Strandbeest:** the single actuated crank's velocity target varies by ±25% around
+  2π rad/s, with damping 200. The linkage joints remain passive. Actions update every 10 ms.
+- Seed **20261115**, keyed by environment, control interval and joint. CPU and GPU
+  targets use the same float32 hash-to-action calculation and canonical joint mapping.
+  Cross-engine target checks matched bit-for-bit; serial and multi-threaded RaiSim
+  checks matched final state hashes. Action-on versus action-off checks changed trajectories.
+
+[Open the interactive random-action report](/raisim_newton_random_actions.html)
+· [Download random-action measurements, per-trial timings, contacts and validation](/raisim_newton_random_actions.json).
+Component-price assumptions remain **$339.99 CPU / $899.99 GPU**, with the availability
+limitations described above. Higher FPS/USD is better; missing CPU results are unmeasured.
+
+### ANYmal with random actions
+
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_anymal_random_fps_per_usd.svg" alt="ANYmal random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
+<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 954.41 | 3.76 | 253.51× |
+| 64 | 16 | 5,600.58 | 148.35 | 37.75× |
+| 256 | 20 | 10,535.55 | 514.19 | 20.49× |
+| 1,024 | 20 | 10,466.75 | 1,596.15 | 6.56× |
+| 4,096 | 20 | 10,845.10 | 3,188.73 | 3.40× |
+| 8,192 | — | Not measured | 3,862.81 | — |
+| 16,384 | — | Not measured | 4,134.67 | — |
+| 32,768 | — | Not measured | 4,111.08 | — |
+
+### Strandbeest with random actions
+
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_strandbeest_random_fps_per_usd.svg" alt="Strandbeest random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
+<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 117.02 | 3.29 | 35.56× |
+| 64 | 16 | 1,207.31 | 122.08 | 9.89× |
+| 256 | 20 | 1,289.24 | 352.62 | 3.66× |
+| 1,024 | 20 | 1,410.19 | 595.12 | 2.37× |
+| 4,096 | 20 | 1,470.17 | 721.71 | 2.04× |
+| 8,192 | — | Not measured | 737.88 | — |
+| 16,384 | — | Not measured | 712.86 | — |
+
+### Random-action validation and limits
+
+All **25 benchmark cases** passed the finite-state, contact, timing and target-sequence
+checks. GPU cases reported zero solver overflow; all Strandbeest closure gaps were below
+1 mm. At 4,096 worlds, trajectory-mean contacts/world were **2.683 / 2.336** for ANYmal
+(RaiSim / Newton) and **0.945 / 0.696** for Strandbeest. These differences are retained in
+the dataset rather than treated as equal contact work.
+
+Both engines warm with nominal actions: 1,100 ANYmal steps or 100 Strandbeest steps.
+Each timed trial then restores the post-warmup ANYmal state or the initial Strandbeest
+state, resets solver warm starts and the action counter, and replays the same action
+sequence. Trials contain **5,000 ANYmal steps** or **3,000 Strandbeest steps** at every
+world count. Results use medians of three trials, except single-world RaiSim uses seven.
+No trials are discarded. Processes run serially; CPU workers are pinned, with one
+independent world per environment and no engine-internal threading.
+
+An extra untimed replay measures trajectory-mean contacts and checks finite states,
+solver overflow and Strandbeest closure gaps. RaiSim closure gaps and finite states
+are sampled at ten-step boundaries; Newton gaps/overflow are checked every physics
+step, and its finite state is checked at the end. These are different validation
+sampling rates, not a claim of identical accuracy. Full trial times and contact means
+are included in the downloadable records. Equal action targets do not imply equal
+contact trajectories, because the solvers, precision and constraint formulations differ.
+
+The earlier fixed-target numbers use a different driver protocol (no CPU control-interval
+barrier and varying CPU trial horizons). Differences between the two workloads therefore
+include synchronization, action-update overhead and changed physics; they do not isolate
+random actuation cost alone. No episode resets are timed, and no claim is made about
+policy or full training throughput. The larger-world GPU memory safeguard is unchanged.
 
 For the single-threaded CPU comparison, see [RaiSim vs MuJoCo](./Benchmark.md).
