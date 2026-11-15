@@ -2,15 +2,15 @@
 
 **At the recorded hardware prices, RaiSim delivers about 2× or more physics
 performance per dollar at every scale measured for both engines.** With
-**1–64 worlds**, the advantage grows to **11.75–192.43×** across ANYmal and
-Strandbeest in the fixed-target benchmarks: **over 10× in both**.
+**1–64 worlds**, the advantage grows to **9.89–253.51×** across ANYmal and
+Strandbeest with independent random actions: **about 10× or more in both**.
 
 The gap is largest at smaller, practical batch sizes, where fast simulation
 supports frequent policy updates without waiting to fill a massive batch.
 
-- **Fast from one environment.** In the fixed-target ANYmal and Strandbeest benchmarks below,
-  one CPU worker is **72.69× and 13.48× faster**, respectively, than Newton on the
-  GPU. At 64–256 environments, RaiSim still delivers **1.60–15.43× higher throughput**.
+- **Fast from one environment.** In the random-action ANYmal and Strandbeest benchmarks below,
+  one CPU worker is **95.77× and 13.43× faster**, respectively, than Newton on the
+  GPU. At 64–256 environments, RaiSim still delivers **1.38–14.26× higher throughput**.
   It scales efficiently without needing a massive batch to become competitive.
 - **Update the policy sooner.** [Rollout-based learners such as PPO](https://spinningup.openai.com/en/latest/algorithms/ppo.html#pseudocode)
   collect experience before updating. Increasing that collection batch to fill a GPU
@@ -27,7 +27,114 @@ Choose environment count by **time per policy update and time to target reward**
 The results below measure physics throughput; training speed also depends on
 rollout scheduling, data transfers, inference, and optimization.
 
-For changing control targets, see [Random actuation with RL-style control intervals](#random-actuation).
+The primary results below use random targets refreshed every ten physics steps.
+At **4,096 worlds**, RaiSim provides **3.40× / 2.04×** Newton's FPS/USD for ANYmal /
+Strandbeest, using **$339.99 CPU / $899.99 GPU** price assumptions. The GPU costs
+**2.65×** as much as the CPU. Costs are component-only; the GPU also requires a host.
+These measurements include random target generation, updates and physics, and exclude
+policy inference, observations, rewards and episode resets.
+
+Prices checked 15 November 2026: **265K $339.99**, a recent
+[Newegg advertised-price scenario](https://www.newegg.com/Intel-x-Newegg-Anniversary-Deals/EventSaleStore/ID-10632)
+from an index crawled last month; the
+[direct CPU listing](https://www.newegg.com/intel-core-ultra-7-265k-arrow-lake-lga-1851-desktop-cpu-processor/p/N82E16819118506?Item=N82E16819118506)
+is now out of stock, so this is not a verified currently buyable quote.
+**RTX 5070 $899.99** comes from the
+[new MSI Ventus listing sold/shipped by Newegg](https://www.newegg.com/msi-geforce-rtx-5070-12g-ventus-2x-oc-video-card/p/N82E16814137994?Item=N82E16814137994),
+shown with Add to cart. That board is a pricing proxy for the measured RTX 5070.
+Tax, host system, RAM, motherboard, cooling, energy and licensing are excluded;
+the GPU also needs a host CPU. Prices are editable in the interactive report.
+
+## Random-actuation performance per USD {#random-actuation}
+
+This workload changes each environment's control targets independently every ten physics
+steps, instead of holding a standing pose or a constant crank speed. It measures
+**random action generation, target updates and physics**, with a CPU worker barrier at
+each control interval and ordered GPU graph execution. It does **not** include a
+learned policy, observations, rewards, episode resets or rendering, so it is not a
+full RL-training throughput measurement. Each control transition contains ten physics
+steps: divide the reported physics FPS/USD by **10** for control transitions/s/USD.
+
+- **ANYmal:** 12 joint-position targets, sampled uniformly within ±0.15 rad of the
+  nominal pose, with position gain 200 and damping 10. Actions update every 20 ms.
+- **Strandbeest:** the single actuated crank's velocity target varies by ±25% around
+  2π rad/s, with damping 200. The linkage joints remain passive. Actions update every 10 ms.
+- Seed **20261115**, keyed by environment, control interval and joint. CPU and GPU
+  targets use the same float32 hash-to-action calculation and canonical joint mapping.
+  Cross-engine target checks matched bit-for-bit; serial and multi-threaded RaiSim
+  checks matched final state hashes. Action-on versus action-off checks changed trajectories.
+
+[Open the interactive random-action report](/raisim_newton_random_actions.html)
+· [Download random-action measurements, per-trial timings, contacts and validation](/raisim_newton_random_actions.json).
+Component-price assumptions remain **$339.99 CPU / $899.99 GPU**, with the availability
+limitations described above. Higher FPS/USD is better; missing CPU results are unmeasured.
+
+### ANYmal with random actions
+
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_anymal_random_fps_per_usd.svg" alt="ANYmal random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
+<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 954.41 | 3.76 | 253.51× |
+| 64 | 16 | 5,600.58 | 148.35 | 37.75× |
+| 256 | 20 | 10,535.55 | 514.19 | 20.49× |
+| 1,024 | 20 | 10,466.75 | 1,596.15 | 6.56× |
+| 4,096 | 20 | 10,845.10 | 3,188.73 | 3.40× |
+| 8,192 | — | Not measured | 3,862.81 | — |
+| 16,384 | — | Not measured | 4,134.67 | — |
+| 32,768 | — | Not measured | 4,111.08 | — |
+
+### Strandbeest with random actions
+
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_strandbeest_random_fps_per_usd.svg" alt="Strandbeest random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
+<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 117.02 | 3.29 | 35.56× |
+| 64 | 16 | 1,207.31 | 122.08 | 9.89× |
+| 256 | 20 | 1,289.24 | 352.62 | 3.66× |
+| 1,024 | 20 | 1,410.19 | 595.12 | 2.37× |
+| 4,096 | 20 | 1,470.17 | 721.71 | 2.04× |
+| 8,192 | — | Not measured | 737.88 | — |
+| 16,384 | — | Not measured | 712.86 | — |
+
+### Random-action validation and limits
+
+All **25 benchmark cases** passed the finite-state, contact, timing and target-sequence
+checks. GPU cases reported zero solver overflow; all Strandbeest closure gaps were below
+1 mm. At 4,096 worlds, trajectory-mean contacts/world were **2.683 / 2.336** for ANYmal
+(RaiSim / Newton) and **0.945 / 0.696** for Strandbeest. These differences are retained in
+the dataset rather than treated as equal contact work.
+
+Both engines warm with nominal actions: 1,100 ANYmal steps or 100 Strandbeest steps.
+Each timed trial then restores the post-warmup ANYmal state or the initial Strandbeest
+state, resets solver warm starts and the action counter, and replays the same action
+sequence. Trials contain **5,000 ANYmal steps** or **3,000 Strandbeest steps** at every
+world count. Results use medians of three trials, except single-world RaiSim uses seven.
+No trials are discarded. Processes run serially; CPU workers are pinned, with one
+independent world per environment and no engine-internal threading.
+
+An extra untimed replay measures trajectory-mean contacts and checks finite states,
+solver overflow and Strandbeest closure gaps. RaiSim closure gaps and finite states
+are sampled at ten-step boundaries; Newton gaps/overflow are checked every physics
+step, and its finite state is checked at the end. These are different validation
+sampling rates, not a claim of identical accuracy. Full trial times and contact means
+are included in the downloadable records. Equal action targets do not imply equal
+contact trajectories, because the solvers, precision and constraint formulations differ.
+
+The earlier fixed-target numbers use a different driver protocol (no CPU control-interval
+barrier and varying CPU trial horizons). Differences between the two workloads therefore
+include synchronization, action-update overhead and changed physics; they do not isolate
+random actuation cost alone. No episode resets are timed, and no claim is made about
+policy or full training throughput. The larger-world GPU memory safeguard is unchanged.
+
+::: details Earlier fixed-target measurements
 
 ## Fixed-target ten-step performance per USD
 
@@ -152,93 +259,6 @@ The tables retain the ten primary CPU comparison cases and add the measured larg
 
 </details>
 
-## Random actuation with RL-style control intervals {#random-actuation}
-
-This workload changes each environment's control targets independently every ten physics
-steps, instead of holding a standing pose or a constant crank speed. It measures
-**random action generation, target updates and physics**, with a CPU worker barrier at
-each control interval and ordered GPU graph execution. It does **not** include a
-learned policy, observations, rewards, episode resets or rendering, so it is not a
-full RL-training throughput measurement. Each control transition contains ten physics
-steps: divide the reported physics FPS/USD by **10** for control transitions/s/USD.
-
-- **ANYmal:** 12 joint-position targets, sampled uniformly within ±0.15 rad of the
-  nominal pose, with position gain 200 and damping 10. Actions update every 20 ms.
-- **Strandbeest:** the single actuated crank's velocity target varies by ±25% around
-  2π rad/s, with damping 200. The linkage joints remain passive. Actions update every 10 ms.
-- Seed **20261115**, keyed by environment, control interval and joint. CPU and GPU
-  targets use the same float32 hash-to-action calculation and canonical joint mapping.
-  Cross-engine target checks matched bit-for-bit; serial and multi-threaded RaiSim
-  checks matched final state hashes. Action-on versus action-off checks changed trajectories.
-
-[Open the interactive random-action report](/raisim_newton_random_actions.html)
-· [Download random-action measurements, per-trial timings, contacts and validation](/raisim_newton_random_actions.json).
-Component-price assumptions remain **$339.99 CPU / $899.99 GPU**, with the availability
-limitations described above. Higher FPS/USD is better; missing CPU results are unmeasured.
-
-### ANYmal with random actions
-
-<figure>
-<img class="diagram" src="../../rsc/docs/image/raisim_newton_anymal_random_fps_per_usd.svg" alt="ANYmal random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
-<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
-</figure>
-
-| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
-| ---: | ---: | ---: | ---: | ---: |
-| 1 | 1 | 954.41 | 3.76 | 253.51× |
-| 64 | 16 | 5,600.58 | 148.35 | 37.75× |
-| 256 | 20 | 10,535.55 | 514.19 | 20.49× |
-| 1,024 | 20 | 10,466.75 | 1,596.15 | 6.56× |
-| 4,096 | 20 | 10,845.10 | 3,188.73 | 3.40× |
-| 8,192 | — | Not measured | 3,862.81 | — |
-| 16,384 | — | Not measured | 4,134.67 | — |
-| 32,768 | — | Not measured | 4,111.08 | — |
-
-### Strandbeest with random actions
-
-<figure>
-<img class="diagram" src="../../rsc/docs/image/raisim_newton_strandbeest_random_fps_per_usd.svg" alt="Strandbeest random actions: RaiSim and Newton aggregate physics steps per second per USD across independent world counts; missing CPU measurements have no bars.">
-<figcaption>Ten physics steps per action; random generation, target update and physics are timed. CPU values beyond 4,096 worlds are unmeasured.</figcaption>
-</figure>
-
-| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
-| ---: | ---: | ---: | ---: | ---: |
-| 1 | 1 | 117.02 | 3.29 | 35.56× |
-| 64 | 16 | 1,207.31 | 122.08 | 9.89× |
-| 256 | 20 | 1,289.24 | 352.62 | 3.66× |
-| 1,024 | 20 | 1,410.19 | 595.12 | 2.37× |
-| 4,096 | 20 | 1,470.17 | 721.71 | 2.04× |
-| 8,192 | — | Not measured | 737.88 | — |
-| 16,384 | — | Not measured | 712.86 | — |
-
-### Random-action validation and limits
-
-All **25 benchmark cases** passed the finite-state, contact, timing and target-sequence
-checks. GPU cases reported zero solver overflow; all Strandbeest closure gaps were below
-1 mm. At 4,096 worlds, trajectory-mean contacts/world were **2.683 / 2.336** for ANYmal
-(RaiSim / Newton) and **0.945 / 0.696** for Strandbeest. These differences are retained in
-the dataset rather than treated as equal contact work.
-
-Both engines warm with nominal actions: 1,100 ANYmal steps or 100 Strandbeest steps.
-Each timed trial then restores the post-warmup ANYmal state or the initial Strandbeest
-state, resets solver warm starts and the action counter, and replays the same action
-sequence. Trials contain **5,000 ANYmal steps** or **3,000 Strandbeest steps** at every
-world count. Results use medians of three trials, except single-world RaiSim uses seven.
-No trials are discarded. Processes run serially; CPU workers are pinned, with one
-independent world per environment and no engine-internal threading.
-
-An extra untimed replay measures trajectory-mean contacts and checks finite states,
-solver overflow and Strandbeest closure gaps. RaiSim closure gaps and finite states
-are sampled at ten-step boundaries; Newton gaps/overflow are checked every physics
-step, and its finite state is checked at the end. These are different validation
-sampling rates, not a claim of identical accuracy. Full trial times and contact means
-are included in the downloadable records. Equal action targets do not imply equal
-contact trajectories, because the solvers, precision and constraint formulations differ.
-
-The earlier fixed-target numbers use a different driver protocol (no CPU control-interval
-barrier and varying CPU trial horizons). Differences between the two workloads therefore
-include synchronization, action-update overhead and changed physics; they do not isolate
-random actuation cost alone. No episode resets are timed, and no claim is made about
-policy or full training throughput. The larger-world GPU memory safeguard is unchanged.
+:::
 
 For the single-threaded CPU comparison, see [RaiSim vs MuJoCo](./Benchmark.md).
