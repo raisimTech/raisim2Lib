@@ -46,3 +46,13 @@ recording at a time.
    differently, as `rayrai_city_from_xml` does with a closer crop.
 3. `python3 -m unittest discover -s docs/scripts` checks that every example page
    has a tile and a clip, and that every clip stays under 2 MB.
+
+## Runtime-joint page media
+
+`python3 docs/image_generators/runtime_joint_media.py --build <examples binaries>`
+records both `runtime_joints --visualize` scenes, including `--scene docking`.
+It writes the tool clip/poster into the gallery and the docking clip/poster
+into `rsc/docs/video`, and extracts both full-resolution figures into
+`rsc/docs/image`. `--out` changes the documentation asset root; `--work` keeps
+raw recordings and logs. The script uses this recorder's capture and encoding
+functions and the `runtime_joints` entry in `clips.json`.

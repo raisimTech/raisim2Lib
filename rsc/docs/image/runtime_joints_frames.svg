@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="380" viewBox="0 0 960 380" role="img" aria-labelledby="title desc">
+  <title id="title">Runtime joint attachment frames</title>
+  <desc id="desc">A blue kinematic wrist and orange tool meet at coincident attachment frames. The wrist offset is minus 0.09 metres along Z and the tool offset is plus 0.20 metres along Z. The joint reports minus 9.81 newtons on the wrist while supporting the tool.</desc>
+  <defs>
+    <marker id="arrow-x" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#f87171"/></marker>
+    <marker id="arrow-z" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#4ade80"/></marker>
+  </defs>
+  <rect x="1" y="1" width="958" height="378" rx="18" fill="#101a2b" stroke="#334155"/>
+  <g font-family="system-ui, sans-serif" fill="#e2e8f0">
+    <rect x="100" y="62" width="244" height="84" rx="8" fill="#246fb7" stroke="#60a5fa" stroke-width="2"/>
+    <text x="222" y="100" text-anchor="middle" font-size="20" font-weight="600">A · Kinematic wrist</text>
+    <text x="222" y="126" text-anchor="middle" font-size="15">0.18 m tall</text>
+    <rect x="176" y="146" width="92" height="181" rx="5" fill="#b96312" stroke="#fb923c" stroke-width="2"/>
+    <text x="222" y="228" text-anchor="middle" font-size="19" font-weight="600">B · Tool</text>
+    <text x="222" y="255" text-anchor="middle" font-size="15">1 kg</text>
+    <line x1="222" y1="146" x2="366" y2="146" stroke="#f87171" stroke-width="3" marker-end="url(#arrow-x)"/>
+    <line x1="222" y1="146" x2="222" y2="24" stroke="#4ade80" stroke-width="3" marker-end="url(#arrow-z)"/>
+    <text x="375" y="151" fill="#f87171" font-size="18">+X</text>
+    <text x="239" y="38" fill="#4ade80" font-size="18">+Z</text>
+    <circle cx="222" cy="146" r="10" fill="#101a2b" stroke="#60a5fa" stroke-width="3"/>
+    <circle cx="222" cy="146" r="5" fill="#fb923c"/>
+    <path d="M235 158L360 184H430" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="450" y="80" font-size="24" font-weight="650">One joint, two local frames</text>
+    <text x="450" y="122" font-size="18" fill="#93c5fd">A.position = (0, 0, −0.09) m</text>
+    <text x="450" y="153" font-size="18" fill="#fdba74">B.position = (0, 0, +0.20) m</text>
+    <text x="450" y="190" font-size="17">Origins coincide in world coordinates.</text>
+    <text x="450" y="219" font-size="17">Both local orientations are identity.</text>
+    <rect x="450" y="246" width="453" height="83" rx="10" fill="#1c2b41"/>
+    <text x="468" y="277" font-size="17" font-weight="600">Reported support force on A: Fz = −9.81 N</text>
+    <text x="468" y="306" font-size="16" fill="#b6c4d6">The opposite force supports the tool upward.</text>
+    <text x="100" y="355" font-size="15" fill="#94a3b8">Fixed joint · three relative translations and three relative rotations constrained</text>
+  </g>
+</svg>

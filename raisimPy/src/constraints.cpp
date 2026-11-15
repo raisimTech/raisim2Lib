@@ -32,7 +32,10 @@
 namespace py = nanobind;
 using namespace raisim;
 
+void init_runtime_joints(py::module_& m);
+
 void init_constraints(py::module_ &m) {
+    init_runtime_joints(m);
     auto constraints_module = m.def_submodule("constraints", "Closed-loop pin constraints.");
     auto tendon = py::class_<Tendon>(m, "Tendon");
     py::enum_<Tendon::Type>(tendon, "Type")

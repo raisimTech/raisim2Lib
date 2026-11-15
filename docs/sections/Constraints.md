@@ -1,5 +1,12 @@
 # Constraints
 
+## Runtime joints between bodies
+
+Fixed, ball, hinge, and slider joints can be created and removed between rigid
+objects and articulated links, including links of different robots. They support
+reaction loads, break thresholds, collision filtering, sleeping, checkpoints,
+and XML persistence. See [Runtime joints](./RuntimeJoints.md).
+
 ## Length constraints use tendons
 
 A straight length constraint is a spatial tendon with two sites. Use

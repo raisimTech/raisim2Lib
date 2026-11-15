@@ -225,6 +225,8 @@ create_executable(mjcf_gymnasium_humanoid src/server/mjcf/mjcf_gymnasium_humanoi
 
 # Packaged robot scenes.
 create_executable(kinova_arm src/worlds/kinova_arm.cpp)
+create_executable(runtime_joints src/worlds/runtime_joints.cpp)
+target_compile_features(runtime_joints PRIVATE cxx_std_20)
 
 # rayrai examples
 # Entry points.

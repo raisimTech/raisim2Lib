@@ -139,6 +139,14 @@ class ExampleGalleryTest(unittest.TestCase):
             # The type is the subtree the entry sits in, not part of its label.
             self.assertNotRegex(label, r"(?i)\b(example|workflow):|^rayrai\b", path)
 
+    def test_runtime_joints_is_linked_before_category_selection(self):
+        target = (EXAMPLES / "worlds/runtime_joints.md").resolve()
+        for page in (DOCS / "sections/Examples.md", EXAMPLES / "overview.md"):
+            introduction = page.read_text(encoding="utf-8").split("<ExampleGallery", 1)[0]
+            links = re.findall(r"\[Runtime Joints\]\(([^)]+)\)", introduction)
+            self.assertTrue(links, f"{page}: Runtime Joints must be visible outside the filtered gallery")
+            self.assertIn(target, [(page.parent / link).resolve() for link in links])
+
     def test_the_pages_show_one_gallery(self):
         for page in (DOCS / "sections" / "Examples.md", EXAMPLES / "overview.md"):
             text = page.read_text(encoding="utf-8")

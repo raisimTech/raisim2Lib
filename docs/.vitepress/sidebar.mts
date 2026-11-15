@@ -98,6 +98,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Robotiq Cloth Fold', link: '/sections/examples/server/robotiq_cloth_fold.md' },
               { text: 'Robotiq Gripper Mimic', link: '/sections/examples/server/robotiq_gripper_mimic.md' },
               { text: 'Rscene Server', link: '/sections/examples/server/rscene_server.md' },
+              { text: 'Runtime Joints', link: '/sections/examples/worlds/runtime_joints.md' },
               { text: 'Sensor Suite', link: '/sections/examples/server/sensor_suite.md' },
               { text: 'Shadow Hand USD Cube', link: '/sections/examples/server/shadow_hand_usd_cube.md' },
               { text: 'Sim Control Demo', link: '/sections/examples/server/sim_control_demo.md' },
@@ -269,6 +270,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         link: '/sections/Constraints.md',
         collapsed: true,
         items: [
+          { text: 'Runtime joints', link: '/sections/RuntimeJoints.md' },
           { text: 'StiffLengthConstraint migration', link: '/sections/StiffLengthConstraint.md' },
           { text: 'CompliantLengthConstraint migration', link: '/sections/CompliantLengthConstraint.md' },
           { text: 'CustomLengthConstraint migration', link: '/sections/CustomLengthConstraint.md' },

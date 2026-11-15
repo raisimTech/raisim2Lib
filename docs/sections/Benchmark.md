@@ -145,6 +145,69 @@ only, using their own scenes; they do not reproduce the private comparisons. Kee
 package version, scene, timestep, step count, and machine fixed. See [Build, Test, and Benchmark](./BuildAndTest.md)
 for other timing examples.
 
+## Runtime joint workloads
+
+The engine-source `runtime_joint_benchmark` target measures runtime joints
+separately from the recorded RaiSim/MuJoCo comparisons above. Configure the
+benchmark build with `-DRAISIM_BENCHMARK=ON` and build with 12 jobs:
+
+```bash
+cmake --build build-benchmark --target runtime_joint_benchmark --parallel 12
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+  ./build-benchmark/benchmark/runtime_joint_benchmark --copies 16 --steps 10000
+```
+
+All seven workloads use a 1 ms timestep, disabled sleeping, and no collision
+geometry interaction. Each reports the median microseconds per complete world
+step from five timed repetitions after one warmup. Checkpoint restoration,
+scene construction, and correctness checks are outside the timed loop.
+
+| Workload | Scene and correctness checks |
+| --- | --- |
+| `unconstrained` | `copies` freely falling rigid spheres; checks finite state. |
+| `fixed`, `ball`, `hinge`, `slider` | `copies` spheres supported against gravity by the selected joint type, with a world attachment. Checks finite state and supported position. Hinge and slider free axes are horizontal. |
+| `offset_fixed` | Fixed joints attached 0.2/0.1/−0.1 m from each sphere's centre. The lever arm couples the linear and angular response, exercising the full eigensolver; checks pose, force, and reaction couple. |
+| `two_robot_docking` | `copies` pairs of separate fixed-base robots, each with one prismatic joint. A fixed dock joins their carriage links. A 1 N force applied to the first carriage accelerates both; checks matching positions/velocities and a 0.5 N transmitted force. |
+
+Timing covers the whole scene, rather than one joint; the docking workload has
+two articulated systems per copy. `max_position_error` is in metres and must
+remain below `1e-8`. Invalid attachment or force-transfer results fail the run.
+Use `--copies` to measure scaling and `--steps` to change the timed duration.
+See [Runtime joints](./RuntimeJoints.md) for the APIs, tests, and runnable C++ and
+Python examples.
+
+### Optimization measurement
+
+A local Linux x86-64 Clang 20 Release build on an AMD Ryzen 9 3950X measured
+the following medians for 16 copies, 10,000 steps per repetition, and one
+calling thread. Before and after use the same benchmark source, timestep,
+solver settings, and validation; only the runtime-joint implementation differs.
+Setup, checkpoint restore, and validation are excluded from the timed loop.
+
+| Workload | Before (µs/step) | After (µs/step) |
+| --- | ---: | ---: |
+| `unconstrained` | 4.131 | 4.139 |
+| `fixed` | 38.305 | 22.320 |
+| `ball` | 34.411 | 17.684 |
+| `hinge` | 36.229 | 21.769 |
+| `slider` | 36.445 | 21.855 |
+| `offset_fixed` | 56.125 | 47.823 |
+| `two_robot_docking` | 57.887 | 35.526 |
+
+The centred-joint and docking cases reduce step time by about 39–49%; the fully
+coupled offset case reduces it by about 15%. The unconstrained reference stays
+essentially unchanged. Runs with 1 and 64 copies also retain their validation
+checks and show improvements for every joint workload. These are development
+measurements, not a comparison between released package versions.
+
+State and reaction-load traces from 34 native runtime-joint tests were also
+compared with the saved pre-optimization library. Differences remained at
+floating-point roundoff scale (maximum approximately `1.42e-14` in the recorded fields).
+Separate regressions require exact checkpoint replay for coupled contacts and
+changing active joint/body layouts; both passed 100 repetitions. Physical
+assertions, rank thresholds, and convergence settings are unchanged. See
+[Determinism](./Determinism.md) for cross-build expectations.
+
 ## Dense-mesh contact workloads
 
 Two additional source benchmarks exercise the Unitree G1's hand collision mesh:

@@ -235,6 +235,31 @@ The snapshot API is included in the normal rayrai library build. These example
 targets are always created, with no feature switch or availability check. Build
 them against the updated rayrai package containing `rayrai/PhysicsSnapshot.hpp`.
 
+## Runtime joint examples
+
+`worlds/runtime_joints.cpp` builds as `runtime_joints`. Its tool scene moves a
+kinematic wrist with a fixed tool attachment, verifies its pose and support
+force, and releases the tool onto the ground. Its docking scene connects two
+independent articulated robots, checks the transferred force, and releases
+them to move independently. The default is a repeating server demo; connect
+`rayrai_tcp_viewer` to the printed port. Use `--headless` for the physics checks:
+
+```bash
+cmake --build build-examples --target runtime_joints --parallel 12
+./build-examples/examples/runtime_joints --headless
+./build-examples/examples/runtime_joints --headless --scene docking
+./build-examples/examples/runtime_joints --visualize
+./build-examples/examples/runtime_joints --visualize --scene docking
+```
+
+The [dedicated example page](../../docs/sections/examples/worlds/runtime_joints.md)
+includes figures, recorded videos, and the viewer workflow.
+
+The Python companion `raisimPy/examples/runtimeJoints.py` docks two independent
+robots, reports the force transmitted between them, and demonstrates their
+independent motion after releasing the dock. See the
+[runtime joint guide](../../docs/sections/RuntimeJoints.md) for both examples.
+
 ## Regression and debug tools
 
 Manual diagnostic programs live under `examples/tools/debug` and are built with

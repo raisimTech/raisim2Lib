@@ -7,7 +7,10 @@ using namespace raisim;
 void init_segmentation_world(py::class_<World>& world);
 #endif
 
+void init_runtime_joint_world(py::class_<World>& world);
+
 void init_world_extensions(py::module_& m, py::class_<World>& world) {
+    init_runtime_joint_world(world);
 #if RAISIMPY_HAS_SEGMENTATION
     init_segmentation_world(world);
 #endif

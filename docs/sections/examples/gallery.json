@@ -145,8 +145,9 @@
     {
       "id": "joints",
       "title": "Mechanisms",
-      "description": "Closed loops, tendons, spring-damper joints, mimic joints and motor limits.",
+      "description": "Runtime attachments and docking, closed loops, tendons, spring-damper joints, mimic joints and motor limits.",
       "examples": [
+        "worlds/runtime_joints",
         "server/strandbeest_closed_loops",
         "server/length_constraints_newtons_cradle",
         "server/spring_damper_joints",

@@ -4,6 +4,8 @@ Examples are grouped by the feature they demonstrate, with clips recorded from
 the running programs. Choose a topic, then select an example to open its page;
 [Run](#run) explains how to build and run them.
 
+For runtime tool attachment and robot docking, see [Runtime Joints](./examples/worlds/runtime_joints.md). Its video card is under **Mechanisms** below.
+
 <ExampleGallery />
 
 ## Overview
@@ -136,6 +138,7 @@ Start with these targets when learning a specific feature:
 | `rayrai_visual_asset_support` | Rendering textured URDF visual meshes (OBJ/DAE with image textures) separately from their collision geometry. |
 | `rayrai_coacd_mesh_approximation` | Visually comparing original meshes and CoACD convex approximation parts generated through `World::addMesh`. The first run can take a few minutes while CoACD generates and caches the parts. |
 | `rayrai_tcp_viewer` | The TCP visualizer used by RaisimServer examples. |
+| `runtime_joints` | Tool attachment/release and docking two independent robots, with viewer and headless modes. See [Runtime Joints example](./examples/worlds/runtime_joints.md) for figures, videos, and run commands. |
 | `tendon_elastic`, `tendon_pulleys`, `tendon_coupling` | Elastic suspensions, routed guides/pulley branches, and joint transmissions. See [Tendon examples and Rayrai](./tendons/Examples.md). |
 | `rayrai_tendons` | Automatic tendon rendering with scene selection, pause/step/reset, and live transmission values. See [Tendons](./Tendons.md). |
 | `rayrai_inverse_kinematics` | Mouse-driven inverse kinematics: drag and turn a target, and `ArticulatedSystem::solveIK()` drives a simulated Kinova arm with a Robotiq gripper after it, through joint PD targets, to push, grasp and lift cubes. See [Rayrai Example: Inverse Kinematics](./examples/rayrai/rayrai_inverse_kinematics.md). |

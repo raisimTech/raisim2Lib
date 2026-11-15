@@ -22,14 +22,27 @@ The extension reports the linked engine version as ``raisimpy.__version__``.
 ``raisimpy.hasWrenchSensors`` indicates whether the package supports the optional
 force/tactile sensor bindings.
 
-All examples accept ``--steps``, ``--headless``, ``--no-sleep``, ``--port``, and
+Viewer examples accept ``--steps``, ``--headless``, ``--no-sleep``, ``--port``, and
 ``--activation-key``. Without an explicit key, they try ``RAISIM_ACTIVATION_KEY``,
 the repository's ``rsc/activation.raisim``, then ``~/.raisim/activation.raisim``.
 
 The wrapper includes IK, actuators/tracks, deformable and granular objects,
-deformable terrain, checkpoints/snapshots, USD import, sleeping, collision
+deformable terrain, runtime joints, checkpoints/snapshots, USD import, sleeping, collision
 settings and viewer controls. See ``docs/sections/RaiSimPy.md`` for usage and
 the ownership/array conventions.
+
+Runtime joint example
+~~~~~~~~~~~~~~~~~~~~~
+
+``runtimeJoints.py`` is a headless diagnostic that docks two independent robots,
+reports the transferred force, releases the dock, and reports their different
+velocities. It accepts ``--steps`` (before and after release) and
+``--activation-key``; the default key is ``rsc/activation.raisim``::
+
+    python raisimPy/examples/runtimeJoints.py --activation-key rsc/activation.raisim --steps 1000
+
+See ``docs/sections/RuntimeJoints.md`` for the C++ tool-release example,
+attachment frames, break thresholds, persistence, and reaction-load conventions.
 
 In-process rendering
 ~~~~~~~~~~~~~~~~~~~~
