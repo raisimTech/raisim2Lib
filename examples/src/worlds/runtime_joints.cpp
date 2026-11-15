@@ -189,4 +189,5 @@ int main(int argc, char** argv) {
   world.addGround();
   if (scene == "tool") toolDemo(world, visualize);
   else dockingDemo(world, visualize);
+  return 0;
 }
