@@ -47,9 +47,28 @@ shown with Add to cart. That board is a pricing proxy for the measured RTX 5070.
 Tax, host system, RAM, motherboard, cooling, energy and licensing are excluded;
 the GPU also needs a host CPU. Prices are editable in the interactive report.
 
+### Reading the price-normalized results
+
+At the prices above, the RTX 5070 costs **2.65× as much as the 265K**
+($899.99 / $339.99). Its throughput must therefore be 2.65× higher to match
+RaiSim's FPS/USD. Dividing GPU throughput by the higher price reduces its value score.
+
+At 4,096 worlds, Newton's measured throughput is **1.42× higher for ANYmal** and
+**1.28× higher for Strandbeest**. These gains are smaller than the 2.65× price difference,
+so RaiSim provides **1.86× and 2.06× the FPS/USD**, respectively.
+The last column below is a **performance-per-dollar ratio**, not a hardware-price ratio
+or a raw-throughput ratio:
+
+`RaiSim / Newton FPS-per-dollar = (RaiSim FPS / Newton FPS) × ($899.99 / $339.99)`.
+
 ### ANYmal standing
 
-| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | CPU/GPU value |
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_anymal_fps_per_usd.svg" alt="ANYmal standing: grouped bars comparing ten-step RaiSim on a 265K and historical Newton on an RTX 5070 in aggregate physics steps per second per USD, at 1, 64, 256, 1024 and 4096 worlds. Higher is better.">
+<figcaption>Ten-step performance per USD at $339.99 for the CPU and $899.99 for the GPU; the GPU costs 2.65× as much. Prices and comparison limits are described above and below.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
 | ---: | ---: | ---: | ---: | ---: |
 | 1 | 1 | 1,068.60 | 5.55 | 192.43× |
 | 64 | 16 | 13,146.06 | 321.84 | 40.85× |
@@ -59,7 +78,12 @@ the GPU also needs a host CPU. Prices are editable in the interactive report.
 
 ### Strandbeest
 
-| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | CPU/GPU value |
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_strandbeest_fps_per_usd.svg" alt="Strandbeest: grouped bars comparing ten-step RaiSim on a 265K and historical Newton on an RTX 5070 in aggregate physics steps per second per USD, at 1, 64, 256, 1024 and 4096 worlds. Higher is better.">
+<figcaption>Ten-step performance per USD at $339.99 for the CPU and $899.99 for the GPU; the GPU costs 2.65× as much. Prices and comparison limits are described above and below.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton FPS/USD | RaiSim / Newton FPS-per-dollar |
 | ---: | ---: | ---: | ---: | ---: |
 | 1 | 1 | 117.60 | 3.30 | 35.67× |
 | 64 | 16 | 1,493.57 | 127.10 | 11.75× |
