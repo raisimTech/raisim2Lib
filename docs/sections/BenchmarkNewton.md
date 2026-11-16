@@ -134,6 +134,173 @@ include synchronization, action-update overhead and changed physics; they do not
 random actuation cost alone. No episode resets are timed, and no claim is made about
 policy or full training throughput. The larger-world GPU memory safeguard is unchanged.
 
+## Robotiq manipulation: randomized shapes and resets {#manipulation}
+
+This manipulation workload uses a six-axis Kinova arm with a Robotiq 2F-85
+mimic gripper to pick, lift, transfer and release a 100 g object. Independent
+worlds contain randomized boxes, spheres or cylinders, with dimensions from
+36–44 mm. The single gripper driver receives additive uniform torque noise in
+**±0.25 Nm** every ten physics steps. Its five mimic followers remain passive.
+Object yaw and pickup position change on reset; independently seeded phase
+delays and **23–26 s reset periods** keep worlds in different states.
+
+<figure>
+<video class="doc-video" src="../../rsc/docs/video/raisim_newton_manipulation.mp4" controls loop muted playsinline preload="metadata" aria-label="Recorded Kinova and Robotiq manipulation benchmark: approach, grasp, lift, transfer, release and randomized reset"></video>
+<figcaption>Representative RaiSim world at 2× playback, recorded from the actual randomized controller and contacts. The complete cycle and reset are shown. Visual meshes are enabled for the video; joint coordinates, velocities and object poses/velocities matched a headless collision-only replay at every recorded frame. Rendering and encoding are excluded from the benchmark.</figcaption>
+</figure>
+
+### Side-by-side timings
+
+Fresh measurements on **17 November 2026 (Asia/Seoul, UTC+9)**: RaiSim on an **Intel Core Ultra 7
+265K**, using **30 persistent CPU workers** where the world count permits;
+Newton **SolverMuJoCo / MuJoCo Warp** on an **NVIDIA GeForce RTX 5070**.
+CPU workers are capped by world count, not CPU affinity. This host exposes
+20 logical CPUs, so the 30-worker cases oversubscribe it. Workers own disjoint
+worlds, are not pinned, and synchronize only at trial boundaries.
+
+Values are **aggregate physics steps/s**, calculated as worlds × 30,000 steps
+÷ median elapsed time across **three trials**, at **1 ms per step**. No trial
+is discarded. Cases run serially. Timed work includes random controls, collisions,
+physics and asynchronous resets. Model loading, compilation, rendering, policy
+inference, observations, rewards and optimization are excluded. These values are
+raw FPS; the value comparison below uses the page’s recorded component-price assumptions.
+
+**† A dagger marks a completed Newton run that failed the untimed 0.01 rad
+mimic-error check. Those timings describe unvalidated trajectories, not accepted
+benchmark scores; speed ratios are shown only for passing pairs.**
+
+| Worlds | CPU workers | RaiSim FPS | Newton timed FPS | Validated RaiSim / Newton |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 243,072 | 3,599 | 67.54× |
+| 16 | 16 | 2,115,594 | 43,211 | 48.96× |
+| 64 | 30 | 2,464,676 | 152,420 | 16.17× |
+| 256 | 30 | 2,894,461 | 482,703 | 6.00× |
+| 1,024 | 30 | 2,741,697 | 1,408,736† | — |
+| 2,048 | 30 | 2,595,724 | 1,967,063† | — |
+| 4,048 | 30 | 2,567,821 | 2,485,519† | — |
+| 8,096 | — | Not measured | 2,739,018† | — |
+
+RaiSim was measured through **4,048 worlds** and Newton through **8,096 worlds**.
+These are the chosen endpoints, 4,048 and 8,096, rather than powers of two.
+The missing CPU result at 8,096 is unmeasured and is not extrapolated.
+[Download raw timings, diagnostics, provenance and video metadata](/raisim_newton_manipulation.json).
+
+### Manipulation performance per USD
+
+FPS/USD divides aggregate world physics steps/s by the full component price:
+**$339.99 CPU / $899.99 GPU**, matching the existing comparisons above. These
+are the **historical price scenarios checked 15 November 2026**, not fresh quotes.
+The CPU listing was out of stock, and the GPU board is a pricing proxy. The same
+availability limitations and exclusions above apply; this is component cost,
+not total system cost. Higher FPS/USD is better. Divide by ten for control
+transitions/s/USD.
+
+<figure>
+<img class="diagram" src="../../rsc/docs/image/raisim_newton_manipulation_fps_per_usd.svg" alt="Robotiq manipulation performance per USD across world counts. RaiSim bars use the recorded CPU price; Newton bars use the recorded GPU price. Hatched Newton bars at 1,024 worlds and above failed mimic validation. RaiSim at 8,096 worlds is unmeasured.">
+<figcaption>Random shapes, noisy gripper torque and staggered resets are timed. Hatched bars (†) are failed-validation timings, not accepted scores. No ratio is reported for those cases. The scene video above is untimed.</figcaption>
+</figure>
+
+| Worlds | CPU workers | RaiSim FPS/USD | Newton timed FPS/USD | Validated RaiSim / Newton FPS-per-dollar |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 1 | 714.94 | 4.00 | 178.77× |
+| 16 | 16 | 6,222.52 | 48.01 | 129.60× |
+| 64 | 30 | 7,249.26 | 169.36 | 42.80× |
+| 256 | 30 | 8,513.37 | 536.34 | 15.87× |
+| 1,024 | 30 | 8,064.05 | 1,565.28† | — |
+| 2,048 | 30 | 7,634.71 | 2,185.65† | — |
+| 4,048 | 30 | 7,552.64 | 2,761.72† | — |
+| 8,096 | — | Not measured | 3,043.39† | — |
+
+At **256 worlds**, the largest batch where both engines passed validation,
+RaiSim provides **15.87× Newton’s FPS/USD** at the recorded prices. Newton’s larger-batch timings
+remain visible for transparency, with no validated value claim.
+
+### Accuracy checks and solver differences
+
+All RaiSim cases passed the finite-state, contact, bilateral-grasp, lift and
+mimic checks. The two engines received exactly matching torque checksums and
+reset counts at every shared world count. Newton failed the mimic check at
+1,024, 2,048, 4,048 and 8,096 worlds. Every completed Newton run remained finite and reported
+zero internal or contact-buffer overflow. The failed check concerns soft mimic
+coupling accuracy, rather than a measured memory or world-count limit:
+
+| Newton worlds | Maximum mimic error (rad) | 0.01 rad check |
+| ---: | ---: | --- |
+| 1 | 0.004175 | Passed |
+| 16 | 0.005094 | Passed |
+| 64 | 0.007183 | Passed |
+| 256 | 0.008842 | Passed |
+| 1,024 | 0.011755 | Failed |
+| 2,048 | 0.011853 | Failed |
+| 4,048 | 0.010998 | Failed |
+| 8,096 | 0.011393 | Failed |
+
+RaiSim's recorded maximum mimic error was approximately
+**2.8e-16 rad**. The checks are performed in a separate replay; grasp and lift
+requirements are batch-wide, not a guarantee of successful placement in every
+world. Contact counts and all raw trial durations are retained in the download.
+The contact-overflow observable includes pipeline truncation and solver contact
+capacity. A regression test in the benchmark repository limits the solver to one
+contact and verifies rejection.
+
+Each diagnostic maximum is taken over all worlds and steps in **one replay per
+case**. Larger batches sample more grasps. The recorded Newton maxima are not
+monotonic with batch size: identical per-world inputs do not guarantee identical
+FP32 contact trajectories across batches or reruns. Cases near 0.01 rad may
+change validation status on repetition; the limit was not relaxed for this sweep.
+
+Both engines use the same public robot description, collision dimensions,
+controller poses/gains, random seed **20261117**, and 100 g object masses.
+Arm capsule `length` is also supplied as `height` because Newton's importer requires
+that spelling. Sliding friction is 1.0 for pad/object, 0.5 for arm/object and
+0.8 for table/object and ground/object. Robot self-collision and sleeping are off.
+
+RaiSim uses FP64 and hard mimic coupling. Newton uses FP32, soft mimic equalities,
+and the Newton collision pipeline with body variants for mixed primitive types.
+Its settings are 100 solver iterations, 50 line-search iterations, 128 contacts
+per world, `implicitfast`, elliptic friction, tolerance 1e-8 and zero contact gap.
+Contact solref is [0.002, 1] and solimp is [0.99, 0.999, 0.001, 0.5, 2]; mimic
+solref is [0.002, 1] and solimp is [0.9999, 0.99999, 0.00001, 0.5, 2].
+RaiSim enforces the URDF velocity limits (15 rad/s arm, 2 rad/s fingers);
+SolverMuJoCo does not implement those limits. Contact manifolds and trajectories
+therefore differ. Equal random inputs do not establish equal numerical work,
+accuracy, or full RL-training performance.
+
+The driver used the public RaiSim **2.16.0** SDK at
+`d9df2c979c9ddc44ec6b6727ff72c660688fdb62`, Newton
+`c552d3653352a472dcc1f7e74e004aacac202f74`, Warp 1.19.0, and MuJoCo/MuJoCo Warp
+3.17.0. The CPU driver was built with Clang 20.1.8, C++20, Release, `-O3`,
+`-ffp-contract=off` and `BENCHMARK_X86_64_V3=OFF`. Full source/library hashes and
+package versions accompany the raw records.
+
+### Reproduce the manipulation workload
+
+These commands use the local companion `raisim-vs-newton` benchmark checkout.
+The downloaded dataset includes its source hashes and exact commands; this page
+does not distribute that driver. The CPU launcher creates the prepared
+`assets/` directory used by both engines:
+
+```sh
+cmake -S . -B build-manipulation -DCMAKE_CXX_COMPILER=clang++-20 \
+  -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_X86_64_V3=OFF
+cmake --build build-manipulation -j12
+.venv/bin/python manipulation.py --build build-manipulation --backend raisim \
+  --threads 30 --worlds 1,16,64,256,1024,2048,4048 \
+  --steps 30000 --repeats 3 --timing-only --output results/manipulation-cpu-new
+.venv/bin/python newton_manipulation.py \
+  --assets results/manipulation-cpu-new/assets --worlds 8096 \
+  --steps 30000 --repeats 3
+```
+
+Newton was measured at **1, 16, 64, 256, 1,024, 2,048, 4,048 and 8,096 worlds**.
+Repeat the per-case Newton command for those counts to retain its
+`RESULT` line even when validation fails. It exits nonzero on a failed check;
+its raw timings are not an accepted throughput claim. The initial GPU launcher
+stopped after the 1,024-world failure, so the larger cases were continued
+individually with the same assets and settings, as recorded in the dataset. A RaiSim license and a
+supported CUDA GPU are required. See the [Robotiq mimic example](./examples/server/robotiq_gripper_mimic.md)
+for the original model and motion sequence.
+
 ::: details Earlier fixed-target measurements
 
 ## Fixed-target ten-step performance per USD
