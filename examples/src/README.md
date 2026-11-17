@@ -109,6 +109,8 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   then reset and repeat.
 - `tendon_elastic`, `tendon_pulleys`, and `tendon_coupling`: procedural tendon
   simulations streamed to the TCP viewer.
+- `thrusters_and_grippers`: a quadrotor flown with four URDF thrusters, and a
+  suction lifter and a magnet lifter that pick up and drop boxes.
 - `rayrai_tendons`: the same tendon scenes with automatic local drawing and
   interactive controls. See the [tendon examples guide](../TENDONS.md).
 - `deformable_objects`: cloth, mesh deformables, filled particles, struts,
@@ -234,6 +236,24 @@ holding the physics lock. Render cameras use copied poses, with no live
 The snapshot API is included in the normal rayrai library build. These example
 targets are always created, with no feature switch or availability check. Build
 them against the updated rayrai package containing `rayrai/PhysicsSnapshot.hpp`.
+
+## Articulated join example
+
+`worlds/articulated_join.cpp` builds as `articulated_join`. One repeating scene
+joins a static beam and four boxes into a swinging chain, lets a gantry join a
+tool to its hook, carry it and release it with `World::detachJoint()`, and docks
+two fixed-base carriages through a loop joint before undocking them. The
+default is a server demo; connect `rayrai_tcp_viewer` to the printed port. Use
+`--headless` for the physics checks:
+
+```bash
+cmake --build build-examples --target articulated_join --parallel 12
+./build-examples/examples/articulated_join --headless
+```
+
+The [example page](../../docs/sections/examples/worlds/articulated_join.md)
+describes each station; `raisimPy/examples/articulatedJoin.py` is the Python
+version of the gantry and docking stations.
 
 ## Runtime joint examples
 

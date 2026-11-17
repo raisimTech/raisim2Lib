@@ -5,6 +5,11 @@ different robots. Create or remove them between simulation steps for tool
 changes, docking, detachable mechanisms, and temporary attachments. Their
 impulses are solved together with contacts, tendons, and joint limits.
 
+Runtime joints keep the connected objects separate. To merge objects into one
+articulated system whose joint is part of its generalized coordinates, exact
+and as fast as a robot loaded from a file, use
+[`World::joinObjects()`](./ArticulatedJoins.md); that page compares the two.
+
 ## Joint types and attachment frames
 
 Each `RuntimeJoint::Attachment` contains an object, a local body index, a position,

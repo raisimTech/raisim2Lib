@@ -4109,6 +4109,8 @@ class ArticulatedSystem(Object):
     def getMappingFromBodyIndexToGeneralizedCoordinateIndex(self) -> list[int]: ...
 
     def getMappingFromBodyIndexToGeneralizedVelocityIndex(self) -> list[int]: ...
+    def getLoopJointNames(self) -> list[str]:
+        """Names of the joints added by World.joinObjects() that close a kinematic loop."""
 
     def getJoint(self, name: str) -> JointRef: ...
 
@@ -4418,6 +4420,47 @@ class ArticulatedSystem(Object):
     def getTrackIndex(self, name: str) -> int: ...
 
     def getTrackSpeed(self, index: int) -> float: ...
+
+
+    def setThrusters(self, thrusters: Sequence[ThrusterDefinition]) -> None: ...
+
+    def getThrusters(self) -> list[ThrusterDefinition]: ...
+
+    def getThrusterIndex(self, name: str) -> int: ...
+
+    @overload
+    def setThrust(self, index: int, thrust: float) -> None: ...
+
+    @overload
+    def setThrust(self, name: str, thrust: float) -> None: ...
+
+    def setThrusts(self, thrusts: Annotated[NDArray[numpy.float64], dict(shape=(None,), order='C')]) -> None: ...
+
+    def getThrust(self, index: int) -> float: ...
+
+    def getThrusts(self) -> list[float]: ...
+
+    def getThrusterPose(self, index: int) -> tuple:
+        """(position, axis) of the thruster in the world frame"""
+
+    def setGrippers(self, grippers: Sequence[GripperDefinition]) -> None: ...
+
+    def getGrippers(self) -> list[GripperDefinition]: ...
+
+    def getGripperIndex(self, name: str) -> int: ...
+
+    @overload
+    def setGripperActive(self, index: int, active: bool) -> None: ...
+
+    @overload
+    def setGripperActive(self, name: str, active: bool) -> None: ...
+
+    def isGripperActive(self, index: int) -> bool: ...
+
+    def getGripperState(self, index: int) -> GripperState: ...
+
+    def getGripperPose(self, index: int) -> tuple:
+        """(position, axis) of the pad in the world frame"""
 
 class IKOptions:
     def __init__(self) -> None: ...
@@ -4754,6 +4797,136 @@ class Track:
 
     @property
     def collisionBodies(self) -> list[int]: ...
+
+class ThrusterDefinition:
+    """
+    A thruster fixed to a link: every step it pushes the link with thrust * axis at its position and turns it with torqueCoefficient * thrust * axis. Position and axis are in the link frame.
+    """
+
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def link(self) -> str: ...
+
+    @link.setter
+    def link(self, arg: str, /) -> None: ...
+
+    @property
+    def minThrust(self) -> float: ...
+
+    @minThrust.setter
+    def minThrust(self, arg: float, /) -> None: ...
+
+    @property
+    def maxThrust(self) -> float: ...
+
+    @maxThrust.setter
+    def maxThrust(self, arg: float, /) -> None: ...
+
+    @property
+    def torqueCoefficient(self) -> float: ...
+
+    @torqueCoefficient.setter
+    def torqueCoefficient(self, arg: float, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @axis.setter
+    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class GripperDefinition:
+    """
+    A suction cup or an electromagnet on a link. While active, it pulls the first surface within range in front of its pad (along axis) toward the pad. Position and axis are in the link frame.
+    """
+
+    class Type(enum.Enum):
+        SUCTION = 0
+
+        MAGNETIC = 1
+
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def link(self) -> str: ...
+
+    @link.setter
+    def link(self, arg: str, /) -> None: ...
+
+    @property
+    def type(self) -> GripperDefinition.Type: ...
+
+    @type.setter
+    def type(self, arg: GripperDefinition.Type, /) -> None: ...
+
+    @property
+    def maxForce(self) -> float: ...
+
+    @maxForce.setter
+    def maxForce(self, arg: float, /) -> None: ...
+
+    @property
+    def range(self) -> float: ...
+
+    @range.setter
+    def range(self, arg: float, /) -> None: ...
+
+    @property
+    def sealAngle(self) -> float: ...
+
+    @sealAngle.setter
+    def sealAngle(self, arg: float, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @axis.setter
+    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class GripperState:
+    """What a gripper did in the last step."""
+
+    @property
+    def engaged(self) -> bool: ...
+
+    @property
+    def object(self) -> Object: ...
+
+    @property
+    def localIdx(self) -> int: ...
+
+    @property
+    def force(self) -> float: ...
+
+    @property
+    def gap(self) -> float: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class TerrainProperties:
     """Raisim terrain properties"""
@@ -6653,9 +6826,49 @@ class RuntimeJoint:
     def getForce(self) -> NDArray[numpy.float64]: ...
     def getTorque(self) -> NDArray[numpy.float64]: ...
 
+class Joint:
+    """A joint of an articulated system, used by World.joinObjects(). Its frame (position, orientation) is
+    expressed in the parent body frame and its axis in the joint frame."""
+
+    @overload
+    def __init__(self) -> None: ...
+    @overload
+    def __init__(self, type: JointType, name: str, position: Sequence[float] = (0.0, 0.0, 0.0),
+                 axis: Sequence[float] = (0.0, 0.0, 1.0), orientation: NDArray[numpy.float64] = ...) -> None: ...
+    type: JointType
+    name: str
+    position: NDArray[numpy.float64]
+    axis: NDArray[numpy.float64]
+    orientation: NDArray[numpy.float64]
+    limit: NDArray[numpy.float64]
+    damping: float
+    friction: float
+    stiffness: float
+    springMount: NDArray[numpy.float64]
+    rotorInertia: float
+    effort: float
+    velocityLimit: float
+    jointRef: float
+
+class JoinOptions:
+    """Options of World.joinObjects()."""
+
+    def __init__(self) -> None: ...
+    name: str
+    childPrefix: str
+
 
 class World:
     """Raisim world."""
+
+    def joinObjects(self, parent: Object | None, parentBody: int, child: Object, childBody: int, joint: Joint,
+                    options: JoinOptions = ...) -> ArticulatedSystem:
+        """Connect two objects (parent None: the world) with a joint and replace them with one articulated
+        system. The parent and child handles become invalid."""
+    def detachJoint(self, system: ArticulatedSystem, jointName: str,
+                    detachedName: str = '') -> list[ArticulatedSystem]:
+        """Remove a joint from an articulated system and return the resulting systems; the input handle
+        becomes invalid."""
 
     def addRuntimeJoint(self, name: str, type: RuntimeJoint.Type,
                         a: RuntimeJoint.Attachment, b: RuntimeJoint.Attachment,
@@ -7042,6 +7255,13 @@ class World:
         """
 
     def getMaterialPairProperties(self, material1: str, material2: str) -> MaterialPairProperties: ...
+
+    def setMagneticMaterial(self, material: str, magnetic: bool = True) -> None:
+        """
+        Mark a collision material as magnetic or not; magnetic grippers pull only magnetic materials.
+        """
+
+    def isMagneticMaterial(self, material: str) -> bool: ...
 
     @overload
     def setMaterialPairProp(self, material1: str, material2: str, friction: float, restitution: float, threshold: float) -> None:

@@ -7,6 +7,9 @@ objects and articulated links, including links of different robots. They support
 reaction loads, break thresholds, collision filtering, sleeping, checkpoints,
 and XML persistence. See [Runtime joints](./RuntimeJoints.md).
 
+To merge objects into one articulated system instead, with the joint in its
+generalized coordinates, see [Joining objects](./ArticulatedJoins.md).
+
 ## Length constraints use tendons
 
 A straight length constraint is a spatial tendon with two sites. Use

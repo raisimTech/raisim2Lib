@@ -4,7 +4,7 @@ Examples are grouped by the feature they demonstrate, with clips recorded from
 the running programs. Choose a topic, then select an example to open its page;
 [Run](#run) explains how to build and run them.
 
-For runtime tool attachment and robot docking, see [Runtime Joints](./examples/worlds/runtime_joints.md). Its video card is under **Mechanisms** below.
+For joining objects into articulated systems at runtime, see [Articulated Join](./examples/worlds/articulated_join.md); for constraint-based tool attachment and robot docking, see [Runtime Joints](./examples/worlds/runtime_joints.md). Their video cards are under **Mechanisms** below.
 
 <ExampleGallery />
 
@@ -138,8 +138,10 @@ Start with these targets when learning a specific feature:
 | `rayrai_visual_asset_support` | Rendering textured URDF visual meshes (OBJ/DAE with image textures) separately from their collision geometry. |
 | `rayrai_coacd_mesh_approximation` | Visually comparing original meshes and CoACD convex approximation parts generated through `World::addMesh`. The first run can take a few minutes while CoACD generates and caches the parts. |
 | `rayrai_tcp_viewer` | The TCP visualizer used by RaisimServer examples. |
+| `articulated_join` | A chain joined from boxes, a gantry that joins and releases a tool, and two robots docked through a loop joint, with viewer and headless modes. See [Articulated Join example](./examples/worlds/articulated_join.md). |
 | `runtime_joints` | Tool attachment/release and docking two independent robots, with viewer and headless modes. See [Runtime Joints example](./examples/worlds/runtime_joints.md) for figures, videos, and run commands. |
 | `tendon_elastic`, `tendon_pulleys`, `tendon_coupling` | Elastic suspensions, routed guides/pulley branches, and joint transmissions. See [Tendon examples and Rayrai](./tendons/Examples.md). |
+| `thrusters_and_grippers` | A quadrotor flown with four URDF thrusters, and a suction lifter and a magnet lifter that pick up and drop boxes. See [Thrusters and Grippers](./articulated_system/ThrustersAndGrippers.md). |
 | `rayrai_tendons` | Automatic tendon rendering with scene selection, pause/step/reset, and live transmission values. See [Tendons](./Tendons.md). |
 | `rayrai_inverse_kinematics` | Mouse-driven inverse kinematics: drag and turn a target, and `ArticulatedSystem::solveIK()` drives a simulated Kinova arm with a Robotiq gripper after it, through joint PD targets, to push, grasp and lift cubes. See [Rayrai Example: Inverse Kinematics](./examples/rayrai/rayrai_inverse_kinematics.md). |
 | `robotiq_cloth_fold` | A Kinova arm with a Robotiq 2F-85 lays a cloth on the table and folds it in half: deformable cloth in contact with gripper pads, a table and itself, and fold waypoints solved with `ArticulatedSystem::solveIK()` from where the cloth landed. See [Server Example: Robotiq Cloth Fold](./examples/server/robotiq_cloth_fold.md). |

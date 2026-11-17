@@ -279,6 +279,7 @@ The current bindings also expose:
 | Deformables | `World.addDeformableCloth`, `addDeformableVolume`, `addDeformableObject`; nested material/build options, pins, transforms and particle arrays |
 | Native granular systems | `World.addGranularParticles`, `addGranularBox`; material/box options, emission, removal, boundaries, state files and step statistics |
 | Deformable soil | `World.addDeformableTerrain`; nested material/state types, pressure, reset and contact statistics |
+| Joining objects | `Joint`, `JoinOptions`, `World.joinObjects` / `detachJoint` and `ArticulatedSystem.getLoopJointNames`; see [Joining objects](./ArticulatedJoins.md) and `articulatedJoin.py` for carrying a tool and docking two carriages |
 | Runtime joints | `RuntimeJoint` types, attachment frames, reaction forces/torques, break thresholds, and `World.addRuntimeJoint` / `removeRuntimeJoint`; see [Runtime joints](./RuntimeJoints.md) and `runtimeJoints.py` for docking and releasing two robots |
 | Replay and reset | `World.captureCheckpoint`, `restoreCheckpoint`, single-body snapshots and primitive cloning |
 | World controls | Sleeping/waking, contact/broadphase settings, swept CCD, collision counters, stable object IDs, material and collision-filter edits |

@@ -65,6 +65,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
             text: 'RaisimServer',
             collapsed: true,
             items: [
+              { text: 'Articulated Join', link: '/sections/examples/worlds/articulated_join.md' },
               { text: 'Cloth on a Slope', link: '/sections/examples/server/cloth_on_slope.md' },
               { text: 'Compound Object', link: '/sections/examples/server/compound_object.md' },
               { text: 'Deformable Objects', link: '/sections/examples/server/deformable_objects.md' },
@@ -168,6 +169,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         link: '/sections/Changelog.md',
         collapsed: true,
         items: [
+          { text: 'Changelog: v2.17', link: '/sections/changelog/v2.17.md' },
           { text: 'Changelog: v2.15', link: '/sections/changelog/v2.15.md' },
           { text: 'Changelog: v2.14', link: '/sections/changelog/v2.14.md' },
           { text: 'Changelog: v2.13', link: '/sections/changelog/v2.13.md' },
@@ -231,9 +233,11 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'Actuators', link: '/sections/Actuators.md' },
           { text: 'Sensors', link: '/sections/Sensors.md' },
           { text: 'Modifying the Model in Code', link: '/sections/articulated_system/ModifyingTheModel.md' },
+          { text: 'Joining Objects', link: '/sections/ArticulatedJoins.md' },
           { text: 'Closed-Loop Systems', link: '/sections/articulated_system/ClosedLoopSystems.md' },
           { text: 'Mimic Joints', link: '/sections/articulated_system/MimicJoints.md' },
           { text: 'Tracks', link: '/sections/articulated_system/Tracks.md' },
+          { text: 'Thrusters and Grippers', link: '/sections/articulated_system/ThrustersAndGrippers.md' },
           { text: 'ArticulatedSystem API', link: '/sections/articulated_system/API.md' },
         ],
       },

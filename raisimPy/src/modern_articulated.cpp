@@ -9,10 +9,17 @@ using namespace raisim;
 void init_segmentation_articulated(py::class_<ArticulatedSystem, Object>& system);
 #endif
 
+void init_articulated_join(py::module_& m);
+void init_force_devices(py::module_& m, py::class_<ArticulatedSystem, Object>& system);
+
 void init_articulated_extensions(py::module_& m, py::class_<ArticulatedSystem, Object>& system) {
 #if RAISIMPY_HAS_SEGMENTATION
     init_segmentation_articulated(system);
 #endif
+    init_articulated_join(m);
+    init_force_devices(m, system);
+    system.def("getLoopJointNames", &ArticulatedSystem::getLoopJointNames,
+               "Names of the joints added by World.joinObjects() that close a kinematic loop.");
     using Options = ArticulatedSystem::IKOptions;
     using Result = ArticulatedSystem::IKResult;
     py::class_<Options>(system, "IKOptions")

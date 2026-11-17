@@ -176,6 +176,7 @@ create_executable(dzhanibekov_effect src/server/dynamics/dzhanibekov_effect.cpp)
 create_executable(tendon_elastic src/server/dynamics/tendon_elastic.cpp)
 create_executable(tendon_pulleys src/server/dynamics/tendon_pulleys.cpp)
 create_executable(tendon_coupling src/server/dynamics/tendon_coupling.cpp)
+create_executable(thrusters_and_grippers src/server/dynamics/thrusters_and_grippers.cpp)
 set_target_properties(tendon_elastic tendon_pulleys tendon_coupling PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)
@@ -232,6 +233,8 @@ create_executable(mjcf_gymnasium_humanoid src/server/mjcf/mjcf_gymnasium_humanoi
 create_executable(kinova_arm src/worlds/kinova_arm.cpp)
 create_executable(runtime_joints src/worlds/runtime_joints.cpp)
 target_compile_features(runtime_joints PRIVATE cxx_std_20)
+create_executable(articulated_join src/worlds/articulated_join.cpp)
+target_compile_features(articulated_join PRIVATE cxx_std_20)
 
 # rayrai examples
 # Entry points.

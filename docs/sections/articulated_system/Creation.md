@@ -34,6 +34,7 @@ The modifications are as follows:
   described in [Joint Damping and Friction](./JointDampingAndFriction.md).
 - A `<robot>` can have `<actuator>` elements. They attach actuators (motors with their gears, possibly coupled through a transmission) to joints. The torques commanded with `setActuatorTorques()` are limited to the operating regions of their motors (see [Actuators](../Actuators.md)).
 - A `<robot>` can have `<track>` elements. Each wraps a belt around wheels of a link and moves it with joints, for tracked robots (see [Tracks](./Tracks.md)).
+- A `<robot>` can have `<thruster>` and `<gripper>` elements. A thruster pushes its link along an axis with the thrust set by `setThrust()`; a gripper, a suction cup or an electromagnet, pulls the object in front of its pad toward its link (see [Thrusters and Grippers](./ThrustersAndGrippers.md)).
 
 Here is an example joint with the RaiSim tags:
 
@@ -185,3 +186,5 @@ The URDF loader used by `ArticulatedSystem` has a few behaviors worth noting:
   (see [Mimic Joints](./MimicJoints.md)).
 - **Tracks:** `<track>` elements directly under `<robot>` add a belt (collision and visual
   geometry) to a link; contacts on the belt move the joints listed as its drives (see [Tracks](./Tracks.md)).
+- **Thrusters and grippers:** `<thruster>` and `<gripper>` elements directly under `<robot>` fix a
+  thruster, a suction cup or an electromagnet to a link (see [Thrusters and Grippers](./ThrustersAndGrippers.md)).

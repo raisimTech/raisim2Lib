@@ -211,6 +211,35 @@ changing active joint/body layouts; both passed 100 repetitions. Physical
 assertions, rank thresholds, and convergence settings are unchanged. See
 [Determinism](./Determinism.md) for cross-build expectations.
 
+
+## Articulated join workloads
+
+The engine-source `articulated_join_benchmark` target compares an 8-link
+pendulum chain built with `World::joinObjects()`, in generalized coordinates,
+with the same chain held together by runtime hinge joints, and times rebuilding
+a robot with `joinObjects()` and `detachJoint()`:
+
+```bash
+cmake --build build-benchmark --target articulated_join_benchmark --parallel 12
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
+  ./build-benchmark/benchmark/articulated_join_benchmark --copies 8 --links 8 --steps 5000
+```
+
+Each chain hangs from the world and swings under gravity with a 1 ms timestep.
+The chain workloads report the median microseconds per world step over five
+timed runs after one warmup, and the largest separation of a hinge's two sides.
+`anymal_tool_join` fixes a box to an ANYmal's base and detaches it again
+(`--rebuilds` times) and reports the median time of each call. Measured on an
+AMD Ryzen 9 3950X with one thread:
+
+| Workload | Result |
+| --- | --- |
+| `chain_joined` (8 chains of 8 links) | 12.9 µs per step, hinge separation 1.4e-17 m |
+| `chain_runtime_joints` (8 chains of 8 links) | 1350 µs per step, hinge separation 3.8e-6 m |
+| `anymal_tool_join` | 133 µs to join, 134 µs to detach |
+
+See [Joining objects](./ArticulatedJoins.md) for the API.
+
 ## Dense-mesh contact workloads
 
 Two additional source benchmarks exercise the Unitree G1's hand collision mesh:
