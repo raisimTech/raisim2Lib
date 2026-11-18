@@ -11,16 +11,16 @@ void init_articulated_join(py::module_& m) {
       "expressed in the parent body frame and its axis in the joint frame.");
   joint.def(py::init<>())
       .def("__init__", [](Joint* self, Joint::Type type, const std::string& name, const std::array<double, 3>& position,
-                          const std::array<double, 3>& axis, const Eigen::Matrix3d& orientation) {
+                          const std::array<double, 3>& axis, const std::optional<Eigen::Matrix3d>& orientation) {
         new (self) Joint();
         self->type = type;
         self->name = name;
         self->pos_P = {position[0], position[1], position[2]};
         self->axis = {axis[0], axis[1], axis[2]};
-        self->rot.e() = orientation;
+        self->rot = orientation_or_identity(orientation);
       }, py::arg("type"), py::arg("name"), py::arg("position") = std::array<double, 3>{0., 0., 0.},
          py::arg("axis") = std::array<double, 3>{0., 0., 1.},
-         py::arg("orientation") = Eigen::Matrix3d(Eigen::Matrix3d::Identity()))
+         py::arg("orientation") = py::none())
       .def_rw("type", &Joint::type)
       .def_rw("name", &Joint::name)
       .def_prop_rw("orientation", [](const Joint& self) { return convert_mat_to_np(self.rot); },

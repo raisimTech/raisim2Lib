@@ -37,6 +37,72 @@ class ModernApiTests(unittest.TestCase):
         self.world = r.World()
         self.world.setTimeStep(0.001)
 
+    def test_import_and_default_orientations_without_numpy(self):
+        code = """
+import raisimpy as r
+assert r.RuntimeJoint.Attachment().localIndex == 0
+assert r.Joint(r.JointType.FIXED, 'fixed').name == 'fixed'
+assert r.CollisionQueryShape.sphere(1.) is not None
+"""
+        env = dict(os.environ, PYTHONPATH=str(Path(r.__file__).parent))
+        result = subprocess.run([sys.executable, "-S", "-c", code], env=env,
+                                capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_convex_collision_queries(self):
+        target = self.world.addBox(1., 1., 1., 1.)
+        shape = r.CollisionQueryShape.capsule(0.125, 0.125)
+        start = np.array([0., 0., 1.])
+        hit = self.world.queryProximity(shape, start, 0.25)
+        self.assertIsInstance(hit, r.CollisionQueryHit)
+        self.assertEqual(hit.objectId, target.getId())
+        self.assertIsNone(hit.triangleIndex)
+        self.assertEqual(hit.distance, 0.25)
+        np.testing.assert_allclose(hit.pointOnShape, [0., 0., 0.75], atol=1e-12)
+        np.testing.assert_allclose(hit.pointOnCollider, [0., 0., 0.5], atol=1e-12)
+        np.testing.assert_allclose(hit.normal, [0., 0., 1.], atol=1e-12)
+
+        motion = np.array([0., 0., -2.])
+        swept = self.world.sweepShape(shape, start, motion)
+        self.assertIsInstance(swept, r.CollisionQuerySweepHit)
+        self.assertAlmostEqual(swept.fraction, 0.125)
+        self.assertFalse(self.world.checkOverlap(shape, start))
+        self.assertFalse(self.world.checkOverlap(shape, start, orientation=None))
+        self.assertEqual(len(self.world.queryOverlap(shape, np.zeros(3))), 1)
+        query_filter = r.CollisionQueryFilter()
+        query_filter.ignoredObject = target.getId()
+        self.assertIsNone(self.world.sweepShape(shape, start, motion, filter=query_filter))
+
+        hull = r.CollisionQueryShape.convexHull(np.array([[0., 0., 0.], [0.1, 0.2, 0.3]]))
+        self.assertTrue(self.world.checkOverlap(hull, np.zeros(3)))
+        with self.assertRaises(ValueError):
+            self.world.checkOverlap(shape, start, np.zeros((3, 3)))
+
+    def test_mesh_clearance(self):
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "wall.obj"
+            asset.write_text("v 0 0 0\nv 2 0 0\nv 0 2 0\nf 1 2 3\n", encoding="ascii")
+            mesh = self.world.addMesh(str(asset), 1., np.eye(3), np.zeros(3), collision_group=2,
+                                      collision_mode=r.MeshCollisionMode.ORIGINAL_MESH)
+        start = np.array([0.25, 0.25, 0.25])
+        end = np.array([0.5, 0.25, 0.25])
+        hit = self.world.meshClearance(start, end, 0.125, 0.125, collisionMask=2)
+        self.assertIsInstance(hit, r.MeshClearanceHit)
+        self.assertEqual(hit.objectId, mesh.getId())
+        self.assertEqual(hit.localBodyIndex, 0)
+        self.assertEqual(hit.colliderIndex, 0)
+        self.assertEqual(hit.triangleIndex, 0)
+        self.assertEqual(hit.clearance, 0.125)
+        np.testing.assert_allclose(hit.axisPoint, start)
+        np.testing.assert_allclose(hit.shapePoint, [0.25, 0.25, 0.125])
+        np.testing.assert_allclose(hit.meshPoint, [0.25, 0.25, 0.])
+        self.assertTrue(self.world.isMeshWithinClearance(start, end, 0.125, 0.125))
+        self.assertFalse(self.world.isMeshWithinClearance(
+            start, end, 0.125, 0.125, ignoredObject=mesh.getId()))
+        self.assertIsNone(self.world.meshClearance(start, start, 0.125, 0.124))
+        with self.assertRaises(ValueError):
+            self.world.isMeshWithinClearance(start, end, -1., 0.125)
+
     def test_object_list_borrows_objects_and_retains_world(self):
         # Isolate a regression that otherwise aborts the whole test process.
         code = """

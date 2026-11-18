@@ -10,6 +10,10 @@ void init_particle_objects(nanobind::module_& m);
 void init_particle_world(nanobind::class_<raisim::World>& world);
 void init_world_extensions(nanobind::module_& m, nanobind::class_<raisim::World>& world);
 
+inline raisim::Mat<3, 3> orientation_or_identity(const std::optional<Eigen::Matrix3d>& orientation) {
+    return orientation ? raisim::Mat<3, 3>(*orientation) : raisim::Mat<3, 3>::getIdentity();
+}
+
 template<size_t n, typename T, typename... Bases>
 void bind_vector_property(nanobind::class_<T, Bases...>& cls, const char* name,
                           raisim::Vec<n> T::*member) {

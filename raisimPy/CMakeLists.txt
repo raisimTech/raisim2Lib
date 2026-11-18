@@ -54,6 +54,14 @@ check_cxx_source_compiles("
         return world != nullptr && label != nullptr &&
                raisim::Sensor::Type::SEGMENTATION != raisim::Sensor::Type::SEGMENTATION;
     }" RAISIMPY_HAS_SEGMENTATION)
+unset(RAISIMPY_HAS_SHARED_RESOURCES CACHE)
+check_cxx_source_compiles("
+    #include <raisim/World.hpp>
+    int main() {
+        const auto resource = raisim::HeightMapResource::fromSamples(2, 2, 1, 1, 0, 0, {0, 0, 0, 0});
+        raisim::World world;
+        return world.addHeightMap(resource) == nullptr;
+    }" RAISIMPY_HAS_SHARED_RESOURCES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 # source files
@@ -73,7 +81,8 @@ endif()
 target_compile_definitions(raisimpy PRIVATE
     RAISIMPY_VERSION="${raisim_VERSION}"
     RAISIMPY_HAS_WRENCH_SENSORS=$<BOOL:${RAISIMPY_HAS_WRENCH_SENSORS}>
-    RAISIMPY_HAS_SEGMENTATION=$<BOOL:${RAISIMPY_HAS_SEGMENTATION}>)
+    RAISIMPY_HAS_SEGMENTATION=$<BOOL:${RAISIMPY_HAS_SEGMENTATION}>
+    RAISIMPY_HAS_SHARED_RESOURCES=$<BOOL:${RAISIMPY_HAS_SHARED_RESOURCES}>)
 
 option(RAISIM_PY_RAYRAI "Build the in-process Rayrai Python API" ON)
 if(RAISIM_PY_RAYRAI)

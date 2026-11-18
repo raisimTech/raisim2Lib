@@ -220,6 +220,41 @@ A **local index** is used to designate individual bodies.
 To maintain API consistency, many methods require the local index argument even for single-body objects.
 For single-body objects, the local index is ignored, and users may pass 0 to comply with the API.
 
+### Shared resources across worlds
+
+Load simulation assets once with `ArticulatedSystemResource`, `HeightMapResource`,
+or `MeshResource`. Each world owns the instances it creates. A resource is
+immutable, and an instance retains the shared geometry it needs after the
+resource handle goes out of scope.
+
+```cpp
+auto robot = raisim::ArticulatedSystemResource::load("robot.urdf");
+auto terrain = raisim::HeightMapResource::load("terrain.txt", 0.0, 0.0);
+auto prop = raisim::MeshResource::load("prop.obj");
+
+raisim::World first, second;
+first.addArticulatedSystem(robot);
+second.addArticulatedSystem(robot);
+first.addHeightMap(terrain);
+second.addHeightMap(terrain);
+first.addMesh(prop, 1.0);
+second.addMesh(prop, 2.0)->setPosition(2.0, 0.0, 0.5);
+```
+
+Articulations share prepared collision meshes and start from the same parsed
+URDF. Each instance has its own joint state, dynamics and sensor buffers.
+The loader also accepts URDF text, a resource directory and a joint order.
+Heightmaps share samples and collision tiles until an instance edits its
+heights. Use `loadPng`, `fromSamples` or `generate` for other terrain inputs.
+Mesh scale and collision mode are set when loading. The default mode uses
+a CoACD convex decomposition. Mass properties can vary by instance. Renderers and file-based scene export still use the
+usual source asset paths.
+
+In raisimPy, the equivalent entry points are `ArticulatedSystemResource.load`,
+`HeightMapResource.load` and `MeshResource.load`. Pass the resulting resource
+to the same `World.addArticulatedSystem`, `World.addHeightMap` or
+`World.addMesh` method.
+
 ### Stable object identifiers
 
 `Object::Id` (a `uint64_t`) is assigned when an object is added to a world

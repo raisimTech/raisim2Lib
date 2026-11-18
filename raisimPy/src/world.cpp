@@ -747,6 +747,64 @@ void init_world(py::module_ &m) {
   /*********/
   /* World */
   /*********/
+  py::class_<CollisionQueryShape>(m, "CollisionQueryShape")
+      .def_static("sphere", &CollisionQueryShape::sphere, py::arg("radius"))
+      .def_static("capsule", &CollisionQueryShape::capsule, py::arg("radius"),
+                  py::arg("halfAxisLength"))
+      .def_static("box", [](const Eigen::Vector3d& halfExtents) {
+        return CollisionQueryShape::box(Vec<3>(halfExtents));
+      }, py::arg("halfExtents"))
+      .def_static("cylinder", &CollisionQueryShape::cylinder, py::arg("radius"), py::arg("halfHeight"))
+      .def_static("convexHull", [ndarray_to_vec3_list](const NDArray& vertices) {
+        return CollisionQueryShape::convexHull(ndarray_to_vec3_list(vertices));
+      }, py::arg("vertices"));
+
+  py::class_<CollisionQueryFilter>(m, "CollisionQueryFilter")
+      .def(py::init<>())
+      .def_rw("group", &CollisionQueryFilter::group)
+      .def_rw("mask", &CollisionQueryFilter::mask)
+      .def_rw("ignoredObject", &CollisionQueryFilter::ignoredObject)
+      .def_rw("ignoredLocalBody", &CollisionQueryFilter::ignoredLocalBody);
+
+  py::class_<CollisionQueryHit>(m, "CollisionQueryHit")
+      .def_ro("objectId", &CollisionQueryHit::objectId)
+      .def_ro("localBodyIndex", &CollisionQueryHit::localBodyIndex)
+      .def_ro("colliderIndex", &CollisionQueryHit::colliderIndex)
+      .def_prop_ro("triangleIndex", [](const CollisionQueryHit& hit) -> std::optional<size_t> {
+        if (hit.triangleIndex == CollisionQueryHit::kNoTriangle) return std::nullopt;
+        return hit.triangleIndex;
+      })
+      .def_ro("distance", &CollisionQueryHit::distance)
+      .def_prop_ro("pointOnShape", [](const CollisionQueryHit& hit) {
+        return convert_vec_to_np(hit.pointOnShape);
+      }, py::for_getter(py::rv_policy::move))
+      .def_prop_ro("pointOnCollider", [](const CollisionQueryHit& hit) {
+        return convert_vec_to_np(hit.pointOnCollider);
+      }, py::for_getter(py::rv_policy::move))
+      .def_prop_ro("normal", [](const CollisionQueryHit& hit) {
+        return convert_vec_to_np(hit.normal);
+      }, py::for_getter(py::rv_policy::move));
+
+  py::class_<CollisionQuerySweepHit, CollisionQueryHit>(m, "CollisionQuerySweepHit")
+      .def_ro("fraction", &CollisionQuerySweepHit::fraction);
+
+  using MeshClearanceHit = raisim::World::MeshClearanceHit;
+  py::class_<MeshClearanceHit>(m, "MeshClearanceHit")
+      .def_ro("objectId", &MeshClearanceHit::objectId)
+      .def_ro("localBodyIndex", &MeshClearanceHit::localBodyIndex)
+      .def_ro("colliderIndex", &MeshClearanceHit::colliderIndex)
+      .def_ro("triangleIndex", &MeshClearanceHit::triangleIndex)
+      .def_ro("clearance", &MeshClearanceHit::clearance)
+      .def_prop_ro("axisPoint", [](const MeshClearanceHit& hit) {
+        return convert_vec_to_np(hit.axisPoint);
+      }, py::for_getter(py::rv_policy::move))
+      .def_prop_ro("shapePoint", [](const MeshClearanceHit& hit) {
+        return convert_vec_to_np(hit.shapePoint);
+      }, py::for_getter(py::rv_policy::move))
+      .def_prop_ro("meshPoint", [](const MeshClearanceHit& hit) {
+        return convert_vec_to_np(hit.meshPoint);
+      }, py::for_getter(py::rv_policy::move));
+
   py::class_<raisim::World> world(m,
                             "World",
                             "Raisim world.",
@@ -1407,6 +1465,68 @@ void init_world(py::module_ &m) {
             BisectionContactSolver: contact solver.
         )mydelimiter", py::rv_policy::reference_internal)
 
+      .def("queryProximity",
+           [](World& self, const CollisionQueryShape& shape, const Eigen::Vector3d& position,
+              double maxDistance, const std::optional<Eigen::Matrix3d>& orientation,
+              const CollisionQueryFilter& filter) {
+             return self.queryProximity(shape, Vec<3>(position), maxDistance,
+                                        orientation_or_identity(orientation), filter);
+           },
+           "Return the nearest collider within maxDistance, or None.",
+           py::arg("shape"), py::arg("position"), py::arg("maxDistance"),
+           py::arg("orientation") = py::none(),
+           py::arg("filter") = CollisionQueryFilter{})
+      .def("queryOverlap",
+           [](World& self, const CollisionQueryShape& shape, const Eigen::Vector3d& position,
+              const std::optional<Eigen::Matrix3d>& orientation, const CollisionQueryFilter& filter) {
+             return self.queryOverlap(shape, Vec<3>(position), orientation_or_identity(orientation), filter);
+           },
+           "Return one hit per overlapping scene collider.",
+           py::arg("shape"), py::arg("position"),
+           py::arg("orientation") = py::none(),
+           py::arg("filter") = CollisionQueryFilter{})
+      .def("checkOverlap",
+           [](World& self, const CollisionQueryShape& shape, const Eigen::Vector3d& position,
+              const std::optional<Eigen::Matrix3d>& orientation, const CollisionQueryFilter& filter) {
+             return self.checkOverlap(shape, Vec<3>(position), orientation_or_identity(orientation), filter);
+           },
+           "Return whether any scene collider overlaps the posed shape.",
+           py::arg("shape"), py::arg("position"),
+           py::arg("orientation") = py::none(),
+           py::arg("filter") = CollisionQueryFilter{})
+      .def("sweepShape",
+           [](World& self, const CollisionQueryShape& shape, const Eigen::Vector3d& position,
+              const Eigen::Vector3d& displacement, const std::optional<Eigen::Matrix3d>& orientation,
+              const CollisionQueryFilter& filter) {
+             return self.sweepShape(shape, Vec<3>(position), Vec<3>(displacement),
+                                    orientation_or_identity(orientation), filter);
+           },
+           "Return the first hit during a fixed-orientation translation, or None.",
+           py::arg("shape"), py::arg("position"), py::arg("displacement"),
+           py::arg("orientation") = py::none(),
+           py::arg("filter") = CollisionQueryFilter{})
+      .def("meshClearance",
+           [](raisim::World& self, const Eigen::Vector3d& start, const Eigen::Vector3d& end,
+              double radius, double maxClearance, CollisionGroup collisionMask,
+              std::optional<Object::Id> ignoredObject) {
+             return self.meshClearance(Vec<3>(start), Vec<3>(end), radius, maxClearance,
+                                       collisionMask, ignoredObject);
+           },
+           "Return the nearest rigid triangle-mesh surface hit or None. Equal endpoints query a sphere.",
+           py::arg("start"), py::arg("end"), py::arg("radius"), py::arg("maxClearance"),
+           py::arg("collisionMask") = CollisionGroup(-1),
+           py::arg("ignoredObject") = py::none())
+      .def("isMeshWithinClearance",
+           [](raisim::World& self, const Eigen::Vector3d& start, const Eigen::Vector3d& end,
+              double radius, double maxClearance, CollisionGroup collisionMask,
+              std::optional<Object::Id> ignoredObject) {
+             return self.isMeshWithinClearance(Vec<3>(start), Vec<3>(end), radius, maxClearance,
+                                               collisionMask, ignoredObject);
+           },
+           "Test whether a rigid triangle-mesh surface is within the inclusive clearance threshold.",
+           py::arg("start"), py::arg("end"), py::arg("radius"), py::arg("maxClearance"),
+           py::arg("collisionMask") = CollisionGroup(-1),
+           py::arg("ignoredObject") = py::none())
       .def("rayTest",
            [](raisim::World &self,
               const Eigen::Ref<const Eigen::Vector3d, Eigen::Unaligned> &start,
@@ -1498,6 +1618,56 @@ void init_world(py::module_ &m) {
       .def("unlock", &raisim::World::unlock)
       .def("updateSelfCollisionCache", &raisim::World::updateSelfCollisionCache)
       ;
+#if RAISIMPY_HAS_SHARED_RESOURCES
+  py::class_<ArticulatedSystemResource>(m, "ArticulatedSystemResource")
+      .def_static("load", &ArticulatedSystemResource::load, py::arg("urdf_path"),
+                  py::arg("res_path") = "", py::arg("joint_order") = std::vector<std::string>{},
+                  py::arg("options") = ArticulatedSystemOption{});
+  py::class_<HeightMapResource>(m, "HeightMapResource")
+      .def_static("load", &HeightMapResource::load, py::arg("filename"),
+                  py::arg("x_center"), py::arg("y_center"))
+      .def_static("loadPng", &HeightMapResource::loadPng, py::arg("filename"),
+                  py::arg("x_center"), py::arg("y_center"), py::arg("x_size"), py::arg("y_size"),
+                  py::arg("height_scale"), py::arg("height_offset"))
+      .def_static("fromSamples", &HeightMapResource::fromSamples, py::arg("x_samples"),
+                  py::arg("y_samples"), py::arg("x_size"), py::arg("y_size"), py::arg("x_center"),
+                  py::arg("y_center"), py::arg("heights"))
+      .def_static("generate", &HeightMapResource::generate, py::arg("x_center"),
+                  py::arg("y_center"), py::arg("terrain_properties"));
+  py::class_<MeshResource>(m, "MeshResource")
+      .def_static("load", [](const std::string& filename, double scale, MeshCollisionMode mode) {
+        return MeshResource::load(filename, scale, mode);
+      }, py::arg("file_name"), py::arg("scale") = 1.0,
+         py::arg("collision_mode") = MeshCollisionMode::CONVEXIFY);
+
+  world
+      .def("addArticulatedSystem",
+           py::overload_cast<const ArticulatedSystemResource&, CollisionGroup, CollisionGroup>(
+               &World::addArticulatedSystem),
+           py::arg("resource"), py::arg("collision_group") = 1,
+           py::arg("collision_mask") = CollisionGroup(-1), py::rv_policy::reference_internal)
+      .def("addHeightMap",
+           py::overload_cast<const HeightMapResource&, const std::string&, CollisionGroup, CollisionGroup>(
+               &World::addHeightMap),
+           py::arg("resource"), py::arg("material") = "default",
+           py::arg("collision_group") = RAISIM_STATIC_COLLISION_GROUP,
+           py::arg("collision_mask") = CollisionGroup(-1), py::rv_policy::reference_internal)
+      .def("addMesh",
+           py::overload_cast<const MeshResource&, double, const std::string&, CollisionGroup, CollisionGroup>(
+               &World::addMesh),
+           py::arg("resource"), py::arg("mass"), py::arg("material") = "",
+           py::arg("collision_group") = 1, py::arg("collision_mask") = CollisionGroup(-1),
+           py::rv_policy::reference_internal)
+      .def("addMesh",
+           [](World& self, const MeshResource& resource, double mass, NDArray inertia, NDArray com,
+              const std::string& material, CollisionGroup group, CollisionGroup mask) {
+             return self.addMesh(resource, mass, convert_np_to_mat<3, 3>(inertia),
+                                 convert_np_to_vec<3>(com), material, group, mask);
+           },
+           py::arg("resource"), py::arg("mass"), py::arg("inertia"), py::arg("com"),
+           py::arg("material") = "", py::arg("collision_group") = 1,
+           py::arg("collision_mask") = CollisionGroup(-1), py::rv_policy::reference_internal);
+#endif
   init_world_extensions(m, world);
   init_particle_world(world);
 
