@@ -301,6 +301,9 @@ def materials(specs):
                 material['emissiveTexture'] = dict(index=image(spec['emissive_map']))
             material['extensions'] = dict(KHR_materials_emissive_strength=dict(
                 emissiveStrength=spec.get('emissive_strength', 1.0)))
+        if 'specular' in spec:
+            material.setdefault('extensions', {})['KHR_materials_specular'] = dict(
+                specularFactor=spec['specular'])
         if spec.get('mask'):
             material.update(alphaMode='MASK', alphaCutoff=0.5)
         result.append(material)
@@ -314,7 +317,8 @@ def polyhaven(stem, resolution, prefix='../textures/'):
 
 PAINT = ('../textures/generated/painted_steel_diff.jpg', None, '../textures/generated/painted_steel_arm.jpg')
 SPECS = {
-    'floor': dict(maps=polyhaven('concrete_floor_worn_001', '2k'), roughness=1.0, normal_scale=0.6),
+    'floor': dict(maps=polyhaven('concrete_floor_worn_001', '2k'), color=(0.36, 0.36, 0.36),
+                  roughness=1.0, normal_scale=0.33, specular=0.45),
     'joint': dict(color=(0.05, 0.05, 0.05), roughness=0.95),
     'paint_yellow': dict(color=(0.86, 0.56, 0.02), roughness=0.5, mask=True,
                          maps=('../textures/generated/floor_paint_diff.png', None, None)),
@@ -683,7 +687,7 @@ class Batches:
         self.batches.setdefault(mesh_path, []).append((x, y, z, yaw, *scale, weight))
 
 
-TINTS = {'cartons': (0.68, 0.6, 0.5), 'pallets': (0.62, 0.6, 0.58)}
+TINTS = {'cartons': (0.81, 0.73, 0.64), 'pallets': (0.62, 0.6, 0.58)}
 
 
 def carton_load(rng, out, cartons, x, y, z, max_height, kind=None):
@@ -835,6 +839,51 @@ def visual_record(path, mesh_path, keys=''):
                          f'renderMeshPath={mesh_path} visualUseMeshColor=false' + (' ' + keys if keys else ''))
 
 
+def baked_building_record(warehouse_dir, part):
+    source = f'building/{part}.gltf'
+    variant = f'building/{part}_lightmapped.gltf'
+    atlas = f'lightmaps/{part}-indirect.png'
+    path = f'/World/Building/{part.title()}'
+    shadow = 'visualShadowCasting=off' if part == 'floor' else 'visualShadowCasting=double_sided'
+    if not all((warehouse_dir / name).is_file() for name in (variant, variant.replace('.gltf', '.bin'), atlas)):
+        return [visual_record(path, source, shadow)]
+    document = json.loads((warehouse_dir / source).read_text())
+    materials, remaps = [], []
+
+    def uri(info):
+        index = document['textures'][info['index']]['source']
+        return document['images'][index]['uri'].removeprefix('../')
+
+    for material in document['materials']:
+        name = material['name']
+        target = f'warehouse_{part}_{name}'
+        pbr = material['pbrMetallicRoughness']
+        color = pbr['baseColorFactor']
+        metallic, roughness = pbr['metallicFactor'], pbr['roughnessFactor']
+        if name == 'floor':
+            color = (0.31, 0.31, 0.31, 1.0)
+        args = [f'lightmapTexture={atlas}', 'lightmapUsesUv2=true', 'lightmapStrength=1.45',
+                'lightmapReplacesBakedIrradiance=true']
+        for key, info in [('albedoTexture', pbr.get('baseColorTexture')),
+                          ('normalTexture', material.get('normalTexture')),
+                          ('ormTexture', pbr.get('metallicRoughnessTexture'))]:
+            if info:
+                args.append(f'{key}={uri(info)}')
+        if 'normalTexture' in material:
+            args.append(f'normalStrength={material["normalTexture"].get("scale", 1.0)}')
+        if 'alphaMode' in material:
+            args += [f'alphaMode={material["alphaMode"].lower()}',
+                     f'alphaCutoff={material.get("alphaCutoff", 0.5)}']
+        specular = material.get('extensions', {}).get('KHR_materials_specular', {})
+        if 'specularFactor' in specular:
+            args.append(f'specularFactor={specular["specularFactor"]}')
+        values = ' '.join(fmt(x) for x in (*color, metallic, roughness))
+        materials.append(f'material {target} {values} {" ".join(args)}')
+        remaps.append(f'{name}:{target}')
+    materials.append(visual_record(path, variant, f'{shadow} materialRemaps={";".join(remaps)}'))
+    return materials
+
+
 def box_collider(path, centre, size, yaw=0.0):
     return object_record(path, 'box', centre, quat_yaw(yaw), size, 1, False, '-', 'static')
 
@@ -881,41 +930,61 @@ def generate(warehouse_dir):
         'solver 150 1e-08 1.5 accurate erp2=0.002 defaultRestitutionThreshold=0.01 '
         'defaultStaticFrictionVelocityThreshold=1 fixedContactSolverIterationOrder=true',
         'asset_root .',
-        # A low flat ambient: it lights every surface of the closed hall evenly, and the
-        # sun's black ambientColor below means it uses this one, not none.
-        f'environment 0.62 0.7 0.82 0.12 0.118 0.116 0.0035 true false 10 {SKY_HDR} '
+        # The aisle key inherits the ambient lighting from the closed hall.
+        f'environment 0.62 0.7 0.82 0.134 0.131 0.126 0.0035 true false 10 {SKY_HDR} '
         'backgroundMode=hdr fogColor=0.74,0.74,0.72 exposure=1 gamma=2.2 bloomIntensity=0.08 '
         'bloomThreshold=1.5 bloomRadius=4 shadowMapSize=4096 shadowedLightBudget=1 colorMode=aces_approx '
-        'pbrEnvironmentLightingTint=0.92,0.9,0.86 pbrEnvironmentIntensity=0.55 fxaa=true ssao=true',
+        'pbrEnvironmentLightingTint=0.92,0.9,0.86 pbrEnvironmentIntensity=0.38 fxaa=true ssao=true',
         'rayrai_render preset=high custom=true colorMode=aces_approx viewerMsaaSamples=4 '
         'shadowResolution=4096 shadowBias=0.0005 shadowStrength=1 shadowPcfRadius=3 '
-        'directionalShadowCascadeCount=2 directionalShadowCascadeLambda=0.7 '
+        'directionalShadowCascadeCount=3 directionalShadowCascadeLambda=0.7 '
+        'directionalShadowStableExtents=true '
         'directionalShadowCascadeMaxDistance=70 highFidelityPbr=true pbrToneMapping=true '
-        'pbrExposure=1 pbrEnvironmentIntensity=0.55 addViewerFillLights=false reflectiveGround=false '
-        'contactShadows=true screenSpaceReflections=true screenSpaceReflectionStrength=0.3',
-        f'light /World/Lights/Sun {" ".join(fmt(v) for v in sun_dir)} 0.9 type=directional shadows=true '
+        'pbrExposure=1 pbrEnvironmentIntensity=0.38 addViewerFillLights=false reflectiveGround=false '
+        'contactShadows=true contactShadowsLength=0.38 contactShadowsStrength=0.92 '
+        'screenSpaceReflections=true ssrUseMaterialProperties=true screenSpaceReflectionStrength=0.32',
+        f'light /World/Lights/Sun {" ".join(fmt(v) for v in sun_dir)} 0.12 type=directional shadows=false '
         'color=1,0.95,0.86 ambientColor=0,0,0 shadowResolution=4096 shadowBias=0.0005 shadowStrength=1 '
         'shadowPcfRadius=3 shadowOrthoHalfSize=60 shadowNear=0.1 shadowFar=200',
+        'light /World/Lights/AisleKey 1.05 -1.9 -4.25 4.6 type=spot position=3.4,2.15,4.25 color=1,0.94,0.85 '
+        'specularIntensity=0.22 coneAngle=35 innerConeAngle=24 attenuationConstant=1 attenuationLinear=0.065 '
+        'attenuationQuadratic=0.016 shadows=true shadowResolution=2048 shadowBias=0.00015 shadowStrength=1 '
+        'shadowPcfRadius=2 shadowNear=0.35 shadowFar=24',
     ]
     # One long area light over each aisle, and three over the dock area.
     length = RACK_X1 - RACK_X0 - 2.0
     for i, y in enumerate(aisles):
         lines_out.append(
-            f'light /World/Lights/Aisle_{i} 0 0 -1 3.6 type=area position={fmt((RACK_X0 + RACK_X1) / 2)},{fmt(y)},'
-            f'{fmt(FIXTURE_Z - 0.01)} areaSize={fmt(length)},1.2,0 areaRight=1,0,0 areaUp=0,1,0 '
-            'color=1,0.97,0.92 attenuationConstant=1 attenuationLinear=0.02 attenuationQuadratic=0.008 '
+            f'light /World/Lights/Aisle_{i} 0 0 -1 0.85 type=area position={fmt((RACK_X0 + RACK_X1) / 2)},{fmt(y)},'
+            f'{fmt(FIXTURE_Z - 0.01)} areaSize={fmt(length)},2,0 areaRight=1,0,0 areaUp=0,1,0 '
+            'color=1,0.976,0.941 specularIntensity=0.28 '
+            'attenuationConstant=1 attenuationLinear=0.04 attenuationQuadratic=0.012 '
             'radius=1 shadows=false')
     for i, y in enumerate((-10.5, 0.0, 10.5)):
         lines_out.append(
-            f'light /World/Lights/Dock_{i} 0 0 -1 3.6 type=area position=19.5,{fmt(y)},{fmt(FIXTURE_Z - 0.01)} '
+            f'light /World/Lights/Dock_{i} 0 0 -1 1.35 type=area position=19.5,{fmt(y)},{fmt(FIXTURE_Z - 0.01)} '
             'areaSize=18,7,0 areaRight=1,0,0 areaUp=0,1,0 color=1,0.97,0.92 attenuationConstant=1 '
             'attenuationLinear=0.02 attenuationQuadratic=0.008 radius=1 shadows=false')
+    lines_out.append('light /World/Lights/DockFaceFill 0 1 0 2.6 type=area position=18,-12.8,1.32 areaSize=13,1.5,0 areaRight=1,0,0 areaUp=0,0,1 color=1,0.94,0.85 specularIntensity=0.08 attenuationLinear=0.035 attenuationQuadratic=0.025 shadows=false')
+    # Fill the vertical carton faces from within the middle aisle.
+    # The rectangular light axes are local, with local -Z along the light direction.
+    for level, z in enumerate((1.65, 5.3)):
+        for side, name in ((-1, 'South'), (1, 'North')):
+            lines_out.append(
+                f'light /World/Lights/RackFill_{name}_{level} 0 {side} 0 3.25 type=area '
+                f'position=-9,{fmt(side * 0.15)},{z} areaSize=30,3.2,0 areaRight=1,0,0 areaUp=0,1,0 '
+                'color=1,0.96,0.911 specularIntensity=0.15 shadows=false')
+    for i, x in enumerate((10.2, 2.5, -7.5)):
+        lines_out.append(
+            f'light /World/Lights/FrontalFill_{i} -1 0 0 3.35 type=area position={x},0,2.05 '
+            'areaSize=4.3,4.25,0 areaRight=0,1,0 areaUp=1,0,0 '
+            'color=1,0.970,0.910 specularIntensity=0.12 shadows=false')
     lines_out += [
         f'camera /World/Cameras/Aisle {" ".join(fmt(v) for v in (*cam["position"], *quat_yaw_pitch(cam["yaw_deg"], cam["pitch_deg"])))} '
         f'{fmt(cam["vfov"])} 0.05 400 1280 800 rgb true projection=perspective',
         object_record('/World/Physics/Ground', 'ground', (0, 0, 0), (1, 0, 0, 0), (1, 1, 1), 1, False, '-', 'static'),
-        visual_record('/World/Building/Floor', 'building/floor.gltf', 'visualShadowCasting=off'),
-        visual_record('/World/Building/Shell', 'building/shell.gltf', 'visualShadowCasting=double_sided'),
+        *baked_building_record(warehouse_dir, 'floor'),
+        *baked_building_record(warehouse_dir, 'shell'),
         visual_record('/World/Building/Structure', 'building/structure.gltf'),
         visual_record('/World/Building/Skylights', 'building/skylights.gltf', 'visualShadowCasting=off'),
         visual_record('/World/Building/Racking', 'building/racking.gltf'),

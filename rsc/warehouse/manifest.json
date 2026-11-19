@@ -27,8 +27,8 @@
     },
     {
       "path": "building/floor.gltf",
-      "bytes": 7605,
-      "sha256": "14ad57bbff7f9cdda4f2f513d497ff84f7c491748f8a28d4b93ba6fa256c05dc"
+      "bytes": 7758,
+      "sha256": "e26111b277a3d66475260d6ad3cd34394dde66ff9d7b36c80266d691db8e86e7"
     },
     {
       "path": "building/racking.bin",
@@ -762,8 +762,8 @@
     },
     {
       "path": "rayrai_warehouse.rscene",
-      "bytes": 1017321,
-      "sha256": "8cf7462ef701ae3e2cd626b50697fd1ec28f394c0e37fe7364eb6d86eb87079d"
+      "bytes": 1019200,
+      "sha256": "3dbc1c02fde5afb25b0212f19eec0c17eb4f62be810c2a57cb92f3c0aaf4f1b9"
     },
     {
       "path": "sources.json",
