@@ -1,6 +1,6 @@
 # Rayrai Example: Warehouse
 
-![ANYmal C standing in a warehouse aisle between blue and orange pallet racks](../../../../rsc/docs/image/warehouse.png)
+![ANYmal C standing in a warehouse aisle between blue and orange pallet racks](../../../../rsc/docs/image/warehouse_baked.png)
 
 *The forklift, pallet jack, pallets and cartons are licensed under CC BY 4.0 and credited in [Asset Credits](../../AssetCredits.md#warehouse).*
 
@@ -8,8 +8,11 @@
 
 A photoreal warehouse with pallet racks, forklifts and a loading dock, stored
 as a RaiSim Engine scene, `rsc/warehouse/rayrai_warehouse.rscene`. An ANYmal C
-quadruped stands in an aisle. The scene file holds the whole world, so the
-example only loads it and adds the robot:
+quadruped stands in an aisle. The floor, walls and roof use diffuse indirect
+lightmaps baked in Blender Cycles from the warehouse geometry and fixtures.
+Aisle and dock fill lights bring out the carton faces. The aisle spotlight
+casts ANYmal’s live shadow across the concrete. The scene file loads the bake
+and material settings when the example adds the robot:
 
 ```cpp
 auto world = std::make_shared<raisim::World>(
@@ -19,7 +22,9 @@ addStandingAnymal(*world, exampleRscPath(argv[0], "anymal_c/urdf/anymal.urdf"));
 raisin::RayraiWindow viewer(world, 1280, 800);  // applies the scene
 ```
 
-![Forklift, traffic cones and staged pallet loads in front of the dock doors](../../../../rsc/docs/image/warehouse_dock.png)
+<video class="doc-video" src="../../../../rsc/docs/video/examples/rayrai_warehouse_baked.mp4" poster="../../../../rsc/docs/video/examples/rayrai_warehouse_baked.jpg" controls loop muted playsinline preload="metadata" aria-label="Camera moves past ANYmal C in the aisle and pans over the loading dock"></video>
+
+![Forklift, traffic cones and staged pallet loads in front of the dock doors](../../../../rsc/docs/image/warehouse_baked_dock.png)
 
 ## Run
 
@@ -31,8 +36,7 @@ raisin::RayraiWindow viewer(world, 1280, 800);  // applies the scene
 Source: `examples/src/rayrai/worlds/rayrai_warehouse.cpp`, which runs the
 `photoreal_scene.hpp` it shares with the city example (CMake target
 `rayrai_warehouse`). `--screenshot` saves one frame and exits, and
-`--scene` loads another `.rscene` file. On an RTX 2070 SUPER a frame takes
-about 13 ms at 1280 × 800.
+`--scene` loads another `.rscene` file.
 
 ## The scene
 
@@ -45,7 +49,7 @@ about 13 ms at 1280 × 800.
 - Colliders for the walls, racks, floor loads and props. Cartons, crates,
   cones and a wet-floor sign are dynamic, so a robot can push them.
 
-![View over the dock area towards the five racking aisles](../../../../rsc/docs/image/warehouse_overview.png)
+![Baked concrete and loading bays beside the staged pallet loads](../../../../rsc/docs/image/warehouse_baked_overview.png)
 
 ## Assets
 

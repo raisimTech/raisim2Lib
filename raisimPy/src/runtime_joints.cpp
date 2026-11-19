@@ -12,12 +12,12 @@ void init_runtime_joints(py::module_& m) {
       .value("Slider", RuntimeJoint::Type::Slider);
   py::class_<RuntimeJoint::Attachment>(joint, "Attachment")
       .def("__init__", [](RuntimeJoint::Attachment* self, Object* object, size_t localIndex,
-                           const std::array<double, 3>& position, const Eigen::Matrix3d& orientation) {
+                           const std::array<double, 3>& position, const std::optional<Eigen::Matrix3d>& orientation) {
         new (self) RuntimeJoint::Attachment{object, localIndex, {position[0], position[1], position[2]}};
-        self->orientation.e() = orientation;
+        self->orientation = orientation_or_identity(orientation);
       }, py::arg("object").none() = nullptr, py::arg("localIndex") = 0,
          py::arg("position") = std::array<double, 3>{0., 0., 0.},
-         py::arg("orientation") = Eigen::Matrix3d(Eigen::Matrix3d::Identity()), py::keep_alive<1, 2>())
+         py::arg("orientation") = py::none(), py::keep_alive<1, 2>())
       .def_prop_rw("object", [](const RuntimeJoint::Attachment& self) { return self.object; },
           [](RuntimeJoint::Attachment& self, Object* object) { self.object = object; },
           py::for_getter(py::rv_policy::reference_internal),

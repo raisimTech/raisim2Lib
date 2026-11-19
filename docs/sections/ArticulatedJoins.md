@@ -5,8 +5,8 @@ one articulated system. Any rigid object can take part: a box, sphere, cylinder,
 capsule, file mesh, compound, or articulated system. The result is simulated in
 generalized coordinates, exactly like a robot loaded from a URDF: the joint has
 no position error, no stiffness to tune, and costs no extra solver work.
-`World::detachJoint()` removes any joint again and splits the system when it
-falls apart.
+`World::detachJoint()` removes a joint and splits the system when it falls
+apart.
 
 Typical uses are building a mechanism from primitives, mounting an arm on a
 mobile base, attaching a gripper, picking up and releasing a tool, and docking
@@ -121,7 +121,8 @@ a floating base. The child depends on which of its bodies is joined:
 - **The child's base** (body `0`): the new joint replaces the child's own
   connection to the world. A fixed-base arm joined at its base to a mobile robot
   rides on the robot instead of staying fixed in place. A static body joined
-  this way becomes dynamic.
+  this way becomes dynamic. If the root represents the URDF `world` link,
+  select one of its descendants.
 - **Another body of the child**: the child keeps its connection to the world. A
   floating child is re-rooted: its joints are re-oriented so that the joined
   body hangs from the parent, with the same motion as before. A child fixed to
@@ -141,9 +142,9 @@ auto* docked = world.joinObjects(driven, driven->getBodyIdx("cart"),
 docked->getLoopJointNames();  // {"dock"}
 ```
 
-To free a system from the world, detach its root joint:
-`detachJoint(system, "ROOT")` (or the name of the URDF's fixed root joint)
-leaves a floating-base system.
+To free an ordinary fixed-base system, pass its root joint name to
+`detachJoint()`. If the URDF retains the `world` link as the root, pass the
+name of the joint that connects the body to that link.
 
 ## Detaching a joint
 
@@ -152,8 +153,8 @@ std::vector<raisim::ArticulatedSystem*> parts = world.detachJoint(pendulum, "hin
 // parts[0]: the part with the root ("upper"), parts[1]: the part beyond the joint ("lower")
 ```
 
-Any joint can be detached: one created by `joinObjects()`, a movable or fixed
-joint of the robot description, a loop joint, or the root joint of a fixed base.
+You can detach joints created by `joinObjects()`, movable or fixed joints from
+the robot description, loop joints, and ordinary fixed-base root joints.
 A body joined with a `FIXED` joint gets back its own mass, centre of mass,
 inertia and geometry. The part beyond the joint becomes a floating-base system
 named `detachedName`, or after the link the joint moved. A loop joint, or a joint whose
@@ -188,6 +189,8 @@ released box is a one-body system with a floating base.
 - A joint whose two sides stay connected through a pin or equality constraint of
   the robot description (a closed linkage such as the Minitaur's legs) cannot be
   detached.
+- A join or detach fails if surviving joints would lose a mimic relation or an
+  actuator coupling.
 - A body that merges fixed links can only be split if its mass properties still
   contain them. If its mass, centre of mass or inertia was changed at run time
   so that what remains for its own link would have a negative mass or an

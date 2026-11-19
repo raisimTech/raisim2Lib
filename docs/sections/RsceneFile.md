@@ -588,6 +588,8 @@ with their appearance color.
 | `textureBlendFactor`, `ao`, `renderPriority`, `alphaCutoff`, `alphaHashScale`, `alphaAntialiasingEdge`, `distanceFadeMin`, `distanceFadeMax`, `proximityFadeDistance`, `normalStrength`, `bentNormalStrength`, `aoStrength`, `aoLightAffect`, `specularFactor` | number | `0`, `1`, `0`, `0.5`, `1`, `0.3`, `0`, `0`, `1`, `1`, `1`, `1`, `0`, `1` | **rayrai**: the `raisin::Material` fields of the same names. |
 | `specularColor` | color | `1,1,1` | **rayrai** |
 | `textureBlendTexture` | text (path) | none | **rayrai**: texture that blends the material over the mesh's own. |
+| `lightmapTexture`, `lightmapStrength` | path, number | none, `0` | **rayrai**: diffuse indirect atlas and multiplier. |
+| `lightmapUsesUv2`, `lightmapReplacesBakedIrradiance` | flag | `false` | **rayrai**: select the second UV set and let a valid atlas replace probe-derived diffuse irradiance on that material. |
 | `albedoTransform*`, `normalTransform*`, `metallicRoughnessTransform*` (`Authored`, `Scale`, `Offset`, `Rotation`) | flag, vec2, number | not authored | **rayrai**: UV transforms of those texture slots. |
 
 The other material keys (more than a hundred PBR settings) are **ignored**, as
@@ -1065,13 +1067,36 @@ are ignored and the preset's values apply, including
 | `colorMode`, `pbrExposure` | `unreal_preview`, `1` | Replace `environment`'s `colorMode` and `exposure`. |
 | `pbrEnvironmentIntensity`, `addViewerFillLights`, `reflectiveGround` | none | Each replaces the value set so far only when present. |
 | `autoExposure`, `autoExposureKey`, `autoExposureSpeed` | `false`, `0.18`, `0.05` | `autoExposureEnabled`, `autoExposureKey`, `autoExposureSpeed`. |
+| `autoExposureHdrMetering`, `autoExposureBrightRate`, `autoExposureDarkRate` | `false`, `3`, `1.5` | Measure scene-linear luminance with a histogram and set adaptation rates in inverse seconds. |
 | `volumetricFog`, `volumetricFogDensity`, `volumetricLightStrength` | `false`, `0`, `0` | `volumetricFogEnabled`, `volumetricFogDensity`, `volumetricLightStrength`. |
 | `contactShadows`, `contactShadowsLength`, `contactShadowsStrength` | `false`, `0.12`, `0.7` | `contactShadowsEnabled`, `contactShadowsLength`, `contactShadowsStrength`. |
+| `screenSpaceGtao` | High and Ultra presets | Use horizon-based ambient occlusion on opaque indirect diffuse light when scene SSAO and linear HDR are active. |
+| `ssrRayQueryFallback` | `false` | Extend material-aware screen-space reflections with Vulkan ray queries for low-confidence smooth-surface hits. |
 | `screenSpaceReflections`, `screenSpaceReflectionStrength` | `false`, `0` | `ssrEnabled`, `ssrStrength`. |
+| `ssrUseMaterialProperties`, `ssrTemporalStabilization` | `false`, `false` | Trace using material normals and roughness. With stabilization, use hierarchical depth and validate a separate reflection history. |
 | `motionBlur`, `motionBlurDirection` (vec2), `motionBlurStrength` | `false`, `0,0`, `0` | `motionBlurEnabled`, `motionBlurDirection`, `motionBlurStrength`. |
 | `depthOfField`, `depthOfFieldFocusDistance`, `depthOfFieldAperture` | `false`, `5`, `0` | `depthOfFieldEnabled`, `depthOfFieldFocusDistance`, `depthOfFieldMaxRadius`. |
 
 `diagnostics` is **ignored**.
+
+### Automatic diffuse lighting
+
+Rayrai calculates indirect diffuse lighting from the scene’s static geometry
+and lights after its meshes finish loading. The viewer and TCP viewer do this
+on the first render that needs the result. Later opens reuse a `.rirr` file in
+the user’s cache directory. Rayrai places probes more densely near scene
+geometry boundaries and relocates probes caught inside solid primitives or
+suitable closed meshes. The filename starts with the hash of the exact
+`.rscene` bytes. Editing the file gives the scene a new cache entry the next time
+it opens. Rayrai tracks referenced asset sizes and modification times in the
+cache key as well. The scene file stays unchanged.
+
+The cache lives under `~/.cache/raisim/rayrai/irradiance` on Linux,
+`~/Library/Caches/raisim/rayrai/irradiance` on macOS, and
+`%LOCALAPPDATA%/RaiSim/rayrai/irradiance` on Windows. Rayrai honors
+`XDG_CACHE_HOME` on Unix and `RAYRAI_IRRADIANCE_CACHE_DIR` on all platforms.
+`rayrai_render automaticIrradiance=false` disables the bake for a scene with
+any preset. Applications that supply their own irradiance grid use that grid.
 
 ## Rejected content
 

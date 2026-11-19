@@ -6800,7 +6800,7 @@ class RuntimeJoint:
     class Attachment:
         def __init__(self, object: Object | None = None, localIndex: int = 0,
                      position: Sequence[float] = (0.0, 0.0, 0.0),
-                     orientation: NDArray[numpy.float64] = ...) -> None: ...
+                     orientation: NDArray[numpy.float64] | None = None) -> None: ...
         object: Object | None
         localIndex: int
         position: NDArray[numpy.float64]
@@ -6834,7 +6834,7 @@ class Joint:
     def __init__(self) -> None: ...
     @overload
     def __init__(self, type: JointType, name: str, position: Sequence[float] = (0.0, 0.0, 0.0),
-                 axis: Sequence[float] = (0.0, 0.0, 1.0), orientation: NDArray[numpy.float64] = ...) -> None: ...
+                 axis: Sequence[float] = (0.0, 0.0, 1.0), orientation: NDArray[numpy.float64] | None = None) -> None: ...
     type: JointType
     name: str
     position: NDArray[numpy.float64]
@@ -6857,6 +6857,86 @@ class JoinOptions:
     name: str
     childPrefix: str
 
+
+class CollisionQueryShape:
+    @staticmethod
+    def sphere(radius: float) -> CollisionQueryShape: ...
+    @staticmethod
+    def capsule(radius: float, halfAxisLength: float) -> CollisionQueryShape: ...
+    @staticmethod
+    def box(halfExtents: NDArray[numpy.float64]) -> CollisionQueryShape: ...
+    @staticmethod
+    def cylinder(radius: float, halfHeight: float) -> CollisionQueryShape: ...
+    @staticmethod
+    def convexHull(vertices: NDArray[numpy.float64]) -> CollisionQueryShape: ...
+
+class CollisionQueryFilter:
+    def __init__(self) -> None: ...
+    group: int
+    mask: int
+    ignoredObject: int | None
+    ignoredLocalBody: int | None
+
+class CollisionQueryHit:
+    @property
+    def objectId(self) -> int: ...
+    @property
+    def localBodyIndex(self) -> int: ...
+    @property
+    def colliderIndex(self) -> int: ...
+    @property
+    def triangleIndex(self) -> int | None: ...
+    @property
+    def distance(self) -> float: ...
+    @property
+    def pointOnShape(self) -> NDArray[numpy.float64]: ...
+    @property
+    def pointOnCollider(self) -> NDArray[numpy.float64]: ...
+    @property
+    def normal(self) -> NDArray[numpy.float64]: ...
+
+class CollisionQuerySweepHit(CollisionQueryHit):
+    @property
+    def fraction(self) -> float: ...
+
+class MeshClearanceHit:
+    @property
+    def objectId(self) -> int: ...
+    @property
+    def localBodyIndex(self) -> int: ...
+    @property
+    def colliderIndex(self) -> int: ...
+    @property
+    def triangleIndex(self) -> int: ...
+    @property
+    def clearance(self) -> float: ...
+    @property
+    def axisPoint(self) -> NDArray[numpy.float64]: ...
+    @property
+    def shapePoint(self) -> NDArray[numpy.float64]: ...
+    @property
+    def meshPoint(self) -> NDArray[numpy.float64]: ...
+
+class ArticulatedSystemResource:
+    @staticmethod
+    def load(urdf_path: str, res_path: str = '', joint_order: Sequence[str] = (), options: ArticulatedSystemOption = ...) -> ArticulatedSystemResource: ...
+
+class HeightMapResource:
+    @staticmethod
+    def load(filename: str, x_center: float, y_center: float) -> HeightMapResource: ...
+
+    @staticmethod
+    def loadPng(filename: str, x_center: float, y_center: float, x_size: float, y_size: float, height_scale: float, height_offset: float) -> HeightMapResource: ...
+
+    @staticmethod
+    def fromSamples(x_samples: int, y_samples: int, x_size: float, y_size: float, x_center: float, y_center: float, heights: Sequence[float]) -> HeightMapResource: ...
+
+    @staticmethod
+    def generate(x_center: float, y_center: float, terrain_properties: TerrainProperties) -> HeightMapResource: ...
+
+class MeshResource:
+    @staticmethod
+    def load(file_name: str, scale: float = 1.0, collision_mode: MeshCollisionMode = MeshCollisionMode.CONVEXIFY) -> MeshResource: ...
 
 class World:
     """Raisim world."""
@@ -7025,6 +7105,9 @@ class World:
         """
 
     @overload
+    def addHeightMap(self, resource: HeightMapResource, material: str = 'default', collision_group: int = ..., collision_mask: int = ...) -> HeightMap: ...
+
+    @overload
     def addHeightMap(self, x_samples: int, y_samples: int, x_scale: float, y_scale: float, x_center: float, y_center: float, heights: Sequence[float], material: str = 'default', collision_group: int = 1, collision_mask: int = 18446744073709551615) -> HeightMap:
         """
         Add a heightmap into the world.
@@ -7101,6 +7184,9 @@ class World:
         """
 
     @overload
+    def addArticulatedSystem(self, resource: ArticulatedSystemResource, collision_group: int = 1, collision_mask: int = ...) -> ArticulatedSystem: ...
+
+    @overload
     def addArticulatedSystem(self, urdf_path: str, res_path: str = '', joint_order: Sequence[str] = [], collision_group: int = 1, collision_mask: int = 18446744073709551615, options: ArticulatedSystemOption = ...) -> ArticulatedSystem:
         r"""
         Add an articulated system in the world.
@@ -7136,6 +7222,13 @@ class World:
         	        Compound: the compound body instance.
         """
 
+    @overload
+    def addMesh(self, resource: MeshResource, mass: float, material: str = '', collision_group: int = 1, collision_mask: int = ...) -> Mesh: ...
+
+    @overload
+    def addMesh(self, resource: MeshResource, mass: float, inertia: Annotated[NDArray[numpy.float64], dict(order='C')], com: Annotated[NDArray[numpy.float64], dict(order='C')], material: str = '', collision_group: int = 1, collision_mask: int = ...) -> Mesh: ...
+
+    @overload
     def addMesh(self, file_name: str, mass: float, inertia: Annotated[NDArray[numpy.float64], dict(order='C')], com: Annotated[NDArray[numpy.float64], dict(order='C')], scale: float = 1.0, material: str = 'default', collision_group: int = 1, collision_mask: int = 18446744073709551615, collision_mode: MeshCollisionMode = MeshCollisionMode.CONVEXIFY) -> Mesh:
         """
         Add a mesh in the world.
@@ -7421,6 +7514,18 @@ class World:
         Returns:
             BisectionContactSolver: contact solver.
         """
+
+    def queryProximity(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], maxDistance: float, orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQueryHit | None: ...
+
+    def queryOverlap(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> list[CollisionQueryHit]: ...
+
+    def checkOverlap(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> bool: ...
+
+    def sweepShape(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], displacement: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQuerySweepHit | None: ...
+
+    def meshClearance(self, start: NDArray[numpy.float64], end: NDArray[numpy.float64], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> MeshClearanceHit | None: ...
+
+    def isMeshWithinClearance(self, start: NDArray[numpy.float64], end: NDArray[numpy.float64], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> bool: ...
 
     def rayTest(self, start: Annotated[NDArray[numpy.float64], dict(shape=(3), writable=False)], direction: Annotated[NDArray[numpy.float64], dict(shape=(3), writable=False)], length: float, closestOnly: bool = True, objectId: int = 18446744073709551606, localId: int = 18446744073709551606, collisionMask: int = 18446744073709551615) -> RayCollisionList:
         """

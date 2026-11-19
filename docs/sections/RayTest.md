@@ -212,6 +212,105 @@ sensor poses, rays, ranges, and collision filters on one thread, and verify the
 hit positions before comparing timings. Relative speed depends on scene layout,
 motion, filters, and scan shape.
 
+## Convex collision queries
+
+The following `World` queries use the current scene without advancing physics.
+Call between complete integration steps.
+
+| Method | Result |
+| --- | --- |
+| `queryProximity` | Closest collider within the inclusive maximum distance |
+| `queryOverlap` | One hit per overlapping collider, ordered by object ID and collider index |
+| `checkOverlap` | Boolean result with early exit |
+| `sweepShape` | Earliest hit along a translation at fixed orientation |
+
+Construct a `CollisionQueryShape` with `sphere(radius)`,
+`capsule(radius, halfAxisLength)`, `box(halfExtents)`,
+`cylinder(radius, halfHeight)`, or `convexHull(vertices)`. Capsules and
+cylinders use their local Z axis. Hull vertices are in the shape's local frame.
+All positions, translations, and lengths are in meters. The optional orientation
+is a 3×3 rotation matrix and defaults to identity.
+
+```cpp
+const auto probe = raisim::CollisionQueryShape::capsule(0.012, 0.04);
+const raisim::Vec<3> position{0.30, 0.10, 0.18};
+const auto near = world.queryProximity(probe, position, 0.02);
+const auto hit = world.sweepShape(probe, position, {0.0, 0.0, -0.10});
+```
+
+```python
+import numpy as np
+import raisimpy as r
+
+probe = r.CollisionQueryShape.capsule(0.012, 0.04)
+position = np.array([0.30, 0.10, 0.18])
+near = world.queryProximity(probe, position, 0.02)
+hit = world.sweepShape(probe, position, np.array([0.0, 0.0, -0.10]))
+```
+
+A proximity or sweep miss returns `std::nullopt` in C++ and `None` in Python.
+Hits carry the stable object ID, local body and collider indexes, distance,
+world-frame witness points, and a normal directed from the collider toward the
+probe when defined. Triangle hits include the triangle index. Solid colliders
+use `CollisionQueryHit::kNoTriangle` in C++ and `None` in Python.
+A sweep fraction of zero indicates contact at the starting pose.
+
+Primitive and convex colliders represent solids, and ground planes represent
+half-spaces. Original triangle meshes and heightmaps represent two-sided
+surfaces. An overlap has zero distance. Distances within the numerical contact
+tolerance of 1e-9 m are treated as contact. For meshes with many triangles use
+a finite proximity limit so distant nodes can be culled.
+
+`CollisionQueryFilter.mask` selects target groups and `group` selects the
+query's group bits for each target's mask. Both default to all bits.
+`ignoredObject` excludes a stable object ID. Set `ignoredLocalBody` as well to
+limit that exclusion to one body of the object.
+
+## Mesh clearance
+
+`World::isMeshWithinClearance` checks whether a sphere or capsule is within an
+inclusive clearance threshold of a rigid triangle mesh. `World::meshClearance`
+returns the clearance and closest points on the capsule and mesh in world
+coordinates, together with the capsule axis point used to compute them. When
+the capsule meets the mesh surface, both shapes share the same witness. The
+hit identifies the stable object ID, local body index,
+collider index within the object, and triangle index within that collider. A
+miss returns `std::nullopt` in C++ and
+`None` in Python.
+
+```cpp
+const raisim::Vec<3> a{0.30, 0.10, 0.18}, b{0.30, 0.10, 0.26};
+const bool blocked = world.isMeshWithinClearance(a, b, 0.012, 0.005);
+auto closest = world.meshClearance(a, b, 0.012, 0.020);
+```
+
+```python
+import numpy as np
+
+a = np.array([0.30, 0.10, 0.18])
+b = np.array([0.30, 0.10, 0.26])
+blocked = world.isMeshWithinClearance(a, b, 0.012, 0.005)
+closest = world.meshClearance(a, b, 0.012, 0.020)
+```
+
+Coordinates, radius, and clearance are in meters. Equal endpoints query a
+sphere. A zero radius queries a line segment or point. The optional
+`collisionMask` selects collision groups and `ignoredObject` skips all
+colliders owned by the supplied stable object ID. Mesh colliders with a zero
+collision mask are skipped.
+
+Clearance is the axis-to-triangle distance minus the radius, clamped to zero
+when the capsule touches or intersects the surface. Triangles are two-sided,
+and the query supports original concave meshes and convex mesh colliders.
+A shape entirely inside a closed mesh and clear of its triangles can have
+positive clearance. Primitive colliders and heightmaps are outside the scope
+of this API.
+
+Use the boolean call for checks that only need a threshold result. It exits
+as soon as it finds a qualifying triangle. The nearest-point call tightens its
+search radius as it finds closer triangles. Both use the existing triangle BVHs
+and leave the current physics state intact.
+
 ## Details
 
 ### RayCollisionItem summary

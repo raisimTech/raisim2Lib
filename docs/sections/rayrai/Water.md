@@ -184,8 +184,8 @@ its size.
 
 ### Foam, caustics and shorelines
 
-- **Shoreline foam:** where the water is shallower than `shorelineFoamDepth`, foam lines the
-  shore and every object that pierces the surface.
+- **Shoreline foam** forms over submerged beds shallower than `shorelineFoamDepth`. It fades
+  where the submerged surface is steep, preserving the color of objects at the waterline.
 - **Crest foam:** where a crest compresses the surface below `crestFoamThreshold` of its rest
   area, foam covers it (`crestFoamStrength`).
 - **Foam color:** `foamColor` is the albedo of all foam, shoreline, crest and flowing, in linear RGB.
@@ -194,6 +194,23 @@ its size.
   shadow receive them, and they fade with depth. `causticScale` sets their size.
 - **Shoreline fade:** `shorelineFadeDepth` fades the reflections in over the first centimetres
   of depth, so the water meets the shore without a hard edge.
+
+### Surface bubbles
+
+Set `surfaceBubbleDensity` to a value above zero to add animated bubbles on the surface. The
+density ranges from 0 to 1 and defaults to 0. `surfaceBubbleRadius` sets their maximum radius
+in metres, from 0.01 to 1. The default is 0.04 m.
+
+```cpp
+auto water = raisin::defaultWaterBody(raisin::WaterPreset::Pool);
+water.surfaceBubbleDensity = 0.6f;
+water.surfaceBubbleRadius = 0.06f;
+viewer.setWaterBody("pool", water);
+```
+
+The bubbles grow and fade with the water clock. Their rims catch light from above while their
+centres let the water show through. On simulated water, the current carries them downstream.
+The pond and stream clips show the effect enabled.
 
 ![A pool from its deck and from under the surface](../../../rsc/docs/image/rayrai/showcase/132_water_pool.png)
 
