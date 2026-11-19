@@ -168,7 +168,12 @@ reflected ray and sample the colour buffer at the first hit. The result is a
 cheap, depth-only approximation that captures puddle reflections, glossy
 floors, and glass-like mirror surfaces without authoring a reflection probe.
 Tune the trade-off with `ssrStrength`, `ssrSteps`, `ssrMaxDistance`, and
-`ssrThickness`.
+`ssrThickness`. For material-aware SSR, set `ssrRayQueryFallback=true`
+with `ssrUseMaterialProperties=true` to trace low-confidence reflections on
+smooth surfaces when Rayrai can share images with a Vulkan ray-query device.
+Offscreen hit shading uses opaque geometry, material factors and vertex
+colors. Screen-space results and reflection probes cover other surfaces and
+systems without this backend.
 
 Screen-space ambient occlusion (`screenSpaceAoEnabled`) darkens crevices,
 corners, and tight contacts using `screenSpaceAoRadius` (with
@@ -179,8 +184,14 @@ corners, and tight contacts using `screenSpaceAoRadius` (with
 `contactAoRadius` / `contactAoStrength` add a separate tight contact-AO
 pass on top of SSAO for surfaces that touch.
 
-With the denoiser on, AO is computed once per pixel in a prepass and the
-denoiser reuses it; results can differ from per-tap evaluation by a few 8-bit
+The High and Ultra presets use ground-truth ambient occlusion (GTAO) for
+linear HDR views when AO is enabled. `screenSpaceGtaoEnabled` controls this
+mode in C++. GTAO integrates depth horizons and applies the filtered result
+to opaque indirect diffuse light before transparencies. The AO debug views
+show the filtered and raw visibility.
+
+In the legacy mode, with the denoiser on, AO is computed once per pixel in a
+prepass and the denoiser reuses it; results can differ from per-tap evaluation by a few 8-bit
 levels at silhouettes. The prepass works with and without temporal AA: it keeps
 the AO in the alpha channel of the temporal history target, whose color the
 temporal AA reads from RGB. AO is stable from frame to frame at sky

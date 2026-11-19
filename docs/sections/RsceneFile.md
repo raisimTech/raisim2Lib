@@ -1070,6 +1070,8 @@ are ignored and the preset's values apply, including
 | `autoExposureHdrMetering`, `autoExposureBrightRate`, `autoExposureDarkRate` | `false`, `3`, `1.5` | Measure scene-linear luminance with a histogram and set adaptation rates in inverse seconds. |
 | `volumetricFog`, `volumetricFogDensity`, `volumetricLightStrength` | `false`, `0`, `0` | `volumetricFogEnabled`, `volumetricFogDensity`, `volumetricLightStrength`. |
 | `contactShadows`, `contactShadowsLength`, `contactShadowsStrength` | `false`, `0.12`, `0.7` | `contactShadowsEnabled`, `contactShadowsLength`, `contactShadowsStrength`. |
+| `screenSpaceGtao` | High and Ultra presets | Use horizon-based ambient occlusion on opaque indirect diffuse light when scene SSAO and linear HDR are active. |
+| `ssrRayQueryFallback` | `false` | Extend material-aware screen-space reflections with Vulkan ray queries for low-confidence smooth-surface hits. |
 | `screenSpaceReflections`, `screenSpaceReflectionStrength` | `false`, `0` | `ssrEnabled`, `ssrStrength`. |
 | `ssrUseMaterialProperties`, `ssrTemporalStabilization` | `false`, `false` | Trace using material normals and roughness. With stabilization, use hierarchical depth and validate a separate reflection history. |
 | `motionBlur`, `motionBlurDirection` (vec2), `motionBlurStrength` | `false`, `0,0`, `0` | `motionBlurEnabled`, `motionBlurDirection`, `motionBlurStrength`. |
@@ -1082,7 +1084,9 @@ are ignored and the preset's values apply, including
 Rayrai calculates indirect diffuse lighting from the scene’s static geometry
 and lights after its meshes finish loading. The viewer and TCP viewer do this
 on the first render that needs the result. Later opens reuse a `.rirr` file in
-the user’s cache directory. The filename starts with the hash of the exact
+the user’s cache directory. Rayrai places probes more densely near scene
+geometry boundaries and relocates probes caught inside solid primitives or
+suitable closed meshes. The filename starts with the hash of the exact
 `.rscene` bytes. Editing the file gives the scene a new cache entry the next time
 it opens. Rayrai tracks referenced asset sizes and modification times in the
 cache key as well. The scene file stays unchanged.
