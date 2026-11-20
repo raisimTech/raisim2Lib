@@ -370,7 +370,9 @@ The renderer also has a built-in auto-exposure loop. With
 luminance of the previous frame toward `autoExposureKey`. Every frame
 corrects the fraction `autoExposureSpeed` of the remaining error, and the
 factor is clamped to `[autoExposureMinFactor, autoExposureMaxFactor]`;
-`pbrExposure` itself is not modified. For applications that need to drive
+`pbrExposure` itself is not modified. The loop runs only for renders with
+`RenderOverrides::postProcess`, so captures without post-processing (sensor
+frames, probe and irradiance captures) keep a fixed exposure. For applications that need to drive
 exposure themselves (e.g. tone-matched batch capture), use the static helpers
 above to read the current frame's luminance and recommend a new exposure value.
 `setRenderQualitySettings` also rebuilds the main light and removes

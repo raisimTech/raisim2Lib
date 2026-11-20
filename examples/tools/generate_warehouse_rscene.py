@@ -845,14 +845,19 @@ def baked_building_record(warehouse_dir, part):
     atlas = f'lightmaps/{part}-indirect.png'
     path = f'/World/Building/{part.title()}'
     shadow = 'visualShadowCasting=off' if part == 'floor' else 'visualShadowCasting=double_sided'
-    if not all((warehouse_dir / name).is_file() for name in (variant, variant.replace('.gltf', '.bin'), atlas)):
+    missing = [name for name in (variant, variant.replace('.gltf', '.bin'), atlas) if not (warehouse_dir / name).is_file()]
+    if missing:
+        print(f'warning: {part} has no baked lightmap ({", ".join(missing)} missing); using the unbaked mesh. '
+              'Bake it with raisim/visualizer/rayrai/benchmark/bake_warehouse_lightmaps.py in Blender.',
+              file=sys.stderr)
         return [visual_record(path, source, shadow)]
     document = json.loads((warehouse_dir / source).read_text())
     materials, remaps = [], []
 
     def uri(info):
         index = document['textures'][info['index']]['source']
-        return document['images'][index]['uri'].removeprefix('../')
+        image = document['images'][index]['uri']
+        return image[3:] if image.startswith('../') else image
 
     for material in document['materials']:
         name = material['name']

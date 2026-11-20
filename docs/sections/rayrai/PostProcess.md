@@ -171,9 +171,21 @@ Tune the trade-off with `ssrStrength`, `ssrSteps`, `ssrMaxDistance`, and
 `ssrThickness`. For material-aware SSR, set `ssrRayQueryFallback=true`
 with `ssrUseMaterialProperties=true` to trace low-confidence reflections on
 smooth surfaces when Rayrai can share images with a Vulkan ray-query device.
-Offscreen hit shading uses opaque geometry, material factors and vertex
-colors. Screen-space results and reflection probes cover other surfaces and
+Offscreen hits use material factors, vertex colors, albedo maps, emissive maps,
+and alpha-mask coverage. Rayrai caches copies of the maps up to 256 pixels along
+the longest edge. Increment `geometryRefractionRevision` after changing a map in
+place. Screen-space results and reflection probes cover other surfaces and
 systems without this backend.
+
+Set `ssrGlossyRayQueries=true` with `ssrTemporalStabilization=true` to
+scatter the fallback ray direction according to receiver roughness. Rayrai
+filters the resulting radiance at half resolution and validates history using
+receiver depth, world-space normals, roughness, and hit distance. The pass
+fills the low-confidence part of SSR and fades out by roughness 0.64.
+
+![Glossy offscreen light on a worn concrete floor](../../../rsc/docs/image/rayrai/showcase/glossy-reflections.webp)
+
+![Albedo texture in an offscreen floor reflection](../../../rsc/docs/image/rayrai/showcase/textured-reflections.webp)
 
 Screen-space ambient occlusion (`screenSpaceAoEnabled`) darkens crevices,
 corners, and tight contacts using `screenSpaceAoRadius` (with
@@ -386,6 +398,19 @@ viewer.setRenderQualitySettings(quality);
 </table>
 
 ### Motion blur and atmospheric effects
+
+Set `volumetricLocalLightStrength` above zero to scatter light from spot and
+area fixtures through volumetric fog or local fog volumes in a linear HDR view.
+Rayrai evaluates up to four fixtures: a spot or area main light with a shadow map
+and fixtures with tiles in the additional-light shadow atlas first, then an
+unshadowed spot or area main light, then the other lights active in the frame.
+Distance fade and color temperature apply as they do on surfaces. The main
+light's shadow map and the atlas tiles reuse the scene’s shadow geometry to block
+scattering; fixtures with standalone shadow maps scatter unshadowed. Set
+`shadowedLightBudget` to reserve maps for additional fixtures. Use
+`volumetricFogAnisotropy` to control how scattering changes with view angle.
+
+![Amber beam visible in the fog above ANYmal with the shutter open](../../../rsc/docs/image/rayrai/showcase/volumetric-fixtures.webp)
 
 Directional motion blur (`motionBlurEnabled`, `motionBlurDirection`,
 `motionBlurStrength`) smears the colour buffer along a constant screen-space
@@ -604,6 +629,12 @@ the algorithm:
   [Linear HDR rendering](#linear-hdr-rendering) output path, and an external render with a custom
   `post` shader throws `std::invalid_argument` unless its
   `RenderOverrides::allowTemporalAa` is false.
+
+`temporalAaReactiveTransparency` (default on) lowers the history weight
+where moving transparent surfaces are composited, so they do not leave trails.
+With `viewerRenderScale` below 1, `ViewerUpscaleFilter::Temporal`
+reconstructs the full-resolution image from reprojected HDR history instead
+of filtering a single low-resolution frame; it needs the reprojected method.
 
 `RenderOverrides::allowTemporalAa` turns temporal AA off for an individual
 external render.
