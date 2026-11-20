@@ -407,7 +407,7 @@ def main():
         if (notices / notice).exists() and (notices / notice).resolve() != (output / notice).resolve():
             shutil.copyfile(notices / notice, output / notice)
     generate_warehouse_rscene.generate(output)
-    files = [dict(path=str(p.relative_to(output)), bytes=p.stat().st_size,
+    files = [dict(path=p.relative_to(output).as_posix(), bytes=p.stat().st_size,
                   sha256=hashlib.sha256(p.read_bytes()).hexdigest())
              for p in sorted(output.rglob('*')) if p.is_file() and p.name != 'manifest.json'
              and not p.name.endswith('.lods') and not p.name.endswith('.rmpc')]

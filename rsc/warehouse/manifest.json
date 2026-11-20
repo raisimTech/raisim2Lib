@@ -31,6 +31,16 @@
       "sha256": "e26111b277a3d66475260d6ad3cd34394dde66ff9d7b36c80266d691db8e86e7"
     },
     {
+      "path": "building/floor_lightmapped.bin",
+      "bytes": 115896,
+      "sha256": "99c82c291f1ed2ae440bcf9050ce1c5adfc6b038745232651d04e439084ffc87"
+    },
+    {
+      "path": "building/floor_lightmapped.gltf",
+      "bytes": 9042,
+      "sha256": "aab0a4c981b01bb58149fe09a63e729450372791c0acda6d13cb28449c591ce7"
+    },
+    {
       "path": "building/racking.bin",
       "bytes": 3056016,
       "sha256": "1e5b9eb04f1d01637fc29a2fc2696fd34297b34938b316498f8fb42f04deec36"
@@ -49,6 +59,16 @@
       "path": "building/shell.gltf",
       "bytes": 7313,
       "sha256": "2077af1a41f04173832368637bfa1b92fa8a9ad122b064d35e08809b9c4d7f07"
+    },
+    {
+      "path": "building/shell_lightmapped.bin",
+      "bytes": 380688,
+      "sha256": "2f9e9c1dd3ba588500332cecf5a24d4569cbb0c97ece50eec3068e03e53864a2"
+    },
+    {
+      "path": "building/shell_lightmapped.gltf",
+      "bytes": 8193,
+      "sha256": "ba0314c890ed959244ef65e95c3fc97a3e03692bbf7d07f6dca8b5d40f49e732"
     },
     {
       "path": "building/skylights.bin",
@@ -214,6 +234,16 @@
       "path": "forklift/textures/lambert3_normal.jpg",
       "bytes": 603690,
       "sha256": "6c3fc4f25b8e2b58d8f4b62cac212e6b0c93ea7f202636cca9c8ac4a2abbe543"
+    },
+    {
+      "path": "lightmaps/floor-indirect.png",
+      "bytes": 1917578,
+      "sha256": "d9b07bbcfae3204662e64712a354a8f0a0166ea1ca3fa93246e3d70b40416229"
+    },
+    {
+      "path": "lightmaps/shell-indirect.png",
+      "bytes": 1067167,
+      "sha256": "4af0889b30c0030a07241a6c97174fed7d261fbb3275a6ac1f7479970595a07f"
     },
     {
       "path": "pallet_jack/license.txt",
@@ -762,8 +792,8 @@
     },
     {
       "path": "rayrai_warehouse.rscene",
-      "bytes": 1019200,
-      "sha256": "3dbc1c02fde5afb25b0212f19eec0c17eb4f62be810c2a57cb92f3c0aaf4f1b9"
+      "bytes": 1022809,
+      "sha256": "37f68ca9bea24c4b1834d279e8ae6ea9178231f817b350576fbd5edc9b46e720"
     },
     {
       "path": "sources.json",

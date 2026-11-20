@@ -1060,18 +1060,24 @@ are ignored and the preset's values apply, including
 | Key | Default | Use (**rayrai**) |
 | --- | --- | --- |
 | `viewerMsaaSamples` | `0` | A positive value is rounded down to 1, 2, 4 or 8; `0` keeps the preset's value. |
+| `viewerRenderScale`, `viewerUpscaleFilter` | preset's values when omitted | Render at this fraction of the output size, clamped to [0.25, 1], and upscale with `linear`, `mitchell` or `temporal`. The interactive viewer scales only with `temporal`, which also turns on reprojected temporal AA; `linear` and `mitchell` apply to external renders that allow upscaling. Any other filter name is a load error. |
 | `textureAnisotropy` | `0` | A positive value is clamped to [1, 16]; `0` keeps the preset's value. |
 | `shadowResolution`, `shadowBias`, `shadowStrength`, `shadowPcfRadius` | `2048`, `0.0008`, `0.6`, `1.25` | Shadow settings; `shadowResolution` replaces `environment`'s `shadowMapSize`. |
 | `directionalShadowCascadeCount`, `directionalShadowCascadeLambda`, `directionalShadowCascadeMaxDistance` | `1`, `0.7`, `0` | Cascades, clamped to [1, 4], [0, 1] and at least 0 m. |
+| `directionalShadowStableExtents`, `localLightSoftShadows`, `integratedAreaLights` | `false`, `false`, `false` | Settings of the same names. |
+| `additionalShadowAtlasPlanningEnabled` | preset's value | Setting of the same name. |
 | `highFidelityPbr`, `pbrToneMapping` | `false`, `false` | Settings of the same names. |
 | `colorMode`, `pbrExposure` | `unreal_preview`, `1` | Replace `environment`'s `colorMode` and `exposure`. |
 | `pbrEnvironmentIntensity`, `addViewerFillLights`, `reflectiveGround` | none | Each replaces the value set so far only when present. |
 | `autoExposure`, `autoExposureKey`, `autoExposureSpeed` | `false`, `0.18`, `0.05` | `autoExposureEnabled`, `autoExposureKey`, `autoExposureSpeed`. |
 | `autoExposureHdrMetering`, `autoExposureBrightRate`, `autoExposureDarkRate` | `false`, `3`, `1.5` | Measure scene-linear luminance with a histogram and set adaptation rates in inverse seconds. |
 | `volumetricFog`, `volumetricFogDensity`, `volumetricLightStrength` | `false`, `0`, `0` | `volumetricFogEnabled`, `volumetricFogDensity`, `volumetricLightStrength`. |
+| `volumetricLocalLightStrength` | `0` | Scale spot and area light scattering in volumetric fog and local fog volumes in linear HDR views. |
 | `contactShadows`, `contactShadowsLength`, `contactShadowsStrength` | `false`, `0.12`, `0.7` | `contactShadowsEnabled`, `contactShadowsLength`, `contactShadowsStrength`. |
 | `screenSpaceGtao` | High and Ultra presets | Use horizon-based ambient occlusion on opaque indirect diffuse light when scene SSAO and linear HDR are active. |
 | `ssrRayQueryFallback` | `false` | Extend material-aware screen-space reflections with Vulkan ray queries for low-confidence smooth-surface hits. |
+| `ssrGlossyRayQueries` | `false` | Extend the Vulkan fallback to glossy receivers using a half-resolution temporal resolve. Requires material-aware SSR, ray queries, and reflection stabilization. |
+| `instancedHdrLighting` | `true` | Sample the highest-weight HDR reflection probe at the center of each eligible PBR instance batch. |
 | `screenSpaceReflections`, `screenSpaceReflectionStrength` | `false`, `0` | `ssrEnabled`, `ssrStrength`. |
 | `ssrUseMaterialProperties`, `ssrTemporalStabilization` | `false`, `false` | Trace using material normals and roughness. With stabilization, use hierarchical depth and validate a separate reflection history. |
 | `motionBlur`, `motionBlurDirection` (vec2), `motionBlurStrength` | `false`, `0,0`, `0` | `motionBlurEnabled`, `motionBlurDirection`, `motionBlurStrength`. |
@@ -1083,8 +1089,10 @@ are ignored and the preset's values apply, including
 
 Rayrai calculates indirect diffuse lighting from the scene’s static geometry
 and lights after its meshes finish loading. The viewer and TCP viewer do this
-on the first render that needs the result. Later opens reuse a `.rirr` file in
-the user’s cache directory. Rayrai places probes more densely near scene
+on the first render that needs the result. Rayrai captures two diffuse bounces
+by default. The second capture uses the first pass to light surfaces that can
+reflect that light again. Later opens reuse a `.rirr` file in the user’s cache
+directory. Rayrai places probes more densely near scene
 geometry boundaries and relocates probes caught inside solid primitives or
 suitable closed meshes. The filename starts with the hash of the exact
 `.rscene` bytes. Editing the file gives the scene a new cache entry the next time
@@ -1096,7 +1104,26 @@ The cache lives under `~/.cache/raisim/rayrai/irradiance` on Linux,
 `%LOCALAPPDATA%/RaiSim/rayrai/irradiance` on Windows. Rayrai honors
 `XDG_CACHE_HOME` on Unix and `RAYRAI_IRRADIANCE_CACHE_DIR` on all platforms.
 `rayrai_render automaticIrradiance=false` disables the bake for a scene with
-any preset. Applications that supply their own irradiance grid use that grid.
+any preset. Use `rayrai_render automaticIrradianceBounces=1` for a shorter
+first bake with one diffuse bounce. Applications that supply their own
+irradiance grid use that grid.
+
+![One and two diffuse bounces in the same two-bay scene](../../rsc/docs/image/rayrai/showcase/second-bounce.webp)
+
+#### Live fixture bounce
+
+Name a local fixture in the scene’s existing `rayrai_render` record.
+
+```text
+rayrai_render preset=high runtimeIrradianceLight=/World/Fixture runtimeIrradianceRadius=3
+```
+
+That spot, point, or area light stays in the direct-light pass. Rayrai excludes
+its contribution from the saved static bake and captures its diffuse bounce with
+a separate local grid. The radius is in metres and defaults to four. Use
+`runtimeIrradianceEnabled=false` in a custom render record to turn off the live
+grid. Turning off the fixture removes its published live bounce on the next
+render. The static `.rirr` remains keyed to the scene file.
 
 ## Rejected content
 

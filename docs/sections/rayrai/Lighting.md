@@ -265,7 +265,13 @@ shadows. They apply only to the main directional light, replace
 `shadowPcfRadius`, and are clamped to 0-4 degrees and 1-16 texels. The
 physical sun is about 0.53 degrees across; larger values give wider penumbrae.
 The extra shadow-map lookups cost GPU time. Point, spot, and area shadows keep
-PCF.
+PCF unless `localLightSoftShadows` is on: spot and area shadows in the
+additional-light atlas then estimate their penumbra from blocker depths and the
+emitter's `radius` or `areaSize`. `directionalShadowStableExtents` keeps each
+cascade's texel size constant while the camera turns, so shadow edges do not
+shimmer when it rotates in place. `integratedAreaLights` integrates rectangular
+emitters over their area for standard GGX materials instead of shading from
+the nearest point on the rectangle.
 
 ## Additional-light range cutoff
 
@@ -338,10 +344,16 @@ sun highlight from the main light, scaled by `pbrEnvironmentIntensity` when
 `highFidelityPbr` is on. It does not follow the visible sky or fog colours;
 `pbrEnvironmentSkyTint`, `pbrEnvironmentHorizonTint`, and
 `pbrEnvironmentHorizonStrength` only tint the procedural background. HDR
-environments keep their captured colour. Instanced visuals with PBR materials use
-a hemispheric version of the same fallback and never sample environment cubemaps;
-`Material::iblStrength` scales it, and `environmentMapStrength` scales only
-its specular part.
+environments keep their captured colour. PBR instance batches sample the
+diffuse and specular cubemaps of the primary reflection probe at the batch’s
+bounds center when `instancedHdrLighting` is active. Use distinct batches for
+visually separate probe regions. The procedural hemisphere supplies ambient
+environment lighting beyond probe influence and for the specialized foliage
+batch path. `Material::iblStrength` scales environment lighting, and
+`environmentMapStrength` scales the instanced specular response.
+
+![Local HDR lighting on instanced cartons](../../../rsc/docs/image/rayrai/showcase/instanced-hdr.webp)
+
 `RayraiWindow::setEnvironmentBackground` only draws the background; assign
 environment maps to visuals with `setPbrEnvironment`.
 
@@ -372,7 +384,9 @@ renderer. `clearReflectionProbeCache()` deletes them, after which probes returne
 by the cached calls are dangling. `selectReflectionProbeBlend(position, blend)`
 fills `blend` with up to two probes and their normalized weights and returns false
 when no probe influences the position; `applyNearestReflectionProbe` binds the
-primary probe of that blend. The blend is useful for debug overlays.
+primary probe of that blend. `applyReflectionProbeBlend(visual, position)` applies
+the specular lighting of both selected probes, each with its own box projection,
+and the primary probe's diffuse irradiance. The blend is useful for debug overlays.
 
 Authored scene sidecars can ship next to imported assets and describe reflection
 probes, environment/background settings, and weather. For a scene file
@@ -566,4 +580,21 @@ samples. Unlike the resource-creation calls, the setters throw
 `std::invalid_argument` for invalid data or a grid larger than the GPU
 texture limit, and `std::runtime_error` when no GL context is current or no
 texture unit is free. Moving geometry or changing the lighting requires a new
-bake.
+bake. `captureBakedIrradianceGrid(minimum, maximum, dimensions, faceResolution,
+overrides, captureVisibility)` captures a grid from the current scene; with
+`captureVisibility` it also records coarse distances around each probe, which
+keep light from leaking through walls between probes.
+
+
+## Runtime diffuse bounce
+
+Set `AdditionalLight::runtimeIrradianceRadius` on one local fixture, then
+submit it with `addAdditionalLight()` or `updateAdditionalLight()`. Rayrai
+advances a two-by-two-by-two probe grid one cubemap face per render. It
+subtracts a capture without the fixture to isolate the fixture’s contribution
+and publishes all eight probes together. A moving fixture schedules a new grid
+while the previous completed grid remains visible. Switching the fixture’s
+diffuse light off clears that contribution. The grid adds to static irradiance
+and needs no cache file or external renderer.
+
+![Live red bounce on a grey crate](../../../rsc/docs/image/rayrai/showcase/runtime-irradiance.webp)
