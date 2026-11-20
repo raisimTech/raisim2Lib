@@ -70,6 +70,7 @@ bool ViewerSceneFiles::apply(RayraiWindow& viewer, RemoteScene& scene) {
     // applyRscene() removes the visuals it created before it throws.
     visuals_ = rayrai_internal::applyRscene(*sync_.scene(), viewer,
                                             rsceneRenderSettings(*sync_.scene()));
+    viewer.queueSceneIrradianceBake(*sync_.scene(), visuals_, true, sync_.scene());
   } catch (const std::exception& error) {
     remove(viewer);
     sync_.markFailed(std::string("The scene could not be shown: ") + error.what());
@@ -173,6 +174,7 @@ bool ViewerSceneFiles::settled(const RayraiWindow& viewer) const {
 }
 
 void ViewerSceneFiles::remove(RayraiWindow& viewer) {
+  if (touched_) viewer.clearSceneIrradianceBake();
   for (const auto& visual : visuals_.objects)
     if (visual) viewer.removeVisualObject(visual->getName());
   for (const auto* batches : {&visuals_.instancedVisuals, &visuals_.foliage})
