@@ -21,6 +21,9 @@ inline int omp_get_thread_num() { return 0; }
 #include "omp.h"
 #endif
 #include "Yaml.hpp"
+#ifdef RAISIMGYM_WITH_RAYRAI
+#include "VideoRecorder.hpp"
+#endif
 
 namespace raisim {
 
@@ -41,6 +44,9 @@ class VectorizedEnvironment {
   }
 
   ~VectorizedEnvironment() {
+#ifdef RAISIMGYM_WITH_RAYRAI
+    videoRecorder_.reset();  // its renderer reads environment 0's world
+#endif
     for (auto *ptr: environments_)
       delete ptr;
   }
@@ -169,6 +175,7 @@ class VectorizedEnvironment {
       for (int i = 0; i < num_envs_; i++)
         perAgentStep(i, action, reward, done);
     }
+    captureVideoFrame();
   }
 
   /// Advance every environment and produce the following normalized
@@ -200,6 +207,7 @@ class VectorizedEnvironment {
       for (int i = 0; i < num_envs_; i++)
         perAgentStepAndObserve(i, action, reward, done, observation);
     }
+    captureVideoFrame();
 
     if (normalizeObservation_)
       updateObservationStatisticsAndNormalize(observation, updateStatistics);
@@ -207,8 +215,41 @@ class VectorizedEnvironment {
 
   void turnOnVisualization() { if(render_) environments_[0]->turnOnVisualization(); }
   void turnOffVisualization() { if(render_) environments_[0]->turnOffVisualization(); }
-  void startRecordingVideo(const std::string& videoName) { if(render_) environments_[0]->startRecordingVideo(videoName); }
-  void stopRecordingVideo() { if(render_) environments_[0]->stopRecordingVideo(); }
+  /// whether a viewer is connected to the first environment's server
+  bool isVisualizerConnected() const { return render_ && environments_[0]->isVisualizerConnected(); }
+
+  /// Record environment 0 into `path` (an .mp4) with an in-process rayrai renderer until
+  /// stopRecordingVideo(); no viewer is needed. Returns false, with the reason in
+  /// getVideoStatus(), when no OpenGL context or ffmpeg is available. Call the recording
+  /// methods and step() from the same thread.
+  bool startRecordingVideo(const std::string& path) {
+#ifdef RAISIMGYM_WITH_RAYRAI
+    if (!videoRecorder_) videoRecorder_ = std::make_unique<VideoRecorder>();
+    return videoRecorder_->start(*environments_[0]->getWorld(), path);
+#else
+    (void)path;
+    return false;
+#endif
+  }
+
+  /// Finish the video. Returns true when the file is complete.
+  bool stopRecordingVideo() {
+#ifdef RAISIMGYM_WITH_RAYRAI
+    return videoRecorder_ && videoRecorder_->stop();
+#else
+    return false;
+#endif
+  }
+
+  /// What happened to the last recording, or why it could not start.
+  std::string getVideoStatus() const {
+#ifdef RAISIMGYM_WITH_RAYRAI
+    return videoRecorder_ ? videoRecorder_->status() : std::string("no video recorded yet");
+#else
+    return "this environment was built without rayrai";
+#endif
+  }
+
   void getObStatistics(Eigen::Ref<EigenVec> mean, Eigen::Ref<EigenVec> var, float &count) {
     mean = obMean_; var = obVar_; count = obCount_; }
   void setObStatistics(Eigen::Ref<EigenVec> mean, Eigen::Ref<EigenVec> var, float count) {
@@ -287,6 +328,12 @@ class VectorizedEnvironment {
   const std::vector<std::string>& getRewardNames() const { return rewardNames_; }
 
  private:
+  void captureVideoFrame() {
+#ifdef RAISIMGYM_WITH_RAYRAI
+    if (videoRecorder_) videoRecorder_->capture();
+#endif
+  }
+
   void seedEnvironment(int index, int seed) {
     environments_[index]->setSeed(seed + index);
     // Keep this outside the virtual hook: derived environments need not call the base.
@@ -345,6 +392,9 @@ class VectorizedEnvironment {
   }
 
   std::vector<ChildEnvironment *> environments_;
+#ifdef RAISIMGYM_WITH_RAYRAI
+  std::unique_ptr<VideoRecorder> videoRecorder_;
+#endif
   EigenRowMajorMat rewardInformation_;
   std::vector<std::string> rewardNames_;
 

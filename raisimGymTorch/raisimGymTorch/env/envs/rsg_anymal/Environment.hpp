@@ -6,6 +6,8 @@
 #pragma once
 
 #include <stdlib.h>
+#include <map>
+#include <mutex>
 #include <set>
 #include "../../RaisimGymEnv.hpp"
 
@@ -25,10 +27,9 @@ class ENVIRONMENT : public RaisimGymEnv {
     world_ = std::make_unique<raisim::World>();
     world_->setSleepingEnabled(false);
 
-    /// add objects
-    raisim::ArticulatedSystemOption options;
-    options.convexifyCollisionMeshes = true;
-    anymal_ = world_->addArticulatedSystem(resourceDir_+"/anymal/urdf/anymal.urdf", "", {}, raisim::CollisionGroup(1), raisim::CollisionGroup(-1), options);
+    /// add objects. The URDF is parsed once; each environment gets its own robot from it.
+    anymal_ = world_->addArticulatedSystem(sharedRobot(resourceDir_+"/anymal/urdf/anymal.urdf"),
+                                           raisim::CollisionGroup(1), raisim::CollisionGroup(-1));
     anymal_->setName("anymal");
     anymal_->setControlMode(raisim::ControlMode::PD_PLUS_FEEDFORWARD_TORQUE);
     world_->addGround();
@@ -165,6 +166,20 @@ class ENVIRONMENT : public RaisimGymEnv {
   void curriculumUpdate() { };
 
  private:
+  /// The robot model, parsed once and instantiated by every environment.
+  static ArticulatedSystemResource sharedRobot(const std::string& urdfPath) {
+    static std::mutex mutex;
+    static std::map<std::string, ArticulatedSystemResource> resources;
+    std::lock_guard<std::mutex> lock(mutex);
+    auto found = resources.find(urdfPath);
+    if (found == resources.end()) {
+      ArticulatedSystemOption options;
+      options.convexifyCollisionMeshes = true;
+      found = resources.emplace(urdfPath, ArticulatedSystemResource::load(urdfPath, "", {}, options)).first;
+    }
+    return found->second;
+  }
+
   void updateIntegrationSteps() {
     integrationSteps_ = int(control_dt_ / simulation_dt_ + 1e-10);
   }

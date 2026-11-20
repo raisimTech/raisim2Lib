@@ -308,8 +308,16 @@ endif()
 
 ######## Env ##########
 FOREACH(subdir ${SUBDIRS})
-    nanobind_add_module(${subdir} raisimGymTorch/env/raisim_gym.cpp raisimGymTorch/env/Yaml.cpp ${RAISIMGYM_TORCH_SOURCES})
+    nanobind_add_module(${subdir} raisimGymTorch/env/raisim_gym.cpp raisimGymTorch/env/Yaml.cpp raisimGymTorch/env/VideoRecorder.cpp ${RAISIMGYM_TORCH_SOURCES})
     target_link_libraries(${subdir} PRIVATE raisim::raisim rayrai ${Dependencies})
+    # Evaluation videos are rendered in-process with rayrai (VideoRecorder.cpp).
+    target_compile_definitions(${subdir} PRIVATE RAISIMGYM_WITH_RAYRAI)
+    if(UNIX AND NOT APPLE)
+        # rayrai's RUNPATH points at its own prefix, but these helper libraries live with
+        # RaiSim. Keep them direct dependencies so this module's RUNPATH finds them (as in raisimPy).
+        target_link_options(${subdir} PRIVATE "LINKER:--no-as-needed")
+        target_link_libraries(${subdir} PRIVATE raisim::raisimPng raisim::raisimMine raisim::raisimZ)
+    endif()
     target_include_directories(${subdir} PUBLIC ${EIGEN3_INCLUDE_DIRS} ${RAISIMGYM_ENV_DIR}/${subdir} ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env ${RAYRAI_INCLUDE_DIR} ${RAYRAI_INCLUDE_DIR}/SDL2)
     target_compile_options(${subdir} PRIVATE -fPIC -O3 -flto)
     if (NOT APPLE OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")

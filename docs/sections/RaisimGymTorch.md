@@ -37,7 +37,10 @@ RaiSim, rayrai, Eigen, and nanobind come with `raisim2Lib`. In addition, you nee
 
 ## How to run the example
 
-We provide an ANYmal locomotion example.
+We provide an ANYmal locomotion example. Its environments parse the ANYmal
+URDF once into an `ArticulatedSystemResource` (see
+[Shared resources across worlds](./WorldSystem.md#shared-resources-across-worlds)),
+and each environment's World creates its own robot from it.
 From the `raisimGymTorch` directory:
 
 ```bash
@@ -68,10 +71,47 @@ available. Install `libomp` if you want OpenMP parallelism on macOS.
 With `render: True` in `cfg.yaml`, the first environment runs a
 `RaisimServer`; connect `rayrai_tcp_viewer` as described in
 [Visualization](./Visualization.md) to watch it. Every `eval_every_n` updates (200 in the
-shipped `cfg.yaml`), the runner saves a checkpoint, runs one visualized
-evaluation rollout, and asks the connected viewer to record it as a video.
+shipped `cfg.yaml`), the runner saves a checkpoint and runs one evaluation
+rollout.
+
+With `record_video: True` (the default), the training process renders that
+rollout itself with rayrai and saves it as `policy_<N>.mp4` next to
+`full_<N>.pt` in the run's data directory; no viewer has to be connected. The
+runner prints the saved path, or why the rollout was not recorded. Recording
+needs `ffmpeg` on `PATH` and an OpenGL context: a desktop session works, and so
+does a headless machine whose GPU driver provides EGL. The camera follows the
+first articulated system in the first environment, and the video plays back in
+real time (30 frames per second of simulated time). The evaluation itself runs as
+fast as possible, unless a `rayrai_tcp_viewer` is connected, in which case it
+runs in real time for watching.
 Older RaisimUnity/Unreal visualization workflows have been replaced; see
 [Legacy Integrations](./LegacyIntegrations.md) for migration notes.
+
+### Rough terrain with a shared heightmap
+
+`rsg_anymal_terrain` trains the same ANYmal task on fractal terrain:
+
+```bash
+python raisimGymTorch/env/envs/rsg_anymal_terrain/runner.py
+```
+
+All environments stand on one heightmap. The environment generates it as a
+`HeightMapResource` (see
+[Shared resources across worlds](./WorldSystem.md#shared-resources-across-worlds)),
+and each environment's World adds a `HeightMap` that references the shared
+height samples and collision tiles. The terrain is therefore generated and
+stored once, however many environments run. The robot model is shared as in
+`rsg_anymal`.
+
+The runner calls `curriculum_callback()` once per training iteration. Every
+`terrain/randomize_every_n` calls (10 in the shipped `cfg.yaml`), each
+environment switches to a new shared heightmap and resets its robot onto it.
+The noise frequency, height scale, and step size of each new heightmap are
+drawn from the ranges in `cfg.yaml`. Terrain `k` depends only on
+`terrain/seed` and `k`. The observation replaces the absolute base height of
+`rsg_anymal` with a 7 x 5 grid of base heights above the terrain around the
+robot, aligned with its heading. An episode also ends when the robot comes
+within 1 m of the terrain edge.
 
 ## How to debug
 

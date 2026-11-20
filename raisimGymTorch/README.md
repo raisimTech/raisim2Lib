@@ -56,6 +56,16 @@ python raisimGymTorch/env/envs/rsg_anymal/tester.py \
   --weight /path/to/full_N.pt
 ```
 
+### Train ANYmal on rough terrain
+
+```bash
+python raisimGymTorch/env/envs/rsg_anymal_terrain/runner.py --mode train
+```
+
+All environments share one heightmap, which is replaced by a new random one
+every 10 iterations (`terrain/randomize_every_n` in its `cfg.yaml`). Its
+`tester.py` and `--mode retrain` work as above.
+
 ### Benchmark
 
 ```bash

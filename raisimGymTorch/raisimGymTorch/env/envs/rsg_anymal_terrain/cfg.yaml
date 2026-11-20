@@ -1,0 +1,38 @@
+seed: 1
+record_video: True
+
+environment:
+  render: True
+  num_envs: 100
+  eval_every_n: 200
+  num_threads: 26
+  simulation_dt: 0.0025
+  control_dt: 0.01
+  max_time: 4.0
+  action_std: 0.3
+  terrain:
+    # All environments stand on one shared heightmap. Every randomize_every_n
+    # training iterations, they all switch to a new one.
+    randomize_every_n: 10
+    seed: 1
+    size: 40.0        # side length of the square terrain (m)
+    samples: 401      # samples per side, 0.1 m apart
+    # Each new heightmap is fractal noise with parameters drawn uniformly from these ranges.
+    frequency:        # cycles per meter of the coarsest noise octave
+      min: 0.15
+      max: 0.35
+    height_scale:     # noise scale (m); the peak-to-peak height is about half of it
+      min: 0.3
+      max: 1.0
+    step_size:        # quantizes heights into steps (m); 0 keeps the surface smooth
+      min: 0.0
+      max: 0.08
+  reward:
+    forwardVel:
+      coeff: 0.3
+    torque:
+      coeff: -4e-5
+
+architecture:
+  policy_net: [128, 128]
+  value_net: [128, 128]

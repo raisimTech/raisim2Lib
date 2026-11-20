@@ -41,11 +41,22 @@ class RaisimGymVecEnv:
     def turn_off_visualization(self):
         self.wrapper.turnOffVisualization()
 
+    def is_visualizer_connected(self):
+        return self.wrapper.isVisualizerConnected()
+
     def start_video_recording(self, file_name):
-        self.wrapper.startRecordingVideo(file_name)
+        """Render the first environment into file_name (an .mp4) in this process.
+
+        Returns False when no OpenGL context or ffmpeg is available; get_video_status() says why.
+        """
+        return self.wrapper.startRecordingVideo(file_name)
 
     def stop_video_recording(self):
-        self.wrapper.stopRecordingVideo()
+        """Finish the video. Returns False, with the reason in get_video_status(), if it failed."""
+        return self.wrapper.stopRecordingVideo()
+
+    def get_video_status(self):
+        return self.wrapper.getVideoStatus()
 
     def step(self, action, copy=False):
         self.wrapper.step(action, self._reward, self._done)

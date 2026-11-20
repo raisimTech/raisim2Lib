@@ -51,6 +51,7 @@ class RaisimGymEnv {
   World* getWorld() const { return world_.get(); }
   virtual void turnOffVisualization() { server_->hibernate(); }
   virtual void turnOnVisualization() { server_->wakeup(); }
+  virtual bool isVisualizerConnected() const { return server_ && server_->isConnected(); }
   virtual void startRecordingVideo(const std::string& videoName ) { server_->startRecordingVideo(videoName); }
   virtual void stopRecordingVideo() { server_->stopRecordingVideo(); }
   Reward& getRewards() { return rewards_; }

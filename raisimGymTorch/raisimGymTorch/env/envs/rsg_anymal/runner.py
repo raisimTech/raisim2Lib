@@ -1,6 +1,5 @@
 import argparse
 import copy
-import datetime
 import io
 import math
 import os
@@ -197,7 +196,13 @@ for update in range(1000000):
                 print(f'[RAISIM_GYM] C++ policy export failed; using Python evaluation: {error}')
 
         env.turn_on_visualization()
-        env.start_video_recording(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "policy_"+str(update)+'.mp4')
+        # rayrai renders the video in this process and saves it next to the checkpoint.
+        video_path = os.path.abspath(os.path.join(saver.data_dir, "policy_"+str(update)+'.mp4'))
+        recording = cfg['record_video'] and env.start_video_recording(video_path)
+        if cfg['record_video'] and not recording:
+            print('[RAISIM_GYM] Not recording this evaluation: ' + env.get_video_status())
+        # The video is timed by simulation time, so run in real time only for a connected viewer.
+        playback_dt = cfg['environment']['control_dt'] if env.is_visualizer_connected() else 0.
 
         evaluated_in_cpp = False
         if (CppTorchPolicyRunner is not None and
@@ -210,8 +215,7 @@ for update in range(1000000):
                 policy_path = os.path.join(saver.data_dir, 'evaluation_policy.pt')
                 save_scripted_policy(scripted_evaluation_policy, policy_path)
                 cpp_policy_runner = CppTorchPolicyRunner(env.wrapper, policy_path)
-                cpp_policy_runner.run(
-                    reward_info_history, cfg['environment']['control_dt'])
+                cpp_policy_runner.run(reward_info_history, playback_dt)
                 reward_analyzer.add_reward_info(
                     reward_info_history.reshape(-1, reward_info_history.shape[-1]))
                 evaluated_in_cpp = True
@@ -228,11 +232,15 @@ for update in range(1000000):
                     reward, dones = env.step(action.cpu().numpy())
                     reward_analyzer.add_reward_info(env.get_reward_info())
                     frame_end = time.time()
-                    wait_time = cfg['environment']['control_dt'] - (frame_end-frame_start)
+                    wait_time = playback_dt - (frame_end-frame_start)
                     if wait_time > 0.:
                         time.sleep(wait_time)
 
-        env.stop_video_recording()
+        if recording:
+            if env.stop_video_recording():
+                print('[RAISIM_GYM] Saved the evaluation video: ' + video_path)
+            else:
+                print('[RAISIM_GYM] The evaluation video failed: ' + env.get_video_status())
         env.turn_off_visualization()
 
         reward_analyzer.analyze_and_plot(update)

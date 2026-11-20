@@ -46,11 +46,17 @@ class RaisimSbGymVecEnv(VecEnv):
     def turn_off_visualization(self):
         self.wrapper.turnOffVisualization()
 
+    def is_visualizer_connected(self):
+        return self.wrapper.isVisualizerConnected()
+
     def start_video_recording(self, file_name):
-        self.wrapper.startRecordingVideo(file_name)
+        return self.wrapper.startRecordingVideo(file_name)
 
     def stop_video_recording(self):
-        self.wrapper.stopRecordingVideo()
+        return self.wrapper.stopRecordingVideo()
+
+    def get_video_status(self):
+        return self.wrapper.getVideoStatus()
 
     def step_async(self, actions: np.ndarray) -> None:
         self.actions = actions
