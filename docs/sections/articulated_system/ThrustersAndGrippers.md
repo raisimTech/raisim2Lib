@@ -159,6 +159,19 @@ auto* part = world.addBox(0.1, 0.1, 0.02, 0.8, "steel");
 - A gripper ignores collision groups: it pulls what is in front of its pad even if its link does
   not collide with it, and such an object is pulled into the link.
 
+## Examples
+
+- `thrusters_and_grippers` flies a quadrotor with four thrusts and has a suction
+  lifter and a magnet lifter pick up and drop boxes.
+- [Magnetic Wall Climbing](../examples/server/magnetic_wall_climbing.md): a
+  quadruped with magnetic feet trots up a steel wall, switching each magnet off
+  just before its foot lifts.
+- [Rocket Hop](../examples/server/rocket_hop.md): a rocket steers with a
+  thruster on a gimballed engine, holds its roll with four small thrusters, and
+  lands on its legs.
+- [Suction Cup Picking](../examples/server/suction_cup_picking.md): an arm with
+  a suction cup stacks parcels into a tower and takes it apart again.
+
 ## Saving, loading and joining
 
 A world saved with `World::exportToXml()` keeps the thrusters and grippers of each articulated

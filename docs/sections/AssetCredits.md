@@ -128,3 +128,5 @@ benefit.
   JetBot (MIT) and Create 3 (iRobot, BSD-3-Clause) from NVIDIA Isaac Sim's
   asset library, and the Gymnasium MJCF models (MIT). Their license files are
   in their `rsc` folders.
+- The rocket (`rsc/rocket`) and the suction-cup tool (`rsc/kinova_suction`) were
+  made for RaiSim.

@@ -31,6 +31,8 @@
         "server/shadow_hand_usd_cube",
         "server/templated_tracked_robot",
         "server/wheeled_robot_force_control",
+        "server/magnetic_wall_climbing",
+        "server/suction_cup_picking",
         "server/mjcf_gymnasium_hopper",
         "server/mjcf_gymnasium_walker2d"
       ]
@@ -91,6 +93,7 @@
         "server/kinematic_platform",
         "server/island_sleep_benchmark",
         "rayrai/rayrai_explosion_projectile",
+        "server/rocket_hop",
         "rayrai/rayrai_spherical_joint_friction"
       ]
     },

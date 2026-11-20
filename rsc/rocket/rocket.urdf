@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<!--
+  A single-engine rocket that takes off, flies and lands on its legs (raisim2Lib
+  rocket_hop example). The engine hangs from a two-axis gimbal at the bottom of
+  the tank; its thrust acts at the gimbal point along the nozzle. Four small
+  thrusters at the top of the tank control the roll. Made for RaiSim; the meshes
+  are generated surfaces of revolution.
+-->
+<robot name="rocket">
+  <link name="body">
+    <inertial>
+      <origin xyz="0 0 1.8"/>
+      <mass value="600"/>
+      <inertia ixx="820" iyy="820" izz="28" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 2.135" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.3" length="4.03"/></geometry>
+      <material name="white"><color rgba="0.93 0.93 0.92 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.3" length="0.12"/></geometry>
+      <material name="bay"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.22" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.303" length="0.200"/></geometry>
+      <material name="band"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 1.1" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.303" length="0.100"/></geometry>
+      <material name="band"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 3.6" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.303" length="0.300"/></geometry>
+      <material name="band"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 4.15" rpy="0 0 0"/>
+      <geometry><mesh filename="meshes/nose.obj"/></geometry>
+      <material name="white"><color rgba="0.93 0.93 0.92 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.46 0 0.62" rpy="0 0 0"/>
+      <geometry><box size="0.34 0.025 0.6"/></geometry>
+      <material name="fin"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="2.817e-17 0.46 0.62" rpy="0 0 1.571"/>
+      <geometry><box size="0.34 0.025 0.6"/></geometry>
+      <material name="fin"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.46 5.633e-17 0.62" rpy="0 0 3.142"/>
+      <geometry><box size="0.34 0.025 0.6"/></geometry>
+      <material name="fin"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-8.45e-17 -0.46 0.62" rpy="0 0 4.712"/>
+      <geometry><box size="0.34 0.025 0.6"/></geometry>
+      <material name="fin"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.5162 0.5162 0.425" rpy="0 2.715 0.7854"/>
+      <geometry><cylinder radius="0.035" length="2.0318"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.5162 0.5162 -0.15" rpy="0 2.266 0.7854"/>
+      <geometry><cylinder radius="0.025" length="1.0934"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.8132 0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+      <material name="pad"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0.8132 0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="-0.5162 0.5162 0.425" rpy="0 2.715 2.356"/>
+      <geometry><cylinder radius="0.035" length="2.0318"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.5162 0.5162 -0.15" rpy="0 2.266 2.356"/>
+      <geometry><cylinder radius="0.025" length="1.0934"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.8132 0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+      <material name="pad"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="-0.8132 0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="-0.5162 -0.5162 0.425" rpy="0 2.715 3.927"/>
+      <geometry><cylinder radius="0.035" length="2.0318"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.5162 -0.5162 -0.15" rpy="0 2.266 3.927"/>
+      <geometry><cylinder radius="0.025" length="1.0934"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.8132 -0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+      <material name="pad"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="-0.8132 -0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.5162 -0.5162 0.425" rpy="0 2.715 5.498"/>
+      <geometry><cylinder radius="0.035" length="2.0318"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.5162 -0.5162 -0.15" rpy="0 2.266 5.498"/>
+      <geometry><cylinder radius="0.025" length="1.0934"/></geometry>
+      <material name="leg"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="0.8132 -0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+      <material name="pad"><color rgba="0.07 0.07 0.08 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0.8132 -0.8132 -0.53" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.13" length="0.06"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 2.075" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.3" length="4.15"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 4.25" rpy="0 0 0"/>
+      <geometry><sphere radius="0.3"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="0.32 0 3.95" rpy="0 0 0"/>
+      <geometry><box size="0.08 0.1 0.12"/></geometry>
+      <material name="pod"><color rgba="0.55 0.56 0.58 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="1.959e-17 0.32 3.95" rpy="0 0 1.571"/>
+      <geometry><box size="0.08 0.1 0.12"/></geometry>
+      <material name="pod"><color rgba="0.55 0.56 0.58 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-0.32 3.919e-17 3.95" rpy="0 0 3.142"/>
+      <geometry><box size="0.08 0.1 0.12"/></geometry>
+      <material name="pod"><color rgba="0.55 0.56 0.58 1"/></material>
+    </visual>
+    <visual>
+      <origin xyz="-5.878e-17 -0.32 3.95" rpy="0 0 4.712"/>
+      <geometry><box size="0.08 0.1 0.12"/></geometry>
+      <material name="pod"><color rgba="0.55 0.56 0.58 1"/></material>
+    </visual>
+  </link>
+  <joint name="gimbal_x" type="revolute">
+    <parent link="body"/>
+    <child link="gimbal_ring"/>
+    <origin xyz="0 0 0.12"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.15" upper="0.15" effort="20000" velocity="3"/>
+  </joint>
+  <link name="gimbal_ring">
+    <inertial>
+      <mass value="2"/>
+      <inertia ixx="0.02" iyy="0.02" izz="0.04" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+  <joint name="gimbal_y" type="revolute">
+    <parent link="gimbal_ring"/>
+    <child link="engine"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.15" upper="0.15" effort="20000" velocity="3"/>
+  </joint>
+  <link name="engine">
+    <inertial>
+      <origin xyz="0 0 -0.12"/>
+      <mass value="25"/>
+      <inertia ixx="0.6" iyy="0.6" izz="0.25" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.08"/>
+      <geometry><cylinder radius="0.1" length="0.16"/></geometry>
+      <material name="chamber"><color rgba="0.22 0.22 0.24 1"/></material>
+    </visual>
+    <visual>
+      <geometry><mesh filename="meshes/nozzle.obj"/></geometry>
+    </visual>
+  </link>
+  <thruster name="main_engine" link="engine" torque_coefficient="0.002">
+    <origin xyz="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="0" upper="12000"/>
+  </thruster>
+  <thruster name="rcs_roll_left_0" link="body">
+    <origin xyz="0.36 0 3.95"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="60"/>
+  </thruster>
+  <thruster name="rcs_roll_right_0" link="body">
+    <origin xyz="0 0.36 3.95"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0" upper="60"/>
+  </thruster>
+  <thruster name="rcs_roll_left_1" link="body">
+    <origin xyz="-0.36 0 3.95"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0" upper="60"/>
+  </thruster>
+  <thruster name="rcs_roll_right_1" link="body">
+    <origin xyz="0 -0.36 3.95"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="0" upper="60"/>
+  </thruster>
+</robot>

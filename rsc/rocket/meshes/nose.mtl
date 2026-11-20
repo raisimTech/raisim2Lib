@@ -1,0 +1,6 @@
+newmtl nose_white
+Kd 0.93 0.93 0.92
+Ks 0.4 0.4 0.4
+Ns 60
+d 1
+illum 2

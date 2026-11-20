@@ -162,6 +162,8 @@ create_executable(wheeled_robot_force_control src/server/robots/wheeled_robot_fo
 create_executable(templated_tracked_robot src/server/robots/templated_tracked_robot.cpp)
 create_executable(minitaur_pd src/server/robots/minitaur_pd.cpp)
 create_executable(robotiq_gripper_mimic src/server/robots/robotiq_gripper_mimic.cpp)
+create_executable(magnetic_wall_climbing src/server/robots/magnetic_wall_climbing.cpp)
+create_executable(suction_cup_picking src/server/robots/suction_cup_picking.cpp)
 create_executable(strandbeest_closed_loops src/server/robots/strandbeest_closed_loops.cpp)
 create_executable(inverse_dynamics src/server/robots/inverse_dynamics.cpp)
 create_executable(shadow_hand_usd_cube src/server/robots/shadow_hand_usd_cube.cpp)
@@ -179,6 +181,7 @@ create_executable(tendon_elastic src/server/dynamics/tendon_elastic.cpp)
 create_executable(tendon_pulleys src/server/dynamics/tendon_pulleys.cpp)
 create_executable(tendon_coupling src/server/dynamics/tendon_coupling.cpp)
 create_executable(thrusters_and_grippers src/server/dynamics/thrusters_and_grippers.cpp)
+create_executable(rocket_hop src/server/dynamics/rocket_hop.cpp)
 set_target_properties(tendon_elastic tendon_pulleys tendon_coupling PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)

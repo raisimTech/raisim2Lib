@@ -1,0 +1,326 @@
+<?xml version="1.0"?>
+<!--
+  Kinova Jaco arm with a vacuum suction cup on its wrist flange for RaiSim
+  pick-and-place (raisim2Lib suction_cup_picking example). The arm and its
+  primitive collision envelopes are those of ../robotiq_2f85/kinova_robotiq.urdf;
+  the tool is a vacuum ejector on a short shaft with a bellows cup, and its
+  <gripper> pulls what the cup seals on. suction_tip is the center of the cup lip.
+
+  Reuses the bundled BSD 3-Clause Kinova robot description and its mesh assets:
+  Copyright (c) 2017, Kinova Robotics inc. See ../kinova/LICENSE, which must
+  accompany this model and its mesh assets. The suction cup mesh is a generated
+  surface of revolution made for RaiSim.
+-->
+<robot name="kinova_suction">
+  <link name="world" />
+  <link name="kinova_link_base">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/base.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.078" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.06" length="0.156" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_base" type="fixed">
+    <parent link="world" />
+    <child link="kinova_link_base" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+  </joint>
+  <joint name="kinova_link_base_to_kinova_link_base_inertia" type="fixed">
+    <parent link="kinova_link_base" />
+    <child link="kinova_link_base_inertia" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+  </joint>
+  <link name="kinova_link_base_inertia">
+    <inertial>
+      <mass value="0.46784" />
+      <origin rpy="0 0 0" xyz="0 0 0.1255" />
+      <inertia ixx="0.000951270861568" ixy="0" ixz="0" iyy="0.000951270861568" iyz="0" izz="0.000374272" />
+    </inertial>
+  </link>
+  <link name="kinova_link_1">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/shoulder.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/ring_big.STL" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.7477" />
+      <origin xyz="0 -0.002 -0.0605" />
+      <inertia ixx="0.00152031725204" ixy="0" ixz="0" iyy="0.00152031725204" iyz="0" izz="0.00059816" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0 -0.06" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.047" length="0.10" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_1" type="revolute">
+    <parent link="kinova_link_base" />
+    <child link="kinova_link_1" />
+    <axis xyz="0 0 1" />
+    <limit effort="30.5" lower="-62.8318530718" upper="62.8318530718" velocity="15" />
+    <origin rpy="0 3.14159265359 0" xyz="0 0 0.15675" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <link name="kinova_link_2">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/arm.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/ring_big.STL" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.99" />
+      <origin xyz="0 -0.2065 -0.01" />
+      <inertia ixx="0.010502207991" ixy="0" ixz="0" iyy="0.000792" iyz="0" izz="0.010502207991" />
+    </inertial>
+    <collision>
+      <origin xyz="0 -0.205 0" rpy="1.5707963267948966 0 0" />
+      <geometry>
+        <capsule radius="0.032" length="0.34" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_2" type="revolute">
+    <parent link="kinova_link_1" />
+    <child link="kinova_link_2" />
+    <axis xyz="0 0 1" />
+    <limit effort="30.5" lower="-62.8318530718" upper="62.8318530718" velocity="15" />
+    <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.0016 -0.11875" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <link name="kinova_link_3">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/forearm.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/ring_big.STL" />
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.6763" />
+      <origin xyz="0 0.081 -0.0086" />
+      <inertia ixx="0.00142022431908" ixy="0" ixz="0" iyy="0.000304335" iyz="0" izz="0.00142022431908" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0.10 -0.006" rpy="-1.5707963267948966 0 0" />
+      <geometry>
+        <capsule radius="0.032" length="0.15" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_3" type="revolute">
+    <parent link="kinova_link_2" />
+    <child link="kinova_link_3" />
+    <axis xyz="0 0 1" />
+    <limit effort="30.5" lower="-62.8318530718" upper="62.8318530718" velocity="15" />
+    <origin rpy="0 3.14159265359 0" xyz="0 -0.410 0" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <link name="kinova_link_4">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/wrist_spherical_1.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/ring_small.STL" />
+      </geometry>
+    </visual>
+    --&gt;
+
+    <inertial>
+      <mass value="0.463" />
+      <origin xyz="0 0.0028848942 -0.0541932613" />
+      <inertia ixx="0.0004321316048" ixy="0" ixz="0" iyy="0.0004321316048" iyz="0" izz="9.26e-05" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0 -0.052" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.038" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_4" type="revolute">
+    <parent link="kinova_link_3" />
+    <child link="kinova_link_4" />
+    <axis xyz="0 0 1" />
+    <limit effort="6.8" lower="-62.8318530718" upper="6.28318530718" velocity="15" />
+    <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.2073 -0.0114" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <link name="kinova_link_5">
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/wrist_spherical_2.dae" />
+      </geometry>
+      <material name="carbon_fiber">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <visual>
+      <geometry>
+        <mesh filename="../kinova/meshes/ring_small.STL" />
+      </geometry>
+    </visual>
+    --&gt;
+
+    <inertial>
+      <mass value="0.463" />
+      <origin xyz="0 0.0497208855 -0.0028562765" />
+      <inertia ixx="0.0004321316048" ixy="0" ixz="0" iyy="9.26e-05" iyz="0" izz="0.0004321316048" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0.052 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.038" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_5" type="revolute">
+    <parent link="kinova_link_4" />
+    <child link="kinova_link_5" />
+    <axis xyz="0 0 1" />
+    <limit effort="6.8" lower="-6.28318530718" upper="62.8318530718" velocity="15" />
+    <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0 -0.10375" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <link name="kinova_link_6">
+    <inertial>
+      <mass value="0.15" />
+      <origin xyz="0 0 -0.0225" />
+      <inertia ixx="8.5e-5" ixy="0" ixz="0" iyy="8.5e-5" iyz="0" izz="1.2e-4" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 -0.0225" />
+      <geometry>
+        <cylinder radius="0.04" length="0.045" />
+      </geometry>
+      <material name="tool_flange">
+        <color rgba="0.22 0.24 0.27 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.0225" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.04" length="0.045" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kinova_joint_6" type="revolute">
+    <parent link="kinova_link_5" />
+    <child link="kinova_link_6" />
+    <axis xyz="0 0 1" />
+    <limit effort="6.8" lower="-62.8318530718" upper="62.8318530718" velocity="15" />
+    <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.10375 0" />
+    <dynamics damping="0.0" friction="0.0" />
+  </joint>
+  <joint name="suction_tool_mount" type="fixed">
+    <parent link="kinova_link_6" />
+    <child link="suction_tool" />
+    <origin xyz="0 0 -0.045" rpy="3.14159265359 0 0" />
+  </joint>
+  <link name="suction_tool">
+    <inertial>
+      <mass value="0.25" />
+      <origin xyz="0 0 0.05" />
+      <inertia ixx="2.5e-4" ixy="0" ixz="0" iyy="2.5e-4" iyz="0" izz="6e-5" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.006" />
+      <geometry>
+        <cylinder radius="0.04" length="0.012" />
+      </geometry>
+      <material name="tool_flange">
+        <color rgba="0.22 0.24 0.27 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0.032 0 0.04" />
+      <geometry>
+        <box size="0.034 0.05 0.044" />
+      </geometry>
+      <material name="ejector">
+        <color rgba="0.16 0.38 0.72 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.056" />
+      <geometry>
+        <cylinder radius="0.0115" length="0.088" />
+      </geometry>
+      <material name="shaft">
+        <color rgba="0.72 0.74 0.77 1" />
+      </material>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.145" rpy="3.14159265359 0 0" />
+      <geometry>
+        <mesh filename="meshes/suction_cup.obj" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.006" />
+      <geometry>
+        <cylinder radius="0.04" length="0.012" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 0.0675" />
+      <geometry>
+        <cylinder radius="0.018" length="0.111" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0 0 0.134" />
+      <geometry>
+        <cylinder radius="0.025" length="0.022" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="suction_tip" />
+  <joint name="suction_tip_joint" type="fixed">
+    <parent link="suction_tool" />
+    <child link="suction_tip" />
+    <origin xyz="0 0 0.145" />
+  </joint>
+  <gripper name="suction_cup" link="suction_tool" type="suction" max_force="80" range="0.005" seal_angle="0.35">
+    <origin xyz="0 0 0.145" />
+    <axis xyz="0 0 1" />
+  </gripper>
+</robot>

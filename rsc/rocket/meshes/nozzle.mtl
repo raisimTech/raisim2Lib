@@ -1,0 +1,6 @@
+newmtl nozzle_metal
+Kd 0.3 0.27 0.25
+Ks 0.6 0.6 0.6
+Ns 60
+d 1
+illum 2

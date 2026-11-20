@@ -1,0 +1,6 @@
+newmtl cup_rubber
+Kd 0.06 0.06 0.065
+Ks 0.15 0.15 0.15
+Ns 20
+d 1
+illum 2
