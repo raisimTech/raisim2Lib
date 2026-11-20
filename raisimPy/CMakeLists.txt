@@ -62,6 +62,13 @@ check_cxx_source_compiles("
         raisim::World world;
         return world.addHeightMap(resource) == nullptr;
     }" RAISIMPY_HAS_SHARED_RESOURCES)
+unset(RAISIMPY_HAS_VOXEL_MAP CACHE)
+check_cxx_source_compiles("
+    #include <raisim/World.hpp>
+    int main() {
+        raisim::World world;
+        return world.addVoxelMap(0.1, {0, 0, 0}, {4, 4, 4}) == nullptr;
+    }" RAISIMPY_HAS_VOXEL_MAP)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 # source files
@@ -82,7 +89,8 @@ target_compile_definitions(raisimpy PRIVATE
     RAISIMPY_VERSION="${raisim_VERSION}"
     RAISIMPY_HAS_WRENCH_SENSORS=$<BOOL:${RAISIMPY_HAS_WRENCH_SENSORS}>
     RAISIMPY_HAS_SEGMENTATION=$<BOOL:${RAISIMPY_HAS_SEGMENTATION}>
-    RAISIMPY_HAS_SHARED_RESOURCES=$<BOOL:${RAISIMPY_HAS_SHARED_RESOURCES}>)
+    RAISIMPY_HAS_SHARED_RESOURCES=$<BOOL:${RAISIMPY_HAS_SHARED_RESOURCES}>
+    RAISIMPY_HAS_VOXEL_MAP=$<BOOL:${RAISIMPY_HAS_VOXEL_MAP}>)
 
 option(RAISIM_PY_RAYRAI "Build the in-process Rayrai Python API" ON)
 if(RAISIM_PY_RAYRAI)

@@ -80,6 +80,8 @@
   "templated_tracked_robot": {"crop": {"cx": 0.5, "cy": 0.55, "zoom": 1.1}, "kind": "server", "start": 4, "viewer_args": []},
   "underwater_rov": {"kind": "server", "start": 6, "viewer_args": ["--camera-lookat", "1.8,-2.7,3.8,-0.15,0.1,2.5", "--force-camera-lookat"]},
   "visual_objects_showcase": {"crop": {"cx": 0.53, "cy": 0.55, "zoom": 2.2}, "kind": "server", "start": 4, "viewer_args": ["--auto-frame"]},
+  "voxel_map_collision": {"kind": "server", "start": 20, "seconds": 10, "viewer_args": ["--camera-lookat", "-7,-7,6,0,0,-0.3", "--force-camera-lookat"], "crop": {"trim": 1.0, "dur": 6.0, "zoom": 1.3, "cx": 0.5, "cy": 0.5}},
+  "voxel_map_ray_casting": {"kind": "server", "start": 4, "viewer_args": ["--camera-lookat", "-12,-12,10,0,0,1", "--force-camera-lookat"], "crop": {"zoom": 1.2, "cx": 0.5, "cy": 0.5}},
   "wheeled_robot_force_control": {"crop": {"cx": 0.5, "cy": 0.45, "zoom": 1.25}, "kind": "server", "start": 4, "viewer_args": ["--auto-frame"]},
   "xml_templated_world": {"crop": {"cx": 0.5, "cy": 0.6, "zoom": 1.2}, "kind": "server", "start": 4, "viewer_args": []},
   "xml_world_loader": {"crop": {"cx": 0.5, "cy": 0.6, "zoom": 1.1}, "kind": "server", "start": 4, "viewer_args": []},

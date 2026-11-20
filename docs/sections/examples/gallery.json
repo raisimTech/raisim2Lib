@@ -108,13 +108,15 @@
     {
       "id": "terrain",
       "title": "Terrain",
-      "description": "Deformable soil, height maps and granular media.",
+      "description": "Deformable soil, height maps, voxel maps and granular media.",
       "examples": [
         "rayrai/rayrai_deformable_terrain",
         "server/granular_media",
         "server/dynamic_heightmap",
         "server/procedural_heightmap",
-        "server/heightmap_from_png"
+        "server/heightmap_from_png",
+        "server/voxel_map_ray_casting",
+        "server/voxel_map_collision"
       ]
     },
     {

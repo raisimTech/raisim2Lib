@@ -71,7 +71,11 @@ void init_object(py::module_ &m) {
 	    .value("ARTICULATED_SYSTEM", raisim::ObjectType::ARTICULATED_SYSTEM)
         .value("DEFORMABLE", raisim::ObjectType::DEFORMABLE)
         .value("GRANULAR", raisim::ObjectType::GRANULAR)
-        .value("UNRECOGNIZED", raisim::ObjectType::UNRECOGNIZED);
+        .value("UNRECOGNIZED", raisim::ObjectType::UNRECOGNIZED)
+#if RAISIMPY_HAS_VOXEL_MAP
+        .value("VOXELMAP", raisim::ObjectType::VOXELMAP)
+#endif
+        ;
 
     /*********************/
     /* MeshCollisionMode */

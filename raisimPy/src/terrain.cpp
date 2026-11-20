@@ -50,6 +50,10 @@ namespace py = nanobind;
 using namespace raisim;
 
 
+#if RAISIMPY_HAS_VOXEL_MAP
+void init_voxel_map(py::module_& m);
+#endif
+
 void init_terrain(py::module_ &m) {
 
     /***********/
@@ -259,4 +263,7 @@ void init_terrain(py::module_ &m) {
         .def("getColorMap", &raisim::HeightMap::getColorMap)
         .def("getColor", &raisim::HeightMap::getColor, py::arg("x"), py::arg("y"));
 
+#if RAISIMPY_HAS_VOXEL_MAP
+    init_voxel_map(m);
+#endif
 }

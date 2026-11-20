@@ -7,6 +7,10 @@ using namespace raisim;
 void init_segmentation_world(py::class_<World>& world);
 #endif
 
+#if RAISIMPY_HAS_VOXEL_MAP
+void init_voxel_map_world(py::class_<World>& world);
+#endif
+
 void init_runtime_joint_world(py::class_<World>& world);
 void init_articulated_join_world(py::class_<World>& world);
 void init_force_devices_world(py::class_<World>& world);
@@ -17,6 +21,9 @@ void init_world_extensions(py::module_& m, py::class_<World>& world) {
     init_force_devices_world(world);
 #if RAISIMPY_HAS_SEGMENTATION
     init_segmentation_world(world);
+#endif
+#if RAISIMPY_HAS_VOXEL_MAP
+    init_voxel_map_world(world);
 #endif
     py::class_<World::Checkpoint>(world, "Checkpoint")
         .def(py::init<>())

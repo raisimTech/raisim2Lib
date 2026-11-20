@@ -110,6 +110,8 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Underwater ROV', link: '/sections/examples/server/underwater_rov.md' },
               { text: 'Templated Tracked Robot', link: '/sections/examples/server/templated_tracked_robot.md' },
               { text: 'Visual Objects Showcase', link: '/sections/examples/server/visual_objects_showcase.md' },
+              { text: 'Voxel Map Collision', link: '/sections/examples/server/voxel_map_collision.md' },
+              { text: 'Voxel Map Ray Casting', link: '/sections/examples/server/voxel_map_ray_casting.md' },
               { text: 'Wheeled Robot Force Control', link: '/sections/examples/server/wheeled_robot_force_control.md' },
               { text: 'YCB Objects', link: '/sections/examples/server/ycb_objects.md' },
             ],
@@ -275,6 +277,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'Height Map Using a Text File', link: '/sections/HeightMap_example_txt.md' },
         ],
       },
+      { text: 'Voxel Map', link: '/sections/VoxelMap.md' },
       { text: 'Deformable terrain', link: '/sections/DeformableTerrain.md' },
       {
         text: 'Constraints',

@@ -202,8 +202,14 @@ bits are:
   (`xOffset`, then `yOffset`, as two 32-bit integers) right after its lens
   parameters, and the viewer shifts its rendered image the same way the CPU
   cameras shift their rays.
+- `PROTOCOL_FEATURE_VOXEL_MAPS`: voxel maps ([Voxel Map](./VoxelMap.md)) are
+  sent with the other objects. Without it the server leaves them out of the
+  scene. The occupancy goes out as the map's stored 16 x 16 x 16 bricks, with
+  completely empty and completely full 4 x 4 x 4 blocks sent as bits, on the
+  first record and again after the map is edited; the viewer builds the
+  surface from it.
 
-The rayrai TCP viewer negotiates all twelve bits automatically.
+The rayrai TCP viewer negotiates all fourteen bits automatically.
 `sendUpdateRequest()` in `rayrai/RaisimTcpCommon.hpp` advertises every bit
 the client build supports; a custom client that writes its own request frames
 may advertise any subset (see [Rayrai TCP Viewer](./RayraiTcpViewer.md)).

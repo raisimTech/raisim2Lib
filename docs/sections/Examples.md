@@ -168,6 +168,8 @@ feature page:
 | --- | --- |
 | `heightmap_mesh_drop` | Twenty monkey meshes with triangle-mesh collision dropped one at a time onto a colored procedural heightmap. |
 | `blocky_heightmap_drop` | 900 primitives and convex-hull meshes dropped onto a heightmap made of flat 0.4 m tiles. |
+| `voxel_map_ray_casting` | A spinning lidar and a probe ray scan a voxel map with hills, a hut, an arch and a tunnel; see [Voxel Map](./VoxelMap.md). |
+| `voxel_map_collision` | Primitives, convex meshes and triangle meshes fall onto voxel stairs, walls, rubble and a pit while craters are carved and refilled; see [Voxel Map](./VoxelMap.md). |
 | `large_scale_ray_test` | Repeated ray queries against walls and pillars; see [Ray Test](./RayTest.md). |
 | `rayrai_blue_wall_scene` | An authored glTF interior with its light sidecar and HDR environment, described by `rsc/rayrai/blue_wall/blue_wall.rscene`. The example reads that file with its own parser; `raisim::World(path)` and a `RayraiWindow` on that world load it as well (see [.rscene File](./RsceneFile.md)). `--screenshot PNG` renders in a hidden window, saves the image, and exits. |
 
