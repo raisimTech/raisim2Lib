@@ -1,15 +1,12 @@
 // Copyright (c) 2026 Raion Robotics Inc. All rights reserved.
 // Compare RGB and segmentation from the same camera and physics snapshot.
-// Run normally for the interactive app, or use --screenshot comparison.png to save and exit.
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <filesystem>
+#include <exception>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
-#include <string>
 #include <vector>
 
 #include "raisim/World.hpp"
@@ -80,31 +77,7 @@ void legendEntry(const char* name, int32_t id) {
   ImGui::SameLine(0, 18);
 }
 
-// Both readbacks use top-left row order. RGB readback is BGRA; PNG expects RGBA.
-void saveComparison(raisin::Camera& camera, const std::vector<unsigned char>& segmentation,
-                    const std::filesystem::path& path) {
-  std::vector<char> bgra(size_t(kWidth) * kHeight * 4);
-  camera.readSceneColorBgra(bgra.data(), bgra.size());
-  std::vector<unsigned char> combined(size_t(kWidth) * kHeight * 8);
-  for (int y = 0; y < kHeight; ++y) {
-    const size_t src = size_t(y) * kWidth * 4;
-    const size_t dst = size_t(y) * kWidth * 8;
-    for (int x = 0; x < kWidth; ++x) {
-      const size_t pixel = size_t(x) * 4;
-      combined[dst + pixel] = static_cast<unsigned char>(bgra[src + pixel + 2]);
-      combined[dst + pixel + 1] = static_cast<unsigned char>(bgra[src + pixel + 1]);
-      combined[dst + pixel + 2] = static_cast<unsigned char>(bgra[src + pixel]);
-      combined[dst + pixel + 3] = 255;
-    }
-    std::copy_n(segmentation.data() + src, kWidth * 4, combined.data() + dst + kWidth * 4);
-  }
-  if (path.has_parent_path()) std::filesystem::create_directories(path.parent_path());
-  if (!stbi_write_png(path.string().c_str(), kWidth * 2, kHeight, 4, combined.data(), kWidth * 8))
-    throw std::runtime_error("Cannot write " + path.string());
-  std::cout << "Saved " << path << " (RGB left, segmentation right)\n";
-}
-
-void run(ExampleApp& app, const std::filesystem::path& screenshot) {
+void run(ExampleApp& app) {
   int mode = 0;
   auto world = std::make_shared<raisim::World>();
   auto ground = world->addGround();
@@ -166,7 +139,6 @@ void run(ExampleApp& app, const std::filesystem::path& screenshot) {
   SegmentationPreview preview;
   float azimuth = -80.f;
   bool rotate = false;
-  int frame = 0;
   while (!app.quit) {
     app.processEvents();
     if (app.quit) break;
@@ -238,32 +210,18 @@ void run(ExampleApp& app, const std::filesystem::path& screenshot) {
     gl::glClearColor(0.06f, 0.07f, 0.09f, 1.f);
     gl::glClear(gl::GL_COLOR_BUFFER_BIT);
     app.endFrame();
-    if (!screenshot.empty() && ++frame == 3) {
-      saveComparison(camera, rgba, screenshot);
-      break;
-    }
   }
   // GL resources above are destroyed while ExampleApp's context is still current.
 }
 }  // namespace
 
-int main(int argc, char* argv[]) {
-  std::filesystem::path screenshot;
-  for (int i = 1; i < argc; ++i) {
-    const std::string arg = argv[i];
-    if (arg == "--screenshot" && i + 1 < argc) screenshot = argv[++i];
-    else {
-      const bool help = arg == "--help";
-      std::cout << "Usage: " << argv[0] << " [--screenshot comparison.png]\n";
-      return help ? 0 : 1;
-    }
-  }
+int main() {
   ExampleApp app;
-  if (!app.init("Rayrai RGB and Segmentation", 1320, 600, screenshot.empty())) return 1;
+  if (!app.init("Rayrai RGB and Segmentation", 1320, 600)) return 1;
   ImGui::GetIO().IniFilename = nullptr;
   int result = 0;
   try {
-    run(app, screenshot);
+    run(app);
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     result = 1;

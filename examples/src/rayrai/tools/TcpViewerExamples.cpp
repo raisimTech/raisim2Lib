@@ -79,7 +79,6 @@ std::string stripTerminalEscapes(const std::string& text) {
 
 namespace {
 
-// Whether address is an IPv4 address of this computer: only those can be bound.
 bool isLocalAddress(const std::string& address) {
   sockaddr_in local{};
   local.sin_family = AF_INET;
@@ -232,7 +231,6 @@ void ExampleLauncher::poll(const std::vector<DiscoveredServer>& beacons) {
 
 namespace {
 EM_JS_DEPS(rayrai_examples, "$stringToNewUTF8,$UTF8ToString");
-// The page's example runtime (web/viewer-examples.mjs) runs each example in its own worker.
 EM_JS(char*, pageExampleManifest, (), {
   const examples = Module['rayraiExamples'];
   return stringToNewUTF8(examples ? examples['manifest']() : '');

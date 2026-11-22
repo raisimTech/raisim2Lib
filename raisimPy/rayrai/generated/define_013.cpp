@@ -2,6 +2,33 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_013(py::module_& m) {
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"roughnessFactor", &raisin::Material::roughnessFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"ao", &raisin::Material::ao);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissiveFactor", &raisin::Material::emissiveFactor);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"iblStrength", &raisin::Material::iblStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"environmentMapStrength", &raisin::Material::environmentMapStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"environmentBoxProjection", &raisin::Material::environmentBoxProjection);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"environmentProbePosition", &raisin::Material::environmentProbePosition);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"environmentBoxMin", &raisin::Material::environmentBoxMin);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"environmentBoxMax", &raisin::Material::environmentBoxMax);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"normalStrength", &raisin::Material::normalStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"normalMapYScale", &raisin::Material::normalMapYScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"bentNormalStrength", &raisin::Material::bentNormalStrength);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"normalMapConvention", &raisin::Material::normalMapConvention);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"alphaMode", &raisin::Material::alphaMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"blendMode", &raisin::Material::blendMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"renderPriority", &raisin::Material::renderPriority);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"nextPass", &raisin::Material::nextPass);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"alphaCutoff", &raisin::Material::alphaCutoff);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"alphaHashScale", &raisin::Material::alphaHashScale);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"alphaAntialiasing", &raisin::Material::alphaAntialiasing);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"alphaAntialiasingEdge", &raisin::Material::alphaAntialiasingEdge);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"distanceFadeMode", &raisin::Material::distanceFadeMode);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"distanceFadeMin", &raisin::Material::distanceFadeMin);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"distanceFadeMax", &raisin::Material::distanceFadeMax);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"proximityFadeEnabled", &raisin::Material::proximityFadeEnabled);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"proximityFadeDistance", &raisin::Material::proximityFadeDistance);}
+{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoStrength", &raisin::Material::aoStrength);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"aoLightAffect", &raisin::Material::aoLightAffect);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissiveStrength", &raisin::Material::emissiveStrength);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"emissionOperator", &raisin::Material::emissionOperator);}
@@ -30,32 +57,5 @@ void define_013(py::module_& m) {
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uvScaleOffset", &raisin::Material::uvScaleOffset);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uvRotation", &raisin::Material::uvRotation);}
 {auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2ScaleOffset", &raisin::Material::uv2ScaleOffset);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"uv2Rotation", &raisin::Material::uv2Rotation);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureRepeatMode", &raisin::Material::textureRepeatMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureFilter", &raisin::Material::textureFilter);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"textureFilterAnisotropy", &raisin::Material::textureFilterAnisotropy);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"albedoTextureForceSrgb", &raisin::Material::albedoTextureForceSrgb);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"albedoTextureMsdf", &raisin::Material::albedoTextureMsdf);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"msdfPixelRange", &raisin::Material::msdfPixelRange);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"msdfOutlineSize", &raisin::Material::msdfOutlineSize);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"billboardMode", &raisin::Material::billboardMode);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"billboardKeepScale", &raisin::Material::billboardKeepScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particlesAnimHFrames", &raisin::Material::particlesAnimHFrames);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particlesAnimVFrames", &raisin::Material::particlesAnimVFrames);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particlesAnimLoop", &raisin::Material::particlesAnimLoop);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particlesAnimFrameProgress", &raisin::Material::particlesAnimFrameProgress);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particleTrailsEnabled", &raisin::Material::particleTrailsEnabled);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particleTrailLength", &raisin::Material::particleTrailLength);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particleTrailTaper", &raisin::Material::particleTrailTaper);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"particleTrailWorldDirection", &raisin::Material::particleTrailWorldDirection);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"fixedSize", &raisin::Material::fixedSize);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"fixedSizeScale", &raisin::Material::fixedSizeScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"usePointSize", &raisin::Material::usePointSize);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"pointSize", &raisin::Material::pointSize);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"useZClipScale", &raisin::Material::useZClipScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"zClipScale", &raisin::Material::zClipScale);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"useFovOverride", &raisin::Material::useFovOverride);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"fovOverrideDegrees", &raisin::Material::fovOverrideDegrees);}
-{auto c=bound_class<raisin::Material>(m, "Material"); field(c,"triplanarEnabled", &raisin::Material::triplanarEnabled);}
 }
 }

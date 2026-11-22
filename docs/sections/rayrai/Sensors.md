@@ -285,7 +285,7 @@ training observations. The GPU LiDAR scans the collision geometry, exactly like 
 - `measureSpinningLidarSingleDrawGPU` advances the LiDAR head with
   `SpinningLidar::advanceSweep` and casts the swept rays on the GPU against
   the collision bodies of the world (`World::getRayCastBodies`): primitives,
-  heightmaps and meshes, intersected exactly. It returns the points of
+  heightmaps, meshes and voxel maps, intersected exactly. It returns the points of
   `SpinningLidar::update`, ray by ray and in the same order, to float
   precision (about 1e-5 of the range), and stores them in the sensor frame with
   `SpinningLidar::setScan`. As on the CPU, rays start at the minimum range and
@@ -303,6 +303,15 @@ almost for free; a CPU update costs about 0.1 to 0.3 µs per ray. For an Ouster
 OS1-64 (32,768 rays per turn) over a heightmap, updating at the sensor's 100 Hz
 rate, the GPU path is about 8 to 9 times faster; called every 1 ms physics step
 (330 rays per update) the two are about even.
+
+Voxel maps cost the GPU less than heightmaps: a full OS1-64 turn over an 84 m × 84 m
+voxel terrain takes 0.4 to 0.5 ms on an RTX 2070 SUPER (0.8 ms over the same terrain as a
+heightmap), against 9 to 10 ms on the CPU. Rays follow the CPU's rules on voxel faces,
+edges and corners: a ray along an edge or through a corner enters only the voxels beyond
+it. A voxel map is uploaded on its first scan; after that, an edit uploads only the
+16³-voxel bricks it changed, so a turn right after carving or filling a sphere takes
+0.44 to 0.51 ms. See [Voxel ray casting](../BenchmarkVoxelRayCasting.md) for comparisons with
+other voxel libraries.
 
 1. GPU: `measureSpinningLidarSingleDrawGPU`, preferred when rayrai is
    available and each update casts a few thousand rays or more.

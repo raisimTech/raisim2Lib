@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_005(py::module_& m) {
+py::class_<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings");
+py::class_<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings");
+py::class_<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState");
 py::class_<raisin::Visuals::FrameCacheMaterialStateMemo>(m.attr("Visuals"), "FrameCacheMaterialStateMemo");
 py::class_<raisin::Visuals::MaterialSortKeys>(m.attr("Visuals"), "MaterialSortKeys");
 py::enum_<raisin::Visuals::ShadowCastingMode>(m.attr("Visuals"), "ShadowCastingMode").value("Off", raisin::Visuals::ShadowCastingMode::Off).value("On", raisin::Visuals::ShadowCastingMode::On).value("DoubleSided", raisin::Visuals::ShadowCastingMode::DoubleSided).value("ShadowsOnly", raisin::Visuals::ShadowCastingMode::ShadowsOnly);

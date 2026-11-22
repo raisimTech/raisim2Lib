@@ -19,6 +19,7 @@ records=json.loads((OUT.parent/'api.json').read_text())
 index={r['name']:r for r in records if r['kind'] not in ('FunctionDecl','FunctionTemplate')}
 GPU=set('raisin::RayraiWindow raisin::Camera raisin::Light raisin::Visuals raisin::InstancedVisuals raisin::PointCloud raisin::CoordinateFrame raisin::CameraFrustum OpenGLMesh Shader raisin::RayraiGlobalAsset raisin::RaisimObject raisin::RayraiWindow::SynchronousMeshLoadingScope raisin::RayraiWindow::VisualMeshBuilder'.split())
 # These are renderer implementation components, not the application interface.
+SPAN_ENTRY_POINTS={('raisin::InstancedVisuals','setPreparedMeshLodsFromData')}
 INTERNAL=set('raisin::ScopedTightPixelUnpack raisin::CloudTextures raisin::SkyAtmosphereSystem raisin::WeightedOitSystem raisin::ScreenSpaceRefractionSystem raisin::ScreenSpaceDepthCopySystem raisin::LensDropletCompositeSystem raisin::RayraiWindow::ExternalFrameCache raisin::RayraiWindow::StaticSceneLayerCache'.split())
 def public(r):
  q=r['name']
@@ -119,6 +120,8 @@ def emit_method(q,m,free=False):
  if m.get('deleted') or name.startswith('operator') :
   log(q,m,'excluded','C++ assignment, deleted, or move-only overload');return
  if name in manual.get(q,set()):log(q,m,'manual');return
+ if (q,name) in SPAN_ENTRY_POINTS:
+  log(q,m,'excluded','Pointer/count entry point behind the bound std::span overload');return
  if q in value_names and any(re.search(r'(?<![\w:])'+re.escape(g)+r'(?![\w:])',m.get('resultcanonical','')) for g in GPU):
   raise SystemExit('Unmanaged GPU return requires an adapter: '+q+'::'+name)
  if any('rayrai_internal::' in a['canonical'] for a in m['args']):

@@ -713,7 +713,6 @@ void forEachScalarSetting(Settings& s, Visitor&& visit) {
 using SettingIndexFromName = int (*)(const std::string&, int);
 using SettingName = const char* (*)(int);
 
-/** Assigns the setting whose key matches, keeping the old value when unparsable. */
 struct SettingLoader {
   const std::string& key;
   const std::string& value;
@@ -746,7 +745,6 @@ struct SettingLoader {
   }
 };
 
-/** Writes one `key: value` line per setting. */
 struct SettingWriter {
   std::ostream& output;
 
@@ -772,7 +770,6 @@ namespace {
 
 #if defined(__EMSCRIPTEN__)
 EM_JS_DEPS(rayrai_viewer_settings, "$stringToNewUTF8,$UTF8ToString");
-// A browser page's files last only as long as the page, so the settings live in its local storage.
 EM_JS(char*, pageStoredViewerSettings, (), {
   try {
     const text = globalThis.localStorage.getItem("rayrai-tcp-viewer-settings");
@@ -824,7 +821,6 @@ void readViewerSettings(std::istream& input, ViewerSettings& settings) {
       settings.paneLayout = value;
     }
     else if (key == "pane_endpoint") {
-      // "<pane id> <host>:<port>"
       const size_t space = value.find(' ');
       ConnectionEntry entry;
       if (space != std::string::npos && parseConnectionLabel(value.substr(space + 1), entry)) {

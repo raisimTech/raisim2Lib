@@ -299,6 +299,10 @@ bouncing ball from a captured checkpoint.
 and restore between complete steps. Checkpoints belong to their original
 world, and topology changes invalidate them. `captureSingleBodySnapshot`
 returns a snapshot directly; restore accepts an object or stable object ID.
+For a compound snapshot, assigning `material`, `collisionGroup`, or
+`collisionMask` applies that property to every child on restore. This also
+applies when the assigned value matches the first child's saved value. Each
+property left alone is restored from the saved value for each child.
 
 Python method names normally match C++. The physics bindings are under
 `raisimPy/src`; renderer bindings and their inventory are under `raisimPy/rayrai`.

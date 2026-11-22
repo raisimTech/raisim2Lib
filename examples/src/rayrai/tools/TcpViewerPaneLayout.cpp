@@ -133,7 +133,7 @@ bool PaneLayout::close(uint32_t pane) {
   if (!contains(pane) || paneCount() <= 1) return false;
 
   const uint32_t parent = nodes_[pane].parent;
-  if (parent == 0) return false; // the only pane is the root; guarded above
+  if (parent == 0) return false;
 
   const Node parentCopy = nodes_[parent];
   const uint32_t sibling = parentCopy.first == pane ? parentCopy.second : parentCopy.first;
@@ -274,7 +274,7 @@ bool PaneLayout::parseNode(const std::string& text, size_t& pos,
     const unsigned long value = std::strtoul(text.substr(start, pos - start).c_str(), nullptr, 10);
     if (value == 0 || value >= kFirstPlaceholderId) return false;
     const auto id = static_cast<uint32_t>(value);
-    if (nodes.count(id) != 0) return false; // duplicate pane id
+    if (nodes.count(id) != 0) return false;
     Node leaf;
     leaf.leaf = true;
     leaf.parent = parent;
@@ -292,7 +292,7 @@ bool PaneLayout::parseNode(const std::string& text, size_t& pos,
   char* ratioEnd = nullptr;
   const float ratio = std::strtof(ratioText.c_str(), &ratioEnd);
   if (ratioEnd == nullptr || *ratioEnd != '\0') return false;
-  ++pos; // consume '('
+  ++pos;
 
   // The split node needs an id before its children so they can point at it, but
   // its id must not collide with a pane id that appears later in the text. Take
@@ -329,8 +329,6 @@ bool PaneLayout::deserialize(const std::string& text) {
   if (!parseNode(text, pos, parsed, 0, nextId, root, 0)) return false;
   if (pos != text.size()) return false;
 
-  // Renumber the placeholder ids handed to split nodes into the shared id space,
-  // now that every pane id in the text is known.
   std::unordered_map<uint32_t, uint32_t> remap;
   for (const auto& [id, node] : parsed) {
     (void)node;

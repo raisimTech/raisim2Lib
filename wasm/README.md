@@ -31,6 +31,8 @@ unzip webassembly-sdk-<version>.zip && mv webassembly-sdk-<version> sdk
 
 ## 2. Build
 
+Use a single-config CMake generator such as Ninja and set the build type to `Release`.
+
 ```bash
 emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel

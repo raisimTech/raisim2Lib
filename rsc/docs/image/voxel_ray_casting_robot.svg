@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="614" viewBox="0 0 960 614" role="img" aria-labelledby="title desc">
+  <title id="title">LiDAR cost per second of simulated time</title>
+  <desc id="desc">Three panels, one per terrain, with two lines each: the milliseconds of LiDAR per simulated second on one CPU core and on the GPU when an Ouster OS1-64&#x27;s 10 turns per second are cast in 10, 100 or 1,000 updates. The CPU line stays near 100 ms; the GPU line rises from a few milliseconds and crosses it before 1,000 updates per second.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="614" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">LiDAR cost per second of simulated time</text>
+  <text x="32.0" y="76.0" class="subtitle">An Ouster OS1-64 at 10 turns per second on ANYmal · lower is better · median of three runs</text>
+  <line x1="32" y1="112" x2="56" y2="112" stroke="#2a78d6" stroke-width="2"/>
+  <circle cx="44" cy="112" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"/>
+  <text x="64.0" y="118.0" class="label">RaiSim, one CPU core</text>
+  <line x1="310.0" y1="112" x2="334.0" y2="112" stroke="#eb6834" stroke-width="2"/>
+  <circle cx="322.0" cy="112" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"/>
+  <text x="342.0" y="118.0" class="label">rayrai, GPU</text>
+  <text x="92.0" y="170.0" class="panel">Voxel map, 0.10 m</text>
+  <line x1="92.0" y1="496.0" x2="346.7" y2="496.0" class="grid"/>
+  <text x="82.0" y="502.0" text-anchor="end" class="tick">0</text>
+  <line x1="92.0" y1="421.0" x2="346.7" y2="421.0" class="grid"/>
+  <text x="82.0" y="427.0" text-anchor="end" class="tick">50</text>
+  <line x1="92.0" y1="346.0" x2="346.7" y2="346.0" class="grid"/>
+  <text x="82.0" y="352.0" text-anchor="end" class="tick">100</text>
+  <line x1="92.0" y1="271.0" x2="346.7" y2="271.0" class="grid"/>
+  <text x="82.0" y="277.0" text-anchor="end" class="tick">150</text>
+  <line x1="92.0" y1="196.0" x2="346.7" y2="196.0" class="grid"/>
+  <text x="82.0" y="202.0" text-anchor="end" class="tick">200</text>
+  <line x1="92.0" y1="496" x2="346.7" y2="496" class="axis"/>
+  <text x="116.0" y="522.0" text-anchor="middle" class="tick">10</text>
+  <text x="219.3" y="522.0" text-anchor="middle" class="tick">100</text>
+  <text x="322.7" y="522.0" text-anchor="middle" class="tick">1,000</text>
+  <polyline points="116.0,356.5 219.3,346.9 322.7,334.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="116.0" cy="356.5" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, CPU, 10: 93 ms</title></circle>
+  <circle cx="219.3" cy="346.9" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, CPU, 100: 99 ms</title></circle>
+  <circle cx="322.7" cy="334.0" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, CPU, 1,000: 108 ms</title></circle>
+  <polyline points="116.0,489.9 219.3,465.7 322.7,242.5" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="116.0" cy="489.9" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, GPU, 10: 4.1 ms</title></circle>
+  <circle cx="219.3" cy="465.7" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, GPU, 100: 20 ms</title></circle>
+  <circle cx="322.7" cy="242.5" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.10 m, GPU, 1,000: 169 ms</title></circle>
+  <text x="110.0" y="340.5" class="value">93 ms</text>
+  <text x="110.0" y="473.9" class="value">4.1 ms</text>
+  <text x="328.7" y="362.0" text-anchor="end" class="value">108 ms</text>
+  <text x="328.7" y="226.5" text-anchor="end" class="value">169 ms</text>
+  <text x="386.7" y="170.0" class="panel">Voxel map, 0.05 m</text>
+  <line x1="386.7" y1="496.0" x2="641.3" y2="496.0" class="grid"/>
+  <line x1="386.7" y1="421.0" x2="641.3" y2="421.0" class="grid"/>
+  <line x1="386.7" y1="346.0" x2="641.3" y2="346.0" class="grid"/>
+  <line x1="386.7" y1="271.0" x2="641.3" y2="271.0" class="grid"/>
+  <line x1="386.7" y1="196.0" x2="641.3" y2="196.0" class="grid"/>
+  <line x1="386.7" y1="496" x2="641.3" y2="496" class="axis"/>
+  <text x="410.7" y="522.0" text-anchor="middle" class="tick">10</text>
+  <text x="514.0" y="522.0" text-anchor="middle" class="tick">100</text>
+  <text x="617.3" y="522.0" text-anchor="middle" class="tick">1,000</text>
+  <polyline points="410.7,344.2 514.0,334.8 617.3,322.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="410.7" cy="344.2" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, CPU, 10: 101 ms</title></circle>
+  <circle cx="514.0" cy="334.8" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, CPU, 100: 108 ms</title></circle>
+  <circle cx="617.3" cy="322.0" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, CPU, 1,000: 116 ms</title></circle>
+  <polyline points="410.7,489.1 514.0,463.0 617.3,227.5" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="410.7" cy="489.1" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, GPU, 10: 4.6 ms</title></circle>
+  <circle cx="514.0" cy="463.0" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, GPU, 100: 22 ms</title></circle>
+  <circle cx="617.3" cy="227.5" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Voxel map, 0.05 m, GPU, 1,000: 179 ms</title></circle>
+  <text x="404.7" y="328.2" class="value">101 ms</text>
+  <text x="404.7" y="473.1" class="value">4.6 ms</text>
+  <text x="623.3" y="350.0" text-anchor="end" class="value">116 ms</text>
+  <text x="623.3" y="211.5" text-anchor="end" class="value">179 ms</text>
+  <text x="681.3" y="170.0" class="panel">Heightmap, 0.5 m cells</text>
+  <line x1="681.3" y1="496.0" x2="936.0" y2="496.0" class="grid"/>
+  <line x1="681.3" y1="421.0" x2="936.0" y2="421.0" class="grid"/>
+  <line x1="681.3" y1="346.0" x2="936.0" y2="346.0" class="grid"/>
+  <line x1="681.3" y1="271.0" x2="936.0" y2="271.0" class="grid"/>
+  <line x1="681.3" y1="196.0" x2="936.0" y2="196.0" class="grid"/>
+  <line x1="681.3" y1="496" x2="936.0" y2="496" class="axis"/>
+  <text x="705.3" y="522.0" text-anchor="middle" class="tick">10</text>
+  <text x="808.7" y="522.0" text-anchor="middle" class="tick">100</text>
+  <text x="912.0" y="522.0" text-anchor="middle" class="tick">1,000</text>
+  <polyline points="705.3,362.2 808.7,352.8 912.0,341.5" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="705.3" cy="362.2" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, CPU, 10: 89 ms</title></circle>
+  <circle cx="808.7" cy="352.8" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, CPU, 100: 96 ms</title></circle>
+  <circle cx="912.0" cy="341.5" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, CPU, 1,000: 103 ms</title></circle>
+  <polyline points="705.3,483.7 808.7,461.4 912.0,263.5" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="705.3" cy="483.7" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, GPU, 10: 8.2 ms</title></circle>
+  <circle cx="808.7" cy="461.4" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, GPU, 100: 23 ms</title></circle>
+  <circle cx="912.0" cy="263.5" r="4.5" fill="#eb6834" stroke="#fff" stroke-width="2"><title>Heightmap, 0.5 m cells, GPU, 1,000: 155 ms</title></circle>
+  <text x="699.3" y="346.2" class="value">89 ms</text>
+  <text x="699.3" y="467.7" class="value">8.2 ms</text>
+  <text x="918.0" y="369.5" text-anchor="end" class="value">103 ms</text>
+  <text x="918.0" y="247.5" text-anchor="end" class="value">155 ms</text>
+  <text x="22" y="346.0" transform="rotate(-90 22 346.0)" text-anchor="middle" class="note">LiDAR milliseconds per simulated second</text>
+  <text x="514.0" y="556.0" text-anchor="middle" class="note">Updates per second (the same 655,360 rays per second, split into more, smaller updates)</text>
+  <text x="32.0" y="598.0" class="note">Each GPU update waits about 0.15 ms for its ranges, however few rays it casts.</text>
+</svg>

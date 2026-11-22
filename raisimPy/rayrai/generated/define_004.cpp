@@ -2,6 +2,8 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_004(py::module_& m) {
+{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherMaskMapped", &OpenGLMesh::MeshDiagnostics::weatherMaskMapped);}
+{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherPorosity", &OpenGLMesh::MeshDiagnostics::weatherPorosity);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherSkipReason", &OpenGLMesh::MeshDiagnostics::weatherSkipReason);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"depthTestMode", &OpenGLMesh::MeshDiagnostics::depthTestMode);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"depthTestOverride", &OpenGLMesh::MeshDiagnostics::depthTestOverride);}
@@ -55,7 +57,5 @@ void define_004(py::module_& m) {
 {auto c=bound_class<raisin::AdditionalLight>(m, "AdditionalLight"); field(c,"spotInnerCos", &raisin::AdditionalLight::spotInnerCos);}
 {auto c=bound_class<raisin::AdditionalLight>(m, "AdditionalLight"); field(c,"spotOuterCos", &raisin::AdditionalLight::spotOuterCos);}
 {auto c=bound_class<raisin::AdditionalLight>(m, "AdditionalLight"); field(c,"radius", &raisin::AdditionalLight::radius);}
-{auto c=bound_class<raisin::AdditionalLight>(m, "AdditionalLight"); field(c,"areaSize", &raisin::AdditionalLight::areaSize);}
-{auto c=bound_class<raisin::AdditionalLight>(m, "AdditionalLight"); field(c,"areaRight", &raisin::AdditionalLight::areaRight);}
 }
 }

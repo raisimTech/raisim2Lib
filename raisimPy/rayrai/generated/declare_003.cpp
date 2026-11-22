@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_003(py::module_& m) {
+py::class_<raisin::Material::ParallaxSettings>(m.attr("Material"), "ParallaxSettings");
+py::enum_<raisin::Material::ShadingModel>(m.attr("Material"), "ShadingModel").value("Standard", raisin::Material::ShadingModel::Standard).value("Lambert", raisin::Material::ShadingModel::Lambert).value("Toon", raisin::Material::ShadingModel::Toon).value("Unlit", raisin::Material::ShadingModel::Unlit);
+py::enum_<raisin::Material::SpecularMode>(m.attr("Material"), "SpecularMode").value("SchlickGgx", raisin::Material::SpecularMode::SchlickGgx).value("Toon", raisin::Material::SpecularMode::Toon).value("Disabled", raisin::Material::SpecularMode::Disabled);
 py::enum_<raisin::Material::StencilCompare>(m.attr("Material"), "StencilCompare").value("Always", raisin::Material::StencilCompare::Always).value("Less", raisin::Material::StencilCompare::Less).value("Equal", raisin::Material::StencilCompare::Equal).value("LessOrEqual", raisin::Material::StencilCompare::LessOrEqual).value("Greater", raisin::Material::StencilCompare::Greater).value("NotEqual", raisin::Material::StencilCompare::NotEqual).value("GreaterOrEqual", raisin::Material::StencilCompare::GreaterOrEqual);
 py::enum_<raisin::Material::StencilEffectMode>(m.attr("Material"), "StencilEffectMode").value("Disabled", raisin::Material::StencilEffectMode::Disabled).value("Outline", raisin::Material::StencilEffectMode::Outline).value("Xray", raisin::Material::StencilEffectMode::Xray).value("Custom", raisin::Material::StencilEffectMode::Custom);
 py::class_<raisin::Material::TextureBindingInfo>(m.attr("Material"), "TextureBindingInfo");
@@ -34,8 +37,5 @@ py::class_<raisin::RayraiWindow::ReflectionProbe>(m.attr("RayraiWindow"), "Refle
 py::class_<raisin::RayraiWindow::ReflectionProbeBlend>(m.attr("RayraiWindow"), "ReflectionProbeBlend");
 py::class_<raisin::RayraiWindow::ReflectionProbeCaptureFrame>(m.attr("RayraiWindow"), "ReflectionProbeCaptureFrame");
 py::class_<raisin::RayraiWindow::ReflectionProbeCaptureSettings>(m.attr("RayraiWindow"), "ReflectionProbeCaptureSettings");
-py::class_<raisin::RayraiWindow::ReflectionProbeDebugItem>(m.attr("RayraiWindow"), "ReflectionProbeDebugItem");
-py::class_<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary");
-py::class_<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView");
 }
 }

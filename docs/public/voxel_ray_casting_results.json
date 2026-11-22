@@ -1,0 +1,525 @@
+{
+  "about": "Recorded results of the voxel ray casting benchmark (sections/BenchmarkVoxelRayCasting.md). docs/image_generators/voxel_ray_casting_charts.py makes the page's tables and charts from this file.",
+  "machine": {
+    "cpu": "AMD Ryzen 9 3950X, one thread pinned to one core",
+    "gpu": "NVIDIA GeForce RTX 2070 SUPER, driver 580.178.04",
+    "compiler": "Clang 20 Release (-O3 -march=x86-64-v3)",
+    "libraries": {
+      "OpenVDB": "14.0.0",
+      "NanoVDB": "32.11.0",
+      "Bonxai": "0.8.0",
+      "OctoMap": "1.10.0",
+      "CUDA": "13.3"
+    }
+  },
+  "scenes": [
+    {
+      "name": "terrain",
+      "voxel_m": 0.1
+    },
+    {
+      "name": "indoor",
+      "voxel_m": 0.05
+    },
+    {
+      "name": "forest",
+      "voxel_m": 0.1
+    }
+  ],
+  "cpu": {
+    "note": "Median of five runs. Rays that differ from the dense DDA reference: missed or extra hits, another voxel or another distance.",
+    "lidar_rays": 524288,
+    "random_rays": 200000,
+    "libraries": [
+      {
+        "key": "raisim",
+        "name": "RaiSim"
+      },
+      {
+        "key": "nanovdb",
+        "name": "NanoVDB"
+      },
+      {
+        "key": "openvdb",
+        "name": "OpenVDB"
+      },
+      {
+        "key": "bonxai",
+        "name": "Bonxai"
+      },
+      {
+        "key": "octomap",
+        "name": "OctoMap"
+      },
+      {
+        "key": "dense_dda",
+        "name": "dense DDA"
+      }
+    ],
+    "results": {
+      "terrain": {
+        "raisim": {
+          "build_ms": 31.7,
+          "memory_mb": 2.1,
+          "lidar_ns_per_ray": 212.0,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 251.2,
+          "random_rays_that_differ": 0
+        },
+        "nanovdb": {
+          "build_ms": 49.6,
+          "memory_mb": 4.8,
+          "lidar_ns_per_ray": 381.7,
+          "lidar_rays_that_differ": 442579,
+          "random_ns_per_ray": 408.5,
+          "random_rays_that_differ": 104081
+        },
+        "openvdb": {
+          "build_ms": 43.1,
+          "memory_mb": 4.5,
+          "lidar_ns_per_ray": 854.3,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 663.1,
+          "random_rays_that_differ": 0
+        },
+        "bonxai": {
+          "build_ms": 36.9,
+          "memory_mb": 13.5,
+          "lidar_ns_per_ray": 2015.4,
+          "lidar_rays_that_differ": 9298,
+          "random_ns_per_ray": 3704.4,
+          "random_rays_that_differ": 4537
+        },
+        "octomap": {
+          "build_ms": 1250.7,
+          "memory_mb": 28.3,
+          "lidar_ns_per_ray": 7204.8,
+          "lidar_rays_that_differ": 2,
+          "random_ns_per_ray": 10320.0,
+          "random_rays_that_differ": 0
+        },
+        "dense_dda": {
+          "build_ms": 36.8,
+          "memory_mb": 3.3,
+          "lidar_ns_per_ray": 1041.3,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 1022.0,
+          "random_rays_that_differ": 0
+        }
+      },
+      "indoor": {
+        "raisim": {
+          "build_ms": 29.5,
+          "memory_mb": 8.5,
+          "lidar_ns_per_ray": 171.9,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 272.3,
+          "random_rays_that_differ": 0
+        },
+        "nanovdb": {
+          "build_ms": 47.9,
+          "memory_mb": 8.0,
+          "lidar_ns_per_ray": 293.3,
+          "lidar_rays_that_differ": 507479,
+          "random_ns_per_ray": 395.5,
+          "random_rays_that_differ": 193792
+        },
+        "openvdb": {
+          "build_ms": 41.0,
+          "memory_mb": 7.4,
+          "lidar_ns_per_ray": 570.9,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 643.1,
+          "random_rays_that_differ": 0
+        },
+        "bonxai": {
+          "build_ms": 36.6,
+          "memory_mb": 25.5,
+          "lidar_ns_per_ray": 1267.6,
+          "lidar_rays_that_differ": 7157,
+          "random_ns_per_ray": 1068.0,
+          "random_rays_that_differ": 3040
+        },
+        "octomap": {
+          "build_ms": 993.1,
+          "memory_mb": 30.5,
+          "lidar_ns_per_ray": 5237.1,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 3712.0,
+          "random_rays_that_differ": 3
+        },
+        "dense_dda": {
+          "build_ms": 27.5,
+          "memory_mb": 7.9,
+          "lidar_ns_per_ray": 1004.4,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 714.6,
+          "random_rays_that_differ": 0
+        }
+      },
+      "forest": {
+        "raisim": {
+          "build_ms": 73.9,
+          "memory_mb": 17.0,
+          "lidar_ns_per_ray": 300.7,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 336.5,
+          "random_rays_that_differ": 0
+        },
+        "nanovdb": {
+          "build_ms": 102.2,
+          "memory_mb": 18.6,
+          "lidar_ns_per_ray": 591.5,
+          "lidar_rays_that_differ": 487579,
+          "random_ns_per_ray": 538.1,
+          "random_rays_that_differ": 144676
+        },
+        "openvdb": {
+          "build_ms": 90.9,
+          "memory_mb": 17.2,
+          "lidar_ns_per_ray": 1107.6,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 921.4,
+          "random_rays_that_differ": 0
+        },
+        "bonxai": {
+          "build_ms": 100.1,
+          "memory_mb": 57.6,
+          "lidar_ns_per_ray": 1400.6,
+          "lidar_rays_that_differ": 16364,
+          "random_ns_per_ray": 2643.3,
+          "random_rays_that_differ": 6038
+        },
+        "octomap": {
+          "build_ms": 1764.5,
+          "memory_mb": 254.3,
+          "lidar_ns_per_ray": 6470.2,
+          "lidar_rays_that_differ": 4,
+          "random_ns_per_ray": 8126.1,
+          "random_rays_that_differ": 1
+        },
+        "dense_dda": {
+          "build_ms": 47.1,
+          "memory_mb": 15.6,
+          "lidar_ns_per_ray": 1380.2,
+          "lidar_rays_that_differ": 0,
+          "random_ns_per_ray": 1075.7,
+          "random_rays_that_differ": 0
+        }
+      }
+    }
+  },
+  "gpu": {
+    "note": "Voxel pass alone in ns per ray, 524,288 lidar rays per scene; rayrai and CUDA take turns. Rays that differ from RaiSim's CPU ray cast.",
+    "rays": 524288,
+    "rays_that_differ": {
+      "rayrai": {
+        "terrain": 0,
+        "indoor": 0,
+        "forest": 1
+      },
+      "nanovdb_cuda": {
+        "terrain": 440359,
+        "indoor": 503947,
+        "forest": 484682
+      },
+      "dense_dda_cuda": {
+        "terrain": 0,
+        "indoor": 0,
+        "forest": 2
+      }
+    },
+    "runs": [
+      {
+        "gpu_clock_mhz": 1605,
+        "rayrai": {
+          "terrain": 1.76,
+          "indoor": 1.11,
+          "forest": 3.31
+        },
+        "nanovdb_cuda": {
+          "terrain": 2.58,
+          "indoor": 1.52,
+          "forest": 5.94
+        },
+        "dense_dda_cuda": {
+          "terrain": 5.32,
+          "indoor": 4.76,
+          "forest": 10.5
+        }
+      },
+      {
+        "gpu_clock_mhz": 1935,
+        "rayrai": {
+          "terrain": 1.46,
+          "indoor": 0.91,
+          "forest": 3.33
+        },
+        "nanovdb_cuda": {
+          "terrain": 2.95,
+          "indoor": 1.28,
+          "forest": 4.45
+        },
+        "dense_dda_cuda": {
+          "terrain": 5.31,
+          "indoor": 3.94,
+          "forest": 9.78
+        }
+      },
+      {
+        "gpu_clock_mhz": 1935,
+        "rayrai": {
+          "terrain": 1.46,
+          "indoor": 0.92,
+          "forest": 3.31
+        },
+        "nanovdb_cuda": {
+          "terrain": 2.58,
+          "indoor": 1.52,
+          "forest": 4.9
+        },
+        "dense_dda_cuda": {
+          "terrain": 5.28,
+          "indoor": 4.64,
+          "forest": 10.48
+        }
+      },
+      {
+        "gpu_clock_mhz": 1935,
+        "rayrai": {
+          "terrain": 1.46,
+          "indoor": 0.92,
+          "forest": 3.28
+        },
+        "nanovdb_cuda": {
+          "terrain": 2.57,
+          "indoor": 1.31,
+          "forest": 4.33
+        },
+        "dense_dda_cuda": {
+          "terrain": 5.3,
+          "indoor": 4.19,
+          "forest": 8.12
+        }
+      },
+      {
+        "gpu_clock_mhz": 1935,
+        "rayrai": {
+          "terrain": 1.47,
+          "indoor": 0.92,
+          "forest": 3.28
+        },
+        "nanovdb_cuda": {
+          "terrain": 3.54,
+          "indoor": 1.28,
+          "forest": 4.11
+        },
+        "dense_dda_cuda": {
+          "terrain": 6.01,
+          "indoor": 3.96,
+          "forest": 9.2
+        }
+      }
+    ]
+  },
+  "scan": {
+    "note": "A 65,536-ray scan through measureSpinningLidarSingleDrawGPU, in the same rounds as the edits. The CPU time is RaiSim's lidar ns per ray times 65,536.",
+    "rays": 65536,
+    "runs": [
+      {
+        "gpu_clock_mhz": 1605,
+        "gpu_ms": {
+          "terrain": 0.411,
+          "indoor": 0.39,
+          "forest": 0.565
+        },
+        "wall_ms": {
+          "terrain": 0.452,
+          "indoor": 0.427,
+          "forest": 0.642
+        }
+      },
+      {
+        "gpu_clock_mhz": 1950,
+        "gpu_ms": {
+          "terrain": 0.384,
+          "indoor": 0.366,
+          "forest": 0.565
+        },
+        "wall_ms": {
+          "terrain": 0.423,
+          "indoor": 0.41,
+          "forest": 0.653
+        }
+      },
+      {
+        "gpu_clock_mhz": 1950,
+        "gpu_ms": {
+          "terrain": 0.38,
+          "indoor": 0.355,
+          "forest": 0.515
+        },
+        "wall_ms": {
+          "terrain": 0.421,
+          "indoor": 0.39,
+          "forest": 0.572
+        }
+      },
+      {
+        "gpu_clock_mhz": 1950,
+        "gpu_ms": {
+          "terrain": 0.394,
+          "indoor": 0.374,
+          "forest": 0.504
+        },
+        "wall_ms": {
+          "terrain": 0.439,
+          "indoor": 0.409,
+          "forest": 0.555
+        }
+      },
+      {
+        "gpu_clock_mhz": 1950,
+        "gpu_ms": {
+          "terrain": 0.472,
+          "indoor": 0.389,
+          "forest": 0.5
+        },
+        "wall_ms": {
+          "terrain": 0.558,
+          "indoor": 0.433,
+          "forest": 0.55
+        }
+      }
+    ]
+  },
+  "robot": {
+    "note": "rayrai_lidar_benchmark: an Ouster OS1-64 (512 x 64 rays, 10 turns per second) on ANYmal over an 84 m x 84 m terrain with 200 obstacles. Medians of three runs, microseconds per update.",
+    "runs": 3,
+    "terrains": [
+      {
+        "name": "voxel map, 0.10 m",
+        "updates_per_second": [
+          10,
+          100,
+          1000
+        ],
+        "cpu_us": [
+          9300,
+          994,
+          108
+        ],
+        "gpu_us": [
+          410,
+          202,
+          169
+        ]
+      },
+      {
+        "name": "voxel map, 0.05 m",
+        "updates_per_second": [
+          10,
+          100,
+          1000
+        ],
+        "cpu_us": [
+          10120,
+          1075,
+          116
+        ],
+        "gpu_us": [
+          460,
+          220,
+          179
+        ]
+      },
+      {
+        "name": "heightmap, 0.5 m cells",
+        "updates_per_second": [
+          10,
+          100,
+          1000
+        ],
+        "cpu_us": [
+          8920,
+          955,
+          103
+        ],
+        "gpu_us": [
+          820,
+          231,
+          155
+        ]
+      }
+    ]
+  },
+  "edits": {
+    "note": "A sphere of 0.5 m radius carved out of or filled into the map 3 to 7 m from the sensor. NanoVDB adds the sphere to its build grid, converts it and copies it to the GPU, on one core.",
+    "rayrai_upload_ms": [
+      0.01,
+      0.04
+    ],
+    "runs": [
+      {
+        "rayrai_scan_after_edit_ms": {
+          "terrain": 0.44,
+          "indoor": 0.46,
+          "forest": 0.55
+        },
+        "nanovdb_rebuild_and_upload_ms": {
+          "terrain": 6.7,
+          "indoor": 8.66,
+          "forest": 20.02
+        }
+      },
+      {
+        "rayrai_scan_after_edit_ms": {
+          "terrain": 0.47,
+          "indoor": 0.46,
+          "forest": 0.68
+        },
+        "nanovdb_rebuild_and_upload_ms": {
+          "terrain": 7.16,
+          "indoor": 8.32,
+          "forest": 18.45
+        }
+      },
+      {
+        "rayrai_scan_after_edit_ms": {
+          "terrain": 0.47,
+          "indoor": 0.4,
+          "forest": 0.56
+        },
+        "nanovdb_rebuild_and_upload_ms": {
+          "terrain": 7.11,
+          "indoor": 8.84,
+          "forest": 18.61
+        }
+      },
+      {
+        "rayrai_scan_after_edit_ms": {
+          "terrain": 0.41,
+          "indoor": 0.42,
+          "forest": 0.54
+        },
+        "nanovdb_rebuild_and_upload_ms": {
+          "terrain": 7.02,
+          "indoor": 8.41,
+          "forest": 18.28
+        }
+      },
+      {
+        "rayrai_scan_after_edit_ms": {
+          "terrain": 0.48,
+          "indoor": 0.44,
+          "forest": 0.59
+        },
+        "nanovdb_rebuild_and_upload_ms": {
+          "terrain": 6.76,
+          "indoor": 9.59,
+          "forest": 18.32
+        }
+      }
+    ]
+  }
+}

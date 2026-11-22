@@ -49,7 +49,15 @@ lights and up to `RayraiWindow::kMaxAdditionalShadowLights` (8) additional shado
 `RenderQualitySettings::shadowedLightBudget` counts the shadowed lights including the
 main light, so additional lights get shadow maps only when it is greater than 1 (it is 1
 by default and in Fast/Balanced, 2 in High/Ultra). Directional,
-spot, and area-style lights use 2D shadow maps. Point lights use cubemap shadow maps.
+spot, and area-style lights use 2D shadow maps. When the renderer can bind the atlas,
+Rayrai automatically packs selected additional 2D shadow maps into it. Local volumetric
+lighting can also use spot and area tiles through its own sampler. A spotlight's
+shadow frustum fits its outer cone up to a 179.9° field of view. Wider spotlights retain
+their lighting cone and cast shadows within that frustum. Mesh shaders read point-light
+shadow cubemaps for main and additional lights on desktop GPUs with at least 32 fragment
+texture units. The limited shaders used on macOS OpenGL 4.1 and in the browser read only
+the 2D maps.
+Each shadow map affects only the contribution of its own light.
 Shadow framebuffer setup validates the current OpenGL context and recreates stale
 framebuffer/texture names when a viewer context is rebuilt; this matters for TCP-viewer
 lifetime, offscreen tests, and applications that create/destroy render contexts.
@@ -167,6 +175,15 @@ off for authored lighting.
 Shadow update cost is configurable. Dynamic scenes can update shadows every frame; static
 visual scenes can bake shadow maps at startup or refresh them only when light/object
 placement changes.
+
+In both modes a frame keeps the current maps while the light, the shadow region around the
+camera and the shadow casters stay put. A rigid object or visual counts as moved once some
+point of it shifts by more than about 3 mm, whether it moves or turns, and each link of an
+articulated system counts on its own. Deformable objects and `InstancedVisuals` batches count
+as moved only when the bounds around their whole geometry shift; after moving or turning a
+few instances inside a batch's bounds, call `requestShadowUpdate()`. With
+`updateShadowsEveryFrame` the maps are drawn every frame instead while foliage wind is on and
+a caster is not static.
 
 Shadow maps updated every frame keep the static part of the scene. Once two consecutive
 frames share the light, the shadow region and the view, static world objects and static
@@ -583,7 +600,9 @@ texture unit is free. Moving geometry or changing the lighting requires a new
 bake. `captureBakedIrradianceGrid(minimum, maximum, dimensions, faceResolution,
 overrides, captureVisibility)` captures a grid from the current scene; with
 `captureVisibility` it also records coarse distances around each probe, which
-keep light from leaking through walls between probes.
+keep light from leaking through walls between probes. A capture leaves out the
+installed baked grid and any published runtime bounce (below), so neither is counted
+twice.
 
 
 ## Runtime diffuse bounce
@@ -592,9 +611,13 @@ Set `AdditionalLight::runtimeIrradianceRadius` on one local fixture, then
 submit it with `addAdditionalLight()` or `updateAdditionalLight()`. Rayrai
 advances a two-by-two-by-two probe grid one cubemap face per render. It
 subtracts a capture without the fixture to isolate the fixture’s contribution
-and publishes all eight probes together. A moving fixture schedules a new grid
-while the previous completed grid remains visible. Switching the fixture’s
-diffuse light off clears that contribution. The grid adds to static irradiance
+and publishes all eight probes together. When the fixture changes during a
+capture, the capture finishes with the fixture as it was when it started, is
+published, and the next capture starts from the newest state, so a fixture that
+moves or flickers every frame still gets a lagging, updating bounce. A grid is
+removed at once when the fixture leaves it, becomes another light (for example
+after `clearAdditionalLights()`), or switches its diffuse light off. A capture face
+that fails is retried after a growing delay. The grid adds to static irradiance
 and needs no cache file or external renderer.
 
 ![Live red bounce on a grey crate](../../../rsc/docs/image/rayrai/showcase/runtime-irradiance.webp)

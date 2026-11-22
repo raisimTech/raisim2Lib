@@ -21,7 +21,7 @@ SECTIONS = DOCS / "sections"
 CREDITS = SECTIONS / "AssetCredits.md"
 # Media files whose pictures show credited assets.
 CREDITED_MEDIA = re.compile(
-    r"rsc/docs/(image|video)/[^ )\"']*(city|offroad_buggy|deformable_terrain_(car|loading|suspension)|warehouse|ycb|"
+    r"rsc/docs/(image|video)/[^ )\"']*(?<![a-z])(city|offroad_buggy|deformable_terrain_(car|loading|suspension)|warehouse|ycb|"
     r"complete_showcase|visual_asset_support|coacd|pbr_material_grid|tcp_viewer)"
 )
 # Models whose renders cannot be published on a commercial product's site.

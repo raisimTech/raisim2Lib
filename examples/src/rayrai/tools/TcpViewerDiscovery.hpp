@@ -4,6 +4,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -13,6 +14,9 @@ namespace raisin::tcp_viewer
 {
 
 inline constexpr int kDiscoveryPort = 59312;
+// 239.255.59.12, joined on 127.0.0.1: a loopback RaisimServer also sends its beacon to this group,
+// because its datagram to 127.0.0.1 reaches only one of the listeners sharing kDiscoveryPort.
+inline constexpr uint32_t kDiscoveryLoopbackGroup = 0xEFFF3B0Cu;
 inline constexpr const char* kDiscoveryMagic = "RAISIM_TCP_DISCOVERY_V1";
 inline constexpr std::chrono::seconds kDiscoveryBeaconTimeout{8};
 

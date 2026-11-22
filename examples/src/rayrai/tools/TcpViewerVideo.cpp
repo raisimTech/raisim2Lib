@@ -84,8 +84,6 @@ std::vector<std::filesystem::path> executableSearchDirectories() {
     }
   }
 #if !defined(_WIN32)
-  // A GUI process launched from a desktop environment often inherits a minimal
-  // PATH that omits the package-manager prefixes, so check them explicitly.
   for (const char* prefix : {"/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin",
                              "/snap/bin"}) {
     directories.emplace_back(prefix);
@@ -94,17 +92,14 @@ std::vector<std::filesystem::path> executableSearchDirectories() {
   return directories;
 }
 
-/** The encoder options and output path shared by every ffmpeg encode. */
 void appendEncodeOutputArguments(std::vector<std::string>& arguments,
                                  const VideoEncoderSettings& sanitized,
                                  const std::filesystem::path& output) {
   arguments.insert(arguments.end(), {
-    // ffmpeg's yuv420p encoders need even dimensions; crop rather than stretch.
     "-vf", "crop=trunc(iw/2)*2:trunc(ih/2)*2",
     "-c:v", sanitized.codec,
     "-crf", std::to_string(sanitized.quality),
     "-pix_fmt", sanitized.pixelFormat,
-    // Fast-start metadata so the file plays while it is still being copied.
     "-movflags", "+faststart",
     output.string(),
   });
@@ -127,7 +122,6 @@ int processExitCode(int waitStatus) {
     return WEXITSTATUS(waitStatus);
   }
   if (WIFSIGNALED(waitStatus)) {
-    // Report a signal the way a shell does, so "killed by SIGKILL" is legible.
     return 128 + WTERMSIG(waitStatus);
   }
   return waitStatus;
@@ -200,7 +194,6 @@ std::string buildShellCommand(
   const auto quote = [](const std::string& value) {
     std::string quoted;
 #if defined(_WIN32)
-    // cmd.exe: wrap in double quotes and escape embedded ones.
     quoted.push_back('"');
     for (const char c : value) {
       if (c == '"') {
@@ -211,8 +204,6 @@ std::string buildShellCommand(
     }
     quoted.push_back('"');
 #else
-    // POSIX sh: single quotes disable every expansion; close/escape/reopen to
-    // embed a literal quote.
     quoted.push_back('\'');
     for (const char c : value) {
       if (c == '\'') {
@@ -232,8 +223,6 @@ std::string buildShellCommand(
     command += quote(argument);
   }
 #if defined(_WIN32)
-  // cmd.exe /c strips the first and the last quote of a command line with more
-  // than two quotes, so wrap the command in a pair for it to strip.
   command = '"' + command + '"';
 #endif
   return command;
@@ -314,9 +303,6 @@ bool VideoEncoder::open(const std::filesystem::path& output,
   }
 
 #if !defined(_WIN32)
-  // If ffmpeg exits early, writing to the dead pipe raises SIGPIPE, whose
-  // default action would kill the viewer. Ignoring it turns that into an EPIPE
-  // return from fwrite, which writeFrameRgba() reports as a failed recording.
   std::signal(SIGPIPE, SIG_IGN);
 #endif
 
@@ -357,7 +343,7 @@ bool VideoEncoder::writeFrameRgba(const unsigned char* rgba, size_t byteCount,
   }
   const size_t written = std::fwrite(rgba, 1, byteCount, pipe_);
   if (written != byteCount) {
-    timed_ = false; // Do not retry the failed pipe while closing it.
+    timed_ = false;
     std::string closeStatus;
     close(closeStatus);
     status = "video recording stopped: ffmpeg pipe closed";
@@ -379,8 +365,6 @@ bool VideoEncoder::writeTimedFrameRgba(const unsigned char* rgba, size_t byteCou
   const size_t due = framesDue();
   if (due == 0) return true;
   timed_ = true;
-  // Missing intervals hold the previous image; the newest gets this capture.
-  // The first capture also fills any delay since the recording was started.
   for (size_t i = 1; i < due; ++i) {
     const auto* held = lastFrame_.empty() ? rgba : lastFrame_.data();
     if (!writeFrameRgba(held, byteCount, status)) return false;

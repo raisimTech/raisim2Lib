@@ -207,6 +207,7 @@ foreach(_gen IN LISTS _doc_image_generators)
   set(_doc_image_strandbeest_frames_dir_arg "")
   set(_doc_image_gallery_frames_dir_arg "")
   set(_doc_image_arguments "")
+  set(_doc_image_environment "")
   set(_doc_image_model_dependencies "")
   if(_gen STREQUAL "doc_image_rolling_friction")
     set(_doc_image_rolling_frames_dir_arg "${_rolling_frames_dir}")
@@ -231,7 +232,9 @@ foreach(_gen IN LISTS _doc_image_generators)
     set(_doc_image_prepare_command
         COMMAND ${CMAKE_COMMAND} -E rm -rf "${_doc_image_gallery_frames_dir_arg}")
     if(_scene_name STREQUAL "rayrai_blue_wall_scene")
-      set(_doc_image_arguments "--record;${_doc_image_gallery_frames_dir_arg}")
+      set(_doc_image_environment "RAYRAI_EXAMPLE_CAPTURE=${_doc_image_gallery_frames_dir_arg}"
+          RAYRAI_EXAMPLE_CAPTURE_SIZE=640x400 RAYRAI_EXAMPLE_CAPTURE_FRAMES=60
+          RAYRAI_EXAMPLE_CAPTURE_SWAY=0.065)
       set(_blue_wall "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/rayrai/blue_wall")
       set(_doc_image_model_dependencies
           "${_blue_wall}/blue_wall.rscene" "${_blue_wall}/blue_wall.gltf"
@@ -248,7 +251,12 @@ foreach(_gen IN LISTS _doc_image_generators)
           "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/city/rayrai_city.rscene"
           "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/anymal_c/urdf/anymal.urdf")
     elseif(_scene_name STREQUAL "rayrai_nested_glass_showcase")
-      set(_doc_image_arguments "--record=${_doc_image_gallery_frames_dir_arg};--frames=60;--width=640;--height=400;--samples=32;--backend=portable")
+      # The camera swings about the point it looks at, 9.145 m ahead. The capture starts with the
+      # first frame, so no frame keeps glass samples accumulated while the camera stood still.
+      set(_doc_image_environment "RAYRAI_EXAMPLE_CAPTURE=${_doc_image_gallery_frames_dir_arg}"
+          RAYRAI_EXAMPLE_CAPTURE_SIZE=640x400 RAYRAI_EXAMPLE_CAPTURE_START=0
+          RAYRAI_EXAMPLE_CAPTURE_FRAMES=60 RAYRAI_EXAMPLE_CAPTURE_SWAY=0.10
+          RAYRAI_EXAMPLE_CAPTURE_PIVOT=9.145)
       set(_doc_image_model_dependencies
           "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/src/rayrai/materials/glass_geometry.hpp")
     else()
@@ -257,6 +265,10 @@ foreach(_gen IN LISTS _doc_image_generators)
           "${CMAKE_CURRENT_SOURCE_DIR}/../../examples/include/tendon_models.hpp"
           "${CMAKE_CURRENT_SOURCE_DIR}/../../rsc/anymal/urdf/anymal.urdf")
     endif()
+  endif()
+  if(_doc_image_environment AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # The shared capture shows its window; SDL's offscreen driver keeps it off the desktop.
+    list(APPEND _doc_image_environment SDL_VIDEODRIVER=offscreen)
   endif()
   add_custom_command(
       OUTPUT "${_stamp}"
@@ -271,6 +283,7 @@ foreach(_gen IN LISTS _doc_image_generators)
               -D "DOC_IMAGE_STRANDBEEST_FRAMES_DIR=${_doc_image_strandbeest_frames_dir_arg}"
               -D "DOC_IMAGE_GALLERY_FRAMES_DIR=${_doc_image_gallery_frames_dir_arg}"
               -D "DOC_IMAGE_ARGUMENTS=${_doc_image_arguments}"
+              -D "DOC_IMAGE_ENVIRONMENT=${_doc_image_environment}"
               -D "DOC_IMAGE_ATTEMPTS=3"
               -P "${_doc_image_runner}"
       COMMAND ${CMAKE_COMMAND} -E touch "${_stamp}"

@@ -156,6 +156,12 @@ def loadModelWithSourceFiles(path: str) -> tuple:
     Returns a tuple containing the native result (when present) followed by output parameters.
     """
 
+def importConfigurationKey() -> int:
+    """C++: uint64_t ()"""
+
+def forgetTextureLookups() -> None:
+    """C++: void ()"""
+
 def loadSceneLights(path: str, intensityScale: float = 1.0) -> list[raisimpy_rayrai.AdditionalLight]:
     """C++: std::vector<AdditionalLight> (const std::string &, float)"""
 

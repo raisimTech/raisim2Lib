@@ -8,10 +8,13 @@ instead writes both artifacts there, for previewing or checking a change.
 """
 
 import argparse
-import html
 import json
 import math
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from benchmark_chart_style import Bar, LogAxis, bar_panels  # noqa: E402
 
 
 BENCHMARKS = [
@@ -27,16 +30,6 @@ BENCHMARKS = [
     ("deformable_cloth", "Deformable cloth"),
     ("deformable_cube_stack", "Deformable cube stack"),
 ]
-
-STYLE = """text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
-    .title { font-size: 30px; font-weight: 700; }
-    .subtitle { font-size: 18px; fill: #596674; }
-    .label { font-size: 16px; font-weight: 600; }
-    .value { font-size: 22px; font-weight: 700; }
-    .tick { font-size: 16px; fill: #596674; }
-    .axis { stroke: #a8b4bf; stroke-width: 1; }
-    .grid { stroke: #e1e4e5; stroke-width: 1; }
-    .ratio { fill: #2f6fb7; }"""
 
 def load_results(path):
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -98,72 +91,19 @@ def results_table(results):
     return "\n".join(lines) + "\n"
 
 
-def svg_header(title, description, subtitle, height):
-    return [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="960" height="{height}" '
-        f'viewBox="0 0 960 {height}" role="img" aria-labelledby="title desc">',
-        f'  <title id="title">{html.escape(title)}</title>',
-        f'  <desc id="desc">{html.escape(description)}</desc>',
-        f'  <style>{STYLE}</style>',
-        f'  <rect width="960" height="{height}" fill="#fff"/>',
-        f'  <text x="96" y="46" class="title">{html.escape(title)}</text>',
-        f'  <text x="96" y="80" class="subtitle">{html.escape(subtitle)}</text>',
-    ]
-
-
 def speedup(results):
     ratios = [(name, m["median_seconds"] / r["median_seconds"]) for name, r, m in results if m]
-    low = min(0, math.floor(math.log2(min(ratio for _, ratio in ratios))))
-    high = max(1, math.ceil(math.log2(max(ratio for _, ratio in ratios))))
-    left, right, top, bottom = 96, 936, 140, 710
-
-    def project(value):
-        return bottom - (math.log2(value) - low) / (high - low) * (bottom - top)
-
-    out = svg_header(
-        "MuJoCo time / RaiSim time",
-        f"Vertical bars for {len(ratios)} valid comparisons, using unrounded medians of three "
-        "single-threaded runs. Values above one mean RaiSim is faster. The vertical ratio axis is logarithmic.",
-        "Median of three runs · AMD Ryzen 9 3950X · higher ratios mean RaiSim is faster",
-        990,
-    )
-    for exponent in range(low, high + 1):
-        value = 2 ** exponent
-        y = project(value)
-        out += [
-            f'  <line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" class="grid"/>',
-            f'  <text x="{left - 16}" y="{y + 6:.1f}" text-anchor="end" class="tick">{value:g}×</text>',
-        ]
-    baseline = project(1)
-    out += [
-        f'  <line x1="{left}" y1="{top}" x2="{left}" y2="{bottom}" class="axis"/>',
-        f'  <line x1="{left}" y1="{bottom}" x2="{right}" y2="{bottom}" class="axis"/>',
-        f'  <line x1="{left}" y1="{baseline:.1f}" x2="{right}" y2="{baseline:.1f}" '
-        'stroke="#596674" stroke-width="1.5" stroke-dasharray="6 4"/>',
-        '  <text x="25" y="425" transform="rotate(-90 25 425)" text-anchor="middle" '
-        'class="subtitle">Time ratio (logarithmic scale)</text>',
-    ]
-    pitch = (right - left) / len(ratios)
-    bar_width = 0.56 * pitch
-    for index, (name, ratio) in enumerate(ratios):
-        x, end = left + (index + 0.5) * pitch, project(ratio)
-        value_y = end - 14 if ratio >= 1 else end + 27
-        out += [
-            f'  <rect x="{x - bar_width / 2:.1f}" y="{min(baseline, end):.1f}" '
-            f'width="{bar_width:.1f}" height="{max(1, abs(end - baseline)):.1f}" rx="4" class="ratio"/>',
-            f'  <text x="{x:.1f}" y="{value_y:.1f}" text-anchor="middle" class="value">{ratio:.2f}×</text>',
-        ]
-        label_y = bottom + 30
-        out.append(
-            f'  <text x="{x:.1f}" y="{label_y}" transform="rotate(-45 {x:.1f} {label_y})" '
-            f'text-anchor="end" class="label">{html.escape(name)}</text>')
-    out += [
-        '  <text x="516" y="880" text-anchor="middle" class="subtitle">Workload</text>',
-        '  <text x="516" y="938" text-anchor="middle" class="tick">'
-        'Based on unrounded median wall-clock durations, including scene construction.</text>',
-        '  <text x="516" y="966" text-anchor="middle" class="tick">1× = equal runtime</text>',
-    ]
-    return "\n".join(out + ["</svg>"]) + "\n"
+    high = 2 ** max(1, math.ceil(math.log2(max(value for _, value in ratios))))
+    rows = [Bar(name, "raisim", value, f"{value:.2f}×", tooltip=f"{name}: MuJoCo takes {value:.2f} times as long")
+            for name, value in ratios]
+    return bar_panels(
+        "RaiSim speedup over MuJoCo",
+        f"Horizontal bars for {len(ratios)} valid comparisons, using unrounded medians of three single-threaded "
+        "runs: MuJoCo's time divided by RaiSim's. Values above one mean RaiSim is faster. The axis is logarithmic.",
+        "MuJoCo time ÷ RaiSim time, higher is better · median of three runs · AMD Ryzen 9 3950X",
+        [("", rows)], LogAxis(1, high, base=2, label=lambda value: f"{value:g}×", reference=1),
+        ["Wall-clock durations include scene construction; 1× is equal runtime."], label_width=240,
+        axis_title="Speedup (logarithmic)")
 
 
 def main():

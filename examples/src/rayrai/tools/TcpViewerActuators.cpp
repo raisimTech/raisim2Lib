@@ -26,7 +26,6 @@ raisim::DcMotorParameters motorOf(const SelectedActuatorInfo& actuator) {
   return motor;
 }
 
-/// Torque that scales the plot: the peak torque, or the stall torque of a motor without one.
 double torqueScale(const raisim::DcMotorParameters& motor, double busVoltage) {
   return std::isfinite(motor.peakTorque) ? motor.peakTorque :
                                            motor.torquePerVolt() * busVoltage;
@@ -41,9 +40,6 @@ ImU32 sampleColor(const ActuatorTraces::Sample& sample) {
   return IM_COL32(110, 175, 255, 200);
 }
 
-// Same drawing as rayrai_motor_operating_region: the region in the motor's torque-speed plane, the
-// dashed Box-MOR and the trail of operating points. The speed axis is fixed by the highest bus
-// voltage seen, so a lower voltage visibly shrinks the region.
 void drawMotorPlot(const std::string& name, const raisim::DcMotorParameters& motor,
                    const ActuatorTraces::MotorTrace* trace, ImVec2 size) {
   ImDrawList* draw = ImGui::GetWindowDrawList();
@@ -67,8 +63,6 @@ void drawMotorPlot(const std::string& name, const raisim::DcMotorParameters& mot
   draw->AddLine(toScreen(-xRange, 0.), toScreen(xRange, 0.), axisColor);
   draw->AddLine(toScreen(0., -yRange), toScreen(0., yRange), axisColor);
 
-  // EM-MOR: the bus-voltage band cut by the peak torque, a parallelogram. Without a peak torque the
-  // band is cut by the plot instead.
   const double volt = motor.busVoltage;
   const double margin = peak / perVolt;
   const ImVec2 region[4] = {
@@ -77,7 +71,6 @@ void drawMotorPlot(const std::string& name, const raisim::DcMotorParameters& mot
   draw->AddConvexPolyFilled(region, 4, IM_COL32(70, 190, 105, 55));
   draw->AddPolyline(region, 4, IM_COL32(95, 215, 125, 255), ImDrawFlags_Closed, 1.5f);
 
-  // Box-MOR: peak torque and no-load speed, dashed.
   const double noLoad = motor.noLoadSpeed();
   const ImVec2 box[4] = {toScreen(-noLoad, peak), toScreen(noLoad, peak), toScreen(noLoad, -peak),
                          toScreen(-noLoad, -peak)};
@@ -93,7 +86,6 @@ void drawMotorPlot(const std::string& name, const raisim::DcMotorParameters& mot
     for (size_t i = 0; i < trace->samples.size(); ++i) {
       const auto& sample = trace->samples[i];
       const ImVec2 p = toScreen(sample.speed, sample.torque);
-      // The newest point is drawn larger so the current operating point stands out.
       const bool newest = i + 1 == trace->samples.size();
       const float r = sample.outside || newest ? 2.5f : 1.2f;
       draw->AddRectFilled(ImVec2(p.x - r, p.y - r), ImVec2(p.x + r, p.y + r), sampleColor(sample));
@@ -135,8 +127,6 @@ void ActuatorTraces::update(const SelectedObjectInfo& info, double serverTime) {
     MotorTrace& trace = it->second;
     const auto motor = motorOf(actuator);
     if (!motor.isValid()) continue;
-    // The torque is constant over a step while the speed changes, so compare it with the region
-    // at the step-averaged speed.
     const double violation = raisim::motorOperatingRegionViolation(
         motor, actuator.averageMotorSpeed, actuator.motorTorque);
     Sample sample;

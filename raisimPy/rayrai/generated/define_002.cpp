@@ -2,6 +2,8 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_002(py::module_& m) {
+bound_class<Handle<Shader>>(m, "Shader").def("cacheIdentity", [](Handle<Shader>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().cacheIdentity(); return wrap(state,result); }, "/// Identity of the *current* linked program, for external uniform-location caches.\n  /// Not the GL program name: drivers reuse the lowest free name, so a deleted Shader and\n  /// its replacement can share both a heap address and an ID, which would let a stale\n  /// location cache survive. This counter is unique for the process instead.\nC++: uint64_t () const");
+bound_class<Handle<Shader>>(m, "Shader").def("uniformGeneration", [](Handle<Shader>& self) { auto state=self.state; Guard guard(state);  decltype(auto) result=self.get().uniformGeneration(); return wrap(state,result); }, "\nC++: uint64_t () const");
 {auto c=bound_class<Texture>(m, "Texture"); default_constructor(c);}
 {auto c=bound_class<Texture>(m, "Texture"); field(c,"id", &Texture::id);}
 {auto c=bound_class<Texture>(m, "Texture"); field(c,"type", &Texture::type);}
@@ -55,7 +57,5 @@ void define_002(py::module_& m) {
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimHFrames", &OpenGLMesh::MeshDiagnostics::particlesAnimHFrames);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimVFrames", &OpenGLMesh::MeshDiagnostics::particlesAnimVFrames);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimLoop", &OpenGLMesh::MeshDiagnostics::particlesAnimLoop);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimFrameProgress", &OpenGLMesh::MeshDiagnostics::particlesAnimFrameProgress);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailsEnabled", &OpenGLMesh::MeshDiagnostics::particleTrailsEnabled);}
 }
 }

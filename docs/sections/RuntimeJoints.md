@@ -69,18 +69,19 @@ same system. Internal pin and mimic constraints remain enforced.
 The `runtime_joints` example in `examples/src/worlds` includes tool attachment
 and release and docking two independent robot carriages. Its dedicated
 [example page](./examples/worlds/runtime_joints.md) has recorded videos, figures,
-and viewer commands. With `--headless`, it checks the physics and exits.
+and viewer commands. It serves the world to `rayrai_tcp_viewer`.
 From the `raisim2Lib` root:
 
 ```bash
 cmake --build build-examples --target runtime_joints --parallel 12
-./build-examples/examples/runtime_joints --headless
+./build-examples/examples/runtime_joints
 ```
 
 On Windows, add `--config Release` and run
-`build-examples\bin\runtime_joints.exe --headless`. Pass `--activation-key FILE`
-to select an activation key explicitly. The headless scenes also run as the
-CTest checks `testRuntimeJointExample` and `testRuntimeJointDockingExample`.
+`build-examples\bin\runtime_joints.exe`. Pass `--activation-key FILE`
+to select an activation key explicitly. The CTest checks `testRuntimeJointExample`
+and `testRuntimeJointDockingExample` step both scenes without a viewer and check
+their physics.
 
 ## Python
 

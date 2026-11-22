@@ -123,8 +123,12 @@ no graphical session, so continuous integration is unaffected.
 
 While running, `RaisimServer` sends a UDP discovery beacon once per second to
 port `59312`. With the default loopback bind, the beacon is sent to
-`127.0.0.1`. After `server.setBindLoopbackOnly(false)`, the beacon is
-broadcast on the local network.
+`127.0.0.1` and to the multicast group `239.255.59.12` on the loopback
+interface. Each viewer or `web/serve.py` listener that successfully joins the
+group receives the multicast copy. The unicast copy remains available to
+older listeners and to listeners that could not join. After
+`server.setBindLoopbackOnly(false)`, the beacon is broadcast on the local
+network.
 
 The viewer listens on the same UDP port (one listener serves every pane) and
 drops a server about eight seconds after its last beacon. A beacon is
@@ -247,7 +251,7 @@ on a pane connected to an external server is refused, so disconnect first.
 | `--camera-lookat px,py,pz,tx,ty,tz` | Set an explicit camera position and target. |
 | `--camera-offset x,y,z` | Set the follow-camera offset from its target. |
 | `--force-camera-lookat` | Reapply `--camera-lookat` every frame instead of only at startup. |
-| `--screenshot PATH` | Save the rendered scene texture to `PATH` after the first valid scene frame, then exit. The PNG excludes ImGui panels and window decorations. |
+| `--screenshot PATH` | Save the rendered scene texture to `PATH` after the first valid scene frame, then exit. The PNG excludes ImGui panels and window decorations. If the PNG cannot be written, the viewer prints the reason and exits with code 1. |
 | `--screenshot-dir PATH` | Initial **Output folder** of the **Record** tab: screenshots (F12), PNG sequences, videos, session logs, signal CSV exports and recordings requested by the server. Defaults to the working directory. |
 | `--record-session PATH.rrtcs` | Record the raw TCP stream to a session file for later replay. |
 | `--update-rate HZ` | Target TCP scene-update request rate, 15-120 Hz (default 60 Hz). The value is saved as `tcp_update_rate_hz`. Values outside that range are rejected and the viewer exits with code 2. |
@@ -642,7 +646,8 @@ and [Weather and atmospherics](./rayrai/Weather.md):
 
 - **Quality**: a Fast / Balanced / High / Ultra / Custom slider. Picking a
   preset loads the defaults of `RayraiWindow::defaultRenderQualitySettings()`;
-  changing any other control on this tab switches to Custom. The viewer's Ultra
+  editing a render control switches to Custom. **Move speed** changes camera
+  navigation and preserves the selected preset. The viewer's Ultra
   also raises light strength to 1.6, sets exposure to 0.65 and uses the Unreal
   Preview color mode.
 - **Background** and **Sky**: background color, the procedural sky (sun
@@ -705,7 +710,9 @@ or not sim control was negotiated:
   or static), an appearance string, **Place at camera target** (on by
   default), and an optional initial state (velocities, and a quaternion in
   w, x, y, z order). The form validates the request before sending it and,
-  when the server runs on this machine, reports `file not found on this host` for a missing file. This matters because the server closes the
+  when the server runs on this machine, reports `file not found on this host` for a missing file.
+  A robot needs a `.urdf` or `.xml` file and a height map a `.png` file, with the extension in
+  lower case, as the server requires. This matters because the server closes the
   connection on a request it rejects (see [Writing a custom client](#writing-a-custom-client)).
 - **Delete Selected**: remove the selected object.
 - **Export world**: ask the server to write its world as XML to a path on the
@@ -859,10 +866,13 @@ body. The viewer offers all three only when the server negotiated sim control.
   consistent; releasing the button lets it go. With both modifiers held, Shift
   wins. Neither gesture starts while the ruler or angle tool is active.
 - **Pose grabber** (`G` or **Pose Grabber (drag axes)**) shows world-axis
-  translation and rotation handles on a selected single body. While it is on,
-  the body is drawn at the dragged pose; one `CR_SET_POSE` with the final pose
-  is sent when the grabber is turned off (`G`, `Esc`) or the selection
-  changes.
+  translation and rotation handles on a selected sphere, box, cylinder, capsule
+  or mesh body. It skips articulated links, compound bodies, collision
+  shapes, server visual objects and deformables. The viewer draws the body
+  at the dragged pose and sends the final `CR_SET_POSE` when the grabber is
+  turned off (`G`, `Esc`) or the selection changes. The viewer drops the pose
+  if a scene update shows that the body was deleted. The server ignores a
+  valid pose if the body was deleted before the server validates the request.
 
 The **Selected control** section of the Objects tab sends the same requests
 explicitly: `CR_APPLY_FORCE` at the body position plus **Point offset**,

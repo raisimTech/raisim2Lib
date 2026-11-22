@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1010" viewBox="0 0 960 1010" role="img" aria-labelledby="title desc">
+  <title id="title">Lidar rays per second on one CPU core</title>
+  <desc id="desc">Horizontal bars, one panel per scene, of how many million lidar rays per second RaiSim, NanoVDB, OpenVDB, Bonxai, OctoMap and a dense grid stepped voxel by voxel cast on one core. RaiSim&#x27;s bars are the longest in every scene. Notes give the share of rays whose hit differs from the dense grid&#x27;s.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="1010" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Lidar rays per second on one CPU core</text>
+  <text x="32.0" y="76.0" class="subtitle">Million rays per second, higher is better · median of five runs · AMD Ryzen 9 3950X</text>
+  <text x="32.0" y="126.0" class="panel">Terrain · 0.10 m voxels</text>
+  <line x1="232.0" y1="136" x2="232.0" y2="356" class="grid"/>
+  <line x1="320.0" y1="136" x2="320.0" y2="356" class="grid"/>
+  <line x1="408.0" y1="136" x2="408.0" y2="356" class="grid"/>
+  <line x1="496.0" y1="136" x2="496.0" y2="356" class="grid"/>
+  <line x1="584.0" y1="136" x2="584.0" y2="356" class="grid"/>
+  <line x1="672.0" y1="136" x2="672.0" y2="356" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="356" class="grid"/>
+  <line x1="232" y1="136" x2="232" y2="356" class="axis"/>
+  <text x="220.0" y="164.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M232.0 147.0H643.1A4.0 4.0 0 0 1 647.1 151.0V165.0A4.0 4.0 0 0 1 643.1 169.0H232.0Z" class="raisim"><title>RaiSim, terrain: 212 ns per ray</title></path>
+  <text x="655.1" y="164.0" class="value">4.72</text>
+  <text x="220.0" y="200.0" text-anchor="end" class="label">NanoVDB</text>
+  <path d="M232.0 183.0H458.5A4.0 4.0 0 0 1 462.5 187.0V201.0A4.0 4.0 0 0 1 458.5 205.0H232.0Z" class="other"><title>NanoVDB, terrain: 382 ns per ray</title></path>
+  <text x="470.5" y="200.0" class="value">2.62<tspan class="note" font-weight="400">  84.4 % of rays differ</tspan></text>
+  <text x="220.0" y="236.0" text-anchor="end" class="label">OpenVDB</text>
+  <path d="M232.0 219.0H331.0A4.0 4.0 0 0 1 335.0 223.0V237.0A4.0 4.0 0 0 1 331.0 241.0H232.0Z" class="other"><title>OpenVDB, terrain: 854 ns per ray</title></path>
+  <text x="343.0" y="236.0" class="value">1.17</text>
+  <text x="220.0" y="272.0" text-anchor="end" class="label">Bonxai</text>
+  <path d="M232.0 255.0H271.7A4.0 4.0 0 0 1 275.7 259.0V273.0A4.0 4.0 0 0 1 271.7 277.0H232.0Z" class="other"><title>Bonxai, terrain: 2,015 ns per ray</title></path>
+  <text x="283.7" y="272.0" class="value">0.50<tspan class="note" font-weight="400">  1.8 % of rays differ</tspan></text>
+  <text x="220.0" y="308.0" text-anchor="end" class="label">OctoMap</text>
+  <path d="M232.0 291.0H240.2A4.0 4.0 0 0 1 244.2 295.0V309.0A4.0 4.0 0 0 1 240.2 313.0H232.0Z" class="other"><title>OctoMap, terrain: 7,205 ns per ray</title></path>
+  <text x="252.2" y="308.0" class="value">0.14<tspan class="note" font-weight="400">  2 rays differ</tspan></text>
+  <text x="220.0" y="344.0" text-anchor="end" class="label">dense DDA</text>
+  <path d="M232.0 327.0H312.5A4.0 4.0 0 0 1 316.5 331.0V345.0A4.0 4.0 0 0 1 312.5 349.0H232.0Z" class="other"><title>dense DDA, terrain: 1,041 ns per ray</title></path>
+  <text x="324.5" y="344.0" class="value">0.96<tspan class="note" font-weight="400">  reference</tspan></text>
+  <text x="32.0" y="396.0" class="panel">Indoor · 0.05 m voxels</text>
+  <line x1="232.0" y1="406" x2="232.0" y2="626" class="grid"/>
+  <line x1="320.0" y1="406" x2="320.0" y2="626" class="grid"/>
+  <line x1="408.0" y1="406" x2="408.0" y2="626" class="grid"/>
+  <line x1="496.0" y1="406" x2="496.0" y2="626" class="grid"/>
+  <line x1="584.0" y1="406" x2="584.0" y2="626" class="grid"/>
+  <line x1="672.0" y1="406" x2="672.0" y2="626" class="grid"/>
+  <line x1="760.0" y1="406" x2="760.0" y2="626" class="grid"/>
+  <line x1="232" y1="406" x2="232" y2="626" class="axis"/>
+  <text x="220.0" y="434.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M232.0 417.0H739.9A4.0 4.0 0 0 1 743.9 421.0V435.0A4.0 4.0 0 0 1 739.9 439.0H232.0Z" class="raisim"><title>RaiSim, indoor: 172 ns per ray</title></path>
+  <text x="751.9" y="434.0" class="value">5.82</text>
+  <text x="220.0" y="470.0" text-anchor="end" class="label">NanoVDB</text>
+  <path d="M232.0 453.0H528.0A4.0 4.0 0 0 1 532.0 457.0V471.0A4.0 4.0 0 0 1 528.0 475.0H232.0Z" class="other"><title>NanoVDB, indoor: 293 ns per ray</title></path>
+  <text x="540.0" y="470.0" class="value">3.41<tspan class="note" font-weight="400">  96.8 % of rays differ</tspan></text>
+  <text x="220.0" y="506.0" text-anchor="end" class="label">OpenVDB</text>
+  <path d="M232.0 489.0H382.1A4.0 4.0 0 0 1 386.1 493.0V507.0A4.0 4.0 0 0 1 382.1 511.0H232.0Z" class="other"><title>OpenVDB, indoor: 571 ns per ray</title></path>
+  <text x="394.1" y="506.0" class="value">1.75</text>
+  <text x="220.0" y="542.0" text-anchor="end" class="label">Bonxai</text>
+  <path d="M232.0 525.0H297.4A4.0 4.0 0 0 1 301.4 529.0V543.0A4.0 4.0 0 0 1 297.4 547.0H232.0Z" class="other"><title>Bonxai, indoor: 1,268 ns per ray</title></path>
+  <text x="309.4" y="542.0" class="value">0.79<tspan class="note" font-weight="400">  1.4 % of rays differ</tspan></text>
+  <text x="220.0" y="578.0" text-anchor="end" class="label">OctoMap</text>
+  <path d="M232.0 561.0H244.8A4.0 4.0 0 0 1 248.8 565.0V579.0A4.0 4.0 0 0 1 244.8 583.0H232.0Z" class="other"><title>OctoMap, indoor: 5,237 ns per ray</title></path>
+  <text x="256.8" y="578.0" class="value">0.19</text>
+  <text x="220.0" y="614.0" text-anchor="end" class="label">dense DDA</text>
+  <path d="M232.0 597.0H315.6A4.0 4.0 0 0 1 319.6 601.0V615.0A4.0 4.0 0 0 1 315.6 619.0H232.0Z" class="other"><title>dense DDA, indoor: 1,004 ns per ray</title></path>
+  <text x="327.6" y="614.0" class="value">1.00<tspan class="note" font-weight="400">  reference</tspan></text>
+  <text x="32.0" y="666.0" class="panel">Forest · 0.10 m voxels</text>
+  <line x1="232.0" y1="676" x2="232.0" y2="896" class="grid"/>
+  <line x1="320.0" y1="676" x2="320.0" y2="896" class="grid"/>
+  <line x1="408.0" y1="676" x2="408.0" y2="896" class="grid"/>
+  <line x1="496.0" y1="676" x2="496.0" y2="896" class="grid"/>
+  <line x1="584.0" y1="676" x2="584.0" y2="896" class="grid"/>
+  <line x1="672.0" y1="676" x2="672.0" y2="896" class="grid"/>
+  <line x1="760.0" y1="676" x2="760.0" y2="896" class="grid"/>
+  <line x1="232" y1="676" x2="232" y2="896" class="axis"/>
+  <text x="220.0" y="704.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M232.0 687.0H520.7A4.0 4.0 0 0 1 524.7 691.0V705.0A4.0 4.0 0 0 1 520.7 709.0H232.0Z" class="raisim"><title>RaiSim, forest: 301 ns per ray</title></path>
+  <text x="532.7" y="704.0" class="value">3.33</text>
+  <text x="220.0" y="740.0" text-anchor="end" class="label">NanoVDB</text>
+  <path d="M232.0 723.0H376.8A4.0 4.0 0 0 1 380.8 727.0V741.0A4.0 4.0 0 0 1 376.8 745.0H232.0Z" class="other"><title>NanoVDB, forest: 592 ns per ray</title></path>
+  <text x="388.8" y="740.0" class="value">1.69<tspan class="note" font-weight="400">  93.0 % of rays differ</tspan></text>
+  <text x="220.0" y="776.0" text-anchor="end" class="label">OpenVDB</text>
+  <path d="M232.0 759.0H307.5A4.0 4.0 0 0 1 311.5 763.0V777.0A4.0 4.0 0 0 1 307.5 781.0H232.0Z" class="other"><title>OpenVDB, forest: 1,108 ns per ray</title></path>
+  <text x="319.5" y="776.0" class="value">0.90</text>
+  <text x="220.0" y="812.0" text-anchor="end" class="label">Bonxai</text>
+  <path d="M232.0 795.0H290.8A4.0 4.0 0 0 1 294.8 799.0V813.0A4.0 4.0 0 0 1 290.8 817.0H232.0Z" class="other"><title>Bonxai, forest: 1,401 ns per ray</title></path>
+  <text x="302.8" y="812.0" class="value">0.71<tspan class="note" font-weight="400">  3.1 % of rays differ</tspan></text>
+  <text x="220.0" y="848.0" text-anchor="end" class="label">OctoMap</text>
+  <path d="M232.0 831.0H241.6A4.0 4.0 0 0 1 245.6 835.0V849.0A4.0 4.0 0 0 1 241.6 853.0H232.0Z" class="other"><title>OctoMap, forest: 6,470 ns per ray</title></path>
+  <text x="253.6" y="848.0" class="value">0.15<tspan class="note" font-weight="400">  4 rays differ</tspan></text>
+  <text x="220.0" y="884.0" text-anchor="end" class="label">dense DDA</text>
+  <path d="M232.0 867.0H291.8A4.0 4.0 0 0 1 295.8 871.0V885.0A4.0 4.0 0 0 1 291.8 889.0H232.0Z" class="other"><title>dense DDA, forest: 1,380 ns per ray</title></path>
+  <text x="303.8" y="884.0" class="value">0.72<tspan class="note" font-weight="400">  reference</tspan></text>
+  <text x="232.0" y="920.0" text-anchor="middle" class="tick">0</text>
+  <text x="320.0" y="920.0" text-anchor="middle" class="tick">1</text>
+  <text x="408.0" y="920.0" text-anchor="middle" class="tick">2</text>
+  <text x="496.0" y="920.0" text-anchor="middle" class="tick">3</text>
+  <text x="584.0" y="920.0" text-anchor="middle" class="tick">4</text>
+  <text x="672.0" y="920.0" text-anchor="middle" class="tick">5</text>
+  <text x="760.0" y="920.0" text-anchor="middle" class="tick">6</text>
+  <text x="496.0" y="950.0" text-anchor="middle" class="note">Million lidar rays per second (1,000 / nanoseconds per ray)</text>
+  <text x="32.0" y="994.0" class="note">A ray differs when it misses or adds a hit, or reports another voxel or distance than the dense grid.</text>
+</svg>

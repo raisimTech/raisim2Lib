@@ -41,15 +41,16 @@ class ManipulationBenchmarkTest(unittest.TestCase):
         self.assertEqual(chart, module.chart(self.data))
         tree = ET.fromstring(chart)
         ns = {"s": "http://www.w3.org/2000/svg"}
-        failed = [r for r in tree.findall(".//s:rect", ns)
+        failed = [r for r in tree.findall(".//s:path", ns)
                   if r.find("s:title", ns) is not None and
-                  "FAILED mimic validation" in r.find("s:title", ns).text]
+                  "failed validation" in r.find("s:title", ns).text]
         self.assertEqual(len(failed), sum(not r["gpu_quality_pass"]
                                           for r in self.data["rows"]))
         self.assertIn("Historical scenarios", chart)
         self.assertIn("checked 15 Nov 2026", chart)
         self.assertIn("CPU out of stock", chart)
-        self.assertTrue(all(r.get("fill") == "url(#failed)" for r in failed))
+        self.assertTrue(all(r.get("class") == "failed" for r in failed))
+        self.assertTrue(all(r.find("s:title", ns).text.startswith("Newton") for r in failed))
         for row in self.data["rows"]:
             cpu = (row["cpu_fps"] / prices["cpu_price_usd"]
                    if row["cpu_fps"] is not None else None)

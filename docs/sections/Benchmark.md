@@ -19,7 +19,7 @@ are omitted. Cloth and cube-stack backends use different deformable models; thei
 parameters and comparison limits are in **Workloads**.
 
 <figure>
-<img class="diagram" src="../../rsc/docs/image/benchmark_speedup.svg" alt="Vertical bars showing MuJoCo time divided by RaiSim time for ten valid comparisons, on a logarithmic vertical axis.">
+<img class="diagram" src="../../rsc/docs/image/benchmark_speedup.svg" alt="Horizontal bars showing MuJoCo time divided by RaiSim time for ten valid comparisons, on a logarithmic axis from 1 to 256 times.">
 </figure>
 
 [Download the recorded results and exact arguments](/benchmark_results.json).

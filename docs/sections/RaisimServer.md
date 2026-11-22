@@ -11,6 +11,11 @@ take no part in the simulation, such as visuals, polylines, visual articulated
 systems and charts. The animation below shows them in a legacy visualizer; see
 [Examples](./Examples.md) for runnable examples.
 
+`addVisualHeightMap(name, source)` copies the source height map's samples,
+size, and frame translation. It adds the XY translation to the grid center
+and applies the Z offset to the visual position. The copy stays unrotated
+and follows the placement used by the source's point height queries.
+
 <video class="doc-video" src="../../rsc/docs/image/visuals.mp4" loop muted playsinline preload="metadata"></video>
 
 ## Typical usage
@@ -33,13 +38,20 @@ whether this call advances the world. On an advancing call it applies the
 interaction-wire and client forces. It runs the callback, if one was given,
 integrates the world when allowed, and unlocks the mutex.
 
-`launchServer(port)` binds its socket before it returns. If `port` is
-already in use, the server tries the next 63 ports, logs
-`Port <requested> is in use; bound to port <actual> instead`, and reports an
-error only when none of them is free. `getPort()` returns the port actually
-bound, and the discovery beacons advertise it (see [Discovery beacons](#discovery-beacons)). The
-server serves one client at a time and accepts the next one after the current
-client disconnects.
+`launchServer(port)` starts its thread after the socket is ready to accept
+clients. If `port` is already in use or Windows denies the bind because the
+port is reserved, the server tries up to 63 more ports. It logs the selected
+fallback port after setup succeeds. `getPort()` reports that listening port,
+and the discovery beacons advertise it. The server serves one client at a time
+and accepts the next one after the current client disconnects. See
+[Discovery beacons](#discovery-beacons).
+
+If the port search is exhausted or a required socket operation fails,
+`setupSocket()` releases the resources from that attempt and invokes the
+fatal callback. If the callback returns, `setupSocket()` throws
+`std::runtime_error`. This applies to direct calls and to `launchServer()`,
+which starts no thread on setup failure. `killServer()` is safe to call
+after a failed launch.
 
 ## Thread safety and lifecycle
 
@@ -133,6 +145,11 @@ beacons are sent, so the viewer must connect by host and port. A loop that
 calls `world.integrate()` itself also never applies the client's pause, step,
 force, torque, pose or generalized-coordinate requests, which only
 `integrateWorldThreadSafe()` applies.
+
+On native platforms, a synchronous `setupSocket()` call can replace the
+listener while an accepted client remains connected. The current listener
+stays open until the replacement is ready. If replacement fails, the
+current listener and the port reported by `getPort()` stay in place.
 
 `processRequests()` returns `false` if the client does not respond, uses
 another protocol version, or sends a request frame the server rejects (see
@@ -234,7 +251,8 @@ Client requests added by this feature:
 - `CR_APPLY_TORQUE`: apply an external torque on a body (not scaled by
   mass).
 - `CR_SET_POSE`: teleport a single-body object to a position and a
-  quaternion in (w, x, y, z) order.
+  quaternion in (w, x, y, z) order. A valid pose for a nonzero tag that
+  does not identify a World object is ignored.
 - `CR_SET_GC`: set the generalized coordinate of an articulated system. Its
   orientations (the floating base and ball joints) must be unit quaternions.
 
@@ -301,8 +319,9 @@ it. It rejects the frame when a request contains, for example:
 - a force or torque target that does not exist, or a body index that does not
   exist on a force, torque or wire target (a wire whose target no longer
   exists is simply detached);
-- a pose target that is not a single body, or a generalized-coordinate vector
-  whose size does not match the articulated system;
+- a pose target with a zero tag or a tag belonging to a World object other
+  than a single body, or a generalized-coordinate vector whose size does
+  not match the articulated system;
 - a sim-control request on a connection that did not negotiate
   `PROTOCOL_FEATURE_SIM_CONTROL`, or a step count outside 1 to 1,000,000;
 - a `CR_SAVE_THE_WORLD` request that is not the only request in its frame.
@@ -432,7 +451,11 @@ connection status, process id, and `websocket=1` for browser viewer support. `ra
 version equals its own, in the server table of a pane without a session and
 in the endpoint popup of the **Connection** tab.
 
-With the default loopback bind, beacons are sent only to `127.0.0.1`. After
+With the default loopback bind, beacons stay on this computer: each is sent to
+`127.0.0.1` and to the multicast group `239.255.59.12` on the loopback
+interface. A datagram to `127.0.0.1` reaches only one of the sockets that
+share port `59312`, so a listener of your own should join that group on
+`127.0.0.1`, as `rayrai_tcp_viewer` and `web/serve.py` do. After
 `server.setBindLoopbackOnly(false)`, they are broadcast on the local network
 so another machine can discover the server. Discovery is only a convenience
 layer: clients may always connect directly to the TCP endpoint with

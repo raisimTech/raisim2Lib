@@ -164,6 +164,13 @@
   },
   {
     "class": "OpenGLMesh",
+    "name": "vertexArray",
+    "kind": "CXXMethod",
+    "signature": "unsigned int () const",
+    "status": "generated"
+  },
+  {
+    "class": "OpenGLMesh",
     "name": "OpenGLMesh",
     "kind": "CXXConstructor",
     "signature": "void (const std::vector<Vertex> &, const std::vector<unsigned int> &, const std::vector<Texture> &, const glm::vec<4, float> &, OpenGLMesh::PrimitiveTopology)",
@@ -339,6 +346,13 @@
     "name": "draw",
     "kind": "CXXMethod",
     "signature": "void (const Shader &, OpenGLMesh::RenderMode, const raisin::Material *) const",
+    "status": "generated"
+  },
+  {
+    "class": "OpenGLMesh",
+    "name": "drawGeometry",
+    "kind": "CXXMethod",
+    "signature": "void (const Shader &) const",
     "status": "generated"
   },
   {
@@ -918,6 +932,14 @@
     "kind": "FieldDecl",
     "signature": "std::basic_string<char>",
     "status": "generated"
+  },
+  {
+    "class": "Texture",
+    "name": "foliageAtlasOwner",
+    "kind": "FieldDecl",
+    "signature": "std::shared_ptr<const raisin::rayrai_internal::FoliageAtlasTextures>",
+    "status": "excluded",
+    "reason": "Opaque implementation ownership token"
   },
   {
     "class": "Vertex",
@@ -2082,6 +2104,13 @@
     "status": "generated"
   },
   {
+    "class": "raisin::AdditionalLight",
+    "name": "runtimeIrradianceRadius",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
     "class": "raisin::BakedIrradianceGrid",
     "name": "dimensions",
     "kind": "FieldDecl",
@@ -2107,6 +2136,27 @@
     "name": "probes",
     "kind": "FieldDecl",
     "signature": "std::vector<std::array<glm::vec<4, float>, 3>>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::BakedIrradianceGrid",
+    "name": "visibilityDepths",
+    "kind": "FieldDecl",
+    "signature": "std::vector<std::array<float, 25>>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::BakedIrradianceGrid",
+    "name": "axisPositions",
+    "kind": "FieldDecl",
+    "signature": "std::array<std::vector<float>, 3>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::BakedIrradianceGrid",
+    "name": "probePositions",
+    "kind": "FieldDecl",
+    "signature": "std::vector<glm::vec<4, float>>",
     "status": "generated"
   },
   {
@@ -2276,6 +2326,20 @@
   },
   {
     "class": "raisin::Camera",
+    "name": "setImageWindowOffset",
+    "kind": "CXXMethod",
+    "signature": "void (const glm::vec<2, float> &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "imageWindowOffset",
+    "kind": "CXXMethod",
+    "signature": "glm::vec<2, float> () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
     "name": "getPosition",
     "kind": "CXXMethod",
     "signature": "glm::vec<3, float> () const",
@@ -2419,6 +2483,20 @@
     "name": "setCameraFixedDistance",
     "kind": "CXXMethod",
     "signature": "void (bool)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "setMinimumOrbitDistance",
+    "kind": "CXXMethod",
+    "signature": "void (float)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Camera",
+    "name": "minimumOrbitDistance",
+    "kind": "CXXMethod",
+    "signature": "float () const",
     "status": "generated"
   },
   {
@@ -2642,7 +2720,7 @@
     "class": "raisin::Camera",
     "name": "postProcessDoF",
     "kind": "CXXMethod",
-    "signature": "void (Shader &, bool, bool, float, float, float, float, int, float, float, float, float, unsigned int, int, float, const glm::vec<3, float> &, float, bool, float, float, float, int, float, bool, float, bool, float, float, int, float, bool, float, int, float, bool, float, float, int, float, float, float, bool, float, float, float, const glm::vec<3, float> &, float, float, const glm::vec<2, float> &, float, float, bool, float, float, int, const glm::vec<2, float> &, const glm::vec<3, float> &, int, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, int, const std::array<glm::mat<4, 4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, bool, float, bool, int, bool, unsigned int, float, int, float, float, float, float, float, bool, float, float, float, const glm::vec<2, float> &, const glm::vec<3, float> &, float, float, const glm::vec<3, float> &, bool, float, float, float, const glm::vec<2, float> &, const glm::vec<3, float> &, bool, const glm::vec<2, float> &, float, bool, float, int, float, float, bool, float, float, float, float, bool, float, const glm::vec<2, float> &, float, bool, int, bool, float, int, float, float, const glm::vec<3, float> &, bool, float, const glm::vec<2, float> &, bool, const glm::vec<3, float> &, float, float, float, bool, int, bool, float, float, bool, float, bool, float, float, bool, float, float, bool, float, const glm::vec<3, float> &, Shader *, Shader *)",
+    "signature": "void (Shader &, bool, bool, float, float, float, float, int, float, float, float, float, unsigned int, int, float, const glm::vec<3, float> &, float, bool, float, float, float, int, float, bool, float, bool, float, float, int, float, bool, float, int, float, bool, float, float, int, float, float, float, bool, float, float, float, const glm::vec<3, float> &, float, float, const glm::vec<2, float> &, float, float, bool, float, float, int, const glm::vec<2, float> &, const glm::vec<3, float> &, int, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, int, const std::array<glm::mat<4, 4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, const std::array<glm::vec<4, float>, 8> &, bool, float, bool, int, bool, unsigned int, float, int, float, float, float, float, float, bool, float, float, float, const glm::vec<2, float> &, const glm::vec<3, float> &, float, float, const glm::vec<3, float> &, bool, float, float, float, const glm::vec<2, float> &, const glm::vec<3, float> &, bool, const glm::vec<2, float> &, float, bool, float, int, float, float, bool, float, float, float, float, bool, float, const glm::vec<2, float> &, float, bool, int, bool, float, int, float, float, const glm::vec<3, float> &, bool, float, const glm::vec<2, float> &, bool, const glm::vec<3, float> &, float, float, float, bool, int, bool, float, float, bool, float, bool, float, float, bool, float, float, bool, float, const glm::vec<3, float> &, Shader *, Shader *, bool, Shader *, Shader *, const std::function<unsigned int (unsigned int)> &, unsigned int, Shader *)",
     "status": "generated"
   },
   {
@@ -3210,6 +3288,127 @@
     "name": "smokeColor",
     "kind": "FieldDecl",
     "signature": "glm::vec<3, float>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasContext",
+    "name": "FoliageTextureAtlasContext",
+    "kind": "CXXConstructor",
+    "signature": "void ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasContext",
+    "name": "FoliageTextureAtlasContext",
+    "kind": "CXXConstructor",
+    "signature": "void (const raisin::FoliageTextureAtlasContext &)",
+    "status": "excluded",
+    "reason": "Deleted/copy/move constructor"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasContext",
+    "name": "operator=",
+    "kind": "CXXMethod",
+    "signature": "raisin::FoliageTextureAtlasContext &(const raisin::FoliageTextureAtlasContext &)",
+    "status": "excluded",
+    "reason": "C++ assignment, deleted, or move-only overload"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasContext",
+    "name": "flush",
+    "kind": "CXXMethod",
+    "signature": "void ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasOptions",
+    "name": "paddingPixels",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasOptions",
+    "name": "maxAtlasSize",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasOptions",
+    "name": "emitFallbackWarnings",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "used",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "candidateMeshCount",
+    "kind": "FieldDecl",
+    "signature": "unsigned long",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "atlasedMeshCount",
+    "kind": "FieldDecl",
+    "signature": "unsigned long",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "uniqueAlbedoTextureCount",
+    "kind": "FieldDecl",
+    "signature": "unsigned long",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "uniqueNormalTextureCount",
+    "kind": "FieldDecl",
+    "signature": "unsigned long",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "albedoAtlas",
+    "kind": "FieldDecl",
+    "signature": "unsigned int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "normalAtlas",
+    "kind": "FieldDecl",
+    "signature": "unsigned int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "atlasWidth",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "atlasHeight",
+    "kind": "FieldDecl",
+    "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::FoliageTextureAtlasResult",
+    "name": "fallbackWarnings",
+    "kind": "FieldDecl",
+    "signature": "std::vector<std::basic_string<char>>",
     "status": "generated"
   },
   {
@@ -3897,6 +4096,14 @@
     "kind": "CXXMethod",
     "signature": "void (std::span<const std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>>>)",
     "status": "generated"
+  },
+  {
+    "class": "raisin::InstancedVisuals",
+    "name": "setPreparedMeshLodsFromData",
+    "kind": "CXXMethod",
+    "signature": "void (const std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>> *, unsigned long)",
+    "status": "excluded",
+    "reason": "Pointer/count entry point behind the bound std::span overload"
   },
   {
     "class": "raisin::InstancedVisuals",
@@ -6061,6 +6268,13 @@
   },
   {
     "class": "raisin::Material",
+    "name": "lightmapReplacesBakedIrradiance",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Material",
     "name": "lightmapStrength",
     "kind": "FieldDecl",
     "signature": "float",
@@ -6184,6 +6398,14 @@
     "kind": "FieldDecl",
     "signature": "glm::vec<4, float>",
     "status": "generated"
+  },
+  {
+    "class": "raisin::Material",
+    "name": "foliageTextureAtlasOwner",
+    "kind": "FieldDecl",
+    "signature": "std::shared_ptr<const raisin::rayrai_internal::FoliageAtlasTextures>",
+    "status": "excluded",
+    "reason": "Opaque implementation ownership token"
   },
   {
     "class": "raisin::Material",
@@ -7183,6 +7405,13 @@
   },
   {
     "class": "raisin::PhysicsRenderDescription",
+    "name": "objectName",
+    "kind": "FieldDecl",
+    "signature": "std::basic_string<char>",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::PhysicsRenderDescription",
     "name": "visualCount",
     "kind": "FieldDecl",
     "signature": "unsigned long",
@@ -7762,6 +7991,13 @@
   },
   {
     "class": "raisin::RaisimObject",
+    "name": "objectName",
+    "kind": "CXXMethod",
+    "signature": "const std::basic_string<char> &() const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
     "name": "worldIndex",
     "kind": "CXXMethod",
     "signature": "int () const",
@@ -7968,6 +8204,20 @@
     "name": "cullingBounds",
     "kind": "CXXMethod",
     "signature": "void (bool, glm::vec<3, float> &, float &) const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
+    "name": "drawnShapeModels",
+    "kind": "CXXMethod",
+    "signature": "void (bool, std::vector<glm::mat<4, 4, float>> &) const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RaisimObject",
+    "name": "drawnShapesMoved",
+    "kind": "CXXMethod",
+    "signature": "bool (bool, const std::vector<glm::mat<4, 4, float>> &, float) const",
     "status": "generated"
   },
   {
@@ -8820,6 +9070,13 @@
   },
   {
     "class": "raisin::RayraiWindow",
+    "name": "viewportPickCount",
+    "kind": "CXXMethod",
+    "signature": "unsigned long () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
     "name": "setTargetVisual",
     "kind": "CXXMethod",
     "signature": "void (raisin::Visuals *)",
@@ -9506,6 +9763,13 @@
   },
   {
     "class": "raisin::RayraiWindow",
+    "name": "applyReflectionProbeBlend",
+    "kind": "CXXMethod",
+    "signature": "bool (raisin::Visuals &, const glm::vec<3, float> &) const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
     "name": "reflectionProbeCount",
     "kind": "CXXMethod",
     "signature": "unsigned long () const",
@@ -9999,6 +10263,20 @@
     "name": "setBakedIrradianceGrid",
     "kind": "CXXMethod",
     "signature": "void (const raisin::BakedIrradianceGrid &, float, float)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "captureBakedIrradianceGrid",
+    "kind": "CXXMethod",
+    "signature": "raisin::BakedIrradianceGrid (const glm::vec<3, float> &, const glm::vec<3, float> &, const glm::vec<3, int> &, int, const raisin::RayraiWindow::RenderOverrides &)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow",
+    "name": "captureBakedIrradianceGrid",
+    "kind": "CXXMethod",
+    "signature": "raisin::BakedIrradianceGrid (const glm::vec<3, float> &, const glm::vec<3, float> &, const glm::vec<3, int> &, int, const raisin::RayraiWindow::RenderOverrides &, bool)",
     "status": "generated"
   },
   {
@@ -10787,6 +11065,13 @@
   },
   {
     "class": "raisin::RenderQualitySettings",
+    "name": "volumetricLocalLightStrength",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
     "name": "volumetricLightDecay",
     "kind": "FieldDecl",
     "signature": "float",
@@ -10846,6 +11131,27 @@
     "name": "autoExposureEnabled",
     "kind": "FieldDecl",
     "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "autoExposureHdrMetering",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "autoExposureBrightRate",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "autoExposureDarkRate",
+    "kind": "FieldDecl",
+    "signature": "float",
     "status": "generated"
   },
   {
@@ -11088,6 +11394,13 @@
   },
   {
     "class": "raisin::RenderQualitySettings",
+    "name": "integratedAreaLights",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
     "name": "specularAntiAliasing",
     "kind": "FieldDecl",
     "signature": "bool",
@@ -11299,6 +11612,34 @@
   {
     "class": "raisin::RenderQualitySettings",
     "name": "ssrEnabled",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "ssrUseMaterialProperties",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "ssrTemporalStabilization",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "ssrRayQueryFallback",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "ssrGlossyRayQueries",
     "kind": "FieldDecl",
     "signature": "bool",
     "status": "generated"
@@ -11725,6 +12066,13 @@
   },
   {
     "class": "raisin::RenderQualitySettings",
+    "name": "screenSpaceGtaoEnabled",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
     "name": "screenSpaceAoRadius",
     "kind": "FieldDecl",
     "signature": "float",
@@ -11998,6 +12346,13 @@
   },
   {
     "class": "raisin::RenderQualitySettings",
+    "name": "temporalAaReactiveTransparency",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
     "name": "temporalAaSharpness",
     "kind": "FieldDecl",
     "signature": "float",
@@ -12103,6 +12458,13 @@
   },
   {
     "class": "raisin::RenderQualitySettings",
+    "name": "directionalShadowStableExtents",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
     "name": "directionalShadowCascadeSplitOverrides",
     "kind": "FieldDecl",
     "signature": "std::array<float, 4>",
@@ -12139,6 +12501,13 @@
   {
     "class": "raisin::RenderQualitySettings",
     "name": "additionalShadowAtlasPlanningEnabled",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "localLightSoftShadows",
     "kind": "FieldDecl",
     "signature": "bool",
     "status": "generated"
@@ -12204,6 +12573,20 @@
     "name": "maxReflectionProbesPerSelection",
     "kind": "FieldDecl",
     "signature": "int",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "instancedHdrLighting",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RenderQualitySettings",
+    "name": "runtimeIrradianceEnabled",
+    "kind": "FieldDecl",
+    "signature": "bool",
     "status": "generated"
   },
   {
@@ -12845,6 +13228,22 @@
   },
   {
     "class": "raisin::Visuals",
+    "name": "Visuals",
+    "kind": "CXXConstructor",
+    "signature": "void (const raisin::Visuals &)",
+    "status": "excluded",
+    "reason": "Deleted/copy/move constructor"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "operator=",
+    "kind": "CXXMethod",
+    "signature": "raisin::Visuals &(const raisin::Visuals &)",
+    "status": "excluded",
+    "reason": "C++ assignment, deleted, or move-only overload"
+  },
+  {
+    "class": "raisin::Visuals",
     "name": "setSphereSize",
     "kind": "CXXMethod",
     "signature": "void (double)",
@@ -13056,6 +13455,27 @@
   {
     "class": "raisin::Visuals",
     "name": "getPosition",
+    "kind": "CXXMethod",
+    "signature": "glm::vec<3, float> () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "setCameraTargetUsesBoundsCenter",
+    "kind": "CXXMethod",
+    "signature": "void (bool)",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "cameraTargetUsesBoundsCenter",
+    "kind": "CXXMethod",
+    "signature": "bool () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "getCameraTargetPosition",
     "kind": "CXXMethod",
     "signature": "glm::vec<3, float> () const",
     "status": "generated"
@@ -13545,6 +13965,20 @@
   },
   {
     "class": "raisin::Visuals",
+    "name": "pollAsyncMeshPreparation",
+    "kind": "CXXMethod",
+    "signature": "bool ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
+    "name": "hasPendingAsyncMeshPreparation",
+    "kind": "CXXMethod",
+    "signature": "bool () const",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::Visuals",
     "name": "automaticMeshLodLevelCount",
     "kind": "CXXMethod",
     "signature": "unsigned long () const",
@@ -13912,6 +14346,20 @@
     "name": "flow",
     "kind": "FieldDecl",
     "signature": "raisin::WaterFlow",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::WaterBody",
+    "name": "surfaceBubbleDensity",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::WaterBody",
+    "name": "surfaceBubbleRadius",
+    "kind": "FieldDecl",
+    "signature": "float",
     "status": "generated"
   },
   {
@@ -18959,6 +19407,20 @@
   },
   {
     "class": "raisin::RayraiWindow::RenderOverrides",
+    "name": "allowSceneIrradianceBake",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow::RenderOverrides",
+    "name": "exposureDeltaSeconds",
+    "kind": "FieldDecl",
+    "signature": "float",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::RayraiWindow::RenderOverrides",
     "name": "fixedShadowCenterEnabled",
     "kind": "FieldDecl",
     "signature": "bool",
@@ -20997,6 +21459,13 @@
     "status": "generated"
   },
   {
+    "class": "raisin::RenderQualitySettings::TemporalAaSettings",
+    "name": "reactiveTransparency",
+    "kind": "FieldDecl",
+    "signature": "bool",
+    "status": "generated"
+  },
+  {
     "class": "raisin::RenderQualitySettings::ToneMappingSettings",
     "name": "pbrToneMappingEnabled",
     "kind": "FieldDecl",
@@ -21337,6 +21806,13 @@
     "status": "generated"
   },
   {
+    "class": "raisin::buildFoliageTextureAtlasForMeshes",
+    "name": "buildFoliageTextureAtlasForMeshes",
+    "kind": "FunctionDecl",
+    "signature": "FoliageTextureAtlasResult (const std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>> &, const FoliageTextureAtlasOptions &)",
+    "status": "generated"
+  },
+  {
     "class": "raisin::color::clamp01",
     "name": "clamp01",
     "kind": "FunctionDecl",
@@ -21434,6 +21910,20 @@
     "signature": "std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>> (const std::string &, std::vector<ModelSourceFile> &)",
     "status": "generated",
     "python_name": "loadModelWithSourceFiles"
+  },
+  {
+    "class": "raisin::assimp::importConfigurationKey",
+    "name": "importConfigurationKey",
+    "kind": "FunctionDecl",
+    "signature": "uint64_t ()",
+    "status": "generated"
+  },
+  {
+    "class": "raisin::assimp::forgetTextureLookups",
+    "name": "forgetTextureLookups",
+    "kind": "FunctionDecl",
+    "signature": "void ()",
+    "status": "generated"
   },
   {
     "class": "raisin::assimp::loadSceneLights",
@@ -21728,7 +22218,7 @@
     "class": "raisin::loadMeshPreprocessLods",
     "name": "loadMeshPreprocessLods",
     "kind": "FunctionDecl",
-    "signature": "std::shared_ptr<RayraiGlobalAsset::MeshLodChain> (const std::string &, const std::vector<std::shared_ptr<OpenGLMesh>> &, MeshPreprocessLodFlavor)",
+    "signature": "std::shared_ptr<RayraiGlobalAsset::MeshLodChain> (const std::string &, const std::vector<std::shared_ptr<OpenGLMesh>> &, MeshPreprocessLodFlavor, bool)",
     "status": "generated"
   },
   {

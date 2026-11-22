@@ -24,6 +24,12 @@ set(_doc_image_env
     --unset=MAKEFLAGS
     --unset=MFLAGS
     --unset=MAKELEVEL)
+# The rayrai examples' shared capture (rayrai/example_common.hpp) is set only through
+# DOC_IMAGE_ENVIRONMENT, never inherited from the shell that builds the docs.
+foreach(_capture CAPTURE CAPTURE_SIZE CAPTURE_START CAPTURE_FRAMES CAPTURE_EVERY CAPTURE_SWAY
+        CAPTURE_PIVOT CAPTURE_WINDOW)
+  list(APPEND _doc_image_env "--unset=RAYRAI_EXAMPLE_${_capture}")
+endforeach()
 if(NOT DOC_IMAGE_RUNTIME_ENV_VAR STREQUAL "")
   list(APPEND _doc_image_env
       "${DOC_IMAGE_RUNTIME_ENV_VAR}=${DOC_IMAGE_RUNTIME_ENV_VALUE}")
@@ -40,7 +46,11 @@ if(DEFINED DOC_IMAGE_GALLERY_FRAMES_DIR AND NOT DOC_IMAGE_GALLERY_FRAMES_DIR STR
   list(APPEND _doc_image_env
       "RAISIM_DOC_GALLERY_FRAMES_DIR=${DOC_IMAGE_GALLERY_FRAMES_DIR}")
 endif()
-if(NOT DEFINED DOC_IMAGE_ARGUMENTS OR DOC_IMAGE_ARGUMENTS STREQUAL "")
+# DOC_IMAGE_ENVIRONMENT holds NAME=VALUE entries. An example recorded through the shared capture
+# takes them and no arguments; a doc_image_* generator takes the output folder by default.
+if(DEFINED DOC_IMAGE_ENVIRONMENT AND NOT DOC_IMAGE_ENVIRONMENT STREQUAL "")
+  list(APPEND _doc_image_env ${DOC_IMAGE_ENVIRONMENT})
+elseif(NOT DEFINED DOC_IMAGE_ARGUMENTS OR DOC_IMAGE_ARGUMENTS STREQUAL "")
   set(DOC_IMAGE_ARGUMENTS "${DOC_IMAGE_OUTPUT_DIR}")
 endif()
 

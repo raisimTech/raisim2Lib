@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 import datetime
 import enum
 import os
@@ -2139,6 +2139,18 @@ class RayraiWindow:
         def allowViewerUpscale(self, arg: bool, /) -> None: ...
 
         @property
+        def allowSceneIrradianceBake(self) -> bool: ...
+
+        @allowSceneIrradianceBake.setter
+        def allowSceneIrradianceBake(self, arg: bool, /) -> None: ...
+
+        @property
+        def exposureDeltaSeconds(self) -> float: ...
+
+        @exposureDeltaSeconds.setter
+        def exposureDeltaSeconds(self, arg: float, /) -> None: ...
+
+        @property
         def fixedShadowCenterEnabled(self) -> bool: ...
 
         @fixedShadowCenterEnabled.setter
@@ -3767,6 +3779,12 @@ class RayraiWindow:
         @castsShadows.setter
         def castsShadows(self, arg: bool, /) -> None: ...
 
+        @property
+        def runtimeIrradianceRadius(self) -> float: ...
+
+        @runtimeIrradianceRadius.setter
+        def runtimeIrradianceRadius(self, arg: float, /) -> None: ...
+
     class RenderQualityPreset(enum.Enum):
         Fast = 0
 
@@ -3815,6 +3833,8 @@ class RayraiWindow:
         Linear = 0
 
         Mitchell = 1
+
+        Temporal = 2
 
     class PostProcessDebugMode(enum.Enum):
         Final = 0
@@ -4190,6 +4210,12 @@ class RayraiWindow:
             @sharpness.setter
             def sharpness(self, arg: float, /) -> None: ...
 
+            @property
+            def reactiveTransparency(self) -> bool: ...
+
+            @reactiveTransparency.setter
+            def reactiveTransparency(self, arg: bool, /) -> None: ...
+
         class ToneMappingSettings:
             def __init__(self) -> None: ...
 
@@ -4494,6 +4520,12 @@ class RayraiWindow:
         def volumetricLightStrength(self, arg: float, /) -> None: ...
 
         @property
+        def volumetricLocalLightStrength(self) -> float: ...
+
+        @volumetricLocalLightStrength.setter
+        def volumetricLocalLightStrength(self, arg: float, /) -> None: ...
+
+        @property
         def volumetricLightDecay(self) -> float: ...
 
         @volumetricLightDecay.setter
@@ -4546,6 +4578,24 @@ class RayraiWindow:
 
         @autoExposureEnabled.setter
         def autoExposureEnabled(self, arg: bool, /) -> None: ...
+
+        @property
+        def autoExposureHdrMetering(self) -> bool: ...
+
+        @autoExposureHdrMetering.setter
+        def autoExposureHdrMetering(self, arg: bool, /) -> None: ...
+
+        @property
+        def autoExposureBrightRate(self) -> float: ...
+
+        @autoExposureBrightRate.setter
+        def autoExposureBrightRate(self, arg: float, /) -> None: ...
+
+        @property
+        def autoExposureDarkRate(self) -> float: ...
+
+        @autoExposureDarkRate.setter
+        def autoExposureDarkRate(self, arg: float, /) -> None: ...
 
         @property
         def autoExposureKey(self) -> float: ...
@@ -4752,6 +4802,12 @@ class RayraiWindow:
         def pbrKeyLightIntensity(self, arg: float, /) -> None: ...
 
         @property
+        def integratedAreaLights(self) -> bool: ...
+
+        @integratedAreaLights.setter
+        def integratedAreaLights(self, arg: bool, /) -> None: ...
+
+        @property
         def specularAntiAliasing(self) -> bool: ...
 
         @specularAntiAliasing.setter
@@ -4936,6 +4992,30 @@ class RayraiWindow:
 
         @ssrEnabled.setter
         def ssrEnabled(self, arg: bool, /) -> None: ...
+
+        @property
+        def ssrUseMaterialProperties(self) -> bool: ...
+
+        @ssrUseMaterialProperties.setter
+        def ssrUseMaterialProperties(self, arg: bool, /) -> None: ...
+
+        @property
+        def ssrTemporalStabilization(self) -> bool: ...
+
+        @ssrTemporalStabilization.setter
+        def ssrTemporalStabilization(self, arg: bool, /) -> None: ...
+
+        @property
+        def ssrRayQueryFallback(self) -> bool: ...
+
+        @ssrRayQueryFallback.setter
+        def ssrRayQueryFallback(self, arg: bool, /) -> None: ...
+
+        @property
+        def ssrGlossyRayQueries(self) -> bool: ...
+
+        @ssrGlossyRayQueries.setter
+        def ssrGlossyRayQueries(self, arg: bool, /) -> None: ...
 
         @property
         def ssrStrength(self) -> float: ...
@@ -5298,6 +5378,12 @@ class RayraiWindow:
         def screenSpaceAoEnabled(self, arg: bool, /) -> None: ...
 
         @property
+        def screenSpaceGtaoEnabled(self) -> bool: ...
+
+        @screenSpaceGtaoEnabled.setter
+        def screenSpaceGtaoEnabled(self, arg: bool, /) -> None: ...
+
+        @property
         def screenSpaceAoRadius(self) -> float: ...
 
         @screenSpaceAoRadius.setter
@@ -5532,6 +5618,12 @@ class RayraiWindow:
         def temporalAaCurrentWeight(self, arg: float, /) -> None: ...
 
         @property
+        def temporalAaReactiveTransparency(self) -> bool: ...
+
+        @temporalAaReactiveTransparency.setter
+        def temporalAaReactiveTransparency(self, arg: bool, /) -> None: ...
+
+        @property
         def temporalAaSharpness(self) -> float: ...
 
         @temporalAaSharpness.setter
@@ -5622,6 +5714,12 @@ class RayraiWindow:
         def directionalShadowCascadeMaxDistance(self, arg: float, /) -> None: ...
 
         @property
+        def directionalShadowStableExtents(self) -> bool: ...
+
+        @directionalShadowStableExtents.setter
+        def directionalShadowStableExtents(self, arg: bool, /) -> None: ...
+
+        @property
         def directionalShadowCascadeSplitOverrides(self) -> list[float]: ...
 
         @directionalShadowCascadeSplitOverrides.setter
@@ -5656,6 +5754,12 @@ class RayraiWindow:
 
         @additionalShadowAtlasPlanningEnabled.setter
         def additionalShadowAtlasPlanningEnabled(self, arg: bool, /) -> None: ...
+
+        @property
+        def localLightSoftShadows(self) -> bool: ...
+
+        @localLightSoftShadows.setter
+        def localLightSoftShadows(self, arg: bool, /) -> None: ...
 
         @property
         def additionalShadowAtlasResolution(self) -> int: ...
@@ -5710,6 +5814,18 @@ class RayraiWindow:
 
         @maxReflectionProbesPerSelection.setter
         def maxReflectionProbesPerSelection(self, arg: int, /) -> None: ...
+
+        @property
+        def instancedHdrLighting(self) -> bool: ...
+
+        @instancedHdrLighting.setter
+        def instancedHdrLighting(self, arg: bool, /) -> None: ...
+
+        @property
+        def runtimeIrradianceEnabled(self) -> bool: ...
+
+        @runtimeIrradianceEnabled.setter
+        def runtimeIrradianceEnabled(self, arg: bool, /) -> None: ...
 
         @property
         def minReflectionProbeWeight(self) -> float: ...
@@ -8171,6 +8287,13 @@ class RayraiWindow:
         C++: Visuals *()
         """
 
+    def viewportPickCount(self) -> int:
+        """
+        /// Number of left clicks in the viewport that ran a selection pick (a press released over the viewport
+          /// within 20 frames), including clicks on empty space.
+        C++: uint64_t () const
+        """
+
     def pickTargetVisualAt(self, x: int, y: int) -> Visuals | None:
         """
         /**
@@ -8224,7 +8347,9 @@ class RayraiWindow:
         """
         /**
            * @brief Runtime shortcut for RenderQualitySettings::updateShadowsEveryFrame.
-           * @param enabled True to refresh shadow maps every viewer frame, false to update on demand.
+           * @param enabled True to redraw shadow maps in every frame where a caster, the light or the
+           * shadow region moves, and every frame while foliage wind moves a non-static caster; false to
+           * redraw only when the scene, light or camera moves enough.
            */
         C++: void (bool)
         """
@@ -8429,9 +8554,9 @@ class RayraiWindow:
         /**
            * @brief Compute a deterministic tile plan for selected local-light shadow maps.
            *
-           * The renderer uses this plan for its 2D additional-light shadow atlas (point lights keep
-           * standalone cubemaps unless the point-shadow policy says otherwise). Calling it is CPU-only;
-           * the result depends on the shadow lights selected by the last rendered frame.
+           * The plan uses the configured atlas limit and the shadow lights selected by the last
+           * rendered frame. Calling it is CPU-only. Rendering also applies the GPU texture size limit.
+           * Point lights use standalone cubemaps under the standalone point-shadow policy.
            *
            * @return Atlas plan (see ShadowAtlasPlan).
            */
@@ -8565,7 +8690,8 @@ class RayraiWindow:
         /**
            * @brief Cached captureFilteredReflectionProbe(); textures stay owned by the renderer.
            *
-           * Entries are keyed by all arguments and live until clearReflectionProbeCache().
+           * Entries are keyed like captureReflectionProbeCubemapCached() plus the remaining
+           * arguments, and live until clearReflectionProbeCache().
            * @param position World-space capture position.
            * @param radius Influence radius in metres.
            * @param strength Probe strength.
@@ -8607,7 +8733,9 @@ class RayraiWindow:
            * The cache is explicit and does not recapture automatically. The returned
            * cubemap is owned by RayRai until clearReflectionProbeCache() or destruction.
            * Applications should clear the cache after changing scene content that should
-           * be reflected in future probe captures. Entries are keyed by position and settings.
+           * be reflected in future probe captures. Entries are keyed by position and settings,
+           * plus the background brightness and tint when the background is the weather sky or a
+           * cached scene HDR.
            *
            * @param position World-space capture position.
            * @param settings Capture settings.
@@ -9155,6 +9283,14 @@ class RayraiWindow:
         C++: bool (Visuals &, const glm::vec3 &) const
         """
 
+    def applyReflectionProbeBlend(self, visual: Visuals, position: numpy.ndarray) -> bool:
+        """
+        /// Apply weighted specular lighting from the selected local probes to a PBR visual.
+          /// Each probe retains its own box projection. Diffuse irradiance uses the primary probe.
+          /// Call when the visual moves between probe regions. Texture ownership stays with the caller.
+        C++: bool (Visuals &, const glm::vec3 &) const
+        """
+
     def reflectionProbeCount(self) -> int:
         """
         /// @return Number of probes registered with addReflectionProbe().
@@ -9634,7 +9770,8 @@ class RayraiWindow:
         /**
            * @brief Set a tiled ground texture for halfspace visuals.
            *
-           * Loaded with loadTextureWithTiling() (linear, not sRGB). GL context required.
+           * Loaded with loadTextureWithTiling() (linear, not sRGB). Halfspaces already drawn switch
+           * to the new texture. GL context required.
            * @param path Path to the texture image.
            */
         C++: void (const std::string &)
@@ -9916,9 +10053,10 @@ class RayraiWindow:
            * (World::getRayCastBodies()), stores the hits in the sensor frame with
            * lidar.setScan() and stamps the world time. The scan reproduces
            * SpinningLidar::update(): the same columns and point order, exact intersections
-           * with primitives, heightmaps and meshes, rays starting at rangeMin, and the
+           * with primitives, heightmaps, meshes and voxel maps, rays starting at rangeMin, and the
            * sensor's own body ignored. Ranges agree to float precision (about 1e-5 of the
-           * range); a ray grazing a silhouette within that tolerance may differ.
+           * range); a ray grazing a silhouette within that tolerance may differ. Pitch rows
+           * beyond the vertical (|pitch| > pi/2) may miss hits on the GPU.
            * Requires this renderer's GL context.
            *
            * @param lidar Raisim spinning lidar to update.
@@ -9997,6 +10135,24 @@ class RayraiWindow:
            * @param edgeFadeMeters Fade distance at the grid boundary in metres, >= 0.
            */
         C++: void (const BakedIrradianceGrid &, float, float)
+        """
+
+    @overload
+    def captureBakedIrradianceGrid(self, minimum: numpy.ndarray, maximum: numpy.ndarray, dimensions: numpy.ndarray, faceResolution: int, overrides: RayraiWindow.RenderOverrides) -> BakedIrradianceGrid:
+        """
+        /// Capture scene-linear surface radiance into a diffuse irradiance grid. The capture uses a
+          /// black background and omits the existing grid, the live runtime-irradiance volume, weather
+          /// particles and post effects. Configure direct-only scene lighting before capturing a single
+          /// diffuse bounce. Call on the render thread.
+          /// Face resolution must be in [4, 128]. With shadows, use a fixed shadow center for all probes.
+        C++: BakedIrradianceGrid (const glm::vec3 &, const glm::vec3 &, const glm::ivec3 &, int, const RenderOverrides &)
+        """
+
+    @overload
+    def captureBakedIrradianceGrid(self, minimum: numpy.ndarray, maximum: numpy.ndarray, dimensions: numpy.ndarray, faceResolution: int, overrides: RayraiWindow.RenderOverrides, captureVisibility: bool) -> BakedIrradianceGrid:
+        """
+        /// Optionally capture coarse directional geometry distances for visibility-aware interpolation.
+        C++: BakedIrradianceGrid (const glm::vec3 &, const glm::vec3 &, const glm::ivec3 &, int, const RenderOverrides &, bool)
         """
 
     def clearBakedIrradianceGrid(self) -> None:
@@ -11800,6 +11956,17 @@ class OpenGLMesh:
     @VAO.setter
     def VAO(self, arg: int, /) -> None: ...
 
+    def vertexArray(self) -> int:
+        """
+        /**
+           * @return The vertex array draws bind: #VAO, or for an indexed range view
+           *         (createIndexedRangeView(), also of another view) the current one
+           *         of the mesh whose buffers it draws, which that mesh replaces when
+           *         it re-uploads edited geometry.
+           */
+        C++: unsigned int () const
+        """
+
     @staticmethod
     def createIndexedRangeView(owner: OpenGLMesh, localVertices: Sequence[Vertex], localIndices: Sequence[int], firstIndex: int, baseVertex: int, viewMaterial: Material, viewBaseColor: numpy.ndarray, debugName: str = '') -> OpenGLMesh:
         """
@@ -11999,6 +12166,19 @@ class OpenGLMesh:
            *        (the mesh's #textures are then ignored).
            */
         C++: void (const Shader &, RenderMode, const raisin::Material *) const
+        """
+
+    def drawGeometry(self, shader: Shader) -> None:
+        """
+        /**
+           * @brief Issue only this mesh's indexed draw call.
+           *
+           * Binds the vertex array and draws with the current GL state. No material
+           * uniforms, textures or material depth/stencil/blend/cull state are applied,
+           * so passes that own their state (for example a depth-equal mask) stay intact.
+           * @param shader Shader that is already in use.
+           */
+        C++: void (const Shader &) const
         """
 
     def drawInstanced(self, shader: Shader, instanceCount: int) -> None:
@@ -12958,6 +13138,12 @@ class AdditionalLight:
     @castsShadows.setter
     def castsShadows(self, arg: bool, /) -> None: ...
 
+    @property
+    def runtimeIrradianceRadius(self) -> float: ...
+
+    @runtimeIrradianceRadius.setter
+    def runtimeIrradianceRadius(self, arg: float, /) -> None: ...
+
 class BakedIrradianceGrid:
     def __init__(self) -> None: ...
 
@@ -12984,6 +13170,24 @@ class BakedIrradianceGrid:
 
     @probes.setter
     def probes(self, arg: Sequence[Sequence[numpy.ndarray]], /) -> None: ...
+
+    @property
+    def visibilityDepths(self) -> list[list[float]]: ...
+
+    @visibilityDepths.setter
+    def visibilityDepths(self, arg: Sequence[Sequence[float]], /) -> None: ...
+
+    @property
+    def axisPositions(self) -> list[list[float]]: ...
+
+    @axisPositions.setter
+    def axisPositions(self, arg: Sequence[Sequence[float]], /) -> None: ...
+
+    @property
+    def probePositions(self) -> list[numpy.ndarray]: ...
+
+    @probePositions.setter
+    def probePositions(self, arg: Sequence[numpy.ndarray], /) -> None: ...
 
     def validate(self) -> None:
         """
@@ -13206,6 +13410,28 @@ class Camera:
         C++: glm::vec2 () const
         """
 
+    def setImageWindowOffset(self, fraction: numpy.ndarray) -> None:
+        """
+        /**
+           * @brief Shift the image window across the image plane, as the xOffset/yOffset of raisim
+           * camera sensors do (see raisim/sensors/CameraGeometry.hpp).
+           *
+           * Pixel (i, j) then shows what pixel (i + x * width, j + y * height) of the unshifted image
+           * shows: getProjectionMatrix() becomes an off-axis projection, and a fisheye lens remaps with
+           * its principal point moved by the same number of pixels. A fisheye pixel whose ray leaves the
+           * pinhole source image renders as outside the lens. The constructors from sensor properties
+           * set (xOffset / width, yOffset / height).
+           * @param fraction Shift in image widths (x, to the right) and image heights (y, down).
+           */
+        C++: void (const glm::vec2 &)
+        """
+
+    def imageWindowOffset(self) -> numpy.ndarray:
+        """
+        /// @return Image window shift in image widths and heights (see setImageWindowOffset()).
+        C++: glm::vec2 () const
+        """
+
     def getPosition(self) -> numpy.ndarray:
         """
         /**
@@ -13353,6 +13579,15 @@ class Camera:
            */
         C++: void (bool)
         """
+
+    def setMinimumOrbitDistance(self, distance: float) -> None:
+        """
+        /** @brief Set a positive finite perspective orbit minimum, in world units. Default: 0.05. */
+        C++: void (float)
+        """
+
+    def minimumOrbitDistance(self) -> float:
+        """C++: float () const"""
 
     def isCameraFixedDistance(self) -> bool:
         """
@@ -13648,7 +13883,7 @@ class Camera:
         C++: void (bool)
         """
 
-    def postProcessDoF(self, postShader: Shader, fxaaEnabled: bool = False, bloomEnabled: bool = False, bloomThreshold: float = 0.8199999928474426, bloomStrength: float = 0.18000000715255737, bloomRadius: float = 4.0, bloomKnee: float = 0.2199999988079071, bloomQuality: int = 1, bloomSourceClamp: float = 8.0, bloomAnamorphic: float = 0.0, bloomDirtStrength: float = 0.0, bloomDirtScale: float = 1.0, bloomDirtTexture: int = 0, bloomBlendMode: int = 0, bloomMix: float = 0.05000000074505806, viewerWhiteBalance: numpy.ndarray = ..., viewerSaturation: float = 1.0, screenSpaceAoEnabled: bool = False, screenSpaceAoRadius: float = 2.0, screenSpaceAoStrength: float = 0.0, screenSpaceAoBias: float = 0.019999999552965164, screenSpaceAoSamples: int = 12, screenSpaceAoFalloff: float = 0.07999999821186066, screenSpaceAoRadiusWorldSpace: bool = False, screenSpaceAoMaxPixelRadius: float = 48.0, screenSpaceAoGeometryAware: bool = False, contactAoRadius: float = 0.0, contactAoStrength: float = 0.0, contactAoSamples: int = 8, contactAoFalloff: float = 0.05000000074505806, screenSpaceAoDenoiseEnabled: bool = False, screenSpaceAoDenoiseStrength: float = 0.0, screenSpaceAoDenoiseRadius: int = 1, screenSpaceAoDenoiseDepthSigma: float = 0.03500000014901161, screenSpaceIndirectLightingEnabled: bool = False, screenSpaceIndirectLightingRadius: float = 3.0, screenSpaceIndirectLightingStrength: float = 0.0, screenSpaceIndirectLightingSamples: int = 12, screenSpaceIndirectLightingFalloff: float = 0.2199999988079071, screenSpaceIndirectLightingNormalRejection: float = 0.75, screenSpaceIndirectLightingSaturation: float = 1.0, volumetricFogEnabled: bool = False, volumetricFogDensity: float = 0.0, volumetricFogNoiseScale: float = 6.0, volumetricFogNoiseStrength: float = 0.550000011920929, volumetricFogColor: numpy.ndarray = ..., volumetricFogAnisotropy: float = 0.0, volumetricFogAnimationTimeSeconds: float = 0.0, volumetricFogWindDirection: numpy.ndarray = ..., volumetricFogWindSpeed: float = 0.0, volumetricFogTurbulenceSpeed: float = 0.0, volumetricLightingEnabled: bool = False, volumetricLightStrength: float = 0.0, volumetricLightDecay: float = 0.8799999952316284, volumetricLightSamples: int = 16, volumetricLightScreenPosition: numpy.ndarray = ..., volumetricLightColor: numpy.ndarray = ..., localFogVolumeCount: int = 0, localFogVolumeCenterRadius: Sequence[numpy.ndarray] = ..., localFogVolumeColorDensity: Sequence[numpy.ndarray] = ..., localFogVolumeParams: Sequence[numpy.ndarray] = ..., projectedDecalCount: int = 0, projectedDecalWorldToLocal: Sequence[numpy.ndarray] = ..., projectedDecalColor: Sequence[numpy.ndarray] = ..., projectedDecalParams: Sequence[numpy.ndarray] = ..., projectedDecalAlbedoMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalEmissionMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalNormalMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalOrmMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalTextureParams: Sequence[numpy.ndarray] = ..., projectedDecalSurfaceParams: Sequence[numpy.ndarray] = ..., projectedDecalUvScaleOffset: Sequence[numpy.ndarray] = ..., temporalAaEnabled: bool = False, temporalAaBlend: float = 0.07999999821186066, temporalAaReset: bool = False, postProcessDebugMode: int = 0, aerialPerspectiveEnabled: bool = False, apVolumeTex: int = 0, apStrength: float = 1.0, viewerColorGradePreset: int = 0, viewerColorGradeStrength: float = 1.0, viewerVignetteStrength: float = 0.0, viewerChromaticAberrationStrength: float = 0.0, viewerFilmGrainStrength: float = 0.0, viewerLensCharacterTime: float = 0.0, lightShaftsEnabled: bool = False, lightShaftsStrength: float = 1.0, lightShaftsDecay: float = 0.9649999737739563, lightShaftsDensity: float = 1.0, lightShaftsSunScreenPos: numpy.ndarray = ..., lightShaftsTint: numpy.ndarray = ..., lensFlareGhostStrength: float = 0.0, lensFlareStreakStrength: float = 0.0, lensFlareTint: numpy.ndarray = ..., contactShadowsEnabled: bool = False, contactShadowsLength: float = 0.11999999731779099, contactShadowsStrength: float = 0.699999988079071, contactShadowsThickness: float = 0.07999999821186066, contactShadowsSunScreenPos: numpy.ndarray = ..., contactShadowsLightDirectionWorld: numpy.ndarray = ..., motionBlurEnabled: bool = False, motionBlurDirection: numpy.ndarray = ..., motionBlurStrength: float = 0.0, ssrEnabled: bool = False, ssrStrength: float = 0.0, ssrSteps: int = 24, ssrMaxDistance: float = 6.0, ssrThickness: float = 0.3499999940395355, heatHazeEnabled: bool = False, heatHazeStrength: float = 0.0, heatHazeFrequency: float = 4.0, heatHazeSpeed: float = 1.0, heatHazeMaxY: float = 0.550000011920929, zoomBlurEnabled: bool = False, zoomBlurStrength: float = 0.0, zoomBlurCenter: numpy.ndarray = ..., zoomBlurInnerRadius: float = 0.15000000596046448, posterizeEnabled: bool = False, posterizeLevels: int = 4, starburstEnabled: bool = False, starburstStrength: float = 0.0, starburstSpikes: int = 6, starburstAngleOffset: float = 0.0, starburstRadius: float = 0.3499999940395355, starburstTint: numpy.ndarray = ..., lensDistortionEnabled: bool = False, lensDistortionStrength: float = 0.0, lensDistortionCenter: numpy.ndarray = ..., underwaterEnabled: bool = False, underwaterTint: numpy.ndarray = ..., underwaterCausticStrength: float = 0.5, underwaterCausticScale: float = 1.0, underwaterDepthExtinction: float = 1.0, pixelateEnabled: bool = False, pixelateBlockSize: int = 4, nightVisionEnabled: bool = False, nightVisionStrength: float = 0.0, nightVisionGain: float = 2.5, ditherEnabled: bool = False, ditherStrength: float = 0.004000000189989805, thermalEnabled: bool = False, thermalStrength: float = 0.0, thermalGain: float = 1.5, scanlineEnabled: bool = False, scanlineStrength: float = 0.30000001192092896, scanlineFrequency: float = 360.0, letterboxEnabled: bool = False, letterboxAspect: float = 2.3499999046325684, letterboxColor: numpy.ndarray = ..., aoPrepassShader: Shader | None = None, contactShadowShader: Shader | None = None) -> None:
+    def postProcessDoF(self, postShader: Shader, fxaaEnabled: bool = False, bloomEnabled: bool = False, bloomThreshold: float = 0.8199999928474426, bloomStrength: float = 0.18000000715255737, bloomRadius: float = 4.0, bloomKnee: float = 0.2199999988079071, bloomQuality: int = 1, bloomSourceClamp: float = 8.0, bloomAnamorphic: float = 0.0, bloomDirtStrength: float = 0.0, bloomDirtScale: float = 1.0, bloomDirtTexture: int = 0, bloomBlendMode: int = 0, bloomMix: float = 0.05000000074505806, viewerWhiteBalance: numpy.ndarray = ..., viewerSaturation: float = 1.0, screenSpaceAoEnabled: bool = False, screenSpaceAoRadius: float = 2.0, screenSpaceAoStrength: float = 0.0, screenSpaceAoBias: float = 0.019999999552965164, screenSpaceAoSamples: int = 12, screenSpaceAoFalloff: float = 0.07999999821186066, screenSpaceAoRadiusWorldSpace: bool = False, screenSpaceAoMaxPixelRadius: float = 48.0, screenSpaceAoGeometryAware: bool = False, contactAoRadius: float = 0.0, contactAoStrength: float = 0.0, contactAoSamples: int = 8, contactAoFalloff: float = 0.05000000074505806, screenSpaceAoDenoiseEnabled: bool = False, screenSpaceAoDenoiseStrength: float = 0.0, screenSpaceAoDenoiseRadius: int = 1, screenSpaceAoDenoiseDepthSigma: float = 0.03500000014901161, screenSpaceIndirectLightingEnabled: bool = False, screenSpaceIndirectLightingRadius: float = 3.0, screenSpaceIndirectLightingStrength: float = 0.0, screenSpaceIndirectLightingSamples: int = 12, screenSpaceIndirectLightingFalloff: float = 0.2199999988079071, screenSpaceIndirectLightingNormalRejection: float = 0.75, screenSpaceIndirectLightingSaturation: float = 1.0, volumetricFogEnabled: bool = False, volumetricFogDensity: float = 0.0, volumetricFogNoiseScale: float = 6.0, volumetricFogNoiseStrength: float = 0.550000011920929, volumetricFogColor: numpy.ndarray = ..., volumetricFogAnisotropy: float = 0.0, volumetricFogAnimationTimeSeconds: float = 0.0, volumetricFogWindDirection: numpy.ndarray = ..., volumetricFogWindSpeed: float = 0.0, volumetricFogTurbulenceSpeed: float = 0.0, volumetricLightingEnabled: bool = False, volumetricLightStrength: float = 0.0, volumetricLightDecay: float = 0.8799999952316284, volumetricLightSamples: int = 16, volumetricLightScreenPosition: numpy.ndarray = ..., volumetricLightColor: numpy.ndarray = ..., localFogVolumeCount: int = 0, localFogVolumeCenterRadius: Sequence[numpy.ndarray] = ..., localFogVolumeColorDensity: Sequence[numpy.ndarray] = ..., localFogVolumeParams: Sequence[numpy.ndarray] = ..., projectedDecalCount: int = 0, projectedDecalWorldToLocal: Sequence[numpy.ndarray] = ..., projectedDecalColor: Sequence[numpy.ndarray] = ..., projectedDecalParams: Sequence[numpy.ndarray] = ..., projectedDecalAlbedoMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalEmissionMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalNormalMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalOrmMaps: Sequence[int] = [0, 0, 0, 0, 0, 0, 0, 0], projectedDecalTextureParams: Sequence[numpy.ndarray] = ..., projectedDecalSurfaceParams: Sequence[numpy.ndarray] = ..., projectedDecalUvScaleOffset: Sequence[numpy.ndarray] = ..., temporalAaEnabled: bool = False, temporalAaBlend: float = 0.07999999821186066, temporalAaReset: bool = False, postProcessDebugMode: int = 0, aerialPerspectiveEnabled: bool = False, apVolumeTex: int = 0, apStrength: float = 1.0, viewerColorGradePreset: int = 0, viewerColorGradeStrength: float = 1.0, viewerVignetteStrength: float = 0.0, viewerChromaticAberrationStrength: float = 0.0, viewerFilmGrainStrength: float = 0.0, viewerLensCharacterTime: float = 0.0, lightShaftsEnabled: bool = False, lightShaftsStrength: float = 1.0, lightShaftsDecay: float = 0.9649999737739563, lightShaftsDensity: float = 1.0, lightShaftsSunScreenPos: numpy.ndarray = ..., lightShaftsTint: numpy.ndarray = ..., lensFlareGhostStrength: float = 0.0, lensFlareStreakStrength: float = 0.0, lensFlareTint: numpy.ndarray = ..., contactShadowsEnabled: bool = False, contactShadowsLength: float = 0.11999999731779099, contactShadowsStrength: float = 0.699999988079071, contactShadowsThickness: float = 0.07999999821186066, contactShadowsSunScreenPos: numpy.ndarray = ..., contactShadowsLightDirectionWorld: numpy.ndarray = ..., motionBlurEnabled: bool = False, motionBlurDirection: numpy.ndarray = ..., motionBlurStrength: float = 0.0, ssrEnabled: bool = False, ssrStrength: float = 0.0, ssrSteps: int = 24, ssrMaxDistance: float = 6.0, ssrThickness: float = 0.3499999940395355, heatHazeEnabled: bool = False, heatHazeStrength: float = 0.0, heatHazeFrequency: float = 4.0, heatHazeSpeed: float = 1.0, heatHazeMaxY: float = 0.550000011920929, zoomBlurEnabled: bool = False, zoomBlurStrength: float = 0.0, zoomBlurCenter: numpy.ndarray = ..., zoomBlurInnerRadius: float = 0.15000000596046448, posterizeEnabled: bool = False, posterizeLevels: int = 4, starburstEnabled: bool = False, starburstStrength: float = 0.0, starburstSpikes: int = 6, starburstAngleOffset: float = 0.0, starburstRadius: float = 0.3499999940395355, starburstTint: numpy.ndarray = ..., lensDistortionEnabled: bool = False, lensDistortionStrength: float = 0.0, lensDistortionCenter: numpy.ndarray = ..., underwaterEnabled: bool = False, underwaterTint: numpy.ndarray = ..., underwaterCausticStrength: float = 0.5, underwaterCausticScale: float = 1.0, underwaterDepthExtinction: float = 1.0, pixelateEnabled: bool = False, pixelateBlockSize: int = 4, nightVisionEnabled: bool = False, nightVisionStrength: float = 0.0, nightVisionGain: float = 2.5, ditherEnabled: bool = False, ditherStrength: float = 0.004000000189989805, thermalEnabled: bool = False, thermalStrength: float = 0.0, thermalGain: float = 1.5, scanlineEnabled: bool = False, scanlineStrength: float = 0.30000001192092896, scanlineFrequency: float = 360.0, letterboxEnabled: bool = False, letterboxAspect: float = 2.3499999046325684, letterboxColor: numpy.ndarray = ..., aoPrepassShader: Shader | None = None, contactShadowShader: Shader | None = None, contactShadowUsesLattice: bool = True, materialSsrShader: Shader | None = None, reflectionComposite: Shader | None = None, traceReflectionMisses: Callable[[int], int] | None = None, localFogShadowAtlas: int = 0, glossyReflectionResolve: Shader | None = None) -> None:
         """
         /**
            * @brief Apply viewer post-processing.
@@ -13667,7 +13902,7 @@ class Camera:
            *        @p postShader declares that sampler and contact shadows are enabled; ignored
            *        otherwise. That program's decal map pool is one slot smaller.
            */
-        C++: void (Shader &, bool, bool, float, float, float, float, int, float, float, float, float, unsigned int, int, float, const glm::vec3 &, float, bool, float, float, float, int, float, bool, float, bool, float, float, int, float, bool, float, int, float, bool, float, float, int, float, float, float, bool, float, float, float, const glm::vec3 &, float, float, const glm::vec2 &, float, float, bool, float, float, int, const glm::vec2 &, const glm::vec3 &, int, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, int, const std::array<glm::mat4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, bool, float, bool, int, bool, unsigned int, float, int, float, float, float, float, float, bool, float, float, float, const glm::vec2 &, const glm::vec3 &, float, float, const glm::vec3 &, bool, float, float, float, const glm::vec2 &, const glm::vec3 &, bool, const glm::vec2 &, float, bool, float, int, float, float, bool, float, float, float, float, bool, float, const glm::vec2 &, float, bool, int, bool, float, int, float, float, const glm::vec3 &, bool, float, const glm::vec2 &, bool, const glm::vec3 &, float, float, float, bool, int, bool, float, float, bool, float, bool, float, float, bool, float, float, bool, float, const glm::vec3 &, Shader *, Shader *)
+        C++: void (Shader &, bool, bool, float, float, float, float, int, float, float, float, float, unsigned int, int, float, const glm::vec3 &, float, bool, float, float, float, int, float, bool, float, bool, float, float, int, float, bool, float, int, float, bool, float, float, int, float, float, float, bool, float, float, float, const glm::vec3 &, float, float, const glm::vec2 &, float, float, bool, float, float, int, const glm::vec2 &, const glm::vec3 &, int, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, int, const std::array<glm::mat4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<unsigned int, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, const std::array<glm::vec4, 8> &, bool, float, bool, int, bool, unsigned int, float, int, float, float, float, float, float, bool, float, float, float, const glm::vec2 &, const glm::vec3 &, float, float, const glm::vec3 &, bool, float, float, float, const glm::vec2 &, const glm::vec3 &, bool, const glm::vec2 &, float, bool, float, int, float, float, bool, float, float, float, float, bool, float, const glm::vec2 &, float, bool, int, bool, float, int, float, float, const glm::vec3 &, bool, float, const glm::vec2 &, bool, const glm::vec3 &, float, float, float, bool, int, bool, float, float, bool, float, bool, float, float, bool, float, float, bool, float, const glm::vec3 &, Shader *, Shader *, bool, Shader *, Shader *, const std::function<unsigned int (unsigned int)> &, unsigned int, Shader *)
         """
 
     def resetTemporalHistory(self) -> None:
@@ -14343,6 +14578,99 @@ class FireEffect:
 
     @smokeColor.setter
     def smokeColor(self, arg: numpy.ndarray, /) -> None: ...
+
+class FoliageTextureAtlasContext:
+    def __init__(self) -> None: ...
+
+    def flush(self) -> None:
+        """
+        /// Delete released atlases while a context from this share group is current.
+        C++: void ()
+        """
+
+class FoliageTextureAtlasOptions:
+    def __init__(self) -> None: ...
+
+    @property
+    def paddingPixels(self) -> int: ...
+
+    @paddingPixels.setter
+    def paddingPixels(self, arg: int, /) -> None: ...
+
+    @property
+    def maxAtlasSize(self) -> int: ...
+
+    @maxAtlasSize.setter
+    def maxAtlasSize(self, arg: int, /) -> None: ...
+
+    @property
+    def emitFallbackWarnings(self) -> bool: ...
+
+    @emitFallbackWarnings.setter
+    def emitFallbackWarnings(self, arg: bool, /) -> None: ...
+
+class FoliageTextureAtlasResult:
+    def __init__(self) -> None: ...
+
+    @property
+    def used(self) -> bool: ...
+
+    @used.setter
+    def used(self, arg: bool, /) -> None: ...
+
+    @property
+    def candidateMeshCount(self) -> int: ...
+
+    @candidateMeshCount.setter
+    def candidateMeshCount(self, arg: int, /) -> None: ...
+
+    @property
+    def atlasedMeshCount(self) -> int: ...
+
+    @atlasedMeshCount.setter
+    def atlasedMeshCount(self, arg: int, /) -> None: ...
+
+    @property
+    def uniqueAlbedoTextureCount(self) -> int: ...
+
+    @uniqueAlbedoTextureCount.setter
+    def uniqueAlbedoTextureCount(self, arg: int, /) -> None: ...
+
+    @property
+    def uniqueNormalTextureCount(self) -> int: ...
+
+    @uniqueNormalTextureCount.setter
+    def uniqueNormalTextureCount(self, arg: int, /) -> None: ...
+
+    @property
+    def albedoAtlas(self) -> int: ...
+
+    @albedoAtlas.setter
+    def albedoAtlas(self, arg: int, /) -> None: ...
+
+    @property
+    def normalAtlas(self) -> int: ...
+
+    @normalAtlas.setter
+    def normalAtlas(self, arg: int, /) -> None: ...
+
+    @property
+    def atlasWidth(self) -> int: ...
+
+    @atlasWidth.setter
+    def atlasWidth(self, arg: int, /) -> None: ...
+
+    @property
+    def atlasHeight(self) -> int: ...
+
+    @atlasHeight.setter
+    def atlasHeight(self, arg: int, /) -> None: ...
+
+    @property
+    def fallbackWarnings(self) -> list[str]: ...
+
+    @fallbackWarnings.setter
+    def fallbackWarnings(self, arg: Sequence[str], /) -> None: ...
 
 class GeometryRefractionBackend(enum.Enum):
     Automatic = 0
@@ -15393,9 +15721,11 @@ class InstancedVisuals:
         /**
            * @brief Bounding sphere for all instances.
            *
-           * Each instance contributes a sphere at its position with radius equal to
-           * the length of its scale, so the result is only conservative for source
-           * geometry within the unit sphere.
+           * Each instance contributes a sphere at its position. Its radius is the
+           * length of the instance scale, with each axis first multiplied by the
+           * source geometry's largest coordinate magnitude on that axis when it
+           * exceeds 1, so the sphere encloses the rigid source mesh. Wind, billboard,
+           * fixed-size, displacement and impostor drawing can reach past it.
            * @param[out] center Output center.
            * @param[out] radius Output radius.
            * @return True if there are instances to bound.
@@ -15415,7 +15745,9 @@ class InstancedVisuals:
 
     def approximateAabb(self) -> tuple:
         """
-        /// Axis-aligned box version of approximateBounds() (same per-instance padding).
+        /// Axis-aligned box around the instance positions, padded by each
+          /// instance's scale length; unlike approximateBounds() it does not grow for
+          /// source geometry beyond [-1, 1] on an axis.
           /// @param[out] minCorner Minimum corner in world coordinates.
           /// @param[out] maxCorner Maximum corner in world coordinates.
           /// @return True if there are instances to bound.
@@ -15563,10 +15895,10 @@ class InstancedVisuals:
         """
         /// Finish worker-prepared LODs incrementally on the render thread.
           /// Starts the worker on the first call and uploads one prepared submesh per
-          /// later call; draws also call it. Requires the batch's GL context: once its
-          /// uploads began in one context, a call with another current gives the
-          /// staged uploads back (see releaseStagedAsyncMeshUploads()) and throws
-          /// std::logic_error; a draw there leaves the batch pending instead.
+          /// later call; draws also call it. File-backed batches use the asset store's
+          /// GL context. Other batches use the context where uploads began. A poll
+          /// in another context gives any staged uploads back and throws
+          /// std::logic_error. A draw there leaves the batch pending.
           /// @return True on the call that installs the finished LODs.
         C++: bool ()
         """
@@ -15649,15 +15981,6 @@ class InstancedVisuals:
 
     def setPreparedMeshLods(self, levels: Sequence[Sequence[OpenGLMesh]]) -> None:
         """
-        /// Install six authored LOD levels; source geometry remains level zero.
-          /// Mesh lists may have different material/part counts. Every mesh must carry
-          /// a finite nonnegative generatedLodRelativeError for projected selection.
-          /// Authored levels use opaque/masked single-pass ordinary materials.
-          /// Call on the GL render thread after loading; keep external textures alive.
-          /// Replacement is atomic on validation failure. Disabling automatic LODs
-          /// clears this chain; reinstall it to re-enable these authored levels.
-          /// @param levels Exactly six mesh lists (LOD 1..6).
-          /// @throws std::invalid_argument if the batch is not a ready mesh batch or a level is invalid.
         C++: void (std::span<const std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>>>)
         """
 
@@ -16523,8 +16846,10 @@ class Light:
            * @brief Recompute #lightSpaceMatrix_ (used by standalone shadow maps and atlas tiles).
            *
            * Directional lights use an orthographic box (see setShadowOrtho()) around
-           * the shadow center; spot lights a perspective frustum fitted to the outer
-           * cone; area lights a 150 degree frustum; point lights a 90 degree frustum.
+           * the shadow center. Spot lights use a perspective frustum fitted to the
+           * outer cone up to a 179.9 degree field of view. Wider spots retain their
+           * lighting cone and have partial shadow coverage. Area and point lights use
+           * 150 and 90 degree frustums respectively.
            * @param snapResolution Shadow-map resolution in texels used to snap
            *        directional shadows to the texel grid (reduces shimmering).
            */
@@ -18121,6 +18446,12 @@ class Material:
     def lightmapUsesUv2(self, arg: bool, /) -> None: ...
 
     @property
+    def lightmapReplacesBakedIrradiance(self) -> bool: ...
+
+    @lightmapReplacesBakedIrradiance.setter
+    def lightmapReplacesBakedIrradiance(self, arg: bool, /) -> None: ...
+
+    @property
     def lightmapStrength(self) -> float: ...
 
     @lightmapStrength.setter
@@ -19337,6 +19668,12 @@ class PhysicsRenderDescription:
     def appearance(self, arg: str, /) -> None: ...
 
     @property
+    def objectName(self) -> str: ...
+
+    @objectName.setter
+    def objectName(self, arg: str, /) -> None: ...
+
+    @property
     def visualCount(self) -> int: ...
 
     @visualCount.setter
@@ -19914,6 +20251,9 @@ class RaisimObject:
     def objectId(self) -> int:
         """C++: raisim::Object::Id () const"""
 
+    def objectName(self) -> str:
+        """C++: const std::string &() const"""
+
     def worldIndex(self) -> int:
         """
         /// @return Index of the object in World::getObjList() when its snapshot was captured.
@@ -20167,6 +20507,30 @@ class RaisimObject:
            */
         C++: void (bool, glm::vec3 &, float &) const
         Returns a tuple containing the native result (when present) followed by output parameters.
+        """
+
+    def drawnShapeModels(self, showCollisionBodies: bool) -> tuple:
+        """
+        /**
+           * @brief Internal: copy the world model matrices of the shapes draw() draws.
+           * @param showCollisionBodies Copy collision instead of visual shapes.
+           * @param[out] models One matrix per drawn shape.
+           */
+        C++: void (bool, std::vector<glm::mat4> &) const
+        Returns a tuple containing the native result (when present) followed by output parameters.
+        """
+
+    def drawnShapesMoved(self, showCollisionBodies: bool, models: Sequence[numpy.ndarray], distance: float) -> bool:
+        """
+        /**
+           * @brief Internal: check whether the drawn shapes moved since drawnShapeModels().
+           * @param showCollisionBodies Check collision instead of visual shapes.
+           * @param models Matrices from an earlier drawnShapeModels() call.
+           * @param distance Motion tolerance in metres.
+           * @return True when a point inside a shape's local bounds may have moved more than
+           *         @p distance, or when the number of drawn shapes changed.
+           */
+        C++: bool (bool, const std::vector<glm::mat4> &, float) const
         """
 
     def getPrimitiveBatchData(self, showCollisionBodies: bool) -> tuple:
@@ -21003,6 +21367,12 @@ class RenderQualitySettings:
         @sharpness.setter
         def sharpness(self, arg: float, /) -> None: ...
 
+        @property
+        def reactiveTransparency(self) -> bool: ...
+
+        @reactiveTransparency.setter
+        def reactiveTransparency(self, arg: bool, /) -> None: ...
+
     class ToneMappingSettings:
         def __init__(self) -> None: ...
 
@@ -21307,6 +21677,12 @@ class RenderQualitySettings:
     def volumetricLightStrength(self, arg: float, /) -> None: ...
 
     @property
+    def volumetricLocalLightStrength(self) -> float: ...
+
+    @volumetricLocalLightStrength.setter
+    def volumetricLocalLightStrength(self, arg: float, /) -> None: ...
+
+    @property
     def volumetricLightDecay(self) -> float: ...
 
     @volumetricLightDecay.setter
@@ -21359,6 +21735,24 @@ class RenderQualitySettings:
 
     @autoExposureEnabled.setter
     def autoExposureEnabled(self, arg: bool, /) -> None: ...
+
+    @property
+    def autoExposureHdrMetering(self) -> bool: ...
+
+    @autoExposureHdrMetering.setter
+    def autoExposureHdrMetering(self, arg: bool, /) -> None: ...
+
+    @property
+    def autoExposureBrightRate(self) -> float: ...
+
+    @autoExposureBrightRate.setter
+    def autoExposureBrightRate(self, arg: float, /) -> None: ...
+
+    @property
+    def autoExposureDarkRate(self) -> float: ...
+
+    @autoExposureDarkRate.setter
+    def autoExposureDarkRate(self, arg: float, /) -> None: ...
 
     @property
     def autoExposureKey(self) -> float: ...
@@ -21565,6 +21959,12 @@ class RenderQualitySettings:
     def pbrKeyLightIntensity(self, arg: float, /) -> None: ...
 
     @property
+    def integratedAreaLights(self) -> bool: ...
+
+    @integratedAreaLights.setter
+    def integratedAreaLights(self, arg: bool, /) -> None: ...
+
+    @property
     def specularAntiAliasing(self) -> bool: ...
 
     @specularAntiAliasing.setter
@@ -21749,6 +22149,30 @@ class RenderQualitySettings:
 
     @ssrEnabled.setter
     def ssrEnabled(self, arg: bool, /) -> None: ...
+
+    @property
+    def ssrUseMaterialProperties(self) -> bool: ...
+
+    @ssrUseMaterialProperties.setter
+    def ssrUseMaterialProperties(self, arg: bool, /) -> None: ...
+
+    @property
+    def ssrTemporalStabilization(self) -> bool: ...
+
+    @ssrTemporalStabilization.setter
+    def ssrTemporalStabilization(self, arg: bool, /) -> None: ...
+
+    @property
+    def ssrRayQueryFallback(self) -> bool: ...
+
+    @ssrRayQueryFallback.setter
+    def ssrRayQueryFallback(self, arg: bool, /) -> None: ...
+
+    @property
+    def ssrGlossyRayQueries(self) -> bool: ...
+
+    @ssrGlossyRayQueries.setter
+    def ssrGlossyRayQueries(self, arg: bool, /) -> None: ...
 
     @property
     def ssrStrength(self) -> float: ...
@@ -22111,6 +22535,12 @@ class RenderQualitySettings:
     def screenSpaceAoEnabled(self, arg: bool, /) -> None: ...
 
     @property
+    def screenSpaceGtaoEnabled(self) -> bool: ...
+
+    @screenSpaceGtaoEnabled.setter
+    def screenSpaceGtaoEnabled(self, arg: bool, /) -> None: ...
+
+    @property
     def screenSpaceAoRadius(self) -> float: ...
 
     @screenSpaceAoRadius.setter
@@ -22345,6 +22775,12 @@ class RenderQualitySettings:
     def temporalAaCurrentWeight(self, arg: float, /) -> None: ...
 
     @property
+    def temporalAaReactiveTransparency(self) -> bool: ...
+
+    @temporalAaReactiveTransparency.setter
+    def temporalAaReactiveTransparency(self, arg: bool, /) -> None: ...
+
+    @property
     def temporalAaSharpness(self) -> float: ...
 
     @temporalAaSharpness.setter
@@ -22435,6 +22871,12 @@ class RenderQualitySettings:
     def directionalShadowCascadeMaxDistance(self, arg: float, /) -> None: ...
 
     @property
+    def directionalShadowStableExtents(self) -> bool: ...
+
+    @directionalShadowStableExtents.setter
+    def directionalShadowStableExtents(self, arg: bool, /) -> None: ...
+
+    @property
     def directionalShadowCascadeSplitOverrides(self) -> list[float]: ...
 
     @directionalShadowCascadeSplitOverrides.setter
@@ -22469,6 +22911,12 @@ class RenderQualitySettings:
 
     @additionalShadowAtlasPlanningEnabled.setter
     def additionalShadowAtlasPlanningEnabled(self, arg: bool, /) -> None: ...
+
+    @property
+    def localLightSoftShadows(self) -> bool: ...
+
+    @localLightSoftShadows.setter
+    def localLightSoftShadows(self, arg: bool, /) -> None: ...
 
     @property
     def additionalShadowAtlasResolution(self) -> int: ...
@@ -22523,6 +22971,18 @@ class RenderQualitySettings:
 
     @maxReflectionProbesPerSelection.setter
     def maxReflectionProbesPerSelection(self, arg: int, /) -> None: ...
+
+    @property
+    def instancedHdrLighting(self) -> bool: ...
+
+    @instancedHdrLighting.setter
+    def instancedHdrLighting(self, arg: bool, /) -> None: ...
+
+    @property
+    def runtimeIrradianceEnabled(self) -> bool: ...
+
+    @runtimeIrradianceEnabled.setter
+    def runtimeIrradianceEnabled(self, arg: bool, /) -> None: ...
 
     @property
     def minReflectionProbeWeight(self) -> float: ...
@@ -23097,6 +23557,8 @@ class ViewerUpscaleFilter(enum.Enum):
 
     Mitchell = 1
 
+    Temporal = 2
+
 class VisualCategory(enum.Enum):
     NotDetectable = 0
 
@@ -23557,6 +24019,21 @@ class Visuals:
            * @brief Get current position.
            * @return Position in world coordinates.
            */
+        C++: glm::vec3 () const
+        """
+
+    def setCameraTargetUsesBoundsCenter(self, enabled: bool) -> None:
+        """
+        /// @param enabled True to orbit the bounds center. The default is to orbit the visual's position.
+        C++: void (bool)
+        """
+
+    def cameraTargetUsesBoundsCenter(self) -> bool:
+        """C++: bool () const"""
+
+    def getCameraTargetPosition(self) -> numpy.ndarray:
+        """
+        /// @return World-space point used when the camera follows this visual.
         C++: glm::vec3 () const
         """
 
@@ -24037,7 +24514,7 @@ class Visuals:
         /**
            * @brief Conservative world-space bounds for coarse culling.
            *
-           * Uses custom bounds when set, mesh vertex bounds for Mesh/Ground/HeightMap
+           * Uses custom bounds when set, mesh vertex bounds for Mesh/Ground/HeightMap/Capsule
            * visuals, and otherwise a scale-based estimate around getPosition().
            * @param[out] center Output sphere center.
            * @param[out] radius Output sphere radius.
@@ -24112,6 +24589,27 @@ class Visuals:
         """
         /// @return Current LOD bias.
         C++: float () const
+        """
+
+    def pollAsyncMeshPreparation(self) -> bool:
+        """
+        /**
+           * @brief Prepare the automatic mesh LODs of a mesh file that was still loading
+           *        asynchronously when this visual was made.
+           *
+           * Once the file's meshes are there, a worker builds the LODs (or reads them
+           * from the preprocess cache); a later call uploads and installs them.
+           * RayraiWindow calls it with its asynchronous mesh loads. Render thread.
+           * @return True on the call that changes the LODs.
+           */
+        C++: bool ()
+        """
+
+    def hasPendingAsyncMeshPreparation(self) -> bool:
+        """
+        /// @return True from the time the asynchronously loaded meshes are there
+          ///         until pollAsyncMeshPreparation() installed their LODs.
+        C++: bool () const
         """
 
     def automaticMeshLodLevelCount(self) -> int:
@@ -24354,7 +24852,12 @@ class Visuals:
            * @return True when a single mesh was present and updated.
            *
            * Tangents are recomputed and generated LODs are dropped. The mesh is edited
-           * in place (shared users see it) and a GL context must be current.
+           * in place (shared users see it) and a GL context must be current. This
+           * visual's culling bounds are measured from the new vertices; other visuals
+           * and instanced batches sharing the mesh, including ones created later from
+           * the same file, keep bounds measured before the edit. Give such visuals
+           * setCustomBounds() when the edit moves geometry outside them; instanced batches
+           * have no bounds override, so give them a mesh of their own instead.
            */
         C++: bool (const std::vector<Vertex> &)
         """
@@ -24550,6 +25053,18 @@ class WaterBody:
 
     @flow.setter
     def flow(self, arg: WaterFlow, /) -> None: ...
+
+    @property
+    def surfaceBubbleDensity(self) -> float: ...
+
+    @surfaceBubbleDensity.setter
+    def surfaceBubbleDensity(self, arg: float, /) -> None: ...
+
+    @property
+    def surfaceBubbleRadius(self) -> float: ...
+
+    @surfaceBubbleRadius.setter
+    def surfaceBubbleRadius(self, arg: float, /) -> None: ...
 
 class WaterBodyShape(enum.Enum):
     Ocean = 0
@@ -28119,6 +28634,18 @@ class RenderOverrides:
     def allowViewerUpscale(self, arg: bool, /) -> None: ...
 
     @property
+    def allowSceneIrradianceBake(self) -> object: ...
+
+    @allowSceneIrradianceBake.setter
+    def allowSceneIrradianceBake(self, arg: bool, /) -> None: ...
+
+    @property
+    def exposureDeltaSeconds(self) -> object: ...
+
+    @exposureDeltaSeconds.setter
+    def exposureDeltaSeconds(self, arg: float, /) -> None: ...
+
+    @property
     def fixedShadowCenterEnabled(self) -> object: ...
 
     @fixedShadowCenterEnabled.setter
@@ -29606,6 +30133,11 @@ def deringIrradiance(probe: Sequence[numpy.ndarray]) -> tuple:
     Returns a tuple containing the native result (when present) followed by output parameters.
     """
 
+def buildFoliageTextureAtlasForMeshes(meshes: Sequence[OpenGLMesh], options: FoliageTextureAtlasOptions = ...) -> FoliageTextureAtlasResult:
+    """
+    C++: FoliageTextureAtlasResult (const std::shared_ptr<std::vector<std::shared_ptr<OpenGLMesh>>> &, const FoliageTextureAtlasOptions &)
+    """
+
 @overload
 def toGlm(v: "raisim::Mat<3ul, 1ul>") -> numpy.ndarray:
     """C++: glm::dvec3 (const raisim::Vec<3> &)"""
@@ -29741,9 +30273,9 @@ def loadMeshPreprocessMetadata(canonicalKey: str, metadata: MeshPreprocessMetada
 def storeMeshPreprocessMetadata(canonicalKey: str, metadata: MeshPreprocessMetadata) -> bool:
     """C++: bool (const std::string &, const MeshPreprocessMetadata &)"""
 
-def loadMeshPreprocessLods(canonicalKey: str, sourceMeshes: Sequence[OpenGLMesh], flavor: MeshPreprocessLodFlavor) -> RayraiGlobalAsset.MeshLodChain:
+def loadMeshPreprocessLods(canonicalKey: str, sourceMeshes: Sequence[OpenGLMesh], flavor: MeshPreprocessLodFlavor, cpuOnly: bool = False) -> RayraiGlobalAsset.MeshLodChain:
     """
-    C++: std::shared_ptr<RayraiGlobalAsset::MeshLodChain> (const std::string &, const std::vector<std::shared_ptr<OpenGLMesh>> &, MeshPreprocessLodFlavor)
+    C++: std::shared_ptr<RayraiGlobalAsset::MeshLodChain> (const std::string &, const std::vector<std::shared_ptr<OpenGLMesh>> &, MeshPreprocessLodFlavor, bool)
     """
 
 def storeMeshPreprocessLods(canonicalKey: str, sourceMeshes: Sequence[OpenGLMesh], flavor: MeshPreprocessLodFlavor, chain: RayraiGlobalAsset.MeshLodChain) -> bool:

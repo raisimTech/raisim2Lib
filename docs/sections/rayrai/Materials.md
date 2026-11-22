@@ -143,7 +143,11 @@ Lighting is based on rayrai's main light, optional additional lights, shadow map
 HDR/image-based lighting when configured, and optional reflection probes. Color textures
 are uploaded as sRGB; data maps such as normal, metallic-roughness, and AO remain
 linear. Normal maps require tangent data; glTF assets usually provide it, and rayrai
-generates or imports tangent data where possible. The PBR path is suitable for preview,
+generates or imports tangent data where possible. Generated tangents follow the UV
+orientation of each face, so mirrored UV islands shade correctly where the mirror seam
+uses separate vertices on each side. A vertex shared by faces with opposite UV
+orientations holds one tangent frame, so a normal-mapped mesh whose mirror seam shares
+vertices should carry its own tangents. The PBR path is suitable for preview,
 data generation, and asset inspection. It is a rasterizer, not an offline path
 tracer; only the opt-in [Geometry-aware refraction](#geometry-aware-refraction) mode traces rays, and only
 through glass.

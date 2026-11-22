@@ -25,6 +25,9 @@ py::class_<Handle<raisin::CoordinateFrame>>(m, "CoordinateFrame");
 py::class_<raisin::ExplosionEffect>(m, "ExplosionEffect");
 py::class_<raisin::ExplosionEffectSettings>(m, "ExplosionEffectSettings");
 py::class_<raisin::FireEffect>(m, "FireEffect");
+py::class_<raisin::FoliageTextureAtlasContext>(m, "FoliageTextureAtlasContext");
+py::class_<raisin::FoliageTextureAtlasOptions>(m, "FoliageTextureAtlasOptions");
+py::class_<raisin::FoliageTextureAtlasResult>(m, "FoliageTextureAtlasResult");
 py::enum_<raisin::GeometryRefractionBackend>(m, "GeometryRefractionBackend").value("Automatic", raisin::GeometryRefractionBackend::Automatic).value("Portable", raisin::GeometryRefractionBackend::Portable).value("VulkanRayQuery", raisin::GeometryRefractionBackend::VulkanRayQuery);
 py::class_<raisin::GeometryRefractionDiagnostics>(m, "GeometryRefractionDiagnostics");
 py::class_<raisin::GeometryRefractionSamplingStatistics>(m, "GeometryRefractionSamplingStatistics");
@@ -34,8 +37,5 @@ py::class_<Handle<raisin::InstancedVisuals>>(m, "InstancedVisuals");
 py::class_<raisin::IrradianceVolume>(m, "IrradianceVolume");
 py::class_<Handle<raisin::Light>>(m, "Light");
 py::enum_<raisin::LightType>(m, "LightType").value("DIRECTIONAL", raisin::LightType::DIRECTIONAL).value("POINT", raisin::LightType::POINT).value("SPOT", raisin::LightType::SPOT).value("AREA", raisin::LightType::AREA);
-py::class_<raisin::LocalFogVolume>(m, "LocalFogVolume");
-py::class_<raisin::Material>(m, "Material");
-py::class_<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats");
 }
 }

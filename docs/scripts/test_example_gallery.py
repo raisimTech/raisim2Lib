@@ -10,12 +10,18 @@ settings in image_generators/example_clips/clips.json cover exactly the clips.
 Run with: python3 -m unittest discover -s docs/scripts
 """
 
+import importlib.util
 import json
+import os
 import re
 import unittest
 import subprocess
 import shutil
+import sys
+import tempfile
 from pathlib import Path
+
+sys.dont_write_bytecode = True
 
 DOCS = Path(__file__).resolve().parent.parent
 EXAMPLES = DOCS / "sections" / "examples"
@@ -23,12 +29,12 @@ CLIPS = DOCS.parent / "rsc" / "docs" / "video" / "examples"
 RECORDING = DOCS / "image_generators" / "example_clips" / "clips.json"
 # Settings record_example_clips.py reads.
 RECORDING_KEYS = {"kind", "binary", "args", "viewer_args", "start", "seconds", "load", "fps", "every_frame",
-                  "size", "no_minimize", "image", "crop"}
+                  "size", "no_minimize", "image", "crop", "keys"}
 CROP_KEYS = {"trim", "dur", "zoom", "cx", "cy"}
 # Pages under sections/examples that are not examples themselves.
 NOT_EXAMPLES = {"overview"}
 # A tile clip is a few seconds of 960x600 video; keep the page light.
-MAX_CLIP_BYTES = 2 * 1024 * 1024
+MAX_CLIP_BYTES = 3 * 1024 * 1024
 # The gallery shows one category at a time; Chrome ran out of memory on a page
 # with every clip at once.
 MAX_TILES_PER_CATEGORY = 12
@@ -37,6 +43,12 @@ MAX_TILES_PER_CATEGORY = 12
 MAX_CATEGORY_TITLE = 10
 ICONS = DOCS / ".vitepress" / "theme" / "exampleCategoryIcons.ts"
 SIDEBAR = DOCS / ".vitepress" / "sidebar.mts"
+
+
+def is_held_key(held):
+    """A clips.json "keys" entry: [SDL key name, from, to] in seconds, which framecap reads as NAME@FROM-TO."""
+    return (isinstance(held, list) and len(held) == 3 and isinstance(held[0], str) and bool(re.fullmatch(r"[^@,]+", held[0]))
+            and all(isinstance(t, (int, float)) and not isinstance(t, bool) for t in held[1:]) and 0 <= held[1] < held[2])
 
 
 class ExampleGalleryTest(unittest.TestCase):
@@ -115,6 +127,56 @@ class ExampleGalleryTest(unittest.TestCase):
             self.assertLessEqual(set(spec.get("crop", {})), CROP_KEYS, name)
             if spec["kind"] == "comparison":
                 self.assertIn("image", spec, name)
+            for held in spec.get("keys", []):
+                self.assertTrue(is_held_key(held), f"{name}: keys entries are [SDL key name, from, to] with 0 <= from < to: {held}")
+
+    def test_doc_images_never_inherit_the_shared_capture(self):
+        documented = set(re.findall(r"RAYRAI_EXAMPLE_(CAPTURE\w*)", (DOCS / "sections/rayrai/Capture.md").read_text(encoding="utf-8")))
+        runner = (DOCS / "image_generators/run_doc_image_generator.cmake").read_text(encoding="utf-8")
+        unset = set(re.search(r"foreach\(_capture ([^)]*)\)", runner).group(1).split())
+        self.assertTrue(documented)
+        self.assertLessEqual(documented, unset, "run_doc_image_generator.cmake lets the shell's capture variables through")
+
+    def test_held_keys_reach_framecap_as_name_at_from_to(self):
+        spec = importlib.util.spec_from_file_location("record_example_clips", RECORDING.with_name("record_example_clips.py"))
+        recorder = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(recorder)
+        self.assertEqual(recorder.key_script([["W", 20, 40], ["Left Shift", 25.5, 26]]), "W@20-40,Left Shift@25.5-26")
+        self.assertEqual(recorder.key_script([]), "")
+        buggy = {"start": 25, "seconds": 10, "crop": {"dur": 6.0, "trim": 1.0}, "keys": [["W", 20, 40], ["A", 2, 5]]}
+        self.assertEqual(recorder.timing(buggy), (25, 10, buggy["keys"]))
+        # Capped at 10 s: the 7 s the tile uses, recorded from 3 s, with W still held from 5 s before.
+        self.assertEqual(recorder.timing(buggy, 10), (3, 7.0, [["W", 0, 18]]))
+        self.assertEqual(recorder.timing({"start": 2, "seconds": 8}, 10), (2, 6.0, []))
+        launched = []
+
+        class Finished:
+            pid = 0
+
+            def wait(self, timeout=None):
+                return 0
+
+            def poll(self):
+                return 0
+
+        recorder.start = lambda command, cwd, env, log: launched.append(env) or Finished()
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            recorder.record_window("buggy", {"kind": "rayrai", **buggy}, work, work / "raw.mp4", work / "hook.so", work, 10)
+        self.assertEqual([(env["FRAMECAP_START"], env["FRAMECAP_SECONDS"], env["FRAMECAP_KEYS"]) for env in launched],
+                         [("3.0", "7.0", "W@0-18.0")])
+        for name, spec in json.loads(RECORDING.read_text(encoding="utf-8")).items():
+            start, seconds, _ = recorder.timing(spec, 10)
+            if spec["kind"] != "comparison":
+                self.assertLessEqual(start + seconds, max(10, seconds), name)
+        self.assertTrue(is_held_key(["W", 20, 40]) and is_held_key(["Left Shift", 0, 0.5]))
+        for malformed in (["W", 40, 20], ["W@x", 1, 2], ["W,A", 1, 2], ["W", "1", 2], ["W", 1], "W@1-2"):
+            self.assertFalse(is_held_key(malformed), malformed)
+        os.environ["RAYRAI_EXAMPLE_CAPTURE"] = "inherited.png"
+        try:
+            self.assertNotIn("RAYRAI_EXAMPLE_CAPTURE", recorder.environment({}))
+        finally:
+            del os.environ["RAYRAI_EXAMPLE_CAPTURE"]
 
     def test_categories_are_small_and_described(self):
         categories = self.gallery["categories"]

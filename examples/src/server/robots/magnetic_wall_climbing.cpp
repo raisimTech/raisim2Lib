@@ -28,7 +28,8 @@ int main(int argc, char* argv[]) {
   for (std::size_t leg = 0; leg < magnets.size(); ++leg)
     magnets[leg] = server.addVisualCylinder(std::string(climber::kLegNames[leg]) + "_magnet", 0.03, 0.012);
   server.launchServer();
-  server.focusOn(robot);
+  // The viewer's follow camera would look from behind the wall; look at the sunlit face instead.
+  server.setCameraPositionAndLookAt({-4.4, 2.6, 2.6}, {0.0, 0.0, 1.9});
   raisim_examples::warnIfNoClientConnected(server);
 
   for (int i = 0; i < 10000000; ++i) {

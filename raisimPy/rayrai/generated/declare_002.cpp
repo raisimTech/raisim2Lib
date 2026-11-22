@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_002(py::module_& m) {
+py::enum_<raisin::WaterPreset>(m, "WaterPreset").value("Ocean", raisin::WaterPreset::Ocean).value("CalmLake", raisin::WaterPreset::CalmLake).value("Pool", raisin::WaterPreset::Pool).value("MurkyPond", raisin::WaterPreset::MurkyPond);
+py::class_<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample");
+py::class_<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum");
 py::class_<raisin::WeatherDiagnostics>(m, "WeatherDiagnostics");
 py::enum_<raisin::WeatherPreset>(m, "WeatherPreset").value("Clear", raisin::WeatherPreset::Clear).value("Hazy", raisin::WeatherPreset::Hazy).value("Overcast", raisin::WeatherPreset::Overcast).value("Fog", raisin::WeatherPreset::Fog).value("Rain", raisin::WeatherPreset::Rain).value("HeavyRain", raisin::WeatherPreset::HeavyRain).value("Snow", raisin::WeatherPreset::Snow).value("Storm", raisin::WeatherPreset::Storm).value("NightClear", raisin::WeatherPreset::NightClear).value("NightRain", raisin::WeatherPreset::NightRain).value("Custom", raisin::WeatherPreset::Custom);
 py::enum_<raisin::WeatherQuality>(m, "WeatherQuality").value("Low", raisin::WeatherQuality::Low).value("Medium", raisin::WeatherQuality::Medium).value("High", raisin::WeatherQuality::High).value("Ultra", raisin::WeatherQuality::Ultra);
@@ -34,8 +37,5 @@ py::enum_<raisin::Material::EmissionOperator>(m.attr("Material"), "EmissionOpera
 py::class_<raisin::Material::FoliageSettings>(m.attr("Material"), "FoliageSettings");
 py::enum_<raisin::Material::FoliageType>(m.attr("Material"), "FoliageType").value("None_", raisin::Material::FoliageType::None).value("Grass", raisin::Material::FoliageType::Grass).value("LeafCard", raisin::Material::FoliageType::LeafCard).value("Bush", raisin::Material::FoliageType::Bush).value("Branch", raisin::Material::FoliageType::Branch).value("TreeTrunk", raisin::Material::FoliageType::TreeTrunk).value("Crop", raisin::Material::FoliageType::Crop).value("Vine", raisin::Material::FoliageType::Vine);
 py::enum_<raisin::Material::NormalMapConvention>(m.attr("Material"), "NormalMapConvention").value("OpenGL", raisin::Material::NormalMapConvention::OpenGL).value("DirectX", raisin::Material::NormalMapConvention::DirectX);
-py::class_<raisin::Material::ParallaxSettings>(m.attr("Material"), "ParallaxSettings");
-py::enum_<raisin::Material::ShadingModel>(m.attr("Material"), "ShadingModel").value("Standard", raisin::Material::ShadingModel::Standard).value("Lambert", raisin::Material::ShadingModel::Lambert).value("Toon", raisin::Material::ShadingModel::Toon).value("Unlit", raisin::Material::ShadingModel::Unlit);
-py::enum_<raisin::Material::SpecularMode>(m.attr("Material"), "SpecularMode").value("SchlickGgx", raisin::Material::SpecularMode::SchlickGgx).value("Toon", raisin::Material::SpecularMode::Toon).value("Disabled", raisin::Material::SpecularMode::Disabled);
 }
 }

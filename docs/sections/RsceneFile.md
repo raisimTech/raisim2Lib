@@ -1065,7 +1065,7 @@ are ignored and the preset's values apply, including
 | `shadowResolution`, `shadowBias`, `shadowStrength`, `shadowPcfRadius` | `2048`, `0.0008`, `0.6`, `1.25` | Shadow settings; `shadowResolution` replaces `environment`'s `shadowMapSize`. |
 | `directionalShadowCascadeCount`, `directionalShadowCascadeLambda`, `directionalShadowCascadeMaxDistance` | `1`, `0.7`, `0` | Cascades, clamped to [1, 4], [0, 1] and at least 0 m. |
 | `directionalShadowStableExtents`, `localLightSoftShadows`, `integratedAreaLights` | `false`, `false`, `false` | Settings of the same names. |
-| `additionalShadowAtlasPlanningEnabled` | preset's value | Setting of the same name. |
+| `additionalShadowAtlasPlanningEnabled` | preset's value | Use the full atlas size and include standalone point cubemap faces in the plan. Otherwise the atlas fits the selected additional 2D maps. |
 | `highFidelityPbr`, `pbrToneMapping` | `false`, `false` | Settings of the same names. |
 | `colorMode`, `pbrExposure` | `unreal_preview`, `1` | Replace `environment`'s `colorMode` and `exposure`. |
 | `pbrEnvironmentIntensity`, `addViewerFillLights`, `reflectiveGround` | none | Each replaces the value set so far only when present. |

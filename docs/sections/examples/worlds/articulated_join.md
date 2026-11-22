@@ -87,16 +87,9 @@ Connect to the port the example prints, normally `8080`. On Windows, run the
 corresponding `.exe` files under `build-examples/bin`. The example uses only
 primitive geometry.
 
-### Run the physics checks without a viewer
-
-`--headless` runs one six-second cycle, prints the chain's joint angles, where
-the tool was carried and where it came to rest, and the carriages' velocities,
-and exits with an error if any station misbehaves:
-
-```bash
-./build-examples/examples/articulated_join --headless
-```
-
-The engine test build registers it as `testArticulatedJoinExample`.
+The engine test `testArticulatedJoinExample` steps one six-second cycle of the
+stations without a viewer and checks that the chain swings, that the gantry
+carries the tool 0.8 m and releases it onto the ground, and that the carriages
+move together while docked and apart afterwards.
 `raisimPy/examples/articulatedJoin.py` runs the gantry and docking stations
 from Python; `testPythonArticulatedJoin` checks it.

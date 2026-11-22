@@ -38,8 +38,7 @@ The example discovers its resource folder relative to the executable or
 working directory. Normal RaiSim license discovery applies; use
 `--activation-key /path/to/activation.raisim` for an explicit license.
 `--port N` changes the server port. The example repeats until interrupted;
-`--cycles N` stops it after N cycles. `--headless` runs two cycles without a
-server and prints whether each one succeeded.
+`--cycles N` stops it after N cycles. It prints whether each cycle succeeded.
 
 ## Details
 

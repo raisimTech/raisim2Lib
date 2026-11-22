@@ -138,10 +138,10 @@ Start with these targets when learning a specific feature:
 | `rayrai_visual_asset_support` | Rendering textured URDF visual meshes (OBJ/DAE with image textures) separately from their collision geometry. |
 | `rayrai_coacd_mesh_approximation` | Visually comparing original meshes and CoACD convex approximation parts generated through `World::addMesh`. The first run can take a few minutes while CoACD generates and caches the parts. |
 | `rayrai_tcp_viewer` | The TCP visualizer used by RaisimServer examples. |
-| `articulated_join` | A chain joined from boxes, a gantry that joins and releases a tool, and two robots docked through a loop joint, with viewer and headless modes. See [Articulated Join example](./examples/worlds/articulated_join.md). |
-| `runtime_joints` | Tool attachment/release and docking two independent robots, with viewer and headless modes. See [Runtime Joints example](./examples/worlds/runtime_joints.md) for figures, videos, and run commands. |
+| `articulated_join` | A chain joined from boxes, a gantry that joins and releases a tool, and two robots docked through a loop joint, served to the TCP viewer. See [Articulated Join example](./examples/worlds/articulated_join.md). |
+| `runtime_joints` | Tool attachment/release and docking two independent robots, served to the TCP viewer. See [Runtime Joints example](./examples/worlds/runtime_joints.md) for figures, videos, and run commands. |
 | `tendon_elastic`, `tendon_pulleys`, `tendon_coupling` | Elastic suspensions, routed guides/pulley branches, and joint transmissions. See [Tendon examples and Rayrai](./tendons/Examples.md). |
-| `thrusters_and_grippers` | A quadrotor flown with four URDF thrusters, and a suction lifter and a magnet lifter that pick up and drop boxes. See [Thrusters and Grippers](./articulated_system/ThrustersAndGrippers.md). |
+| `drone_flight` | A quadrotor drone flown by four URDF thrusters takes off from its pad, flies figure eights around two posts facing the way it flies, and lands again. See [Server Example: Drone Flight](./examples/server/drone_flight.md). |
 | `magnetic_wall_climbing` | A Go1 quadruped with switchable magnetic feet, after KAIST's MARVEL, trots up and down a steel wall; each magnet lets go just before its foot lifts. See [Server Example: Magnetic Wall Climbing](./examples/server/magnetic_wall_climbing.md). |
 | `rocket_hop` | A rocket that steers by tilting its gimballed engine hops between two pads and lands on its legs, with roll thrusters against the exhaust's swirl. See [Server Example: Rocket Hop](./examples/server/rocket_hop.md). |
 | `suction_cup_picking` | A Kinova arm with a suction cup stacks parcels and a can into a tower and takes it apart again. See [Server Example: Suction Cup Picking](./examples/server/suction_cup_picking.md). |
@@ -172,9 +172,9 @@ feature page:
 | `heightmap_mesh_drop` | Twenty monkey meshes with triangle-mesh collision dropped one at a time onto a colored procedural heightmap. |
 | `blocky_heightmap_drop` | 900 primitives and convex-hull meshes dropped onto a heightmap made of flat 0.4 m tiles. |
 | `voxel_map_ray_casting` | A spinning lidar and a probe ray scan a voxel map with hills, a hut, an arch and a tunnel; see [Voxel Map](./VoxelMap.md). |
-| `voxel_map_collision` | Primitives, convex meshes and triangle meshes fall onto voxel stairs, walls, rubble and a pit while craters are carved and refilled; see [Voxel Map](./VoxelMap.md). |
+| `voxel_map_collision` | Primitives, convex meshes and triangle meshes fall onto voxel stairs, walls, rubble and a pit while new craters are carved into the floor; see [Voxel Map](./VoxelMap.md). |
 | `large_scale_ray_test` | Repeated ray queries against walls and pillars; see [Ray Test](./RayTest.md). |
-| `rayrai_blue_wall_scene` | An authored glTF interior with its light sidecar and HDR environment, described by `rsc/rayrai/blue_wall/blue_wall.rscene`. The example reads that file with its own parser; `raisim::World(path)` and a `RayraiWindow` on that world load it as well (see [.rscene File](./RsceneFile.md)). `--screenshot PNG` renders in a hidden window, saves the image, and exits. |
+| `rayrai_blue_wall_scene` | An authored glTF interior with its light sidecar and HDR environment, described by `rsc/rayrai/blue_wall/blue_wall.rscene`. The example reads that file with its own parser; `raisim::World(path)` and a `RayraiWindow` on that world load it as well (see [.rscene File](./RsceneFile.md)). `RAYRAI_EXAMPLE_CAPTURE=view.png` saves the view as a PNG and exits. |
 
 ## Runtime assets
 

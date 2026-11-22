@@ -34,26 +34,19 @@ This example renders in process with rayrai and does not need `rayrai_tcp_viewer
 
 ## Frame capture
 
-The example can write its rendered frames (scene plus the sensor panels) to disk
-so the documentation GIF can be regenerated. Capture is off unless
-`RAYRAI_SHOWCASE_CAPTURE_DIR` is set; a normal run never reads the framebuffer
-back. Frames are written as binary PPM, which `ffmpeg` reads directly.
-
-| Environment variable | Effect |
-| --- | --- |
-| `RAYRAI_SHOWCASE_CAPTURE_DIR` | Output directory. Setting it enables capture; the example exits once the requested frame count is written. |
-| `RAYRAI_SHOWCASE_CAPTURE_FRAMES` | Number of frames to write (default 150). |
-| `RAYRAI_SHOWCASE_CAPTURE_SKIP` | Rendered frames to skip before capturing (default 90), so assets and sensor buffers are populated in the first captured frame. |
-| `RAYRAI_SHOWCASE_CAPTURE_EVERY` | Capture every `N`-th frame (default 1). The loop advances one physics step per rendered frame, so a stride above 1 is what keeps the captured sequence from playing back in slow motion. At the default 5 ms time step, stride 16 puts 80 ms of simulation in every frame, which is exactly real time at 12.5 fps. |
+The documentation GIF is recorded with the capture that the rayrai examples
+share (see `rayrai/example_common.hpp`). `RAYRAI_EXAMPLE_CAPTURE_WINDOW=1`
+saves the whole window, sensor panels included. The loop advances one physics
+step per rendered frame, so every 16th frame of the default 5 ms time step puts
+80 ms of simulation in each captured frame, real time at 12.5 fps:
 
 ```bash
-RAYRAI_SHOWCASE_CAPTURE_DIR=/tmp/showcase_frames \
-RAYRAI_SHOWCASE_CAPTURE_FRAMES=75 \
-RAYRAI_SHOWCASE_CAPTURE_SKIP=120 \
-RAYRAI_SHOWCASE_CAPTURE_EVERY=16 \
+RAYRAI_EXAMPLE_CAPTURE=/tmp/showcase_frames RAYRAI_EXAMPLE_CAPTURE_WINDOW=1 \
+RAYRAI_EXAMPLE_CAPTURE_FRAMES=75 RAYRAI_EXAMPLE_CAPTURE_START=120 \
+RAYRAI_EXAMPLE_CAPTURE_EVERY=16 \
   ./build-examples/examples/rayrai_complete_showcase
 
-ffmpeg -framerate 12.5 -i /tmp/showcase_frames/frame_%04d.ppm \
+ffmpeg -framerate 12.5 -i /tmp/showcase_frames/frame_%03d.png \
   -filter_complex "[0:v] scale=954:540:flags=lanczos,split [a][b];\
                    [a] palettegen=stats_mode=diff [p];\
                    [b][p] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \

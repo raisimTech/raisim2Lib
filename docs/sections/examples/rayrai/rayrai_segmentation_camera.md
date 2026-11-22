@@ -51,17 +51,14 @@ geometry within the camera's clipping range. Use **Rotate camera** for
 automatic rotation, or **Camera angle** to choose a view; both images move
 together.
 
-## Save a comparison
+## Save the window
 
-Use `--screenshot` to save a 1280 x 400 PNG with RGB on the left and the
-semantic segmentation on the right, then exit:
+The capture that the rayrai examples share (see `rayrai/example_common.hpp`)
+saves this window, controls and legend included, as a PNG and exits:
 
 ```bash
-./build-examples/examples/rayrai_segmentation_camera --screenshot semantic.png
+RAYRAI_EXAMPLE_CAPTURE=segmentation.png ./build-examples/examples/rayrai_segmentation_camera
 ```
-
-The PNG contains the two images without the app controls or legend. Capture
-mode uses a hidden window and still requires a working OpenGL context.
 
 ## Details
 

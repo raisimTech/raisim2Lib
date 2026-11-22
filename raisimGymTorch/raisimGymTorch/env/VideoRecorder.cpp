@@ -33,8 +33,7 @@ namespace raisim {
 namespace {
 
 constexpr int kWidth = 1280, kHeight = 720;
-constexpr double kFramesPerSecond = 30.;
-/// camera position relative to the followed body, and its follow time constant
+constexpr int kFramesPerSecond = 30;
 const glm::vec3 kCameraOffset(0.8f, -2.6f, 1.1f);
 constexpr double kFollowTimeConstant = 0.1;
 
@@ -63,15 +62,11 @@ std::string findFfmpeg() {
   return {};
 }
 
-std::string quoted(const std::string& text) {
 #if defined(_WIN32)
-  return "\"" + text + "\"";
+constexpr bool kWindowsShell = true;
 #else
-  std::string result = "'";
-  for (char c : text) result += c == '\'' ? std::string("'\\''") : std::string(1, c);
-  return result + "'";
+constexpr bool kWindowsShell = false;
 #endif
-}
 
 /// Whether an OpenGL context can be created, checked without rayrai's fatal errors.
 bool openGlAvailable(std::string& status) {
@@ -117,6 +112,25 @@ void lookAt(raisin::Camera& camera, const glm::vec3& eye, const glm::vec3& targe
   camera.update(false);
 }
 
+class ContextScope {
+ public:
+  ContextScope()
+      : window_(SDL_GL_GetCurrentWindow()), context_(SDL_GL_GetCurrentContext()) {}
+  ~ContextScope() {
+    if (SDL_GL_GetCurrentContext() == context_) return;
+    if (context_ != nullptr && window_ != nullptr)
+      raisin::RayraiWindow::makeOffscreenContextCurrent(window_, context_);
+    else
+      SDL_GL_MakeCurrent(nullptr, nullptr);
+  }
+  ContextScope(const ContextScope&) = delete;
+  ContextScope& operator=(const ContextScope&) = delete;
+
+ private:
+  SDL_Window* window_;
+  SDL_GLContext context_;
+};
+
 }  // namespace
 
 struct VideoRecorder::Impl {
@@ -129,19 +143,31 @@ struct VideoRecorder::Impl {
   std::string path, status;
   bool writeFailed = false;
   size_t frames = 0;
-  double nextFrameTime = 0., lastWorldTime = 0., lastRenderTime = 0.;
+  VideoFramePacer pacer{double(kFramesPerSecond)};
+  double lastRenderTime = 0.;
   std::vector<unsigned char> rgba, row;
   glm::vec3 focus{0.f};
   bool focusValid = false;
 
   ~Impl() {
     if (ffmpeg != nullptr) RAISIMGYM_PCLOSE(ffmpeg);
+    if (context == nullptr) return;
+    SDL_Window* previousWindow = SDL_GL_GetCurrentWindow();
+    SDL_GLContext previousContext = SDL_GL_GetCurrentContext();
     if (renderer) {
-      raisin::RayraiWindow::makeOffscreenContextCurrent(window, context);
+      makeCurrent();
       renderer.reset();
     }
-    if (context != nullptr) SDL_GL_DeleteContext(context);
+    SDL_GL_DeleteContext(context);
     if (window != nullptr) SDL_DestroyWindow(window);
+    if (previousContext != nullptr && previousContext != context && previousWindow != nullptr &&
+        previousWindow != window)
+      raisin::RayraiWindow::makeOffscreenContextCurrent(previousWindow, previousContext);
+  }
+
+  void makeCurrent() {
+    if (SDL_GL_GetCurrentContext() != context)
+      raisin::RayraiWindow::makeOffscreenContextCurrent(window, context);
   }
 
   bool ensureRenderer(World& target) {
@@ -149,9 +175,9 @@ struct VideoRecorder::Impl {
       if (!openGlAvailable(status)) return false;
       raisin::RayraiWindow::createOffscreenGlContext(window, context, "raisimgym_video");
     }
+    makeCurrent();
     if (renderer && world == &target) return true;
     renderer = std::make_unique<raisin::RayraiWindow>(target, kWidth, kHeight);
-    // The rayrai TCP viewer's default look.
     renderer->setRenderQualityPreset(raisin::RenderQualityPreset::Balanced);
     renderer->setKeyboardInputEnabled(false);
     renderer->setKeyboardShortcutsEnabled(false);
@@ -159,7 +185,6 @@ struct VideoRecorder::Impl {
     return true;
   }
 
-  /// The base of the first articulated system, or the origin.
   glm::vec3 followedPosition() const {
     for (auto* object : world->getObjList())
       if (object->getObjectType() == ObjectType::ARTICULATED_SYSTEM) {
@@ -221,13 +246,15 @@ bool VideoRecorder::start(World& world, const std::string& path) {
     d.status = "ffmpeg is not on PATH";
     return false;
   }
+  const std::string command =
+      ffmpegPipeCommand(ffmpeg, path, kWidth, kHeight, kFramesPerSecond, kWindowsShell);
+  if (command.empty()) {
+    d.status = "the video path cannot be passed to the shell: " + path;
+    return false;
+  }
+  ContextScope scope;
   if (!d.ensureRenderer(world)) return false;
 
-  const std::string command = quoted(ffmpeg) +
-      " -loglevel error -y -f rawvideo -pix_fmt rgba -s " + std::to_string(kWidth) + "x" +
-      std::to_string(kHeight) + " -r " + std::to_string(int(kFramesPerSecond)) +
-      " -i - -an -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -movflags +faststart " +
-      quoted(path);
 #if defined(_WIN32)
   d.ffmpeg = RAISIMGYM_POPEN(command.c_str(), "wb");
 #else
@@ -242,7 +269,8 @@ bool VideoRecorder::start(World& world, const std::string& path) {
   d.frames = 0;
   d.writeFailed = false;
   d.focusValid = false;
-  d.nextFrameTime = d.lastWorldTime = d.lastRenderTime = world.getWorldTime();
+  d.lastRenderTime = world.getWorldTime();
+  d.pacer.restart(d.lastRenderTime);
   d.status = "recording " + path;
   // Let shadows and temporal effects settle before the first frame.
   for (int i = 0; i < 3; ++i) d.render();
@@ -254,13 +282,17 @@ void VideoRecorder::capture() {
   auto& d = *impl_;
   if (d.ffmpeg == nullptr || d.writeFailed) return;
   const double time = d.world->getWorldTime();
-  if (time < d.lastWorldTime) d.nextFrameTime = time;  // the world clock was reset
-  d.lastWorldTime = time;
-  if (time + 1e-9 < d.nextFrameTime) return;
+  const size_t due = d.pacer.framesDue(time);
+  if (due == 0) {
+    d.pacer.advance(time);
+    return;
+  }
 
+  ContextScope scope;
+  d.makeCurrent();
   d.render();
-  // Repeat the frame when a control step spans more than one video frame.
-  for (; d.nextFrameTime <= time + 1e-9; d.nextFrameTime += 1. / kFramesPerSecond) {
+  d.pacer.advance(time);
+  for (size_t i = 0; i < due; ++i) {
     if (std::fwrite(d.rgba.data(), 1, d.rgba.size(), d.ffmpeg) != d.rgba.size()) {
       d.writeFailed = true;
       return;

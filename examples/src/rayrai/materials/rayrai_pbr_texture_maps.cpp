@@ -1,148 +1,21 @@
-#include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstring>
 #include <filesystem>
-#include <iostream>
-#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <glbinding/gl/gl.h>
 #include <glm/gtc/quaternion.hpp>
 
-#define STB_IMAGE_STATIC
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
 #include "example_resources.hpp"
 #include "raisim/World.hpp"
-#include "raisim/math.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-#include "rayrai_example_utils.hpp"
-
-namespace {
-
-int wrapPixelX(int x, int width) {
-  x %= width;
-  return x < 0 ? x + width : x;
-}
-
-float sampleHdrBilinear(const float* pixels, int width, int height, int channels, float u, float v, int channel) {
-  u -= std::floor(u);
-  v = std::clamp(v, 0.0f, 1.0f);
-
-  const float x = u * static_cast<float>(width) - 0.5f;
-  const float y = v * static_cast<float>(height) - 0.5f;
-  const int x0 = static_cast<int>(std::floor(x));
-  const int y0 = static_cast<int>(std::floor(y));
-  const int x1 = x0 + 1;
-  const int y1 = y0 + 1;
-  const float tx = x - static_cast<float>(x0);
-  const float ty = y - static_cast<float>(y0);
-
-  const auto value = [&](int sx, int sy) {
-    sx = wrapPixelX(sx, width);
-    sy = std::clamp(sy, 0, height - 1);
-    return pixels[(static_cast<size_t>(sy) * width + sx) * channels + channel];
-  };
-
-  const float a = value(x0, y0) * (1.0f - tx) + value(x1, y0) * tx;
-  const float b = value(x0, y1) * (1.0f - tx) + value(x1, y1) * tx;
-  return a * (1.0f - ty) + b * ty;
-}
-
-glm::vec3 equirectangularDirection(float u, float v) {
-  constexpr float kPi = 3.14159265358979323846f;
-  const float theta = u * 2.0f * kPi - kPi;
-  const float phi = v * kPi;
-  const float sinPhi = std::sin(phi);
-  return {
-      sinPhi * std::cos(theta),
-      sinPhi * std::sin(theta),
-      std::cos(phi),
-  };
-}
-
-std::pair<float, float> directionToEquirectangularUv(const glm::vec3& direction) {
-  constexpr float kPi = 3.14159265358979323846f;
-  const glm::vec3 d = glm::normalize(direction);
-  float u = (std::atan2(d.y, d.x) + kPi) / (2.0f * kPi);
-  const float v = std::acos(std::clamp(d.z, -1.0f, 1.0f)) / kPi;
-  u -= std::floor(u);
-  return {u, v};
-}
-
-glm::vec3 inverseRotate(const raisim::Mat<3, 3>& rotation, const glm::vec3& direction) {
-  return {
-      static_cast<float>(rotation[0] * direction.x + rotation[3] * direction.y + rotation[6] * direction.z),
-      static_cast<float>(rotation[1] * direction.x + rotation[4] * direction.y + rotation[7] * direction.z),
-      static_cast<float>(rotation[2] * direction.x + rotation[5] * direction.y + rotation[8] * direction.z),
-  };
-}
-
-std::string rotateHdrEnvironment(const std::string& hdrPath, const raisim::Mat<3, 3>& rotation, const std::string& cacheName = "rayrai_pbr_texture_maps_hdr_rotated.hdr") {
-  int width = 0;
-  int height = 0;
-  int channels = 0;
-  float* pixels = stbi_loadf(hdrPath.c_str(), &width, &height, &channels, 3);
-  if (!pixels || width <= 0 || height <= 0) {
-    if (pixels) stbi_image_free(pixels);
-    return hdrPath;
-  }
-
-  constexpr int kChannels = 3;
-  std::vector<float> rotated(static_cast<size_t>(width) * height * kChannels);
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      const float u = (static_cast<float>(x) + 0.5f) / static_cast<float>(width);
-      const float v = (static_cast<float>(y) + 0.5f) / static_cast<float>(height);
-      const glm::vec3 dstDirection = equirectangularDirection(u, v);
-      const auto [srcU, srcV] = directionToEquirectangularUv(inverseRotate(rotation, dstDirection));
-      const size_t dst = static_cast<size_t>(y * width + x) * kChannels;
-      for (int channel = 0; channel < kChannels; ++channel) {
-        rotated[dst + channel] = sampleHdrBilinear(pixels, width, height, kChannels, srcU, srcV, channel);
-      }
-    }
-  }
-  stbi_image_free(pixels);
-
-  const auto rotatedPath = std::filesystem::temp_directory_path() / cacheName;
-  if (!stbi_write_hdr(rotatedPath.string().c_str(), width, height, kChannels, rotated.data())) {
-    std::cerr << "Failed to write rotated HDR environment: " << rotatedPath << std::endl;
-    return hdrPath;
-  }
-  return rotatedPath.string();
-}
-
-std::string rotateHdrEnvironment(const std::string& hdrPath, const raisim::Vec<4>& quaternionWxyz, const std::string& cacheName = "rayrai_pbr_texture_maps_hdr_rotated.hdr") {
-  raisim::Vec<4> unitQuaternion = quaternionWxyz;
-  const double norm = std::sqrt(unitQuaternion[0] * unitQuaternion[0] + unitQuaternion[1] * unitQuaternion[1] + unitQuaternion[2] * unitQuaternion[2] + unitQuaternion[3] * unitQuaternion[3]);
-  if (norm > 1.0e-12) {
-    for (size_t i = 0; i < 4; ++i) unitQuaternion[i] /= norm;
-  }
-
-  raisim::Mat<3, 3> rotation;
-  raisim::quatToRotMat(unitQuaternion, rotation);
-  return rotateHdrEnvironment(hdrPath, rotation, cacheName);
-}
-
-}  // namespace
 
 int main(int argc, char* argv[]) {
-  std::filesystem::path screenshotPath;
-  for (int i = 1; i < argc; ++i) {
-    const std::string arg(argv[i]);
-    if (arg == "--screenshot" && i + 1 < argc) {
-      screenshotPath = argv[++i];
-    }
-  }
-
   ExampleApp app;
-  const bool showWindow = screenshotPath.empty();
-  if (!app.init("rayrai_pbr_texture_maps", 1280, 720, showWindow)) return -1;
+  if (!app.init("rayrai_pbr_texture_maps", 1280, 720)) return -1;
 
   auto world = std::make_shared<raisim::World>();
   world->addGround();
@@ -276,7 +149,10 @@ int main(int argc, char* argv[]) {
   camera.setCameraFixedTarget(true);
   camera.setCameraFixedDistance(true);
 
-  auto renderOneFrame = [&]() {
+  while (!app.quit) {
+    app.processEvents();
+    if (app.quit) break;
+
     world->integrate();
     viewer->pollAsyncMeshLoads(8);
 
@@ -294,27 +170,6 @@ int main(int argc, char* argv[]) {
       viewer->renderWithExternalCamera(viewer->getCamera(), overrides);
     }
     app.endFrame();
-  };
-
-  if (!screenshotPath.empty()) {
-    while (viewer->pendingAsyncMeshLoadCount() != 0) {
-      viewer->pollAsyncMeshLoads(std::numeric_limits<size_t>::max());
-    }
-    for (int i = 0; i < 3 && !app.quit; ++i) {
-      renderOneFrame();
-    }
-    raisim_examples::saveCameraPng(camera, screenshotPath);
-    std::cout << "Saved screenshot: " << screenshotPath.string() << "\n";
-    viewer.reset();
-    app.shutdown();
-    return 0;
-  }
-
-  while (!app.quit) {
-    app.processEvents();
-    if (app.quit) break;
-
-    renderOneFrame();
   }
 
   viewer.reset();

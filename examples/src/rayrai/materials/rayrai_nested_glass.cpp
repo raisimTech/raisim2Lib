@@ -1,95 +1,25 @@
 // Copyright (c) 2026 Raion Robotics Inc. All rights reserved.
-#include <chrono>
-#include <cstdio>
-#include <filesystem>
-#include <iomanip>
+#include <algorithm>
+#include <cmath>
+#include <string>
 
 #include "glass_geometry.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
-#include "rayrai_example_utils.hpp"
 
 namespace {
 using namespace raisin;
-using namespace gl;
-struct Options {
-  int width = 1280, height = 800, samples = 10, bounces = 10, frames = 128, warmup = 8, objects = 0, msaa = 1, layers = 0;
-  bool benchmark = false, animate = false, opaqueOnly = false;
-  float roughness = 0.f;
-  GeometryRefractionBackend backend = GeometryRefractionBackend::Automatic;
-  std::string output;
-  std::filesystem::path recording;
-};
-Options parse(int argc, char** argv) {
-  Options o;
-  for (int i = 1; i < argc; ++i) {
-    const std::string a = argv[i];
-    auto p = a.find('=');
-    auto k = a.substr(0, p), v = p == a.npos ? "" : a.substr(p + 1);
-    if (k == "--out")
-      o.output = v;
-    else if (k == "--record")
-      o.recording = v;
-    else if (k == "--backend") {
-      if (v == "auto")
-        o.backend = GeometryRefractionBackend::Automatic;
-      else if (v == "portable")
-        o.backend = GeometryRefractionBackend::Portable;
-      else if (v == "vulkan")
-        o.backend = GeometryRefractionBackend::VulkanRayQuery;
-      else
-        throw std::runtime_error("--backend must be auto, portable or vulkan");
-    } else if (k == "--width")
-      o.width = std::stoi(v);
-    else if (k == "--height")
-      o.height = std::stoi(v);
-    else if (k == "--samples")
-      o.samples = std::stoi(v);
-    else if (k == "--bounces")
-      o.bounces = std::stoi(v);
-    else if (k == "--frames")
-      o.frames = std::stoi(v);
-    else if (k == "--warmup")
-      o.warmup = std::stoi(v);
-    else if (k == "--objects")
-      o.objects = std::stoi(v);
-    else if (k == "--msaa")
-      o.msaa = std::stoi(v);
-    else if (k == "--layers")
-      o.layers = std::stoi(v);
-    else if (k == "--benchmark")
-      o.benchmark = true;
-    else if (k == "--animate")
-      o.animate = true;
-    else if (k == "--roughness")
-      o.roughness = std::stof(v);
-    else if (k == "--opaque-only")
-      o.opaqueOnly = true;
-    else
-      throw std::runtime_error("Unknown option: " + a);
-  }
-  if (o.width < 16 || o.height < 16 || o.width > 8192 || o.height > 8192 || o.samples < 1 || o.samples > 64 || o.bounces < 1 || o.bounces > 128 || o.frames < 1 || o.warmup < 0 || o.objects < 0 ||
-      o.objects > 1024 || o.layers < 0 || o.layers > 16 || (o.layers > 0 && o.objects > 0) || !std::isfinite(o.roughness) || o.roughness < 0 || o.roughness > 1 ||
-      (o.msaa != 1 && o.msaa != 2 && o.msaa != 4 && o.msaa != 8))
-    throw std::runtime_error("Invalid dimensions, samples, bounces or counts");
-  return o;
-}
-void save(Camera& camera, const std::filesystem::path& path) {
-  if (!raisim_examples::saveCameraPng(camera, path)) throw std::runtime_error("Capture failed");
-}
-void run(ExampleApp& app, const Options& o) {
+void run(ExampleApp& app) {
   raisim::World world;
-  RayraiWindow viewer(world, o.width, o.height, RayraiWindow::ThreadingMode::SingleThread);
+  RayraiWindow viewer(world, 1280, 800, RayraiWindow::ThreadingMode::SingleThread);
   auto q = RenderQualitySettings::preset(RenderQualityPreset::High);
   q.highFidelityPbr = true;
   q.geometryRefraction = true;
   q.screenSpaceRefraction = true;
-  q.geometryRefractionBackend = o.backend;
-  q.geometryRefractionSamples = o.samples;
-  q.geometryRefractionMaxBounces = o.bounces;
-  q.geometryRefractionProgressive = !o.benchmark;
+  q.geometryRefractionSamples = 10;
+  q.geometryRefractionMaxBounces = 10;
   q.geometryRefractionMaxSamples = 65536;
-  q.viewerMsaaSamples = o.msaa;
+  q.viewerMsaaSamples = 1;
   q.temporalAaEnabled = false;
   q.fxaaEnabled = true;
   q.autoExposureEnabled = false;
@@ -130,20 +60,17 @@ void run(ExampleApp& app, const Options& o) {
   box("softbox right", {5, -6, 4}, {.15, 2.5, 2}, {4, 6, 9}, true)->setCastsShadows(false);
   box("softbox ceiling", {0, 1, 6}, {6, 3, .1}, {4.5, 4.5, 4.5}, true)->setCastsShadows(false);
   auto clear = Material::glass("clear solid", 1, glm::vec3(.96, .99, 1), 4, 0, 1.5f);
-  clear.roughnessFactor = o.roughness;
   clear.dielectricPriority = 20;
   auto water = Material::glass("water", 1, glm::vec3(.62, .91, .94), 1.5, 0, 1.333f);
   water.dielectricPriority = 10;
   auto air = Material::glass("air bubble", 1, glm::vec3(1), 1, 0, 1);
   air.dielectricPriority = 30;
-  std::vector<std::pair<std::shared_ptr<Visuals>, glm::vec3>> moving;
   const auto mesh = [&](const std::string& name, const glass_example::Geometry& g, glm::vec3 p, Material material) {
     auto v = viewer.addVisualCustomMesh(name, g.meshes(), glm::vec4(1));
     v->setPosition(p.x, p.y, p.z);
     v->setMaterialOverride(material);
     v->setDetectable(true);
     v->setCastsShadows(false);
-    moving.emplace_back(v, p);
     return v;
   };
   const auto sphere = [&](const std::string& name, glm::vec3 p, float radius, Material material) {
@@ -152,131 +79,31 @@ void run(ExampleApp& app, const Options& o) {
     v->setMaterialOverride(material);
     v->setDetectable(true);
     v->setCastsShadows(false);
-    moving.emplace_back(v, p);
-    return v;
   };
-  if (o.layers > 0) {
-    // Stress repeated medium transitions, not triangle count. Distinct nested
-    // solids alternate glass/water IOR; inner priorities resolve their overlap.
-    // At most 16 layers respect the transport's active-medium capacity.
-    for (int i = 0; i < o.layers; ++i) {
-      auto material = clear;
-      material.ior = i % 2 ? 1.333f : 1.5f;
-      material.dielectricPriority = i;
-      material.volumeAttenuationColor = i % 2 ? glm::vec3(.8f, .94f, .99f) : glm::vec3(.99f, .91f, .8f);
-      material.volumeAttenuationDistance = 8.f;
-      const glm::vec3 extent(1.25f - .06f * i);
-      mesh("nested layer " + std::to_string(i), glass_example::box(-extent, extent), {0, .4f, 1.3f}, material);
-    }
-  } else if (o.objects == 0) {
-    mesh("water glass", glass_example::cup(), {-3, 0, 0}, clear);
-    // Water deliberately overlaps the inner wall and bottom; glass priority
-    // wins there, producing glass/water rather than two air interfaces.
-    mesh("water", glass_example::lathe({{0, .06f}, {.74f, .06f}, {.74f, 1.32f}, {0, 1.32f}}), {-3, 0, 0}, water);
-    sphere("bubble", {-2.9, -.12, .85}, .18f, air);
-    mesh("empty hollow cup", glass_example::cup(), {0, .7, 0}, clear);
-    auto amber = clear;
-    amber.volumeAttenuationColor = {.94, .55, .16};
-    amber.volumeAttenuationDistance = .65f;
-    auto torus = mesh("concave amber torus", glass_example::torus(), {3, .3, 1.1}, amber);
-    torus->setOrientation(.70710678118, .70710678118, 0, 0);
-    auto blue = clear;
-    blue.volumeAttenuationColor = {.25, .7, .96};
-    blue.volumeAttenuationDistance = 1;
-    blue.dielectricPriority = 5;
-    sphere("overlap blue", {-.55, -2, .85}, .8, blue);
-    auto pink = clear;
-    pink.volumeAttenuationColor = {.98, .48, .6};
-    pink.volumeAttenuationDistance = 1;
-    pink.ior = 1.38f;
-    pink.dielectricPriority = 15;
-    sphere("overlap pink", {.55, -1.8, .85}, .8, pink);
-  } else {
-    const int columns = int(std::ceil(std::sqrt(o.objects)));
-    auto torus = glass_example::torus(.35, .11, 32, 12);
-    for (int i = 0; i < o.objects; ++i) {
-      auto m = clear;
-      m.dielectricPriority = i % 3;
-      mesh("glass" + std::to_string(i), torus, {(i % columns - (columns - 1) * .5f), float(i / columns) - columns * .5f, .5f}, m);
-    }
-  }
-  if (o.opaqueOnly)
-    for (const auto& item : moving) item.first->setColorPassVisible(false);
+  mesh("water glass", glass_example::cup(), {-3, 0, 0}, clear);
+  // Water deliberately overlaps the inner wall and bottom; glass priority
+  // wins there, producing glass/water rather than two air interfaces.
+  mesh("water", glass_example::lathe({{0, .06f}, {.74f, .06f}, {.74f, 1.32f}, {0, 1.32f}}), {-3, 0, 0}, water);
+  sphere("bubble", {-2.9, -.12, .85}, .18f, air);
+  mesh("empty hollow cup", glass_example::cup(), {0, .7, 0}, clear);
+  auto amber = clear;
+  amber.volumeAttenuationColor = {.94, .55, .16};
+  amber.volumeAttenuationDistance = .65f;
+  auto torus = mesh("concave amber torus", glass_example::torus(), {3, .3, 1.1}, amber);
+  torus->setOrientation(.70710678118, .70710678118, 0, 0);
+  auto blue = clear;
+  blue.volumeAttenuationColor = {.25, .7, .96};
+  blue.volumeAttenuationDistance = 1;
+  blue.dielectricPriority = 5;
+  sphere("overlap blue", {-.55, -2, .85}, .8, blue);
+  auto pink = clear;
+  pink.volumeAttenuationColor = {.98, .48, .6};
+  pink.volumeAttenuationDistance = 1;
+  pink.ior = 1.38f;
+  pink.dielectricPriority = 15;
+  sphere("overlap pink", {.55, -1.8, .85}, .8, pink);
   viewer.updateObjectLists();
-  const glm::vec3 eye = o.objects ? glm::vec3(10, -17, 17) : glm::vec3(1.6f, -8.3f, 3.22f);
-  const glm::vec3 lookAt(0, .4f, .9f);
-  if (o.benchmark || !o.output.empty() || !o.recording.empty()) {
-    // Offscreen paths use a private camera for reproducible captures, recordings and timings.
-    Camera camera;
-    camera.ensureRenderTargets(o.width, o.height);
-    camera.setSceneMsaaSamples(o.msaa);
-    camera.position = eye;
-    camera.front = glm::normalize(lookAt - eye);
-    camera.up = camera.worldUp = {0, 0, 1};
-    camera.zoom = 42;
-    camera.nearPlane = camera.zNear = .05;
-    camera.farPlane = camera.zFar = 100;
-    camera.setGamma(q.gamma);
-    camera.setBackgroundColorRgb255({15, 20, 30, 255});
-    RayraiWindow::RenderOverrides ov;
-    ov.postProcess = true;
-    ov.doShadows = true;
-    ov.drawVisualizationObjects = true;
-    ov.drawPointClouds = ov.drawCoordinateFrames = ov.drawWeatherEffects = false;
-    ov.allowTemporalAa = false;
-    ov.allowViewerMsaa = true;
-    ov.allowViewerUpscale = false;
-    const auto render = [&](int frame) {
-      if (o.animate)
-        for (const auto& item : moving) {
-          const auto p = item.second + glm::vec3(.04f * std::sin(frame * .11f), 0, 0);
-          item.first->setPosition(p.x, p.y, p.z);
-        }
-      camera.position = eye;
-      if (!o.recording.empty()) {
-        const auto offset = eye - lookAt;
-        const float angle = .10f * std::sin(2.f * 3.14159265359f * frame / o.frames);
-        camera.position = lookAt + glm::vec3(std::cos(angle) * offset.x - std::sin(angle) * offset.y, std::sin(angle) * offset.x + std::cos(angle) * offset.y, offset.z);
-      } else if (o.benchmark)
-        camera.position.x += .001f * std::sin(frame * .037f);
-      camera.front = glm::normalize(lookAt - camera.position);
-      viewer.renderWithExternalCamera(camera, ov);
-    };
-    for (int i = 0; i < o.warmup; ++i) render(i);
-    glFinish();
-    const auto start = std::chrono::steady_clock::now();
-    double submitMs = 0;
-    for (int i = 0; i < o.frames; ++i) {
-      const auto submitStart = std::chrono::steady_clock::now();
-      render(o.recording.empty() ? i + o.warmup : i);
-      submitMs += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - submitStart).count();
-      glFinish();
-      if (!o.recording.empty()) {
-        char name[32];
-        std::snprintf(name, sizeof(name), "frame_%03d.png", i);
-        save(camera, o.recording / name);
-        if ((i + 1) % 25 == 0) std::cout << "Nested glass: recorded " << i + 1 << '/' << o.frames << std::endl;
-      }
-    }
-    const double totalMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    const double ms = totalMs / o.frames;
-    if (!o.output.empty()) save(camera, o.output);
-    const auto d = viewer.geometryRefractionDiagnostics();
-    std::cout << "backend=" << (d.backend == GeometryRefractionBackend::VulkanRayQuery ? "vulkan" : "portable") << " status=" << d.backendStatus << '\n';
-    std::cout << "GPU: " << glGetString(GL_RENDERER) << '\n'
-              << std::fixed << std::setprecision(4) << "completed_ms=" << ms << " submit_ms=" << submitMs / o.frames << " total_ms=" << totalMs << " objects=" << o.objects
-              << " triangles=" << d.triangles << " volumes=" << d.volumes << " samples_per_frame=" << o.samples << " accumulated_samples=" << d.accumulatedSamples << " bounces=" << o.bounces
-              << " frames=" << o.frames << " warmup=" << o.warmup << " animate=" << o.animate << " roughness=" << o.roughness << '\n';
-    const auto statistics = viewer.geometryRefractionSamplingStatistics();
-    std::cout << "sampling_pixels=" << statistics.pixels << " mean_samples=" << statistics.meanSamples << " min_samples=" << statistics.minSamples << " max_samples=" << statistics.maxSamples
-              << " below_budget=" << statistics.belowBudget << '\n';
-    if (o.layers) std::cout << "nested_layers=" << o.layers << '\n';
-    if (glGetError() != GL_NO_ERROR) throw std::runtime_error("OpenGL error in nested glass example");
-    return;
-  }
-  // Interactive mode drives the viewer's own camera, so this example gets the
-  // standard rayrai navigation: WASD/Space to fly, drag to look, and a click on
-  // an object to lock the orbit target onto it (click empty space to release).
+  const glm::vec3 eye(1.6f, -8.3f, 3.22f), lookAt(0, .4f, .9f);
   auto& camera = viewer.getCamera();
   camera.position = eye;
   camera.front = glm::normalize(lookAt - eye);
@@ -297,10 +124,7 @@ void run(ExampleApp& app, const Options& o) {
     app.beginFrame();
     app.renderViewer(viewer);
     ImGui::Begin("Geometry refraction");
-    if (o.layers)
-      ImGui::Text("%d nested glass/water layers", o.layers);
-    else
-      ImGui::TextUnformatted("Water + air bubble / hollow cup / concave torus\nFront: overlapping glass solids");
+    ImGui::TextUnformatted("Water + air bubble / hollow cup / concave torus\nFront: overlapping glass solids");
     bool changed = ImGui::Checkbox("Geometry tracing", &q.geometryRefraction);
     int backend = int(q.geometryRefractionBackend);
     if (ImGui::Combo("Tracing backend", &backend, "Automatic\0Portable OpenGL\0Vulkan ray query (required)\0")) {
@@ -325,18 +149,11 @@ void run(ExampleApp& app, const Options& o) {
   }
 }
 }  // namespace
-int main(int argc, char** argv) {
+int main() {
   ExampleApp app;
-  try {
-    const auto o = parse(argc, argv);
-    if (!app.init("Rayrai nested glass", o.width, o.height, !o.benchmark && o.output.empty() && o.recording.empty())) return 1;
-    SDL_GL_SetSwapInterval(0);
-    run(app, o);
-    app.shutdown();
-    return 0;
-  } catch (const std::exception& e) {
-    std::cerr << e.what() << '\n';
-    if (app.context) app.shutdown();
-    return 1;
-  }
+  if (!app.init("Rayrai nested glass", 1280, 800)) return 1;
+  SDL_GL_SetSwapInterval(0);
+  run(app);
+  app.shutdown();
+  return 0;
 }

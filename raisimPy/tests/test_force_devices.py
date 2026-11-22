@@ -63,6 +63,27 @@ class ForceDeviceTests(unittest.TestCase):
         self.assertEqual(len(drone.getThrusters()), 2)
         np.testing.assert_allclose(drone.getThrusters()[1].axis, [1., 0., 0.])
 
+    def test_leaky_suction_uses_the_configured_radius_and_coefficient(self):
+        tool = self.world.addArticulatedSystem(TOOL)
+        cup = tool.getGrippers()[0]
+        cup.name = "cup"
+        cup.type = r.GripperDefinition.Type.SUCTION
+        cup.maxForce = 20.
+        cup.range = 0.004
+        cup.cupRadius = 0.02
+        cup.leakCoefficient = 2.
+        tool.setGrippers([cup])
+        self.assertEqual(tool.getGrippers()[0].cupRadius, 0.02)
+        self.assertEqual(tool.getGrippers()[0].leakCoefficient, 2.)
+        box = self.world.addBox(0.1, 0.1, 0.1, 1.)
+        box.setPosition(np.array([0., 0., -0.061]))
+        tool.setGripperActive("cup", True)
+        self.world.integrate()
+        state = tool.getGripperState(0)
+        self.assertTrue(state.engaged)
+        self.assertAlmostEqual(state.force, 10.)
+        self.assertAlmostEqual(state.gap, 0.001)
+
     def test_magnet_pulls_only_magnetic_materials(self):
         tool = self.world.addArticulatedSystem(TOOL)
         self.assertEqual(tool.getGrippers()[0].type, r.GripperDefinition.Type.MAGNETIC)

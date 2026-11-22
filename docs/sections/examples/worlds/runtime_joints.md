@@ -59,8 +59,8 @@ connects their docking tabs, so they accelerate together at `0.175 m/s²`.
 At two simulated seconds the dock is removed. The orange carriage continues
 accelerating under its commanded force, while the blue carriage coasts. Their
 increasing separation demonstrates that they are independent systems again.
-The headless run checks a `-0.175 N` dock reaction on the driven robot before
-release and a `0.7 m/s` velocity difference two seconds afterward.
+At release the example prints the dock's `-0.175 N` reaction on the driven
+robot; two seconds later the carriages' velocities differ by `0.7 m/s`.
 
 The companion Python example, `raisimPy/examples/runtimeJoints.py`, exercises
 the same attach–transfer–release workflow without a viewer.
@@ -81,13 +81,13 @@ Start the viewer, then start either scene in another terminal:
 ./build-examples/examples/rayrai_tcp_viewer --auto-frame
 
 # Terminal 2: tool attachment and release
-./build-examples/examples/runtime_joints --visualize
+./build-examples/examples/runtime_joints
 
 # Or: docking two independent robot carriages
-./build-examples/examples/runtime_joints --visualize --scene docking
+./build-examples/examples/runtime_joints --scene docking
 ```
 
-The example serves the world by default, so it can also be launched from the
+The example serves the world, so it can also be launched from the
 viewer's example chooser. Connect to the port printed by the example, normally
 `8080`. The viewer's pause
 and single-step controls work with the scripted simulation. Deleting a wrist,
@@ -99,18 +99,9 @@ RaiSim uses its standard activation-key lookup; pass `--activation-key FILE` to
 select a key explicitly. This example uses only primitive geometry and needs
 no external 3D assets.
 
-### Run the physics checks without a viewer
-
-Use `--headless` to run one four-second cycle, check its result, print the
-reaction load and release result, and exit:
-
-```bash
-./build-examples/examples/runtime_joints --headless
-./build-examples/examples/runtime_joints --headless --scene docking
-```
-
-The engine test build registers these as `testRuntimeJointExample` and
-`testRuntimeJointDockingExample`.
+The engine test build steps one four-second cycle of each scene without a
+viewer and checks the mount pose, the reaction loads and the release
+(`testRuntimeJointExample` and `testRuntimeJointDockingExample`).
 
 ## Re-record the figures and videos
 

@@ -65,7 +65,6 @@ void configureCamera(Camera& camera, const PendingSensorUpdate& update) {
   camera.target = camera.position + camera.front;
 }
 
-/** RaiSim camera properties matching a remote sensor, for reading back its image. */
 template <typename Properties>
 Properties sensorCameraProperties(const SensorInfo& info) {
   Properties properties;
@@ -82,11 +81,6 @@ Properties sensorCameraProperties(const SensorInfo& info) {
   return properties;
 }
 
-/**
- * Returns a clean readback camera; the server applies the sensor's noise model to the received
- * pixels. Constructing a DepthCamera computes a ray direction per pixel, so one camera is kept
- * per stream and rebuilt when the requested resolution changes.
- */
 template <typename SensorType, typename Properties>
 SensorType& readbackSensor(std::unique_ptr<SensorType>& sensor, const SensorInfo& info) {
   if (!sensor || sensor->getProperties().width != info.width ||
@@ -108,8 +102,6 @@ struct PreviewTexture {
   int width = 0, height = 0;
 };
 
-// Upload tightly packed bytes without inheriting the application's PBO or row
-// offsets. Restoring the texture binding also keeps the renderer's binding cache valid.
 class ScopedPreviewUpload {
  public:
   ScopedPreviewUpload() {
@@ -182,8 +174,6 @@ namespace detail
 
 namespace {
 
-// The caller checks the image length. Confirm eight missing returns before
-// taking the bulk path; ordinary images use the shade/range loops.
 template <size_t BlockSize>
 #if defined(_MSC_VER)
 __declspec(noinline)
@@ -200,15 +190,11 @@ size_t writeInvalidDepthPreviewPrefix(const float* depth, size_t count,
   if (firstValid) return 0;
   std::array<uint32_t, BlockSize> block;
   block.fill(opaque);
-  // The first eight samples were already classified above.
   std::memcpy(rgba, block.data(), sizeof(first));
   size_t i = first.size();
   while (count - i >= block.size()) {
     std::array<uint32_t, BlockSize> words;
     std::memcpy(words.data(), depth + i, sizeof(words));
-    // The first word is known to be missing. Repeated words need only an
-    // equality check; otherwise the eight-sample loop below classifies the
-    // rest of the prefix without assuming a common representation.
     bool stop = false;
     for (uint32_t word : words) {
       if constexpr (BlockSize > 8u) stop |= word != first[0];
@@ -265,13 +251,10 @@ size_t writeVariedDepthPreviewBlocks(const float* depth, size_t count,
 #pragma clang loop vectorize(enable) interleave(disable) unroll(disable)
 #endif
     for (size_t lane = 0; lane < 4u; ++lane) allValid &= bits[lane] - lower < span;
-    // Return flat runs to the shade cache in the ordinary preview loop.
     if (!allValid || bits[0] == bits[1]) break;
     std::array<float, 4> values;
     std::memcpy(values.data(), bits.data(), sizeof(values));
     const auto shades = lookup.shadesWithinRange(values);
-    // Different depths can share one shade, including clipped returns. Let the
-    // ordinary loop cache that interval instead of repeating four lookups.
     bool sameShade = true;
 #if defined(__clang__)
 #pragma clang loop vectorize(enable) interleave(disable) unroll(disable)
@@ -291,7 +274,6 @@ size_t writeVariedDepthPreviewBlocks(const float* depth, size_t count,
     std::memcpy(rgba + i * 4u, pixels.data(), sizeof(pixels));
     i += 4u;
   }
-  // Combine lanes locally before updating the caller's range once per run.
   float runMinimum = blockMinimum[0], runMaximum = blockMaximum[0];
   for (size_t lane = 1; lane < 4u; ++lane) {
     runMinimum = std::min(runMinimum, blockMinimum[lane]);
@@ -326,7 +308,6 @@ void writeCachedDepthPreviewBlocks(const float* samples, size_t count,
       const bool sameShade = int(bits[0] - lower < span) & int(bits[1] - lower < span) &
           int(bits[2] - lower < span) & int(bits[3] - lower < span);
       if (sameShade) {
-        // Reuse the classified words instead of loading the same depths again.
         std::array<float, 4> values;
         std::memcpy(values.data(), bits.data(), sizeof(values));
         // Reduce each lane across blocks, then combine lanes once at the end.
@@ -390,7 +371,6 @@ void writeCachedDepthPreviewBlocks(const float* samples, size_t count,
   imageMaximum = std::max(imageMaximum, maximum);
 }
 
-// Long leading runs need one shade lookup and fewer loop branches per pixel.
 #if defined(_MSC_VER)
 __declspec(noinline)
 #elif defined(__GNUC__) || defined(__clang__)
@@ -409,8 +389,6 @@ size_t writeUniformDepthPreviewPrefix(const float* samples, size_t count,
   std::memcpy(&upper, &interval.second, sizeof(upper));
   if (!(interval.first > 0.f)) lower = 1;
   const uint32_t span = upper - lower;
-  // The caller supplies at least 4096 samples. Confirm a long run before
-  // adding the wide loop's setup to short surfaces and varying images.
 #if defined(__clang__)
 #pragma clang loop unroll(disable)
 #endif
@@ -438,7 +416,6 @@ size_t writeUniformDepthPreviewPrefix(const float* samples, size_t count,
     if (!sameShade) break;
     std::array<float, 16> values;
     std::memcpy(values.data(), bits.data(), sizeof(values));
-    // Four lanes per update keep the reductions in registers on 128-bit targets.
 #if defined(__clang__)
 #pragma clang loop vectorize(enable) interleave(disable) unroll(disable)
 #endif
@@ -577,8 +554,6 @@ DepthPreviewShading::DepthPreviewShading(float clipMinimum, float clipMaximum)
     const float normalized = std::log(value / scaleMinimum) * inverseLogRange;
     return static_cast<unsigned char>(std::lround(255.0f * normalized));
   };
-  // Positive floats are ordered like their bit patterns, so bisect over those for the first
-  // depth of each shade. Every shade starts at or after the previous one.
   const auto bits = [](float value) {
     uint32_t result = 0;
     std::memcpy(&result, &value, sizeof(result));
@@ -619,8 +594,6 @@ DepthPreviewShading::DepthPreviewShading(float clipMinimum, float clipMaximum)
   }
   uint32_t shift = 16u;
   while (shift > 0u && (UINT32_C(1) << shift) > minimumGap) --shift;
-  // Align the table origin to at least 32 float words. Its five zero low bits
-  // can carry the shift without a second per-pixel load or a larger object.
   const uint32_t alignment = UINT32_C(1) << std::max(shift, 5u);
   const uint32_t origin = bits(scaleMinimum) & ~(alignment - 1u);
   bucketLayout_ = origin | shift;
@@ -653,8 +626,6 @@ void makeDepthPreviewRgba(const std::vector<float>& depth, const DepthPreviewSha
   // range reductions local so they stay in registers until the whole image is complete.
   const float* samples = depth.data();
   unsigned char* output = rgba.data();
-  // Repeating a byte fills all four channels; OR in alpha using its native byte position.
-  // memcpy keeps both packed writes and unaligned destinations portable.
   const std::array<unsigned char, 4> opaqueBytes{0, 0, 0, 255};
   uint32_t opaque;
   std::memcpy(&opaque, opaqueBytes.data(), sizeof(opaque));
@@ -662,8 +633,6 @@ void makeDepthPreviewRgba(const std::vector<float>& depth, const DepthPreviewSha
     uint32_t first;
     std::memcpy(&first, samples, sizeof(first));
     if (first - 1u >= UINT32_C(0x7f7fffff)) {
-      // Restrict wider equality checks to the initial prefix of large images.
-      // Later gaps retain the smaller classifier for short missing runs.
       const size_t skipped = count >= 4096u
           ? writeInvalidDepthPreviewPrefix<64>(samples, count, output, opaque)
           : writeInvalidDepthPreviewPrefix<8>(samples, count, output, opaque);
@@ -674,12 +643,8 @@ void makeDepthPreviewRgba(const std::vector<float>& depth, const DepthPreviewSha
   }
   float minimum = std::numeric_limits<float>::infinity();
   float maximum = 0.0f;
-  // Choose the converter before consuming the prefix so its removal does not
-  // change the execution path for the rest of a mostly uniform image.
   const bool varied = count >= 256u && useVariedDepthPreview(samples, count, shading);
   if (!varied && count >= 4096u) {
-    // A missing prefix can leave every four-pixel block crossing a vector boundary.
-    // Peel at most three pixels through the ordinary converter before batching.
     const size_t leading = (4u - ((reinterpret_cast<uintptr_t>(output) >> 2u) & 3u)) & 3u;
     if (leading != 0u) {
       writeCachedDepthPreviewBlocks(samples, leading, shading, output, opaque, minimum, maximum);
@@ -715,8 +680,6 @@ void makeDepthPreviewRgba(const std::vector<float>& depth, const DepthPreviewSha
           }
         }
       }
-      // Handle a boundary or missing return with the cached loop. Amortize its
-      // setup over 64 samples when the next block already shares one shade.
       size_t cachedCount = std::min(count, size_t(4));
       if (count >= 64u) {
         std::array<uint32_t, 4> bits;
@@ -777,9 +740,6 @@ SensorRenderer::~SensorRenderer() {
 
 bool SensorRenderer::render(RayraiWindow& viewer, std::vector<PendingSensorUpdate>& updates,
                             std::string& status) {
-  // Keep the update handshake alive even when a remote sensor advertises an
-  // unusable size. The caller sends an empty acknowledgment if all updates
-  // are filtered, and the server can continue serving scene frames.
   updates.erase(std::remove_if(updates.begin(), updates.end(),
       [](const PendingSensorUpdate& update) {
         return !validSensorDimensions(update.info.width, update.info.height) ||

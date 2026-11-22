@@ -2,6 +2,8 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_003(py::module_& m) {
+{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particlesAnimFrameProgress", &OpenGLMesh::MeshDiagnostics::particlesAnimFrameProgress);}
+{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailsEnabled", &OpenGLMesh::MeshDiagnostics::particleTrailsEnabled);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailLength", &OpenGLMesh::MeshDiagnostics::particleTrailLength);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailTaper", &OpenGLMesh::MeshDiagnostics::particleTrailTaper);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"particleTrailWorldDirection", &OpenGLMesh::MeshDiagnostics::particleTrailWorldDirection);}
@@ -55,7 +57,5 @@ void define_003(py::module_& m) {
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherAffectsSnow", &OpenGLMesh::MeshDiagnostics::weatherAffectsSnow);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherPuddleEligible", &OpenGLMesh::MeshDiagnostics::weatherPuddleEligible);}
 {auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherSnowEligible", &OpenGLMesh::MeshDiagnostics::weatherSnowEligible);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherMaskMapped", &OpenGLMesh::MeshDiagnostics::weatherMaskMapped);}
-{auto c=bound_class<OpenGLMesh::MeshDiagnostics>(m.attr("OpenGLMesh"), "MeshDiagnostics"); field(c,"weatherPorosity", &OpenGLMesh::MeshDiagnostics::weatherPorosity);}
 }
 }

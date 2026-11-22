@@ -2,7 +2,8 @@
 
 The new solver is written for RaiSim; MFEM and scikit-fem are used independently
 for validation. The scripts and raw measurements are in `benchmark/` and
-`benchmark/results/fem/` in the source repository.
+`benchmark/results/fem/` in the source repository; the charts are drawn from
+[the recorded results](/linear_elasticity_results.json).
 
 ## Setup
 
@@ -37,11 +38,13 @@ strain, principal stress, von Mises, reactions, energy and residual recovery.
 MFEM times include assembly/elimination and the displacement solve, but not
 stress recovery. scikit-fem times include fields and residual recovery.
 
+<img class="diagram" src="../../rsc/docs/image/linear_elasticity_cold.svg" alt="Bar chart of cold solve milliseconds for three mesh sizes: RaiSim and MFEM are close on the two smaller meshes and RaiSim is faster on the largest; scikit-fem is about ten times slower. The table below gives the times.">
+
 | Tetrahedra | RaiSim cold | MFEM cold | scikit-fem/SuperLU cold |
 | ---: | ---: | ---: | ---: |
 | 1,536 | 7.7 | 7.8 | 59.0 |
-| 12,288 | 89.6 | 83.8 | 1050.1 |
-| 41,472 | 336.7 | 455.6 | 5738.8 |
+| 12,288 | 89.6 | 83.8 | 1,050.1 |
+| 41,472 | 336.7 | 455.6 | 5,738.8 |
 
 RaiSim uses LDLT on the smallest mesh and ICCG on the other two. With 41,472
 tetrahedra its stored lower matrix has 520,782 entries; ICCG avoids the millions
@@ -83,6 +86,8 @@ recovery).
 Cantilever bending (`linear_fem_bending iccg` and `linear_fem_bending multigrid`),
 end shear load:
 
+<img class="diagram" src="../../rsc/docs/image/linear_elasticity_multigrid.svg" alt="Bar chart of cantilever bending solve milliseconds with multigrid and incomplete-Cholesky CG for two mesh sizes and two Poisson ratios: multigrid is 2.5 to 9 times faster and needs far fewer iterations. The table below gives the times.">
+
 | Tetrahedra | Poisson ratio | ICCG ms | ICCG iterations | Multigrid ms | Multigrid iterations |
 | ---: | ---: | ---: | ---: | ---: | ---: |
 | 30,720 | 0.3 | 364 | 445 | 147 | 27 |
@@ -119,6 +124,8 @@ stress eigenvalue routine was rejected after near-repeated eigenvalues lost
 accuracy; recovery still uses the robust eigensolver.
 
 MFEM's identical changing-nodal-load sweep, in milliseconds:
+
+<img class="diagram" src="../../rsc/docs/image/linear_elasticity_loads.svg" alt="Bar chart of milliseconds per solve after the load changes direction, for three mesh sizes: RaiSim is 3 to 4 times faster than MFEM in the same sweep. The table below gives the times.">
 
 | Tetrahedra | MFEM scaled warm solve | MFEM direction change | RaiSim direction change |
 | ---: | ---: | ---: | ---: |
@@ -250,6 +257,8 @@ CASCADE 7.7.2 then; see [CAD translation](#cad-translation) for the original
 reader that replaced it. Raw data:
 `benchmark/results/fem/delaunay-mesher.csv` and
 `delaunay-mesher-vs-ftetwild.csv` in the RaiSim source checkout.
+
+<img class="diagram" src="../../rsc/docs/image/linear_elasticity_meshing.svg" alt="Bar chart of the seconds RaiSim's Delaunay mesher and fTetWild take for five CAD parts and element sizes: the Delaunay mesher is 9 to 40 times faster. The table below gives the times and mesh sizes.">
 
 | Geometry | Maximum edge (mm) | Delaunay (s) | fTetWild (s) | Tetrahedra (Delaunay / fTetWild) | Minimum mean ratio (Delaunay / fTetWild) |
 | --- | ---: | ---: | ---: | ---: | ---: |

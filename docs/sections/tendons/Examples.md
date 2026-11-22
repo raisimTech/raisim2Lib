@@ -114,47 +114,28 @@ The server streams tendons using the existing instanced-polyline constraint
 category. Drawing geometry is generated during rendering/server updates, rather
 than tessellated on every headless physics step.
 
-## Headless checks and timings
+## Saving the view
 
-`--headless` and `--benchmark` select the same finite simulation mode: no
-window, server socket, or real-time pacing. The default is 6,000 steps;
-`--steps N` changes it. These examples use a 1 ms physics timestep and one
-simulation thread. Run benchmarks serially:
+`rayrai_tendons` saves its view with the capture that every rayrai example
+shares (see `rayrai/example_common.hpp`), here after 90 rendered frames:
 
 ```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  ./tendon_pulleys --benchmark --steps 20000
-./rayrai_tendons --headless --scene all --steps 6000
+RAYRAI_EXAMPLE_CAPTURE=/tmp/tendons.png RAYRAI_EXAMPLE_CAPTURE_START=90 ./rayrai_tendons
 ```
 
-Each run reports elapsed simulation-loop time, microseconds per step, tendon
-and coupling counts, maximum length/coupling errors, and maximum length change.
-The measured loop includes control updates and diagnostic geometry refreshes.
-It excludes scene construction and rendering. The examples reject nonfinite
-state, length-bound violations above 0.01, and coupling residuals above 0.001;
-runs of at least 1,000 steps also require measurable transmission motion. These
-are example acceptance thresholds, not general solver accuracy guarantees.
-
-For a reproducible finite rendering/capture run:
-
-```bash
-./rayrai_tendons --hidden --frames 90 --screenshot /tmp/tendons.png
-```
-
-The showcase on this page uses 90 rendered frames and 1,440 physics steps.
-Finite-frame and hidden runs use a deterministic 16 ms simulation-time budget
-per frame. Interactive runs normally follow wall time with the selected speed.
-A working OpenGL context is still required for hidden rendering.
+The showcase on this page is such a capture. A working OpenGL context is still
+required; on Linux without a display, set `SDL_VIDEODRIVER=offscreen`.
 
 ## Export and reload
 
 ```bash
-./tendon_pulleys --headless --steps 0 --export /tmp/tendon-pulleys.xml
-./rayrai_tendons --headless --steps 0 --export /tmp/all-tendons.xml
+./tendon_pulleys --export /tmp/tendon-pulleys.xml
+./rayrai_tendons --export /tmp/all-tendons.xml
 ```
 
-These commands export the initial configuration. The XML retains tendon paths,
-properties, references, activation state, and current drive configuration.
+These commands export the initial configuration, then run the example as
+usual. The XML retains tendon paths, properties, references, activation state,
+and current drive configuration.
 Future C++ servo commands are not part of the exported scene, so loading a file
 alone does not replay the demo controller. The exported embedded articulated
 models have URDF sidecars; see [Tendon API and model files](./Reference.md) for path handling.
@@ -173,11 +154,15 @@ ctest --test-dir BUILD -j 12 --output-on-failure -R tendon_example
 ```
 
 On Windows also use `--config Release` for building and
-`-C Release` for CTest. The checks cover the individual/combined headless
-scenes, invalid command-line arguments, XML/URDF export, and a round trip that
-compares initial placement and controlled trajectories after 1,200 steps. The
-finite Rayrai checks verify generated spatial visuals for the combined and
-coupling scenes. A separate test checks that both coupling cables transmit
+`-C Release` for CTest. The checks run each scene for 6,000 one-millisecond
+steps and reject nonfinite state, length-bound violations above 0.01, coupling
+residuals above 0.001, and runs without measurable transmission motion; these
+are example acceptance thresholds, not general solver accuracy guarantees. They also cover invalid command-line arguments, XML/URDF export by
+the running server examples, and a round trip that compares initial placement
+and controlled trajectories after 1,200 steps. The Rayrai checks draw the
+combined and coupling scenes and verify their generated spatial visuals, and
+run `rayrai_tendons` through the shared capture to find the turquoise coupled
+cable in its image. A separate test checks that both coupling cables transmit
 forces, and another compares their moving routes, radii, and colors after actual
 server serialization and TCP viewer parsing. Each graphics test returns skip
 code 77 if SDL cannot create a graphics context.

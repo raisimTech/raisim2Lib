@@ -81,7 +81,7 @@ Pairs are symmetric; a single entry covers both A vs B and B vs A.
 | Sphere vs Capsule | Closest point on capsule axis segment, then sphere-sphere contact. | 1 | Segment endpoints are capsule caps. |
 | Sphere vs Cylinder | Analytic finite-cylinder test (side and caps). | 1 | Handles endcaps and side wall. |
 | Box vs Box | SAT on 15 axes (3 + 3 + 9 cross), face/edge clipping. | Up to 8 | Edge-edge yields 1; face-face yields a clipped manifold. |
-| Box vs Capsule | Segment-box closest approach; fallback to cap sphere-box tests. | Up to 2 | 1 if segment interior hits; otherwise up to 2 cap contacts. |
+| Box vs Capsule | Segment-box closest approach, cap sphere-box tests, and clipping of nearly parallel support features. | Up to 2 | A capsule lying across a box face can contact both ends of the supported portion of its side. |
 | Box vs Cylinder | SAT + clipping (cylinder vs box face/circle); MPR if clipping yields no point. | Up to 16 (clamped to the per-pair limit) | Produces 1-2 for edge hits, more for face overlap. |
 | Capsule vs Capsule | Segment-segment closest points; parallel overlap uses both ends of the overlapping axis interval. | Up to 2 | Parallel, overlapping axes can emit two contacts. |
 | Capsule vs Cylinder | MPR (Minkowski Portal Refinement) support mapping, then the touching flat parts (see below). | Up to 2 | A capsule lying on a cap or along the side gets both ends of the line where they touch. |
@@ -262,9 +262,11 @@ articulated system integrated with `TRAPEZOID` moves by the mean of its start an
 on an impact it goes in by up to half the step's travel, swept CCD or not, and comes back out at
 the error-reduction rate; the default `SEMI_IMPLICIT` stops at the surface.
 Use `World::setCollisionCountersEnabled(true)` and `getLastCollisionCounters()` to inspect
-`sweptCcdCandidates` and `sweptCcdContacts` in benchmark or diagnostic code. Deformable particles
-do not use swept CCD: their contacts include speculative ones for every body a particle can reach within
-the step (see [Deformable Objects](./DeformableObject.md)).
+`sweptCcdCandidates` and `sweptCcdContacts` in benchmark or diagnostic code. Deformable contact
+generation includes speculative contacts for bodies a particle can reach during the step
+(see [Deformable Objects](./DeformableObject.md)). When swept CCD is enabled, the deformable's
+sphere proxy at particle zero also participates in the terrain sweep using that particle's
+predicted velocity.
 
 ## Collision counters
 

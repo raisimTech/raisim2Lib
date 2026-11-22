@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="578" viewBox="0 0 960 578" role="img" aria-labelledby="title desc">
+  <title id="title">Ray casting right after an edit</title>
+  <desc id="desc">Horizontal bars, one panel per scene, of the milliseconds after carving or filling a 0.5 m sphere: rayrai uploads the changed bricks and scans; NanoVDB rebuilds its grid and uploads it, before any scan.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="578" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Ray casting right after an edit</text>
+  <text x="32.0" y="76.0" class="subtitle">Milliseconds after carving or filling a 0.5 m sphere, lower is better · median of five runs</text>
+  <text x="32.0" y="126.0" class="panel">Terrain · 0.10 m voxels</text>
+  <line x1="302.0" y1="136" x2="302.0" y2="212" class="grid"/>
+  <line x1="416.5" y1="136" x2="416.5" y2="212" class="grid"/>
+  <line x1="531.0" y1="136" x2="531.0" y2="212" class="grid"/>
+  <line x1="645.5" y1="136" x2="645.5" y2="212" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="212" class="grid"/>
+  <line x1="302" y1="136" x2="302" y2="212" class="axis"/>
+  <text x="290.0" y="164.0" text-anchor="end" class="label">rayrai: upload and scan</text>
+  <path d="M302.0 147.0H308.8A4.0 4.0 0 0 1 312.8 151.0V165.0A4.0 4.0 0 0 1 308.8 169.0H302.0Z" class="rayrai"><title>rayrai, terrain: a scan right after the edit takes 0.47 ms</title></path>
+  <text x="320.8" y="164.0" class="value">0.47 ms</text>
+  <text x="290.0" y="200.0" text-anchor="end" class="label">NanoVDB: rebuild and upload</text>
+  <path d="M302.0 183.0H458.8A4.0 4.0 0 0 1 462.8 187.0V201.0A4.0 4.0 0 0 1 458.8 205.0H302.0Z" class="other"><title>NanoVDB, terrain: rebuilding and uploading the grid takes 7.0 ms</title></path>
+  <text x="470.8" y="200.0" class="value">7.0 ms</text>
+  <text x="32.0" y="252.0" class="panel">Indoor · 0.05 m voxels</text>
+  <line x1="302.0" y1="262" x2="302.0" y2="338" class="grid"/>
+  <line x1="416.5" y1="262" x2="416.5" y2="338" class="grid"/>
+  <line x1="531.0" y1="262" x2="531.0" y2="338" class="grid"/>
+  <line x1="645.5" y1="262" x2="645.5" y2="338" class="grid"/>
+  <line x1="760.0" y1="262" x2="760.0" y2="338" class="grid"/>
+  <line x1="302" y1="262" x2="302" y2="338" class="axis"/>
+  <text x="290.0" y="290.0" text-anchor="end" class="label">rayrai: upload and scan</text>
+  <path d="M302.0 273.0H308.1A4.0 4.0 0 0 1 312.1 277.0V291.0A4.0 4.0 0 0 1 308.1 295.0H302.0Z" class="rayrai"><title>rayrai, indoor: a scan right after the edit takes 0.44 ms</title></path>
+  <text x="320.1" y="290.0" class="value">0.44 ms</text>
+  <text x="290.0" y="326.0" text-anchor="end" class="label">NanoVDB: rebuild and upload</text>
+  <path d="M302.0 309.0H496.3A4.0 4.0 0 0 1 500.3 313.0V327.0A4.0 4.0 0 0 1 496.3 331.0H302.0Z" class="other"><title>NanoVDB, indoor: rebuilding and uploading the grid takes 8.7 ms</title></path>
+  <text x="508.3" y="326.0" class="value">8.7 ms</text>
+  <text x="32.0" y="378.0" class="panel">Forest · 0.10 m voxels</text>
+  <line x1="302.0" y1="388" x2="302.0" y2="464" class="grid"/>
+  <line x1="416.5" y1="388" x2="416.5" y2="464" class="grid"/>
+  <line x1="531.0" y1="388" x2="531.0" y2="464" class="grid"/>
+  <line x1="645.5" y1="388" x2="645.5" y2="464" class="grid"/>
+  <line x1="760.0" y1="388" x2="760.0" y2="464" class="grid"/>
+  <line x1="302" y1="388" x2="302" y2="464" class="axis"/>
+  <text x="290.0" y="416.0" text-anchor="end" class="label">rayrai: upload and scan</text>
+  <path d="M302.0 399.0H310.8A4.0 4.0 0 0 1 314.8 403.0V417.0A4.0 4.0 0 0 1 310.8 421.0H302.0Z" class="rayrai"><title>rayrai, forest: a scan right after the edit takes 0.56 ms</title></path>
+  <text x="322.8" y="416.0" class="value">0.56 ms</text>
+  <text x="290.0" y="452.0" text-anchor="end" class="label">NanoVDB: rebuild and upload</text>
+  <path d="M302.0 435.0H720.5A4.0 4.0 0 0 1 724.5 439.0V453.0A4.0 4.0 0 0 1 720.5 457.0H302.0Z" class="other"><title>NanoVDB, forest: rebuilding and uploading the grid takes 18.5 ms</title></path>
+  <text x="732.5" y="452.0" class="value">18.5 ms</text>
+  <text x="302.0" y="488.0" text-anchor="middle" class="tick">0</text>
+  <text x="416.5" y="488.0" text-anchor="middle" class="tick">5</text>
+  <text x="531.0" y="488.0" text-anchor="middle" class="tick">10</text>
+  <text x="645.5" y="488.0" text-anchor="middle" class="tick">15</text>
+  <text x="760.0" y="488.0" text-anchor="middle" class="tick">20</text>
+  <text x="531.0" y="518.0" text-anchor="middle" class="note">Milliseconds</text>
+  <text x="32.0" y="562.0" class="note">rayrai&#x27;s time includes a whole 65,536-ray scan; NanoVDB&#x27;s does not include its scan.</text>
+</svg>

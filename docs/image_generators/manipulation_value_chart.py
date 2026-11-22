@@ -4,51 +4,23 @@
 An optional output path allows previewing without changing the checked-in chart.
 """
 import argparse
-from html import escape
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from newton_charts import value_chart  # noqa: E402
 
 
 def chart(data):
     prices = data['value_comparison']
     rows = data['rows']
-    values = [(r['cpu_fps'] / prices['cpu_price_usd']
-               if r['cpu_fps'] is not None else None,
-               r['gpu_fps'] / prices['gpu_price_usd']) for r in rows]
-    ceiling = max(v for pair in values for v in pair if v is not None) * 1.12
-    parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1152 560" role="img" aria-labelledby="title desc">',
-             '<title id="title">Robotiq manipulation: performance per USD</title>',
-             '<desc id="desc">Aggregate world physics steps per second divided by recorded component price. Hatched Newton bars failed mimic validation; CPU at 8096 worlds is unmeasured.</desc>',
-             '<defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e7daf0"/><path d="M-2 2L2-2M0 8L8 0M6 10L10 6" stroke="#8c49ba" stroke-width="2"/></pattern></defs>',
-             '<rect width="1152" height="560" fill="white"/>',
-             '<g font-family="Arial, Helvetica, sans-serif" fill="#24313d">',
-             '<text x="90" y="38" font-size="26" font-weight="bold">Robotiq manipulation · performance per USD</text>',
-             f'<text x="90" y="68" font-size="17">Recorded prices: CPU ${prices["cpu_price_usd"]:.2f} / GPU ${prices["gpu_price_usd"]:.2f} · higher is better</text>',
-             '<text x="90" y="98" font-size="14">Historical scenarios · checked 15 Nov 2026 · CPU out of stock · GPU board is a pricing proxy</text>']
-    for k in range(5):
-        y = 420 - k * 70
-        parts.append(f'<path d="M90 {y}H1120" stroke="#e1e4e5"/><text x="80" y="{y+5}" text-anchor="end" font-size="14">{ceiling*k/4:,.0f}</text>')
-    for i, (row, pair) in enumerate(zip(rows, values)):
-        x = 105 + i * 127
-        for j, value in enumerate(pair):
-            if value is None:
-                parts.append(f'<text x="{x+18}" y="408" text-anchor="middle" font-size="11">N/A</text>')
-                continue
-            failed = j == 1 and not row['gpu_quality_pass']
-            color = 'url(#failed)' if failed else ('#00846e' if j == 0 else '#8c49ba')
-            h = value / ceiling * 280
-            label = f'{"RaiSim" if j == 0 else "Newton"}: {value:,.2f} FPS/USD at {row["worlds"]:,} worlds' + ('; FAILED mimic validation' if failed else '; passed validation')
-            parts.append(f'<rect x="{x+j*42}" y="{420-h:.3f}" width="36" height="{h:.3f}" fill="{color}"><title>{escape(label)}</title></rect>')
-            if failed:
-                parts.append(f'<text x="{x+j*42+18}" y="{412-h:.3f}" text-anchor="middle" font-size="18">†</text>')
-        parts.append(f'<text x="{x+39}" y="447" text-anchor="middle" font-size="15">{row["worlds"]:,}</text>')
-    parts += ['<text x="605" y="475" text-anchor="middle" font-size="16">Independent worlds</text>',
-              '<rect x="90" y="497" width="20" height="16" fill="#00846e"/><text x="118" y="511" font-size="15">RaiSim · up to 30 workers</text>',
-              '<rect x="390" y="497" width="20" height="16" fill="#8c49ba"/><text x="418" y="511" font-size="15">Newton · RTX 5070</text>',
-              '<rect x="660" y="497" width="20" height="16" fill="url(#failed)"/><text x="688" y="511" font-size="15">† Newton failed validation</text>',
-              '<text x="90" y="543" font-size="14">FPS/USD = aggregate world-steps/s ÷ full component price. N/A = unmeasured; failed cases have no ratios.</text>',
-              '</g></svg>']
-    return '\n'.join(parts) + '\n'
+    return value_chart(
+        rows, prices['cpu_price_usd'], prices['gpu_price_usd'], 'Robotiq manipulation',
+        'random shapes, gripper torque noise, staggered resets',
+        ['Historical scenarios: CPU out of stock, the GPU board is a pricing proxy (checked 15 Nov 2026).',
+         'Hatched Newton columns failed mimic validation; they are timings, not accepted scores.'],
+        failed=[not row['gpu_quality_pass'] for row in rows])
 
 
 def main():

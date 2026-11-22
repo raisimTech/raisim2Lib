@@ -31,7 +31,9 @@ python3 docs/image_generators/example_clips/record_example_clips.py --build <bui
 Without names it records all of them, which takes about 20 minutes. It writes into
 `rsc/docs/video/examples` (`--out` to change), and keeps the raw clips and the
 program logs only with `--work <dir>`. Server examples use port 8080, so run one
-recording at a time.
+recording at a time. `--max-seconds 10` records each clip within 10 s of the
+example's first frame (less time to load, only the part the tile keeps), as the
+repository status page of the RaiSim source does for quick previews.
 
 ## Adding an example
 
@@ -45,12 +47,12 @@ recording at a time.
    tiles are seen together, so frame a clip that looks like another one there
    differently, as `rayrai_city_from_xml` does with a closer crop.
 3. `python3 -m unittest discover -s docs/scripts` checks that every example page
-   has a tile and a clip, and that every clip stays under 2 MB.
+   has a tile and a clip, and that every clip stays under 3 MB.
 
 ## Runtime-joint page media
 
 `python3 docs/image_generators/runtime_joint_media.py --build <examples binaries>`
-records both `runtime_joints --visualize` scenes, including `--scene docking`.
+records both `runtime_joints` scenes, the default tool scene and `--scene docking`.
 It writes the tool clip/poster into the gallery and the docking clip/poster
 into `rsc/docs/video`, and extracts both full-resolution figures into
 `rsc/docs/image`. `--out` changes the documentation asset root; `--work` keeps

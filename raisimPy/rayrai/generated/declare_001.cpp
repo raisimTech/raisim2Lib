@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_001(py::module_& m) {
+py::class_<raisin::LocalFogVolume>(m, "LocalFogVolume");
+py::class_<raisin::Material>(m, "Material");
+py::class_<raisin::MeshPreprocessCacheStats>(m, "MeshPreprocessCacheStats");
 py::enum_<raisin::MeshPreprocessLodFlavor>(m, "MeshPreprocessLodFlavor").value("Visual", raisin::MeshPreprocessLodFlavor::Visual).value("Instanced", raisin::MeshPreprocessLodFlavor::Instanced).value("FoliagePartitioned", raisin::MeshPreprocessLodFlavor::FoliagePartitioned).value("Foliage", raisin::MeshPreprocessLodFlavor::Foliage);
 py::class_<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata");
 py::class_<raisin::PbrEnvironment>(m, "PbrEnvironment");
@@ -24,7 +27,7 @@ py::class_<raisin::RenderQualitySettings>(m, "RenderQualitySettings");
 py::class_<raisin::SkyVisibilityGrid>(m, "SkyVisibilityGrid");
 py::enum_<raisin::TemporalAaMethod>(m, "TemporalAaMethod").value("Legacy", raisin::TemporalAaMethod::Legacy).value("Reprojected", raisin::TemporalAaMethod::Reprojected);
 py::enum_<raisin::ViewerColorMode>(m, "ViewerColorMode").value("FastLinear", raisin::ViewerColorMode::FastLinear).value("AcesApprox", raisin::ViewerColorMode::AcesApprox).value("UnrealPreviewApprox", raisin::ViewerColorMode::UnrealPreviewApprox).value("FilmicApprox", raisin::ViewerColorMode::FilmicApprox).value("AgXApprox", raisin::ViewerColorMode::AgXApprox);
-py::enum_<raisin::ViewerUpscaleFilter>(m, "ViewerUpscaleFilter").value("Linear", raisin::ViewerUpscaleFilter::Linear).value("Mitchell", raisin::ViewerUpscaleFilter::Mitchell);
+py::enum_<raisin::ViewerUpscaleFilter>(m, "ViewerUpscaleFilter").value("Linear", raisin::ViewerUpscaleFilter::Linear).value("Mitchell", raisin::ViewerUpscaleFilter::Mitchell).value("Temporal", raisin::ViewerUpscaleFilter::Temporal);
 py::enum_<raisin::VisualCategory>(m, "VisualCategory").value("NotDetectable", raisin::VisualCategory::NotDetectable).value("Detectable", raisin::VisualCategory::Detectable);
 py::class_<Handle<raisin::Visuals>>(m, "Visuals");
 py::class_<raisin::WaterBody>(m, "WaterBody");
@@ -34,8 +37,5 @@ py::class_<raisin::WaterFlow>(m, "WaterFlow");
 py::enum_<raisin::WaterFlowEdges>(m, "WaterFlowEdges").value("Open", raisin::WaterFlowEdges::Open).value("Closed", raisin::WaterFlowEdges::Closed);
 py::class_<raisin::WaterFlowSample>(m, "WaterFlowSample");
 py::class_<raisin::WaterFlowSource>(m, "WaterFlowSource");
-py::enum_<raisin::WaterPreset>(m, "WaterPreset").value("Ocean", raisin::WaterPreset::Ocean).value("CalmLake", raisin::WaterPreset::CalmLake).value("Pool", raisin::WaterPreset::Pool).value("MurkyPond", raisin::WaterPreset::MurkyPond);
-py::class_<raisin::WaterSurfaceSample>(m, "WaterSurfaceSample");
-py::class_<raisin::WaterWaveSpectrum>(m, "WaterWaveSpectrum");
 }
 }

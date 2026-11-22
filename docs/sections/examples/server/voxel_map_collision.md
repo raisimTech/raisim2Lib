@@ -3,8 +3,8 @@
 ## Overview
 
 Drops spheres, boxes, capsules, cylinders, convex meshes and triangle meshes onto a voxel
-playground with stairs down into a pit, a wall with windows, pillars and rubble, while craters
-are carved into the floor and refilled. Use `rayrai_tcp_viewer` for supported visualization.
+playground with stairs down into a pit, a wall with windows, pillars and rubble, while new
+craters are carved into the floor. Use `rayrai_tcp_viewer` for supported visualization.
 
 ## Screenshot
 
@@ -27,10 +27,12 @@ This example uses RaisimServer. Start `rayrai_tcp_viewer` and connect to port 80
 
 ## Details
 
-- Builds a 12 m x 12 m map of 5 cm voxels and shapes it with `VoxelMap::fillBox()`.
+- Builds a 12 m x 12 m map of 5 cm voxels on 3 m of ground, with a low rim around the edge, and
+  shapes it with `VoxelMap::fillBox()`. The ground is deeper than a crater, since the map is empty
+  below its domain.
 - Adds a new body every 0.3 s, cycling through every collision shape, until 120 bodies are in
-  the scene. The meshes use the bundled `monkey/monkey.obj`.
-- Every 8 s, `VoxelMap::fillSphere()` carves a crater of radius 1 m into the floor; 4 s later
-  `VoxelMap::setVoxels()` fills the removed voxels back in, and bodies inside the refill are
-  pushed out of the solid. Sleeping bodies on a crater wake when it is carved.
+  the scene. The convex meshes are the convex hull of the bundled `monkey/monkey.obj`; the
+  triangle meshes are a U-shaped block and an arch (`rayrai/coacd`), collided face by face.
+- Every 8 s, `VoxelMap::fillSphere()` carves a new crater of radius 1 m into the floor, and the
+  bodies on it fall in. Sleeping bodies wake when the voxels around them change.
 - See [Voxel Map](../../VoxelMap.md).

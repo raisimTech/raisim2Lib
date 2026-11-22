@@ -22,8 +22,13 @@ of the map frame, $s$ being the voxel size (`getVoxelSize()`). Keys can be negat
 the keys of its domain, `[minKey, minKey + size)` along each axis, chosen when it is created
 (`getMinKey()`, `getDomainSize()`); every voxel outside the domain is empty and edits there are
 ignored. A domain can span up to $2^{24}$ voxels along an axis, and its keys must lie in
-$[-2^{30}, 2^{30})$. Only the occupied regions use
-memory: about one bit per voxel inside the occupied 16 x 16 x 16 blocks, and nothing for empty ones.
+$[-2^{30}, 2^{30})$. The domain is indexed by root cells of 64 x 64 x 64 voxels: their number,
+$\lceil s_x/64 \rceil \lceil s_y/64 \rceil \lceil s_z/64 \rceil$ for a domain of $s_x \times s_y \times s_z$
+voxels, may not exceed $2^{26}$. This index is allocated when the map is created, 4 bytes per root
+cell (up to 256 MiB), even if the map stays empty; a 0.05 m map of 2000 x 2000 x 200 voxels
+(100 m x 100 m x 10 m), for example, has 32 x 32 x 4 root cells and a 16 KiB index. Beyond the index,
+memory is allocated when voxels are first set: about one bit per voxel inside every 16 x 16 x 16 block
+that has held an occupied voxel; clearing voxels keeps that storage for reuse.
 
 The map frame is placed by the pose of the object, like every other object: `setPosition()` moves
 its origin and `setOrientation()` rotates it about that origin. A new map has the identity pose, so
@@ -54,6 +59,8 @@ an occupancy that any number of maps, in one world or many, can share with
 edited. World checkpoints (`captureCheckpoint()`, `restoreCheckpoint()`) restore the occupancy along
 with the rest of the world state without copying it at capture time.
 
+`World::exportToXml()` throws `std::runtime_error` if the world contains a voxel map.
+
 ## Collisions
 
 Bodies collide with the surface of the occupied voxels: the faces, edges and corners that border
@@ -66,11 +73,18 @@ from the top face to the side face as it rounds the edge, and in a corner it tou
 Every collidable shape collides with a voxel map: spheres, boxes, capsules, cylinders, convex
 meshes, triangle meshes, compounds, the collision bodies of articulated systems, and the particles
 of deformable objects. A body that ends up inside the solid, because it was placed there or the
-voxels around it were filled, is pushed out toward the nearest free side.
+voxels around it were filled, is pushed out toward the nearest free side. That side can be the far
+side of a thin layer, or the bottom of the map when the space above is blocked, since everything
+outside the domain is empty. The push works like the recovery from any overlap in RaiSim: a body 5 cm
+deep takes about two seconds to come out. Filling a large region under resting bodies at once buries
+them; filling it a layer at a time lifts them gradually.
 
 A voxel map is static (or kinematic): `setBodyType(BodyType::DYNAMIC)` is an error, and two voxel
-maps do not collide with each other. Granular media, swept continuous collision detection and the
-scene collision queries (`World::queryProximity()` and the like) do not see voxel maps yet.
+maps do not collide with each other. Granular media and swept continuous collision detection do not
+see voxel maps yet. The scene collision queries (`World::queryProximity()`, `queryOverlap()`,
+`checkOverlap()`, `sweepShape()`) treat a voxel map as the solid union of its occupied voxels. Their
+contact tolerance is 1 nm; far from the origin (beyond about $10^6$ m) the spacing of double-precision
+coordinates is coarser than that, so a probe exactly at a voxel face is resolved only to that spacing.
 
 ## Ray tests
 
@@ -87,6 +101,12 @@ it skips empty space in large steps. Spinning-lidar scans of a 48 m x 48 m terra
 of 0.1 m voxels take about 250 ns per ray on an AMD Ryzen 9 3950X, half the time of the same
 terrain stored as a [height map](./HeightMap.md).
 
+[rayrai](./Rayrai.md)'s GPU LiDAR (see [Depth and LiDAR](./rayrai/Sensors.md#depth-and-lidar)) returns the same
+points as the CPU LiDAR on voxel maps. A full turn of an Ouster OS1-64 over a voxel terrain takes 0.4 to 0.5 ms
+on an RTX 2070 SUPER, about 22 times faster than on the CPU. The map is uploaded on its first scan, and an
+edit uploads only the 16³-voxel bricks it changed. [Voxel ray casting](./BenchmarkVoxelRayCasting.md) compares
+the CPU and GPU ray casts with OpenVDB, NanoVDB, Bonxai and OctoMap.
+
 A body resting on a flat voxel floor costs about four times as much contact detection as one on a
 ground plane: about 0.35 µs for a sphere and 0.7 µs for a box on 5 cm voxels. Rough ground costs
 more, since every edge and corner a body touches is tested: a box on voxel rubble takes about
@@ -95,10 +115,12 @@ sphere of radius 0.3 m out of 5 cm voxels takes about 10 µs.
 
 ## Visualization
 
-The [rayrai TCP viewer](./RayraiTcpViewer.md) and rayrai windows that draw a `World` directly show
-voxel maps as their surface. The TCP viewer receives the occupancy through the
-`PROTOCOL_FEATURE_VOXEL_MAPS` feature (see [RaisimServer](./RaisimServer.md)); the server sends it
-again only after the map changes. `setAppearance()` takes a color.
+The [rayrai TCP viewer](./RayraiTcpViewer.md) draws a voxel map as one instanced batch with a cube
+for every voxel that has an empty neighbor; voxels enclosed on all six sides cannot be seen and are
+not drawn. It receives the occupancy through the `PROTOCOL_FEATURE_VOXEL_MAPS` feature (see
+[RaisimServer](./RaisimServer.md)); the server sends it again only after the map changes. rayrai
+windows that draw a `World` directly show the map's surface as one mesh. `setAppearance()` takes a
+color.
 
 ## Python
 
@@ -115,4 +137,4 @@ voxels.setOccupancy(dense)            # array of shape (size_z, size_y, size_x);
 - `voxel_map_ray_casting`: a spinning lidar and a probe ray scan a voxel map with hills, a hut, an
   arch and a tunnel.
 - `voxel_map_collision`: spheres, boxes, capsules, cylinders, convex meshes and triangle meshes fall
-  onto voxel stairs, walls, rubble and a pit, while craters are carved into the floor and refilled.
+  onto voxel stairs, walls, rubble and a pit, while new craters are carved into the floor.

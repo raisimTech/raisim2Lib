@@ -14,6 +14,9 @@
 //   FRAMECAP_EVERY_FRAME  1: keep every frame instead of sampling wall-clock time,
 //                     for programs that advance their simulation per frame
 //   FRAMECAP_EXIT     1: end the process once the clip is written
+//   FRAMECAP_KEYS     keys held down, as NAME@FROM-TO[,...] with SDL key names and seconds after
+//                     the first frame, e.g. W@4-14,A@7-8; programs that poll SDL_GetKeyboardState
+//                     see them pressed
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <stdio.h>
@@ -46,6 +49,10 @@ static void (*gl_bind_buffer)(GLenum, unsigned);
 static void (*gl_read_buffer)(GLenum);
 static void (*gl_pixel_storei)(GLenum, GLint);
 static void (*gl_read_pixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void*);
+
+static const unsigned char* (*real_keyboard_state)(int*);
+static int (*scancode_from_name)(const char*);
+static unsigned char key_state[1024];
 
 static FILE* pipe_out;
 static unsigned char* pixels;
@@ -145,6 +152,30 @@ static void capture(SDL_Window* window) {
             getenv("FRAMECAP_OUT"));
     if (env_number("FRAMECAP_EXIT", 0) > 0) _exit(0);
   }
+}
+
+const unsigned char* SDL_GetKeyboardState(int* numkeys) {
+  if (!real_keyboard_state) real_keyboard_state = (const unsigned char* (*)(int*))dlsym(RTLD_NEXT, "SDL_GetKeyboardState");
+  int count = 0;
+  const unsigned char* state = real_keyboard_state(&count);
+  if (numkeys) *numkeys = count;
+  const char* script = getenv("FRAMECAP_KEYS");
+  if (!script || !*script || t0 < 0 || count <= 0 || count > (int)sizeof(key_state)) return state;
+  if (!scancode_from_name) scancode_from_name = (int (*)(const char*))dlsym(RTLD_DEFAULT, "SDL_GetScancodeFromName");
+  if (!scancode_from_name) return state;
+  memcpy(key_state, state, (size_t)count);
+  const double t = now() - t0;
+  char name[32];
+  double from, to;
+  int used;
+  for (const char* p = script; sscanf(p, "%31[^@]@%lf-%lf%n", name, &from, &to, &used) == 3;) {
+    const int code = scancode_from_name(name);
+    if (code > 0 && code < count && t >= from && t < to) key_state[code] = 1;
+    p += used;
+    if (*p != ',') break;
+    ++p;
+  }
+  return key_state;
 }
 
 void SDL_GL_SwapWindow(SDL_Window* window) {

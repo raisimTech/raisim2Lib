@@ -65,4 +65,23 @@ inline std::vector<size_t> selectSensorUpdateIndices(
   return selected;
 }
 
+/// @return Where the batch after `selected = selectSensorUpdateIndices(entryBytes, start,
+///   headerBytes)` starts: the first entry from @p start on that the batch skipped although it
+///   fits in a batch of its own, so a list that stays the same sends every such entry within
+///   entryBytes.size() batches; without one, the entry after the batch's last.
+inline size_t nextSensorUpdateStart(const std::vector<size_t>& entryBytes, size_t start,
+                                    const std::vector<size_t>& selected, size_t headerBytes = 20u) {
+  if (entryBytes.empty()) return 0;
+  size_t sent = 0;
+  for (size_t offset = 0; offset < entryBytes.size(); ++offset) {
+    const size_t index = (start + offset) % entryBytes.size();
+    if (sent < selected.size() && selected[sent] == index) {
+      ++sent;
+    } else if (entryBytes[index] <= kMaxSensorUpdatePayloadBytes - headerBytes) {
+      return index;
+    }
+  }
+  return ((selected.empty() ? start : selected.back()) + 1) % entryBytes.size();
+}
+
 } // namespace raisin::tcp_viewer

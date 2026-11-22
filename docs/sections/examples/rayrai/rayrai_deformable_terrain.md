@@ -29,21 +29,21 @@ CMake target: `rayrai_deformable_terrain`. Source:
 The example reads the buggy's URDF and meshes from `rsc/offroad_buggy`,
 which CMake copies next to the executables.
 
-To run without a window for a fixed number of physics steps:
+`--activation-key=FILE` selects a RaiSim activation key. To save the view as a
+PNG and exit, set `RAYRAI_EXAMPLE_CAPTURE` (see
+[Capturing an example](../../rayrai/Capture.md#capturing-an-example)); the
+capture waits for the buggy's meshes, and physics starts once they have loaded:
 
 ```bash
-./build-examples/examples/rayrai_deformable_terrain --headless --steps=3000
+RAYRAI_EXAMPLE_CAPTURE=terrain.png RAYRAI_EXAMPLE_CAPTURE_START=180 ./build-examples/examples/rayrai_deformable_terrain
 ```
-
-Options: `--hidden` renders in a hidden window; `--steps=N` limits the number
-of physics steps; `--export=DIR` saves the world as `world.xml` and its assets;
-`--activation-key=FILE` selects a RaiSim activation key.
 
 ## Details
 
 - `World::addDeformableTerrain` creates a 201 by 76 sample soil mesh.
 - Physics runs at a 1 ms time step, with 16 steps per rendered frame.
-- The driver maintains about 0.8 m/s and brakes near the end of the bed.
+- The driver maintains about 0.8 m/s and brakes near the end of the bed. The
+  soil bed, the buggy and the driver are in `deformable_terrain_scene.hpp`.
 - On exit, the example reports the car's speed, wheel loads, suspension loop
   error, terrain contact rows and maximum permanent rut depth, and checks
   that the car and soil state remain finite.

@@ -26,7 +26,7 @@ def record(build, output, work):
     hook = clips.build_hook(work)
     tool = clips.CLIPS["runtime_joints"]
     docking = {**tool, "binary": "runtime_joints",
-               "args": ["--visualize", "--scene", "docking"],
+               "args": ["--scene", "docking"],
                "viewer_args": ["--camera-lookat", "2.4,-2.9,2.0,0.15,0,0.25",
                                "--force-camera-lookat"]}
     for name, spec, video_dir in (

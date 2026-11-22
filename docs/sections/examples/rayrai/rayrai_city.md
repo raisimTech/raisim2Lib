@@ -42,17 +42,17 @@ scene; CMake skips the target when the installed rayrai lacks it.
 
 ```bash
 ./build-examples/examples/rayrai_city
-./build-examples/examples/rayrai_city --screenshot city.png
 ./build-examples/examples/rayrai_city --scene /path/to/rayrai_city.rscene
+RAYRAI_EXAMPLE_CAPTURE=city.png RAYRAI_EXAMPLE_CAPTURE_START=90 ./build-examples/examples/rayrai_city
 ```
 
 The example finds the scene in the `rsc` folder that CMake copies next to
 the executables. `--scene` loads another file, for example the checkout's
-`rsc/city/rayrai_city.rscene` after regenerating it. `--screenshot` renders
-in a hidden window without vsync, waits for the assets, lets the robot and
-cones settle for 90 frames, prints the average frame time of those frames,
-saves the image and exits. Physics runs eight 2 ms steps per rendered frame
-once the meshes are loaded; it costs about 1.2 ms of each frame. On an
+`rsc/city/rayrai_city.rscene` after regenerating it. The capture that the
+rayrai examples share (see `rayrai/example_common.hpp`) saves the view 90
+frames after the assets have loaded, when the robot and cones have settled,
+and exits. Physics runs eight 2 ms steps per rendered frame once the meshes
+are loaded; it costs about 1.2 ms of each frame. On an
 RTX 2070 SUPER at 1280 × 800 with 4× MSAA a frame of the default view takes
 about 22 ms.
 

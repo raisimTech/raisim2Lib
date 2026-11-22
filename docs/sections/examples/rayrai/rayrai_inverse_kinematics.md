@@ -30,8 +30,8 @@ Run the build-tree executable:
 ```
 
 On Windows, run `rayrai_inverse_kinematics.exe` instead. The example takes no
-arguments. `--tour` moves the target along the figure eight of the clip above
-until you grab it, and `--frames=N` exits after N frames.
+arguments. The panel's *Tour* checkbox moves the target along the figure eight
+of the clip above until you grab it.
 
 ## Controls
 

@@ -59,7 +59,8 @@ positions and unit axes in the link frame.
 ## Grippers
 
 ```xml
-<gripper name="cup" link="tool" type="suction" max_force="60" range="0.005" seal_angle="0.35">
+<gripper name="cup" link="tool" type="suction" max_force="60" range="0.005"
+         seal_angle="0.35" cup_radius="0.025" leak_coefficient="4">
     <origin xyz="0 0 0.1"/>
     <axis xyz="0 0 1"/>
 </gripper>
@@ -75,8 +76,10 @@ positions and unit axes in the link frame.
 | `link` | The link the gripper is fixed to. |
 | `type` | `suction` or `magnetic`. |
 | `max_force` | Suction: the pull of a sealed cup [N], the vacuum times the cup area. Magnetic: the pull on a magnetic body that touches the pad [N]. |
-| `range` | Suction: the largest gap at which the cup seals [m] (default 0.005). Magnetic: the gap at which the pull vanishes [m] (default 0.005). |
-| `seal_angle` | Suction only: the largest angle between the axis and the normal of a surface the cup seals on [rad] (default 0.35, 20 degrees). |
+| `range` | Maximum axial gap [m] (default 0.005). With rim sampling, a rim sample at this gap counts as fully open. |
+| `seal_angle` | Suction only. Maximum angle between the surface normal and the reversed cup axis [rad] (default 0.35, about 20 degrees). |
+| `cup_radius` | Suction only. A positive radius [m] enables rim sampling. The default of zero uses the center ray alone. |
+| `leak_coefficient` | Suction only. Non-negative, dimensionless leak sensitivity (default 4). |
 | `<origin>` | The center of the pad on the link. |
 | `<axis xyz>` | The direction the pad faces, in the frame of `<origin>` (default `0 0 1`). |
 
@@ -91,15 +94,32 @@ toward the pad with the force
 
 $$
 F = \begin{cases}
-F_\mathrm{max} & \text{suction, sealed},\\
+F_\mathrm{max} & \text{suction, center ray alone},\\
 F_\mathrm{max}\,(1 - d/r)^2 & \text{magnetic, on a magnetic material},
 \end{cases}
 $$
 
-and pulls its own link toward the surface with the opposite force, both along the axis. A suction
-cup seals on any surface whose normal is within `seal_angle` of the axis; on a steeper surface, or
-beyond its range, it does not pull. A magnet pulls only bodies whose collision material is magnetic
-(see below), and its pull falls off steeply with the gap.
+The gripper pulls its own link toward the surface with the opposite force, both along the axis.
+The suction cup requires a center hit that faces it within `seal_angle`. A magnet pulls only
+bodies whose collision material is magnetic (see below).
+
+With a positive `cup_radius`, the cup tests eight evenly spaced points around the rim. Each
+sample contributes its axial gap divided by `range`, clamped to zero through one. A sample
+counts as fully open if it misses, hits another body, or hits a surface outside the angle limit.
+If $o$ is the mean opening and $k$ is `leak_coefficient`, the resulting pull is
+
+$$
+F = F_\mathrm{max} \frac{1-o}{1+k\,o}.
+$$
+
+A closed rim gives full force. A fully open rim gives zero force. Use `cupRadius` and
+`leakCoefficient` to configure the same model in C++ and Python.
+
+The search starts 1 cm behind the pad, so a surface the pad touches or has pressed slightly into is
+found. A solid whose surface lies behind the pad counts only if it reaches the pad, and the face
+where the search leaves a solid is never taken for the surface in front: a solid around the pad that
+ends in front of it blocks the search instead of letting it pull a body farther away. Triangle meshes
+have no inside, so their surfaces count from both sides, but only up to 2 mm behind the pad.
 
 Where the pad touches the object, the contacts push back, so the pull presses the object onto the
 pad. This gives a gripper the strength of a real one:
@@ -155,14 +175,16 @@ auto* part = world.addBox(0.1, 0.1, 0.02, 0.8, "steel");
   steel part blocks a magnet.
 - The pull acts at the point of the surface on the axis, so a cup sealed on the edge of an object
   pulls there.
-- A suction cup seals at once; the time to build up the vacuum is not modelled.
+- Rim sampling estimates geometric leaks at eight points. The model updates the pull immediately
+  and assumes an impermeable workpiece.
 - A gripper ignores collision groups: it pulls what is in front of its pad even if its link does
   not collide with it, and such an object is pulled into the link.
 
 ## Examples
 
-- `thrusters_and_grippers` flies a quadrotor with four thrusts and has a suction
-  lifter and a magnet lifter pick up and drop boxes.
+- [Drone Flight](../examples/server/drone_flight.md): a quadrotor flown by four
+  thrusters takes off, flies figure eights around two posts facing the way it
+  flies, and lands; the reaction torques of its propellers turn it.
 - [Magnetic Wall Climbing](../examples/server/magnetic_wall_climbing.md): a
   quadruped with magnetic feet trots up a steel wall, switching each magnet off
   just before its foot lifts.

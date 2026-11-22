@@ -13,8 +13,8 @@
 #include "raisim/sensors/RGBSensor.hpp"
 #include "raisim/sensors/DepthSensor.hpp"
 #include "rayrai/Camera.hpp"
+#include "rayrai/PngWriter.hpp"
 #include "rayrai/RayraiWindow.hpp"
-#include "rayrai_example_utils.hpp"
 #include "rayrai/Visuals.hpp"
 
 namespace {
@@ -28,7 +28,7 @@ void saveComparison(const std::filesystem::path& path, const std::vector<unsigne
     std::copy_n(clean.data() + size_t(row) * kWidth * 4, kWidth * 4, dst);
     std::copy_n(noisy.data() + size_t(row) * kWidth * 4, kWidth * 4, dst + kWidth * 4);
   }
-  if (!stbi_write_png(path.string().c_str(), kWidth * 2, kHeight, 4, combined.data(), kWidth * 8))
+  if (!raisin::writeRgbaPng(path, kWidth * 2, kHeight, combined.data()))
     throw std::runtime_error("Cannot write " + path.string());
 }
 

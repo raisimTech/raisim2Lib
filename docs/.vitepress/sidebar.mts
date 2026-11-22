@@ -71,6 +71,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
               { text: 'Deformable Objects', link: '/sections/examples/server/deformable_objects.md' },
               { text: 'Dynamic Heightmap', link: '/sections/examples/server/dynamic_heightmap.md' },
               { text: 'Dynamic Object Addition', link: '/sections/examples/server/dynamic_object_addition.md' },
+              { text: 'Drone Flight', link: '/sections/examples/server/drone_flight.md' },
               { text: 'Dzhanibekov Effect', link: '/sections/examples/server/dzhanibekov_effect.md' },
               { text: 'Fluid Pool', link: '/sections/examples/server/fluid_pool.md' },
               { text: 'Fluid Stream', link: '/sections/examples/server/fluid_stream.md' },
@@ -162,10 +163,13 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
       { text: 'Performance', link: '/sections/Performance.md' },
       {
         text: 'Benchmarks',
+        link: '/sections/BenchmarkOverview.md',
         collapsed: false,
         items: [
           { text: 'RaiSim vs MuJoCo', link: '/sections/Benchmark.md' },
           { text: 'RaiSim vs Newton', link: '/sections/BenchmarkNewton.md' },
+          { text: 'Linear elasticity', link: '/sections/LinearElasticityBenchmarks.md' },
+          { text: 'Voxel ray casting', link: '/sections/BenchmarkVoxelRayCasting.md' },
         ],
       },
       { text: 'Troubleshooting', link: '/sections/Troubleshooting.md' },
@@ -175,6 +179,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         collapsed: true,
         items: [
           { text: 'Changelog: v2.17', link: '/sections/changelog/v2.17.md' },
+          { text: 'Changelog: v2.16', link: '/sections/changelog/v2.16.md' },
           { text: 'Changelog: v2.15', link: '/sections/changelog/v2.15.md' },
           { text: 'Changelog: v2.14', link: '/sections/changelog/v2.14.md' },
           { text: 'Changelog: v2.13', link: '/sections/changelog/v2.13.md' },

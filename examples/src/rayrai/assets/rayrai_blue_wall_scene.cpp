@@ -1,10 +1,5 @@
 #include <algorithm>
-#include <chrono>
 #include <cmath>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -14,17 +9,13 @@
 #include <string>
 #include <vector>
 
-#include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
 #include "example_resources.hpp"
 #include "raisim/World.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
-#include "rayrai_example_utils.hpp"
 
 namespace {
 
@@ -98,131 +89,30 @@ bool loadSceneDescription(const std::filesystem::path& path, SceneDescription& s
   return true;
 }
 
-void lookAt(raisin::Camera& camera, const glm::vec3& position, const glm::vec3& target, float verticalFov, float nearPlane, float farPlane) {
-  camera.position = position;
-  camera.target = target;
-  camera.front = glm::normalize(target - position);
+void lookAt(raisin::Camera& camera, const SceneDescription& scene) {
+  camera.position = scene.cameraPosition;
+  camera.target = scene.cameraTarget;
+  camera.front = glm::normalize(scene.cameraTarget - scene.cameraPosition);
   camera.up = {0.0f, 0.0f, 1.0f};
   camera.worldUp = camera.up;
   camera.yaw = glm::degrees(std::atan2(camera.front.y, camera.front.x));
   camera.pitch = glm::degrees(std::asin(std::clamp(camera.front.z, -1.0f, 1.0f)));
-  camera.zoom = verticalFov;
-  camera.nearPlane = camera.zNear = nearPlane;
-  camera.farPlane = camera.zFar = farPlane;
+  camera.zoom = scene.verticalFov;
+  camera.nearPlane = camera.zNear = scene.nearPlane;
+  camera.farPlane = camera.zFar = scene.farPlane;
   camera.setCameraFixedTarget(false);
   camera.setCameraFixedDistance(false);
 }
 
-bool verifyCamera(raisin::Camera& camera) {
-  const int width = camera.rtWidth();
-  const int height = camera.rtHeight();
-  std::vector<unsigned char> rgba(static_cast<size_t>(width) * height * 4);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  const auto pixel = [&](float x, float y) {
-    const int column = static_cast<int>(x * width);
-    const int row = height - 1 - static_cast<int>(y * height);
-    return rgba.data() + (static_cast<size_t>(row) * width + column) * 4;
-  };
-  const auto* wall = pixel(0.85f, 0.15f);
-  const auto* painting = pixel(0.60f, 0.22f);
-  const auto* dresser = pixel(0.60f, 0.73f);
-  const bool wallBlue = wall[2] > wall[0] * 1.3f && wall[2] > wall[1] * 1.1f;
-  const bool paintingWarm = painting[0] > painting[1] * 1.15f && painting[0] > painting[2] * 1.2f;
-  const bool dresserWood = dresser[0] > dresser[1] * 1.4f && dresser[0] > dresser[2] * 2.0f;
-  std::cout << "Camera image check: blue wall=" << wallBlue << " painting=" << paintingWarm << " dresser=" << dresserWood << '\n';
-  return wallBlue && paintingWarm && dresserWood;
-}
-
-bool compareReference(raisin::Camera& camera, const std::filesystem::path& path) {
-  int width = 0, height = 0, channels = 0;
-  unsigned char* reference = stbi_load(path.string().c_str(), &width, &height, &channels, 4);
-  if (!reference || width != camera.rtWidth() || height != camera.rtHeight()) {
-    std::cerr << "Could not load matching reference image: " << path << '\n';
-    stbi_image_free(reference);
-    return false;
-  }
-  std::vector<unsigned char> rgba(static_cast<size_t>(width) * height * 4);
-  gl::glBindTexture(gl::GL_TEXTURE_2D, camera.getFinalTexture());
-  gl::glGetTexImage(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-  std::uint64_t totalError = 0;
-  std::uint64_t changedPixels = 0;
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      const size_t rendered = (static_cast<size_t>(height - 1 - y) * width + x) * 4;
-      const size_t expected = (static_cast<size_t>(y) * width + x) * 4;
-      bool changed = false;
-      for (int channel = 0; channel < 3; ++channel) {
-        const int difference = std::abs(static_cast<int>(rgba[rendered + channel]) - static_cast<int>(reference[expected + channel]));
-        totalError += static_cast<std::uint64_t>(difference);
-        changed |= difference > 30;
-      }
-      changedPixels += changed;
-    }
-  }
-  stbi_image_free(reference);
-  const double meanError = static_cast<double>(totalError) / (width * height * 3);
-  const double changedFraction = static_cast<double>(changedPixels) / (width * height);
-  std::cout << "GLB reference comparison: mean_abs_rgb=" << meanError << " fraction_pixels_over_30=" << changedFraction << '\n';
-  return meanError <= 8.0 && changedFraction <= 0.05;
-}
-
 }  // namespace
 
-int main(int argc, char* argv[]) {
-  std::filesystem::path screenshot;
-  std::filesystem::path recording;
-  int recordingFrames = 60;  // Four seconds at 15 fps.
-  std::filesystem::path reference;
-  int benchmarkFrames = 0;
-  bool checkCamera = false;
-  for (int i = 1; i < argc; ++i) {
-    const std::string option = argv[i];
-    if (option == "--screenshot" && i + 1 < argc) {
-      screenshot = argv[++i];
-    } else if (option == "--record" && i + 1 < argc) {
-      recording = argv[++i];
-    } else if (option == "--record-frames" && i + 1 < argc) {
-      try {
-        recordingFrames = std::stoi(argv[++i]);
-      } catch (...) {
-        return 2;
-      }
-      if (recordingFrames < 1) return 2;
-    } else if (option == "--compare-reference" && i + 1 < argc) {
-      reference = argv[++i];
-    } else if (option == "--verify-camera") {
-      checkCamera = true;
-    } else if (option == "--benchmark-frames" && i + 1 < argc) {
-      try {
-        benchmarkFrames = std::stoi(argv[++i]);
-      } catch (...) {
-        std::cerr << "Invalid --benchmark-frames value\n";
-        return 2;
-      }
-      if (benchmarkFrames < 1) return 2;
-    } else {
-      std::cerr << "Usage: rayrai_blue_wall_scene [--screenshot PNG] [--record FRAME_DIR] "
-                   "[--record-frames N] "
-                   "[--compare-reference PNG] [--verify-camera] "
-                   "[--benchmark-frames N]\n";
-      return 2;
-    }
-  }
-
+int main(int, char* argv[]) {
   const std::filesystem::path scenePath = exampleRscPath(argv[0], "rayrai/blue_wall/blue_wall.rscene");
   SceneDescription description;
   std::string sceneError;
   if (!loadSceneDescription(scenePath, description, sceneError)) {
     std::cerr << sceneError << '\n';
     return 1;
-  }
-  if (!recording.empty()) {
-    description.width = 640;
-    description.height = 400;
-    std::filesystem::create_directories(recording);
   }
   const std::filesystem::path lightsPath = description.meshPath.string() + ".rayrai_lights.json";
   for (const auto& path : {description.meshPath, lightsPath, description.hdrPath}) {
@@ -233,7 +123,7 @@ int main(int argc, char* argv[]) {
   }
 
   ExampleApp app;
-  if (!app.init("RayRai Blue Wall", description.width, description.height, screenshot.empty() && recording.empty() && reference.empty() && benchmarkFrames == 0 && !checkCamera)) return 1;
+  if (!app.init("RayRai Blue Wall", description.width, description.height)) return 1;
 
   auto world = std::make_shared<raisim::World>();
   world->setTimeStep(description.timeStep);
@@ -274,13 +164,6 @@ int main(int argc, char* argv[]) {
   settings.minAdditionalShadowResolution = 256;
   settings.updateShadowsEveryFrame = false;
   settings.autoSelectImportedShadowLight = true;
-  if (!recording.empty()) {
-    // Gallery captures do not need full-resolution interactive shadow maps.
-    settings.shadowResolution = 2048;
-    settings.pointShadowResolutionScale = 0.25f;
-    settings.additionalShadowResolutionScale = 0.25f;
-    settings.viewerMsaaSamples = 2;
-  }
   viewer->setRenderQualitySettings(settings);
 
   raisin::RayraiWindow::SceneImportReport report;
@@ -336,70 +219,16 @@ int main(int argc, char* argv[]) {
   }
 
   auto& camera = viewer->getCamera();
-  lookAt(camera, description.cameraPosition, description.cameraTarget, description.verticalFov, description.nearPlane, description.farPlane);
+  lookAt(camera, description);
   std::cout << "Loaded Blue Wall .rscene: " << scenePath << '\n';
   std::cout << "Blue Wall camera: position=(" << camera.position.x << ',' << camera.position.y << ',' << camera.position.z << ") vertical_fov=" << camera.zoom << '\n';
 
-  auto renderFrame = [&]() {
+  while (!app.quit) {
     world->integrate();
     app.processEvents();
     app.beginFrame();
     app.renderViewer(*viewer);
     app.endFrame();
-  };
-  if (!screenshot.empty() || !recording.empty() || !reference.empty() || benchmarkFrames > 0 || checkCamera) {
-    for (int i = 0; i < 3; ++i) renderFrame();
-    if (!recording.empty()) {
-      const int frames = recordingFrames;
-      // Orbit the room's focal point and return to the initial view for a smooth loop.
-      const glm::vec3 pivot = description.cameraPosition + 3.0f * glm::normalize(description.cameraTarget - description.cameraPosition);
-      const glm::vec3 offset = description.cameraPosition - pivot;
-      for (int frame = 0; frame < frames; ++frame) {
-        const float angle = 0.065f * std::sin(2.0f * 3.14159265359f * frame / frames);
-        const glm::vec3 eye = pivot + glm::vec3(std::cos(angle) * offset.x - std::sin(angle) * offset.y, std::sin(angle) * offset.x + std::cos(angle) * offset.y, offset.z);
-        lookAt(camera, eye, pivot, description.verticalFov, description.nearPlane, description.farPlane);
-        renderFrame();
-        char name[32];
-        std::snprintf(name, sizeof(name), "frame_%03d.png", frame);
-        if (!raisim_examples::saveCameraPng(camera, recording / name)) return 1;
-        if ((frame + 1) % 25 == 0) std::cout << "Blue Wall: recorded " << frame + 1 << '/' << frames << std::endl;
-      }
-      lookAt(camera, description.cameraPosition, description.cameraTarget, description.verticalFov, description.nearPlane, description.farPlane);
-      renderFrame();
-    }
-    if (benchmarkFrames > 0) {
-      const auto start = std::chrono::steady_clock::now();
-      for (int i = 0; i < benchmarkFrames; ++i) renderFrame();
-      const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-      std::cout << "Blue Wall benchmark: frames=" << benchmarkFrames << " total_ms=" << ms << " avg_ms=" << ms / benchmarkFrames << '\n';
-    }
-    if (!screenshot.empty() && !raisim_examples::saveCameraPng(camera, screenshot)) {
-      std::cerr << "Could not save " << screenshot << '\n';
-      viewer.reset();
-      app.shutdown();
-      return 1;
-    }
-    if (checkCamera && !verifyCamera(camera)) {
-      std::cerr << "Blue Wall camera framing check failed\n";
-      viewer.reset();
-      app.shutdown();
-      return 1;
-    }
-    if (!reference.empty() && !compareReference(camera, reference)) {
-      std::cerr << "Blue Wall quality differs from the GLB reference\n";
-      viewer.reset();
-      app.shutdown();
-      return 1;
-    }
-  } else {
-    while (!app.quit) renderFrame();
-  }
-  if (!recording.empty()) {
-    // The shared GL asset cache outlives ExampleApp's context during normal teardown.
-    // Recording processes exit directly, as the documentation generators do.
-    std::cout.flush();
-    std::cerr.flush();
-    std::_Exit(0);
   }
   viewer.reset();
   app.shutdown();

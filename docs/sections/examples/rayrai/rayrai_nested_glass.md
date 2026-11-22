@@ -32,22 +32,8 @@ Drag to look, use WASD and Space to move, and click an object to orbit it. The
 **Geometry refraction** panel controls the backend, samples per frame, and
 bounce count.
 
-For a finite PNG capture or a stacked-media stress scene:
+To save the view as a PNG and exit, set `RAYRAI_EXAMPLE_CAPTURE`:
 
 ```bash
-./build-examples/examples/rayrai_nested_glass --backend=portable --out=nested_glass.png --frames=24 --warmup=0
-./build-examples/examples/rayrai_nested_glass --layers=4
+RAYRAI_EXAMPLE_CAPTURE=nested_glass.png ./build-examples/examples/rayrai_nested_glass
 ```
-
-## Options
-
-- `--backend=auto|portable|vulkan` selects the tracing backend; `vulkan`
-  requires the Vulkan ray-query path.
-- `--samples=N` (1 to 64) and `--bounces=N` (1 to 128) set the paths per
-  frame and the bounce limit.
-- `--layers=N` builds 1 to 16 concentric glass/water boxes; `--layers=0`
-  returns to the default composition.
-- `--out=FILE` renders `--frames` frames (after `--warmup` frames) in a
-  hidden window, saves a PNG, and exits. `--benchmark` runs a finite timing
-  pass instead; `--width`, `--height`, and `--msaa` set the render size
-  and MSAA level.

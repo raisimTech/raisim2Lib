@@ -41,6 +41,34 @@ position to drive camera interaction and picking. It renders at the window's
 drawable (framebuffer) size and scales the cursor from window to drawable
 pixels, so input stays aligned on HiDPI displays.
 
+### Capturing an example
+
+Any program built on `ExampleApp` can save what it renders, with no code of its
+own: set these environment variables and run it. The documentation images, the
+README animations and the example tests are made this way.
+
+| Variable | Meaning |
+|---|---|
+| `RAYRAI_EXAMPLE_CAPTURE` | A `.png` file saves one frame; any other path is a folder that receives `frame_000.png`, `frame_001.png`, ... The program quits once the capture is written. |
+| `RAYRAI_EXAMPLE_CAPTURE_SIZE` | Window and image size, `WIDTHxHEIGHT`. A capturing window is not scaled for high-DPI displays, so the images are in pixels of the window size. |
+| `RAYRAI_EXAMPLE_CAPTURE_START` | Frames rendered before the first capture (default 3), counted once the viewer has no meshes left to load. |
+| `RAYRAI_EXAMPLE_CAPTURE_FRAMES` | Frames in a folder capture (default 60). |
+| `RAYRAI_EXAMPLE_CAPTURE_EVERY` | Capture every N-th rendered frame (default 1). |
+| `RAYRAI_EXAMPLE_CAPTURE_SWAY` | The camera swings by up to this many radians about the vertical through a point `RAYRAI_EXAMPLE_CAPTURE_PIVOT` metres (default 3) ahead of it, one full swing over the capture, so the frames loop. A camera that orbits a target or follows an object swings about that point instead. A value that is not a number, or a `PIVOT` that is not positive, stops the program with exit code 2. |
+| `RAYRAI_EXAMPLE_CAPTURE_WINDOW` | `1` saves the whole window, panels included, instead of the viewer image. A program that draws no viewer image always saves its window. |
+
+```bash
+RAYRAI_EXAMPLE_CAPTURE=city.png RAYRAI_EXAMPLE_CAPTURE_START=90 ./rayrai_city
+RAYRAI_EXAMPLE_CAPTURE=frames RAYRAI_EXAMPLE_CAPTURE_SIZE=640x400 \
+RAYRAI_EXAMPLE_CAPTURE_SWAY=0.065 ./rayrai_blue_wall_scene
+ffmpeg -framerate 15 -i frames/frame_%03d.png blue_wall.mp4
+```
+
+With `SDL_VIDEODRIVER=offscreen` the program runs without a display. To write
+an RGBA image yourself, `raisin::writeRgbaPng()` (`rayrai/PngWriter.hpp`) saves
+top-down RGBA8 pixels as a PNG file. The example gallery clips are recorded from
+outside the program instead (see `docs/image_generators/example_clips`).
+
 ## Headless/offscreen OpenGL context
 
 If you already manage an OpenGL context (or want a headless one), use the static
@@ -71,6 +99,15 @@ only in the context it was constructed in, and polling them with another context
 current throws `std::logic_error`. To switch between several renderers' contexts
 on one thread, use `makeOffscreenContextCurrent` (see below). It takes SDL
 contexts.
+
+Generated foliage atlases stay alive as long as a mesh, material, or texture
+descriptor holds a copy. Release copies with any sharing context current for
+immediate deletion. When a copy is released without a compatible context
+current, the next viewer update in its share group processes the release.
+If you build atlases without a viewer or keep copies past viewer destruction,
+create a `raisin::FoliageTextureAtlasContext` with each surviving context current.
+Call its `flush()` with a sharing context current to process deferred releases.
+Destroy each scope before destroying its GL context.
 
 The offscreen path does not require an ImGui context. If an application embeds rayrai
 without ImGui, pass `false` for the hover and click arguments of `RayraiWindow::update`
@@ -152,6 +189,12 @@ a share group, the geometry of untextured meshes is uploaded once and reused;
 textured meshes and their textures are loaded separately for each context,
 because rayrai tunes texture filtering per renderer. See [rayrai Visualizer](../Rayrai.md) for
 the threading contract.
+
+Within one context, each texture image of an imported model is uploaded once for
+each color space and sampler it is used with, whether it is a separate file or
+embedded in a GLB, and loading the model again reuses the textures of unchanged
+images. The textures stay allocated until the
+context is destroyed, even after the meshes that use them are released.
 
 SDL keyboard state is shared by the whole process, so with several renderers
 enable keyboard input only on the focused one. `setKeyboardInputEnabled(false)`

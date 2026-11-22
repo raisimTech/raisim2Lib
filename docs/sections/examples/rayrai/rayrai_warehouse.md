@@ -22,7 +22,7 @@ addStandingAnymal(*world, exampleRscPath(argv[0], "anymal_c/urdf/anymal.urdf"));
 raisin::RayraiWindow viewer(world, 1280, 800);  // applies the scene
 ```
 
-<video class="doc-video" src="../../../../rsc/docs/video/examples/rayrai_warehouse_baked.mp4" poster="../../../../rsc/docs/video/examples/rayrai_warehouse_baked.jpg" controls loop muted playsinline preload="metadata" aria-label="Camera moves past ANYmal C in the aisle and pans over the loading dock"></video>
+<video class="doc-video" src="../../../../rsc/docs/video/rayrai_warehouse_baked.mp4" poster="../../../../rsc/docs/video/rayrai_warehouse_baked.jpg" controls loop muted playsinline preload="metadata" aria-label="Camera moves past ANYmal C in the aisle and pans over the loading dock"></video>
 
 ![Forklift, traffic cones and staged pallet loads in front of the dock doors](../../../../rsc/docs/image/warehouse_baked_dock.png)
 
@@ -30,13 +30,14 @@ raisin::RayraiWindow viewer(world, 1280, 800);  // applies the scene
 
 ```bash
 ./build-examples/examples/rayrai_warehouse
-./build-examples/examples/rayrai_warehouse --screenshot warehouse.png
+RAYRAI_EXAMPLE_CAPTURE=warehouse.png RAYRAI_EXAMPLE_CAPTURE_START=90 ./build-examples/examples/rayrai_warehouse
 ```
 
 Source: `examples/src/rayrai/worlds/rayrai_warehouse.cpp`, which runs the
 `photoreal_scene.hpp` it shares with the city example (CMake target
-`rayrai_warehouse`). `--screenshot` saves one frame and exits, and
-`--scene` loads another `.rscene` file.
+`rayrai_warehouse`). `--scene` loads another `.rscene` file. The capture that
+the rayrai examples share (see `rayrai/example_common.hpp`) saves the view 90
+frames after the assets have loaded and exits.
 
 ## The scene
 

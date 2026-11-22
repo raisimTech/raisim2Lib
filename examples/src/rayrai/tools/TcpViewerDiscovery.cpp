@@ -103,8 +103,6 @@ void sortDiscoveredServers(std::vector<DiscoveredServer>& servers) {
 
 #if defined(__EMSCRIPTEN__)
 EM_JS_DEPS(rayrai_discovery, "$stringToNewUTF8");
-// Lines of "source<TAB>beacon payload": the page's in-browser examples and, when the page comes
-// from serve.py, the beacons that server hears on the LAN.
 EM_JS(char*, pageBeacons, (), {
   const discovery = Module['rayraiDiscovery'];
   return stringToNewUTF8(discovery ? discovery['beacons']() : '');
@@ -237,6 +235,13 @@ class DiscoveryBeaconReceiver::Impl {
       return false;
     }
 
+    ip_mreq loopbackGroup{};
+    loopbackGroup.imr_multiaddr.s_addr = htonl(kDiscoveryLoopbackGroup);
+    loopbackGroup.imr_interface.s_addr = htonl(INADDR_LOOPBACK);
+    const bool joinedLoopbackGroup =
+      setsockopt(socketFd_, IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<char*>(&loopbackGroup),
+                 sizeof(loopbackGroup)) == 0;
+
 #if defined(_WIN32)
     u_long nonBlocking = 1;
     if (ioctlsocket(socketFd_, FIONBIO, &nonBlocking) == SOCKET_ERROR) {
@@ -252,7 +257,8 @@ class DiscoveryBeaconReceiver::Impl {
     }
 #endif
 
-    status = "LAN beacon listener active";
+    status = joinedLoopbackGroup ? "LAN beacon listener active"
+                                 : "LAN beacon listener active; servers on this computer may be missed";
     return true;
 #elif defined(__EMSCRIPTEN__)
     status = pageListsNetworkServers() ? "Listing servers from this page's local web server"
@@ -344,7 +350,6 @@ class DiscoveryBeaconReceiver::Impl {
     std::chrono::steady_clock::time_point lastSeen;
   };
 
-  // Notes a beacon from source; returns true when it changed the list.
   bool record(const std::string& source, const std::string& payload,
               std::chrono::steady_clock::time_point now) {
     int port = 0;

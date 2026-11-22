@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="578" viewBox="0 0 960 578" role="img" aria-labelledby="title desc">
+  <title id="title">A load that changes direction</title>
+  <desc id="desc">Horizontal bars, one panel per mesh, of the milliseconds RaiSim and MFEM take to solve again after the load changes direction, in MFEM&#x27;s changing-nodal-load sweep. The axis is logarithmic.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="578" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">A load that changes direction</text>
+  <text x="32.0" y="76.0" class="subtitle">Milliseconds per solve, lower is better · the same changing-load sweep in both</text>
+  <text x="32.0" y="126.0" class="panel">1,536 tetrahedra</text>
+  <line x1="182.0" y1="136" x2="182.0" y2="212" class="grid"/>
+  <line x1="326.5" y1="136" x2="326.5" y2="212" class="grid"/>
+  <line x1="471.0" y1="136" x2="471.0" y2="212" class="grid"/>
+  <line x1="615.5" y1="136" x2="615.5" y2="212" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="212" class="grid"/>
+  <line x1="182" y1="136" x2="182" y2="212" class="axis"/>
+  <text x="170.0" y="164.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 147.0H282.7A4.0 4.0 0 0 1 286.7 151.0V165.0A4.0 4.0 0 0 1 282.7 169.0H182.0Z" class="raisim"><title>RaiSim: 0.53 ms</title></path>
+  <text x="294.7" y="164.0" class="value">0.53 ms<tspan class="note" font-weight="400">  4.2× faster</tspan></text>
+  <text x="170.0" y="200.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 183.0H372.3A4.0 4.0 0 0 1 376.3 187.0V201.0A4.0 4.0 0 0 1 372.3 205.0H182.0Z" class="other"><title>MFEM: 2.21 ms</title></path>
+  <text x="384.3" y="200.0" class="value">2.21 ms</text>
+  <text x="32.0" y="252.0" class="panel">12,288 tetrahedra</text>
+  <line x1="182.0" y1="262" x2="182.0" y2="338" class="grid"/>
+  <line x1="326.5" y1="262" x2="326.5" y2="338" class="grid"/>
+  <line x1="471.0" y1="262" x2="471.0" y2="338" class="grid"/>
+  <line x1="615.5" y1="262" x2="615.5" y2="338" class="grid"/>
+  <line x1="760.0" y1="262" x2="760.0" y2="338" class="grid"/>
+  <line x1="182" y1="262" x2="182" y2="338" class="axis"/>
+  <text x="170.0" y="290.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 273.0H465.0A4.0 4.0 0 0 1 469.0 277.0V291.0A4.0 4.0 0 0 1 465.0 295.0H182.0Z" class="raisim"><title>RaiSim: 9.68 ms</title></path>
+  <text x="477.0" y="290.0" class="value">9.68 ms<tspan class="note" font-weight="400">  3.1× faster</tspan></text>
+  <text x="170.0" y="326.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 309.0H535.7A4.0 4.0 0 0 1 539.7 313.0V327.0A4.0 4.0 0 0 1 535.7 331.0H182.0Z" class="other"><title>MFEM: 29.89 ms</title></path>
+  <text x="547.7" y="326.0" class="value">29.89 ms</text>
+  <text x="32.0" y="378.0" class="panel">41,472 tetrahedra</text>
+  <line x1="182.0" y1="388" x2="182.0" y2="464" class="grid"/>
+  <line x1="326.5" y1="388" x2="326.5" y2="464" class="grid"/>
+  <line x1="471.0" y1="388" x2="471.0" y2="464" class="grid"/>
+  <line x1="615.5" y1="388" x2="615.5" y2="464" class="grid"/>
+  <line x1="760.0" y1="388" x2="760.0" y2="464" class="grid"/>
+  <line x1="182" y1="388" x2="182" y2="464" class="axis"/>
+  <text x="170.0" y="416.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 399.0H560.9A4.0 4.0 0 0 1 564.9 403.0V417.0A4.0 4.0 0 0 1 560.9 421.0H182.0Z" class="raisim"><title>RaiSim: 44.62 ms</title></path>
+  <text x="572.9" y="416.0" class="value">44.62 ms<tspan class="note" font-weight="400">  3.5× faster</tspan></text>
+  <text x="170.0" y="452.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 435.0H639.7A4.0 4.0 0 0 1 643.7 439.0V453.0A4.0 4.0 0 0 1 639.7 457.0H182.0Z" class="other"><title>MFEM: 156.79 ms</title></path>
+  <text x="651.7" y="452.0" class="value">156.79 ms</text>
+  <text x="182.0" y="488.0" text-anchor="middle" class="tick">0.1</text>
+  <text x="326.5" y="488.0" text-anchor="middle" class="tick">1</text>
+  <text x="471.0" y="488.0" text-anchor="middle" class="tick">10</text>
+  <text x="615.5" y="488.0" text-anchor="middle" class="tick">100</text>
+  <text x="760.0" y="488.0" text-anchor="middle" class="tick">1,000</text>
+  <text x="471.0" y="518.0" text-anchor="middle" class="note">Milliseconds (logarithmic)</text>
+  <text x="32.0" y="562.0" class="note">RaiSim reuses up to eight cached load responses and recovers all fields; MFEM omits stress recovery.</text>
+</svg>

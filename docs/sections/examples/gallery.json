@@ -94,6 +94,7 @@
         "server/island_sleep_benchmark",
         "rayrai/rayrai_explosion_projectile",
         "server/rocket_hop",
+        "server/drone_flight",
         "rayrai/rayrai_spherical_joint_friction"
       ]
     },

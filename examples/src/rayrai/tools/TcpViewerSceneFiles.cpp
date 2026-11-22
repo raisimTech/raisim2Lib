@@ -62,12 +62,9 @@ bool ViewerSceneFiles::apply(RayraiWindow& viewer, RemoteScene& scene) {
   if (sync_.state() != SceneSync::State::Ready) return false;
   // The sync starts over when the server stops and resumes sharing; names must stay unique.
   remove(viewer);
-  // The scene's render settings replace the removed ones right away.
   viewerSettingsReset_ = false;
   touched_ = true;
   try {
-    // The server's scene is not the viewer's world scene, so it is applied here. On failure,
-    // applyRscene() removes the visuals it created before it throws.
     visuals_ = rayrai_internal::applyRscene(*sync_.scene(), viewer,
                                             rsceneRenderSettings(*sync_.scene()));
     viewer.queueSceneIrradianceBake(*sync_.scene(), visuals_, true, sync_.scene());
@@ -76,7 +73,6 @@ bool ViewerSceneFiles::apply(RayraiWindow& viewer, RemoteScene& scene) {
     sync_.markFailed(std::string("The scene could not be shown: ") + error.what());
     return false;
   }
-  // Bodies the server streams name their mesh by its server path.
   scene.setServerPathMap(sync_.pathMap());
   sync_.markApplied();
   applied_ = true;
@@ -85,7 +81,6 @@ bool ViewerSceneFiles::apply(RayraiWindow& viewer, RemoteScene& scene) {
 }
 
 void ViewerSceneFiles::setFluidVolumes(RayraiWindow& viewer, std::vector<StreamedFluidVolume> volumes) {
-  // the server repeats them every update; only a change is drawn again
   if (volumes == fluidVolumes_) return;
   fluidVolumes_ = std::move(volumes);
   showFluidVolumes(viewer);
@@ -126,8 +121,6 @@ void applySceneStateCommands(const std::vector<ViewerCommand>& commands, ViewerS
 }
 
 void ViewerSceneFiles::showFluidVolumes(RayraiWindow& viewer) {
-  // an applied scene with water of its own hides the server's; only the volumes that changed are drawn
-  // again
   const size_t count = applied_ && !visuals_.waterBodies.empty() ? 0 : fluidVolumes_.size();
   for (size_t i = count; i < fluidWaterShown_.size(); ++i)
     if (fluidWaterShown_[i]) viewer.removeWaterBody(kFluidWaterPrefix + std::to_string(i));
@@ -140,7 +133,6 @@ void ViewerSceneFiles::showFluidVolumes(RayraiWindow& viewer) {
     const std::string name = kFluidWaterPrefix + std::to_string(i);
     if (shown) viewer.removeWaterBody(name);
     shown.reset();
-    // the server's values are checked as a world checks a volume; one it could not hold is not drawn
     raisim::FluidVolume volume;
     volume.min = {box[0], box[1]};
     volume.max = {box[2], box[3]};
@@ -188,7 +180,6 @@ void ViewerSceneFiles::remove(RayraiWindow& viewer) {
   if (!touched_) return;
   touched_ = false;
   viewerSettingsReset_ = true;
-  // What applyRscene() set on the viewer; the pane re-applies its own settings afterwards.
   viewer.clearAdditionalLights();
   viewer.clearLocalFogVolumes();
   viewer.clearProjectedDecals();

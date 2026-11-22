@@ -1,10 +1,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstdlib>
 #include <exception>
-#include <filesystem>
-#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,65 +25,6 @@ static inline glm::dmat3 toGlm(const raisim::Mat<3, 3>& R) {
   // Raisim Mat is column-major like glm
   return glm::dmat3(glm::dvec3(R(0, 0), R(1, 0), R(2, 0)), glm::dvec3(R(0, 1), R(1, 1), R(2, 1)), glm::dvec3(R(0, 2), R(1, 2), R(2, 2)));
 }
-
-// Opt-in frame capture used to record the documentation GIF. Enabled only when
-// RAYRAI_SHOWCASE_CAPTURE_DIR is set; a normal run never reads the framebuffer
-// back. Frames are written as binary PPM so the example needs no image library;
-// ffmpeg reads the sequence directly.
-struct FrameCapture {
-  std::filesystem::path dir;
-  int framesToWrite = 0;
-  int framesToSkip = 0;
-  int frameStride = 1;
-  int frameIndex = 0;
-  int written = 0;
-  std::vector<unsigned char> pixels;
-
-  static int envInt(const char* name, int fallback) {
-    const char* value = std::getenv(name);
-    if (!value || value[0] == '\0') return fallback;
-    const int parsed = std::atoi(value);
-    return parsed > 0 ? parsed : fallback;
-  }
-
-  void init() {
-    const char* dirEnv = std::getenv("RAYRAI_SHOWCASE_CAPTURE_DIR");
-    if (!dirEnv || dirEnv[0] == '\0') return;
-    dir = dirEnv;
-    std::filesystem::create_directories(dir);
-    framesToWrite = envInt("RAYRAI_SHOWCASE_CAPTURE_FRAMES", 150);
-    framesToSkip = envInt("RAYRAI_SHOWCASE_CAPTURE_SKIP", 90);
-    // The loop advances one physics step per rendered frame, so a stride > 1 is
-    // what keeps a captured sequence from playing back in extreme slow motion.
-    frameStride = envInt("RAYRAI_SHOWCASE_CAPTURE_EVERY", 1);
-  }
-
-  bool enabled() const { return !dir.empty(); }
-  bool done() const { return enabled() && written >= framesToWrite; }
-  bool wantsFrame() const { return enabled() && frameIndex >= framesToSkip && !done() && ((frameIndex - framesToSkip) % frameStride) == 0; }
-
-  // Reads the back buffer, so it must run after the ImGui layer is drawn and
-  // before the buffer swap.
-  void grab(int width, int height) {
-    if (width <= 0 || height <= 0) return;
-    pixels.resize(size_t(width) * size_t(height) * 3u);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadBuffer(GL_BACK);
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-
-    char name[64];
-    std::snprintf(name, sizeof(name), "frame_%04d.ppm", written);
-    std::ofstream out(dir / name, std::ios::binary);
-    if (!out) return;
-    out << "P6\n" << width << " " << height << "\n255\n";
-    // OpenGL returns bottom-up rows; PPM stores them top-down.
-    const size_t stride = size_t(width) * 3u;
-    for (int y = height - 1; y >= 0; --y) {
-      out.write(reinterpret_cast<const char*>(pixels.data() + size_t(y) * stride), std::streamsize(stride));
-    }
-    ++written;
-  }
-};
 
 static void ensureTexture2D(unsigned int& textureId) {
   if (textureId != 0) return;
@@ -254,9 +192,6 @@ int main(int argc, char* argv[]) {
   // Realtime simulation tracking
   const double simTimeStep = world->getTimeStep();
   auto lastRealTime = std::chrono::high_resolution_clock::now();
-
-  FrameCapture capture;
-  capture.init();
 
   while (!app.quit) {
     app.processEvents();
@@ -496,20 +431,7 @@ int main(int argc, char* argv[]) {
     ImGui::EndChild();
     ImGui::End();
 
-    if (capture.wantsFrame()) {
-      // Same steps as app.endFrame(), with the read-back inserted before the
-      // swap so the captured frame includes the sensor panels above.
-      ImGui::Render();
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-      int captureW = 0, captureH = 0;
-      SDL_GL_GetDrawableSize(app.window, &captureW, &captureH);
-      capture.grab(captureW, captureH);
-      SDL_GL_SwapWindow(app.window);
-    } else {
-      app.endFrame();
-    }
-    ++capture.frameIndex;
-    if (capture.done()) app.quit = true;
+    app.endFrame();
   }
 
   if (rawRgbTexture != 0) glDeleteTextures(1, &rawRgbTexture);

@@ -2,6 +2,9 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void declare_004(py::module_& m) {
+py::class_<raisin::RayraiWindow::ReflectionProbeDebugItem>(m.attr("RayraiWindow"), "ReflectionProbeDebugItem");
+py::class_<raisin::RayraiWindow::ReflectionProbeDebugOverlaySummary>(m.attr("RayraiWindow"), "ReflectionProbeDebugOverlaySummary");
+py::class_<raisin::RayraiWindow::ReflectionProbeDebugView>(m.attr("RayraiWindow"), "ReflectionProbeDebugView");
 py::class_<raisin::RayraiWindow::ReflectionProbeFilterSettings>(m.attr("RayraiWindow"), "ReflectionProbeFilterSettings");
 py::class_<raisin::RayraiWindow::ReflectionProbePlacementSuggestion>(m.attr("RayraiWindow"), "ReflectionProbePlacementSuggestion");
 py::class_<raisin::RayraiWindow::ReflectionProbeSidecarLoadResult>(m.attr("RayraiWindow"), "ReflectionProbeSidecarLoadResult");
@@ -34,8 +37,5 @@ py::class_<raisin::RenderQualitySettings::BloomSettings>(m.attr("RenderQualitySe
 py::class_<raisin::RenderQualitySettings::DepthOfFieldSettings>(m.attr("RenderQualitySettings"), "DepthOfFieldSettings");
 py::class_<raisin::RenderQualitySettings::FogSettings>(m.attr("RenderQualitySettings"), "FogSettings");
 py::class_<raisin::RenderQualitySettings::ShadowsSettings>(m.attr("RenderQualitySettings"), "ShadowsSettings");
-py::class_<raisin::RenderQualitySettings::TemporalAaSettings>(m.attr("RenderQualitySettings"), "TemporalAaSettings");
-py::class_<raisin::RenderQualitySettings::ToneMappingSettings>(m.attr("RenderQualitySettings"), "ToneMappingSettings");
-py::class_<raisin::Visuals::FrameCacheMaterialState>(m.attr("Visuals"), "FrameCacheMaterialState");
 }
 }

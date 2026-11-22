@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="686" viewBox="0 0 960 686" role="img" aria-labelledby="title desc">
+  <title id="title">Voxel rays per second on the GPU</title>
+  <desc id="desc">Horizontal bars, one panel per scene, of how many billion lidar rays per second rayrai&#x27;s OpenGL voxel pass, NanoVDB in CUDA and a dense grid in CUDA cast on an RTX 2070 SUPER. rayrai&#x27;s bars are the longest in every scene. Notes give the rays whose hit differs from RaiSim&#x27;s CPU ray cast.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="686" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Voxel rays per second on the GPU</text>
+  <text x="32.0" y="76.0" class="subtitle">Billion rays per second, higher is better · median of five runs · NVIDIA GeForce RTX 2070 SUPER</text>
+  <text x="32.0" y="126.0" class="panel">Terrain · 0.10 m voxels</text>
+  <line x1="232.0" y1="136" x2="232.0" y2="248" class="grid"/>
+  <line x1="320.0" y1="136" x2="320.0" y2="248" class="grid"/>
+  <line x1="408.0" y1="136" x2="408.0" y2="248" class="grid"/>
+  <line x1="496.0" y1="136" x2="496.0" y2="248" class="grid"/>
+  <line x1="584.0" y1="136" x2="584.0" y2="248" class="grid"/>
+  <line x1="672.0" y1="136" x2="672.0" y2="248" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="248" class="grid"/>
+  <line x1="232" y1="136" x2="232" y2="248" class="axis"/>
+  <text x="220.0" y="164.0" text-anchor="end" class="label">rayrai (OpenGL)</text>
+  <path d="M232.0 147.0H529.4A4.0 4.0 0 0 1 533.4 151.0V165.0A4.0 4.0 0 0 1 529.4 169.0H232.0Z" class="rayrai"><title>rayrai (OpenGL), terrain: 1.46 ns per ray</title></path>
+  <text x="541.4" y="164.0" class="value">0.68</text>
+  <text x="220.0" y="200.0" text-anchor="end" class="label">NanoVDB (CUDA)</text>
+  <path d="M232.0 183.0H398.5A4.0 4.0 0 0 1 402.5 187.0V201.0A4.0 4.0 0 0 1 398.5 205.0H232.0Z" class="other"><title>NanoVDB (CUDA), terrain: 2.58 ns per ray</title></path>
+  <text x="410.5" y="200.0" class="value">0.39<tspan class="note" font-weight="400">  84.0 % of rays differ</tspan></text>
+  <text x="220.0" y="236.0" text-anchor="end" class="label">dense DDA (CUDA)</text>
+  <path d="M232.0 219.0H310.9A4.0 4.0 0 0 1 314.9 223.0V237.0A4.0 4.0 0 0 1 310.9 241.0H232.0Z" class="other"><title>dense DDA (CUDA), terrain: 5.31 ns per ray</title></path>
+  <text x="322.9" y="236.0" class="value">0.19</text>
+  <text x="32.0" y="288.0" class="panel">Indoor · 0.05 m voxels</text>
+  <line x1="232.0" y1="298" x2="232.0" y2="410" class="grid"/>
+  <line x1="320.0" y1="298" x2="320.0" y2="410" class="grid"/>
+  <line x1="408.0" y1="298" x2="408.0" y2="410" class="grid"/>
+  <line x1="496.0" y1="298" x2="496.0" y2="410" class="grid"/>
+  <line x1="584.0" y1="298" x2="584.0" y2="410" class="grid"/>
+  <line x1="672.0" y1="298" x2="672.0" y2="410" class="grid"/>
+  <line x1="760.0" y1="298" x2="760.0" y2="410" class="grid"/>
+  <line x1="232" y1="298" x2="232" y2="410" class="axis"/>
+  <text x="220.0" y="326.0" text-anchor="end" class="label">rayrai (OpenGL)</text>
+  <path d="M232.0 309.0H706.3A4.0 4.0 0 0 1 710.3 313.0V327.0A4.0 4.0 0 0 1 706.3 331.0H232.0Z" class="rayrai"><title>rayrai (OpenGL), indoor: 0.92 ns per ray</title></path>
+  <text x="718.3" y="326.0" class="value">1.09</text>
+  <text x="220.0" y="362.0" text-anchor="end" class="label">NanoVDB (CUDA)</text>
+  <path d="M232.0 345.0H563.9A4.0 4.0 0 0 1 567.9 349.0V363.0A4.0 4.0 0 0 1 563.9 367.0H232.0Z" class="other"><title>NanoVDB (CUDA), indoor: 1.31 ns per ray</title></path>
+  <text x="575.9" y="362.0" class="value">0.76<tspan class="note" font-weight="400">  96.1 % of rays differ</tspan></text>
+  <text x="220.0" y="398.0" text-anchor="end" class="label">dense DDA (CUDA)</text>
+  <path d="M232.0 381.0H333.0A4.0 4.0 0 0 1 337.0 385.0V399.0A4.0 4.0 0 0 1 333.0 403.0H232.0Z" class="other"><title>dense DDA (CUDA), indoor: 4.19 ns per ray</title></path>
+  <text x="345.0" y="398.0" class="value">0.24</text>
+  <text x="32.0" y="450.0" class="panel">Forest · 0.10 m voxels</text>
+  <line x1="232.0" y1="460" x2="232.0" y2="572" class="grid"/>
+  <line x1="320.0" y1="460" x2="320.0" y2="572" class="grid"/>
+  <line x1="408.0" y1="460" x2="408.0" y2="572" class="grid"/>
+  <line x1="496.0" y1="460" x2="496.0" y2="572" class="grid"/>
+  <line x1="584.0" y1="460" x2="584.0" y2="572" class="grid"/>
+  <line x1="672.0" y1="460" x2="672.0" y2="572" class="grid"/>
+  <line x1="760.0" y1="460" x2="760.0" y2="572" class="grid"/>
+  <line x1="232" y1="460" x2="232" y2="572" class="axis"/>
+  <text x="220.0" y="488.0" text-anchor="end" class="label">rayrai (OpenGL)</text>
+  <path d="M232.0 471.0H360.9A4.0 4.0 0 0 1 364.9 475.0V489.0A4.0 4.0 0 0 1 360.9 493.0H232.0Z" class="rayrai"><title>rayrai (OpenGL), forest: 3.31 ns per ray</title></path>
+  <text x="372.9" y="488.0" class="value">0.30<tspan class="note" font-weight="400">  1 ray differs</tspan></text>
+  <text x="220.0" y="524.0" text-anchor="end" class="label">NanoVDB (CUDA)</text>
+  <path d="M232.0 507.0H326.9A4.0 4.0 0 0 1 330.9 511.0V525.0A4.0 4.0 0 0 1 326.9 529.0H232.0Z" class="other"><title>NanoVDB (CUDA), forest: 4.45 ns per ray</title></path>
+  <text x="338.9" y="524.0" class="value">0.22<tspan class="note" font-weight="400">  92.4 % of rays differ</tspan></text>
+  <text x="220.0" y="560.0" text-anchor="end" class="label">dense DDA (CUDA)</text>
+  <path d="M232.0 543.0H273.0A4.0 4.0 0 0 1 277.0 547.0V561.0A4.0 4.0 0 0 1 273.0 565.0H232.0Z" class="other"><title>dense DDA (CUDA), forest: 9.78 ns per ray</title></path>
+  <text x="285.0" y="560.0" class="value">0.10<tspan class="note" font-weight="400">  2 rays differ</tspan></text>
+  <text x="232.0" y="596.0" text-anchor="middle" class="tick">0.0</text>
+  <text x="320.0" y="596.0" text-anchor="middle" class="tick">0.2</text>
+  <text x="408.0" y="596.0" text-anchor="middle" class="tick">0.4</text>
+  <text x="496.0" y="596.0" text-anchor="middle" class="tick">0.6</text>
+  <text x="584.0" y="596.0" text-anchor="middle" class="tick">0.8</text>
+  <text x="672.0" y="596.0" text-anchor="middle" class="tick">1.0</text>
+  <text x="760.0" y="596.0" text-anchor="middle" class="tick">1.2</text>
+  <text x="496.0" y="626.0" text-anchor="middle" class="note">Billion lidar rays per second (1 / nanoseconds per ray)</text>
+  <text x="32.0" y="670.0" class="note">The voxel pass alone, 524,288 rays per scene; a ray differs when its hit differs from RaiSim&#x27;s CPU ray cast.</text>
+</svg>

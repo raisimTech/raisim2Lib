@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="704" viewBox="0 0 960 704" role="img" aria-labelledby="title desc">
+  <title id="title">Cantilever bending: multigrid and ICCG</title>
+  <desc id="desc">Horizontal bars, one panel per case, of the milliseconds RaiSim&#x27;s solve takes with the multigrid preconditioner (the default) and with incomplete-Cholesky CG. The axis is logarithmic.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="704" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Cantilever bending: multigrid and ICCG</text>
+  <text x="32.0" y="76.0" class="subtitle">Milliseconds per cold solve, lower is better · Intel Core Ultra 7 265K, one core</text>
+  <text x="32.0" y="126.0" class="panel">30,720 tetrahedra, Poisson ratio 0.3</text>
+  <line x1="182.0" y1="136" x2="182.0" y2="212" class="grid"/>
+  <line x1="374.7" y1="136" x2="374.7" y2="212" class="grid"/>
+  <line x1="567.3" y1="136" x2="567.3" y2="212" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="212" class="grid"/>
+  <line x1="182" y1="136" x2="182" y2="212" class="axis"/>
+  <text x="170.0" y="164.0" text-anchor="end" class="label">Multigrid</text>
+  <path d="M182.0 147.0H210.2A4.0 4.0 0 0 1 214.2 151.0V165.0A4.0 4.0 0 0 1 210.2 169.0H182.0Z" class="raisim"><title>Multigrid: 147 ms</title></path>
+  <text x="222.2" y="164.0" class="value">147 ms<tspan class="note" font-weight="400">  27 iterations, 2.5× faster</tspan></text>
+  <text x="170.0" y="200.0" text-anchor="end" class="label">ICCG</text>
+  <path d="M182.0 183.0H286.1A4.0 4.0 0 0 1 290.1 187.0V201.0A4.0 4.0 0 0 1 286.1 205.0H182.0Z" class="other"><title>ICCG: 364 ms</title></path>
+  <text x="298.1" y="200.0" class="value">364 ms<tspan class="note" font-weight="400">  445 iterations</tspan></text>
+  <text x="32.0" y="252.0" class="panel">245,760 tetrahedra, Poisson ratio 0.3</text>
+  <line x1="182.0" y1="262" x2="182.0" y2="338" class="grid"/>
+  <line x1="374.7" y1="262" x2="374.7" y2="338" class="grid"/>
+  <line x1="567.3" y1="262" x2="567.3" y2="338" class="grid"/>
+  <line x1="760.0" y1="262" x2="760.0" y2="338" class="grid"/>
+  <line x1="182" y1="262" x2="182" y2="338" class="axis"/>
+  <text x="170.0" y="290.0" text-anchor="end" class="label">Multigrid</text>
+  <path d="M182.0 273.0H423.9A4.0 4.0 0 0 1 427.9 277.0V291.0A4.0 4.0 0 0 1 423.9 295.0H182.0Z" class="raisim"><title>Multigrid: 1,890 ms</title></path>
+  <text x="435.9" y="290.0" class="value">1,890 ms<tspan class="note" font-weight="400">  27 iterations, 4.2× faster</tspan></text>
+  <text x="170.0" y="326.0" text-anchor="end" class="label">ICCG</text>
+  <path d="M182.0 309.0H544.9A4.0 4.0 0 0 1 548.9 313.0V327.0A4.0 4.0 0 0 1 544.9 331.0H182.0Z" class="other"><title>ICCG: 8,025 ms</title></path>
+  <text x="556.9" y="326.0" class="value">8,025 ms<tspan class="note" font-weight="400">  1,005 iterations</tspan></text>
+  <text x="32.0" y="378.0" class="panel">30,720 tetrahedra, Poisson ratio 0.49</text>
+  <line x1="182.0" y1="388" x2="182.0" y2="464" class="grid"/>
+  <line x1="374.7" y1="388" x2="374.7" y2="464" class="grid"/>
+  <line x1="567.3" y1="388" x2="567.3" y2="464" class="grid"/>
+  <line x1="760.0" y1="388" x2="760.0" y2="464" class="grid"/>
+  <line x1="182" y1="388" x2="182" y2="464" class="axis"/>
+  <text x="170.0" y="416.0" text-anchor="end" class="label">Multigrid</text>
+  <path d="M182.0 399.0H248.1A4.0 4.0 0 0 1 252.1 403.0V417.0A4.0 4.0 0 0 1 248.1 421.0H182.0Z" class="raisim"><title>Multigrid: 231 ms</title></path>
+  <text x="260.1" y="416.0" class="value">231 ms<tspan class="note" font-weight="400">  93 iterations, 5.3× faster</tspan></text>
+  <text x="170.0" y="452.0" text-anchor="end" class="label">ICCG</text>
+  <path d="M182.0 435.0H388.1A4.0 4.0 0 0 1 392.1 439.0V453.0A4.0 4.0 0 0 1 388.1 457.0H182.0Z" class="other"><title>ICCG: 1,232 ms</title></path>
+  <text x="400.1" y="452.0" class="value">1,232 ms<tspan class="note" font-weight="400">  1,689 iterations</tspan></text>
+  <text x="32.0" y="504.0" class="panel">245,760 tetrahedra, Poisson ratio 0.49</text>
+  <line x1="182.0" y1="514" x2="182.0" y2="590" class="grid"/>
+  <line x1="374.7" y1="514" x2="374.7" y2="590" class="grid"/>
+  <line x1="567.3" y1="514" x2="567.3" y2="590" class="grid"/>
+  <line x1="760.0" y1="514" x2="760.0" y2="590" class="grid"/>
+  <line x1="182" y1="514" x2="182" y2="590" class="axis"/>
+  <text x="170.0" y="542.0" text-anchor="end" class="label">Multigrid</text>
+  <path d="M182.0 525.0H477.1A4.0 4.0 0 0 1 481.1 529.0V543.0A4.0 4.0 0 0 1 477.1 547.0H182.0Z" class="raisim"><title>Multigrid: 3,570 ms</title></path>
+  <text x="489.1" y="542.0" class="value">3,570 ms<tspan class="note" font-weight="400">  97 iterations, 9.0× faster</tspan></text>
+  <text x="170.0" y="578.0" text-anchor="end" class="label">ICCG</text>
+  <path d="M182.0 561.0H660.8A4.0 4.0 0 0 1 664.8 565.0V579.0A4.0 4.0 0 0 1 660.8 583.0H182.0Z" class="other"><title>ICCG: 32,070 ms</title></path>
+  <text x="672.8" y="578.0" class="value">32,070 ms<tspan class="note" font-weight="400">  4,125 iterations</tspan></text>
+  <text x="182.0" y="614.0" text-anchor="middle" class="tick">100</text>
+  <text x="374.7" y="614.0" text-anchor="middle" class="tick">1,000</text>
+  <text x="567.3" y="614.0" text-anchor="middle" class="tick">10,000</text>
+  <text x="760.0" y="614.0" text-anchor="middle" class="tick">100,000</text>
+  <text x="471.0" y="644.0" text-anchor="middle" class="note">Milliseconds (logarithmic)</text>
+  <text x="32.0" y="688.0" class="note">Both stop at a relative residual of 1e-11 and agree to ten digits.</text>
+</svg>

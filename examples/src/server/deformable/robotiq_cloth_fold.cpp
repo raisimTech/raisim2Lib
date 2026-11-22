@@ -7,12 +7,10 @@
 // down first, holds the fold, then unfolds the cloth and lifts it back up. The
 // world resets and repeats.
 
-#include <chrono>
 #include <csignal>
 #include <cstddef>
 #include <exception>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -27,7 +25,6 @@ volatile std::sig_atomic_t stop_requested = 0;
 void RequestStop(int) { stop_requested = 1; }
 
 struct Options {
-  bool headless = false;
   bool help = false;
   std::size_t cycles = 0;
   int port = 8080;
@@ -51,8 +48,6 @@ Options ParseOptions(int argc, char** argv) {
     const std::string arg(argv[i]);
     if (arg == "--help" || arg == "-h") {
       options.help = true;
-    } else if (arg == "--headless") {
-      options.headless = true;
     } else if (arg == "--cycles" || arg == "--port" || arg == "--activation-key") {
       if (++i == argc) {
         throw std::invalid_argument("Missing value for " + arg);
@@ -67,9 +62,6 @@ Options ParseOptions(int argc, char** argv) {
     } else {
       throw std::invalid_argument("Unknown option: " + arg);
     }
-  }
-  if (options.headless && options.cycles == 0) {
-    options.cycles = 2;
   }
   return options;
 }
@@ -88,8 +80,7 @@ int main(int argc, char** argv) {
     const auto options = ParseOptions(argc, argv);
     if (options.help) {
       std::cout << "Kinova/Robotiq cloth folding\n"
-                   "  --headless          Check two cycles without a server\n"
-                   "  --cycles N          Stop after N cycles (viewer mode repeats by default)\n"
+                   "  --cycles N          Stop after N cycles (repeats by default)\n"
                    "  --port N            RaisimServer port (default 8080)\n"
                    "  --activation-key P  Optional license path\n";
       return 0;
@@ -101,47 +92,30 @@ int main(int argc, char** argv) {
     cloth_fold::Scene scene(exampleRscPath(argv[0], "robotiq_2f85/kinova_robotiq.urdf"));
     std::signal(SIGINT, RequestStop);
     std::signal(SIGTERM, RequestStop);
-    std::unique_ptr<raisim::RaisimServer> server;
-    if (!options.headless) {
-      server = std::make_unique<raisim::RaisimServer>(&scene.world());
-      server->launchServer(options.port);
-      server->setCameraPositionAndLookAt({1.0, -0.6, 0.65}, {0.42, 0.1, 0.25});
-      raisim_examples::warnIfNoClientConnected(*server);
-    }
+    raisim::RaisimServer server(&scene.world());
+    server.launchServer(options.port);
+    server.setCameraPositionAndLookAt({1.0, -0.6, 0.65}, {0.42, 0.1, 0.25});
+    raisim_examples::warnIfNoClientConnected(server);
 
-    std::size_t steps = 0;
     std::size_t reported_cycles = 0;
     std::size_t previous_phase = cloth_fold::kPhases.size();
     bool success = true;
-    const auto begin = std::chrono::steady_clock::now();
     while (!stop_requested && (options.cycles == 0 || scene.completed_cycles() < options.cycles)) {
-      if (server) {
-        RS_TIMED_LOOP(static_cast<int>(cloth_fold::kTimeStep * 1e6))
-        server->integrateWorldThreadSafe([&scene] { scene.Update(); });
-      } else {
-        scene.Step();
-      }
+      RS_TIMED_LOOP(static_cast<int>(cloth_fold::kTimeStep * 1e6))
+      server.integrateWorldThreadSafe([&scene] { scene.Update(); });
       if (scene.phase_index() != previous_phase) {
         previous_phase = scene.phase_index();
         std::cout << cloth_fold::kPhases[previous_phase].name << '\n';
       }
-      ++steps;
       if (scene.completed_cycles() != reported_cycles) {
         reported_cycles = scene.completed_cycles();
         success &= scene.last_result().IsSuccessful() && scene.last_result().max_mimic_error < 1e-7;
         PrintResult(reported_cycles, scene.last_result());
       }
     }
-    const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
-    if (server) {
-      server->killServer();
-    }
+    server.killServer();
     if (stop_requested) {
       return 130;
-    }
-    if (options.headless) {
-      std::cout << "cycles=" << scene.completed_cycles() << " steps=" << steps << " elapsed_s=" << seconds << " us_per_step=" << 1e6 * seconds / static_cast<double>(steps)
-                << " real_time_factor=" << static_cast<double>(steps) * cloth_fold::kTimeStep / seconds << '\n';
     }
     return success ? 0 : 1;
   } catch (const std::exception& error) {

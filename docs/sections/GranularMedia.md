@@ -211,9 +211,10 @@ substepping. Defaults are shown in parentheses:
 - `tangentialDamping` (0 N s/m): tangential relative-velocity damping.
 - `friction` (0.5): Coulomb friction coefficient. It is also the initial
   value of particle material 0 and of the boundary material.
-- `rollingFriction` (0): rolling-friction coefficient; the resisting torque
-  is `rollingFriction * normalForce * radius`. Like `friction`, it
-  initializes particle material 0 and the boundary material.
+- `rollingFriction` (0): rolling-friction coefficient. It initializes
+  particle material 0 and the boundary material. See
+  [Particle Materials And Boundary Materials](#particle-materials-and-boundary-materials)
+  for the contact torque.
 - `cohesionStiffness` (0) and `cohesionMaxDistance` (0 m): particle-particle
   cohesion. While the surface gap `g` is at most `cohesionMaxDistance`, the
   attractive force is `cohesionStiffness * (cohesionMaxDistance - max(0, g))`.
@@ -260,15 +261,28 @@ grains->setParticleMaterialId(17, 1);
 ```
 
 Particle-particle friction uses the geometric mean of the two materials'
-friction coefficients; when both particles have the same material id, that
-material's friction is used directly. Rolling friction is not mixed between
-particles: each particle uses its own material's rolling coefficient. Material
-ids that were never defined with `setParticleMaterial` use the global
-`friction` and `rollingFriction` values.
+friction coefficients. When both particles have the same material id, that
+material's friction is used directly. Material ids that were never defined
+with `setParticleMaterial` use the global `friction` and `rollingFriction`
+values.
+
+Rolling friction between two dynamic particles applies equal and opposite
+torques. The maximum torque is the geometric mean of their rolling
+coefficients times the repulsive normal force times `2 * rA * rB / (rA + rB)`,
+where `rA` and `rB` are the particle radii. Dynamic-pair rolling contacts are
+processed in contact order after all other torques for the substep have been
+accumulated. Each contact predicts the pair's angular velocities using those
+torques and the rolling torques from earlier dynamic-pair contacts. Its rolling
+impulse opposes the predicted relative angular velocity and is capped at the
+amount that would equalize the predicted angular velocities.
+At a contact with a fixed particle, the torque scale uses the moving particle's
+rolling coefficient and radius.
 
 The boundary material is mixed with each particle material (geometric mean of
 both coefficients) for ground, container, height-map, rigid-body, compound,
-mesh, and articulated contacts:
+mesh, and articulated contacts. The rolling torque magnitude for these
+contacts is the mixed rolling coefficient times the repulsive normal force
+times the particle radius.
 
 ```cpp
 grains->setBoundaryMaterial({0.7, 0.02});

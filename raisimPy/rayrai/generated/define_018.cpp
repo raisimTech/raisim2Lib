@@ -2,6 +2,34 @@
 #include "conversion.hpp"
 namespace rayrai_py {
 void define_018(py::module_& m) {
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"localBoundsRadius", &raisin::MeshPreprocessMetadata::localBoundsRadius);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasAlphaMaskedOrFoliageMaterial", &raisin::MeshPreprocessMetadata::hasAlphaMaskedOrFoliageMaterial);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasTransparentMaterial", &raisin::MeshPreprocessMetadata::hasTransparentMaterial);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasSpecialBlendMode", &raisin::MeshPreprocessMetadata::hasSpecialBlendMode);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"hasPlanarReflectionMeshes", &raisin::MeshPreprocessMetadata::hasPlanarReflectionMeshes);}
+{auto c=bound_class<raisin::MeshPreprocessMetadata>(m, "MeshPreprocessMetadata"); field(c,"maxRenderPriority", &raisin::MeshPreprocessMetadata::maxRenderPriority);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); default_constructor(c);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"environmentCubemap", &raisin::PbrEnvironment::environmentCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"irradianceCubemap", &raisin::PbrEnvironment::irradianceCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"prefilteredCubemap", &raisin::PbrEnvironment::prefilteredCubemap);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"splitSumBrdfLut", &raisin::PbrEnvironment::splitSumBrdfLut);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"prefilteredMipCount", &raisin::PbrEnvironment::prefilteredMipCount);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"strength", &raisin::PbrEnvironment::strength);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxProjection", &raisin::PbrEnvironment::boxProjection);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"probePosition", &raisin::PbrEnvironment::probePosition);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxMin", &raisin::PbrEnvironment::boxMin);}
+{auto c=bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment"); field(c,"boxMax", &raisin::PbrEnvironment::boxMax);}
+bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment").def("isComplete", [](raisin::PbrEnvironment& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.isComplete(); return wrap(state,result); }, "/** @return True when all four texture handles are non-zero. */\nC++: bool () const");
+bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment").def_static("loadFromHdrFile", [](Arg<const std::basic_string<char> &> a0) { auto state=current_state(); Guard guard(state,true); decltype(auto) n0=unwrap<const std::basic_string<char> &>(a0,state); decltype(auto) result=raisin::PbrEnvironment::loadFromHdrFile(n0); return wrap(state,result); }, py::arg("hdrPath"), "/**\n   * @brief Build a complete PbrEnvironment from a single Radiance .hdr file.\n   *\n   * Loads the equirectangular cubemap, integrates the diffuse irradiance,\n   * computes the GGX-prefiltered specular cubemap, and creates the split-sum\n   * BRDF LUT. All four handles are owned by the active GL context and remain\n   * valid for the lifetime of that context.\n   *\n   * Each handle that fails to build (for example because the file cannot be\n   * read) is 0, and `isComplete()` then returns false. Handles that did build,\n   * such as the file-independent BRDF LUT, are still returned.\n   *\n   * Defined inline in RayraiWindow.hpp so the static cubemap creators are\n   * visible.\n   *\n   * @param hdrPath Path to the equirectangular Radiance .hdr file.\n   * @return The baked environment; check isComplete() before use.\n   */\nC++: PbrEnvironment (const std::string &)");
+bound_class<raisin::PbrEnvironment>(m, "PbrEnvironment").def_static("loadFromHdrFile", [](Arg<const std::basic_string<char> &> a0, Arg<const raisin::PbrEnvironment::LoadOptions &> a1) { auto state=current_state(); Guard guard(state,true); decltype(auto) n0=unwrap<const std::basic_string<char> &>(a0,state); decltype(auto) n1=unwrap<const raisin::PbrEnvironment::LoadOptions &>(a1,state); decltype(auto) result=raisin::PbrEnvironment::loadFromHdrFile(n0, n1); return wrap(state,result); }, py::arg("hdrPath"), py::arg("opts"), "/// @copydoc loadFromHdrFile(const std::string&)\n  /// @param opts Face sizes, sample counts and strength used for the bake.\nC++: PbrEnvironment (const std::string &, const LoadOptions &)");
+{auto c=bound_class<raisin::PhysicsLinkPose>(m, "PhysicsLinkPose"); default_constructor(c);}
+{auto c=bound_class<raisin::PhysicsLinkPose>(m, "PhysicsLinkPose"); field(c,"position", &raisin::PhysicsLinkPose::position);}
+{auto c=bound_class<raisin::PhysicsLinkPose>(m, "PhysicsLinkPose"); field(c,"rotation", &raisin::PhysicsLinkPose::rotation);}
+{auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); default_constructor(c);}
+{auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); field(c,"revision", &raisin::PhysicsMeshSnapshot::revision);}
+{auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); field(c,"topologyRevision", &raisin::PhysicsMeshSnapshot::topologyRevision);}
+{auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); field(c,"blocks", &raisin::PhysicsMeshSnapshot::blocks);}
+{auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); field(c,"indices", &raisin::PhysicsMeshSnapshot::indices);}
 {auto c=bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot"); field(c,"samples", &raisin::PhysicsMeshSnapshot::samples);}
 bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot").def("vertexCount", [](raisin::PhysicsMeshSnapshot& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.vertexCount(); return wrap(state,result); }, "\nC++: size_t () const");
 bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot").def("vertex", [](raisin::PhysicsMeshSnapshot& self, Arg<std::size_t> a0) { auto state=current_state(); Guard guard(state,false); decltype(auto) n0=unwrap<std::size_t>(a0,state); decltype(auto) result=self.vertex(n0); return wrap(state,result); }, py::arg("index"), "\nC++: const Vertex &(size_t) const");
@@ -21,6 +49,7 @@ bound_class<raisin::PhysicsMeshSnapshot>(m, "PhysicsMeshSnapshot").def("vertices
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometryRevision", &raisin::PhysicsRenderDescription::geometryRevision);}
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearanceRevision", &raisin::PhysicsRenderDescription::appearanceRevision);}
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"appearance", &raisin::PhysicsRenderDescription::appearance);}
+{auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"objectName", &raisin::PhysicsRenderDescription::objectName);}
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"visualCount", &raisin::PhysicsRenderDescription::visualCount);}
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"geometry", &raisin::PhysicsRenderDescription::geometry);}
 bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription").def("shapes", [](raisin::PhysicsRenderDescription& self) { auto state=current_state(); Guard guard(state,false);  decltype(auto) result=self.shapes(); return wrap(state,result); }, "\nC++: const std::vector<PhysicsShapeSnapshot> &() const");
@@ -28,34 +57,5 @@ bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription").def
 {auto c=bound_class<raisin::PhysicsRenderDescription>(m, "PhysicsRenderDescription"); field(c,"segmentationLabels", &raisin::PhysicsRenderDescription::segmentationLabels);}
 {auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); default_constructor(c);}
 {auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"shape", &raisin::PhysicsShapeSnapshot::shape);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"dimensions", &raisin::PhysicsShapeSnapshot::dimensions);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"scale", &raisin::PhysicsShapeSnapshot::scale);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"offset", &raisin::PhysicsShapeSnapshot::offset);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"rotation", &raisin::PhysicsShapeSnapshot::rotation);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localModel", &raisin::PhysicsShapeSnapshot::localModel);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"localIdx", &raisin::PhysicsShapeSnapshot::localIdx);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"fileName", &raisin::PhysicsShapeSnapshot::fileName);}
-{auto c=bound_class<raisin::PhysicsShapeSnapshot>(m, "PhysicsShapeSnapshot"); field(c,"resourceDirectory", &raisin::PhysicsShapeSnapshot::resourceDirectory);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); default_constructor(c);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"simTime", &raisin::PhysicsSnapshot::simTime);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"configuration", &raisin::PhysicsSnapshot::configuration);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"topologyRevision", &raisin::PhysicsSnapshot::topologyRevision);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"objects", &raisin::PhysicsSnapshot::objects);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"tendons", &raisin::PhysicsSnapshot::tendons);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"explosions", &raisin::PhysicsSnapshot::explosions);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"projectiles", &raisin::PhysicsSnapshot::projectiles);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"projectileHits", &raisin::PhysicsSnapshot::projectileHits);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"launches", &raisin::PhysicsSnapshot::launches);}
-{auto c=bound_class<raisin::PhysicsSnapshot>(m, "PhysicsSnapshot"); field(c,"wind", &raisin::PhysicsSnapshot::wind);}
-bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("__init__", [](raisin::PhysicsSnapshotCapture* self){ auto state=current_state(); Guard guard(state,false);  new(self) raisin::PhysicsSnapshotCapture(); });
-bound_class<raisin::PhysicsSnapshotCapture>(m, "PhysicsSnapshotCapture").def("capture", [](raisin::PhysicsSnapshotCapture& self, Arg<raisim::World &> a0) { auto state=current_state(); Guard guard(state,false); decltype(auto) n0=unwrap<raisim::World &>(a0,state); decltype(auto) result=self.capture(n0); return wrap(state,result); }, py::arg("world"), "\nC++: std::shared_ptr<const PhysicsSnapshot> (raisim::World &)");
-{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); default_constructor(c);}
-{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"name", &raisin::PhysicsTendonSnapshot::name);}
-{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"color", &raisin::PhysicsTendonSnapshot::color);}
-{auto c=bound_class<raisin::PhysicsTendonSnapshot>(m, "PhysicsTendonSnapshot"); field(c,"instances", &raisin::PhysicsTendonSnapshot::instances);}
-bound_class<Handle<raisin::PointCloud>>(m, "PointCloud").def("__init__", [](Handle<raisin::PointCloud>* self, const Viewer& viewer){ auto state=viewer.state; Guard guard(state);  auto value=std::shared_ptr<raisin::PointCloud>(new raisin::PointCloud()); new(self) Handle<raisin::PointCloud>(own(state,std::move(value))); }, py::arg("viewer"));
-{auto c=bound_class<Handle<raisin::PointCloud>>(m, "PointCloud"); field(c,"positions", &raisin::PointCloud::positions);}
-{auto c=bound_class<Handle<raisin::PointCloud>>(m, "PointCloud"); field(c,"colors", &raisin::PointCloud::colors);}
-{auto c=bound_class<Handle<raisin::PointCloud>>(m, "PointCloud"); field(c,"pointSize", &raisin::PointCloud::pointSize);}
 }
 }

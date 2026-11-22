@@ -176,17 +176,31 @@ export default defineConfig({
       {
         text: 'Docs',
         link: '/sections/Overview.html',
-        activeMatch: '^/sections/(?!(?:Web|WebAssembly|BrowserSceneEditor)(?:\\.html)?$|Benchmark(?:Newton)?$|Examples$|examples/|Rayrai$|rayrai/)',
+        activeMatch: '^/sections/(?!(?:Web|WebAssembly|BrowserSceneEditor)(?:\\.html)?$|(?:Benchmark[A-Za-z]*|LinearElasticityBenchmarks)(?:\\.html)?$|Examples$|examples/|Rayrai$|rayrai/)',
       },
       { text: 'Examples', link: '/sections/Examples.html', activeMatch: '^/sections/(Examples$|examples/)' },
       { text: 'Rendering', link: '/sections/Rayrai.html', activeMatch: '^/sections/(Rayrai$|rayrai/)' },
       { text: 'Web', link: '/sections/Web.html', activeMatch: '^/sections/(?:Web|WebAssembly|BrowserSceneEditor)(?:\\.html)?$' },
       {
         text: 'Benchmarks',
-        activeMatch: '^/sections/Benchmark(?:Newton)?$',
+        activeMatch: '^/sections/(?:Benchmark[A-Za-z]*|LinearElasticityBenchmarks)(?:\\.html)?$',
         items: [
-          { text: 'RaiSim vs MuJoCo', link: '/sections/Benchmark.html' },
-          { text: 'RaiSim vs Newton', link: '/sections/BenchmarkNewton.html' },
+          { text: 'Overview', link: '/sections/BenchmarkOverview.html' },
+          {
+            text: 'Physics engines',
+            items: [
+              { text: 'RaiSim vs MuJoCo', link: '/sections/Benchmark.html' },
+              { text: 'RaiSim vs Newton', link: '/sections/BenchmarkNewton.html' },
+            ],
+          },
+          {
+            text: 'Deformable solids',
+            items: [{ text: 'Linear elasticity', link: '/sections/LinearElasticityBenchmarks.html' }],
+          },
+          {
+            text: 'Ray casting',
+            items: [{ text: 'Voxel ray casting', link: '/sections/BenchmarkVoxelRayCasting.html' }],
+          },
         ],
       },
       { text: 'API', link: '/api/', activeMatch: '^/api/' },

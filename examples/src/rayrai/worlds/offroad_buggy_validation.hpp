@@ -1,6 +1,6 @@
 #pragma once
-// Physics checks of the off-road buggy (rayrai_offroad_buggy --validate) and the autopilot used by
-// them and by --screenshot.
+// Physics checks of the off-road buggy (rayrai_offroad_buggy --validate) and the autopilot that
+// drives their lap.
 //
 // Each check compares the simulation with an independent prediction:
 //   1. Static equilibrium on flat ground: the wheel loads carry the weight, and their front/rear

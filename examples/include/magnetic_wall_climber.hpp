@@ -40,7 +40,10 @@ constexpr double kThigh = 0.213;
 constexpr double kCalf = 0.213;
 constexpr double kFootRadius = 0.02;
 
-// The wall's face is the plane x = 0; the robot climbs along +z.
+// The wall's face is the plane x = 0. It looks along -x, toward the sun of the
+// TCP viewer's default lighting, and the robot climbs it along +z.
+inline Eigen::Vector3d faceNormal() { return -Eigen::Vector3d::UnitX(); }
+constexpr double kWallThickness = 0.3;
 constexpr double kWallHeight = 4.0;
 constexpr double kWallWidth = 3.0;
 // Distance between the base and the wall [m].
@@ -68,6 +71,11 @@ constexpr double kJointP = 120.0;
 constexpr double kJointD = 3.0;
 
 constexpr std::array<const char*, 4> kLegNames{"FR", "FL", "RR", "RL"};
+
+/// `point` moved along the face normal to `distance` in front of the face [m].
+inline Eigen::Vector3d inFrontOfFace(const Eigen::Vector3d& point, double distance) {
+  return point + (distance - point.dot(faceNormal())) * faceNormal();
+}
 
 /// Joint angles (abduction, hip, knee) that put a Go1 foot center at `foot`,
 /// given in the base frame relative to the leg's abduction joint. `side` is
@@ -133,7 +141,7 @@ class Scene {
   void advanceGait();
   void control();
   Eigen::Vector3d nominalFoot(const Leg& leg) const;
-  Eigen::Vector3d bodyPosition() const { return {kBaseHeight, 0.0, bodyHeight_}; }
+  Eigen::Vector3d bodyPosition() const { return inFrontOfFace({0.0, 0.0, bodyHeight_}, kBaseHeight); }
 
   raisim::World world_;
   raisim::ArticulatedSystem* robot_ = nullptr;
@@ -159,10 +167,10 @@ inline Scene::Scene(const std::string& go1Urdf, bool magnets) : magnets_(magnets
   world_.setTimeStep(kTimeStep);
   world_.setMagneticMaterial("steel");
   world_.addGround(0.0, "concrete");
-  auto* wall = world_.addBox(0.3, kWallWidth, kWallHeight, 1.0, "steel");
+  auto* wall = world_.addBox(kWallThickness, kWallWidth, kWallHeight, 1.0, "steel");
   wall->setName("steel_wall");
   wall->setBodyType(raisim::BodyType::STATIC);
-  wall->setPosition(-0.15, 0.0, 0.5 * kWallHeight);
+  wall->setPosition(Eigen::Vector3d(0.5 * kWallHeight * Eigen::Vector3d::UnitZ() - 0.5 * kWallThickness * faceNormal()));
   wall->setAppearance("0.45,0.48,0.52,1");
   world_.setMaterialPairProp("steel", "magnet_sole", kSoleFriction, 0.0, 0.0);
 
@@ -173,8 +181,8 @@ inline Scene::Scene(const std::string& go1Urdf, bool magnets) : magnets_(magnets
 
   // The base faces up the wall, its belly toward the steel.
   wallOrientation_.col(0) = Eigen::Vector3d::UnitZ();
-  wallOrientation_.col(1) = -Eigen::Vector3d::UnitY();
-  wallOrientation_.col(2) = Eigen::Vector3d::UnitX();
+  wallOrientation_.col(2) = faceNormal();
+  wallOrientation_.col(1) = wallOrientation_.col(2).cross(wallOrientation_.col(0));
 
   // The sole faces the wall when the leg stands at its nominal pose, so it is
   // tilted against the shank by the shank's pitch there.
@@ -214,8 +222,7 @@ inline Scene::Scene(const std::string& go1Urdf, bool magnets) : magnets_(magnets
   for (auto& leg : legs_) {
     const Eigen::Vector3d foot = nominalFoot(leg);
     gc.segment<3>(leg.joint + 1) = legIk(foot - leg.hip, leg.side);
-    leg.foothold = bodyPosition() + wallOrientation_ * foot;
-    leg.foothold.x() = kFootRadius - kPreload;
+    leg.foothold = inFrontOfFace(bodyPosition() + wallOrientation_ * foot, kFootRadius - kPreload);
   }
   robot_->setGeneralizedCoordinate(gc);
   robot_->setGeneralizedVelocity(Eigen::VectorXd::Zero(robot_->getDOF()));
@@ -310,8 +317,7 @@ inline void Scene::control() {
     phases[i] = std::fmod(phase_ + leg.phaseOffset, 1.0);
     const bool stance = phases[i] < kDuty;
     if (stance && !leg.stance) {
-      leg.foothold = footPosition(i);
-      leg.foothold.x() = kFootRadius - kPreload;
+      leg.foothold = inFrontOfFace(footPosition(i), kFootRadius - kPreload);
     } else if (!stance && leg.stance) {
       leg.liftoff = footPosition(i);
     }
@@ -335,11 +341,11 @@ inline void Scene::control() {
     if (!leg.stance) {
       const double progress = (phases[i] - kDuty) / (1.0 - kDuty);
       const double remaining = (1.0 - progress) * swingTime;
-      Eigen::Vector3d landing = body + velocity * (remaining + 0.5 * stanceTime) + wallOrientation_ * nominalFoot(leg);
-      landing.x() = kFootRadius - kPreload;
+      const Eigen::Vector3d landing = inFrontOfFace(
+          body + velocity * (remaining + 0.5 * stanceTime) + wallOrientation_ * nominalFoot(leg), kFootRadius - kPreload);
       const double blend = progress * progress * progress * (10.0 - 15.0 * progress + 6.0 * progress * progress);
       foot = leg.liftoff + blend * (landing - leg.liftoff);
-      foot.x() += kClearance * std::sin(kPi * progress);
+      foot += kClearance * std::sin(kPi * progress) * faceNormal();
     }
     leg.target = foot;
     const Eigen::Vector3d inBase = leg.stance ? Eigen::Vector3d(wallOrientation_.transpose() * (foot - body))

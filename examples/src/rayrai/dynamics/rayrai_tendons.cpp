@@ -2,7 +2,6 @@
 #include "rayrai/PhysicsSnapshot.hpp"
 #include "rayrai/example_common.hpp"
 #include "rayrai_example_compat.hpp"
-#include "rayrai_example_utils.hpp"
 #include "tendon_example_runner.hpp"
 
 using namespace raisim_examples::tendons;
@@ -22,19 +21,12 @@ void positionCamera(raisin::RayraiWindow& viewer, Kind kind) {
   c.setCameraFixedDistance(true);
   c.update(false);
 }
-void capture(raisin::RayraiWindow& viewer, const std::string& file) {
-  const auto& camera = viewer.getCamera();
-  if (!raisim_examples::saveTexturePng(viewer.getImageTexture(), camera.rtWidth(), camera.rtHeight(), file))
-    throw std::runtime_error("cannot write screenshot: " + file);
-  std::cout << "Screenshot " << std::filesystem::path(file) << '\n';
-}
 int run(const Options& options) {
   if (!options.key.empty()) World::setActivationKey(options.key);
   auto scene = std::make_unique<Scene>(options.kind);
   exportScene(*scene, options.exportXml);
-  if (options.headless) return runHeadless(*scene, options.steps);
   ExampleApp app;
-  if (!app.init("RaiSim tendon examples", 1280, 720, !options.hidden)) return 77;
+  if (!app.init("RaiSim tendon examples", 1280, 720)) return 1;
   struct Cleanup {
     ExampleApp& app;
     ~Cleanup() { app.shutdown(); }
@@ -48,28 +40,27 @@ int run(const Options& options) {
   raisim_examples::setRayraiBackgroundColorRgb255(*viewer, {30, 34, 42, 255});
   raisim_examples::addRayraiBasicSceneLights(*viewer);
   positionCamera(*viewer, options.kind);
-  int selected = static_cast<int>(options.kind), frames = 0, steps = 0;
+  int selected = static_cast<int>(options.kind);
   bool paused = false, oneStep = false;
   double accumulator = 0.;
   float speed = 1.;
   auto previous = std::chrono::steady_clock::now();
-  while (!app.quit && (options.frames < 0 || frames < options.frames) && (options.steps < 0 || steps < options.steps)) {
+  while (!app.quit) {
     app.processEvents();
     if (app.quit) break;
     const auto now = std::chrono::steady_clock::now();
     const double elapsed = std::min(0.05, std::chrono::duration<double>(now - previous).count());
     previous = now;
     if (!paused)
-      accumulator += (options.frames >= 0 || options.hidden) ? 0.016 : elapsed * speed;
+      accumulator += elapsed * speed;
     else
       accumulator = 0.;
     if (oneStep) {
       accumulator = scene->world->getTimeStep();
       oneStep = false;
     }
-    while (accumulator + 1e-12 >= scene->world->getTimeStep() && (options.steps < 0 || steps < options.steps)) {
+    while (accumulator + 1e-12 >= scene->world->getTimeStep()) {
       scene->step();
-      ++steps;
       accumulator -= scene->world->getTimeStep();
     }
     // Capture after the physics batch. No World access is needed while drawing.
@@ -98,27 +89,13 @@ int run(const Options& options) {
     if (scene->kind == Kind::Coupling || scene->kind == Kind::All) ImGui::TextUnformatted("Orange A / turquoise B: delta(LB) = -0.65 * delta(LA).");
     ImGui::End();
     app.endFrame();
-    ++frames;
     if (reset) {
       scene = std::make_unique<Scene>(static_cast<Kind>(selected));
       // The next snapshot replaces the old scene, including its automatic tendon visuals.
       positionCamera(*viewer, scene->kind);
       accumulator = 0.;
-      steps = 0;
     }
   }
-  size_t segments = 0;
-  if (frames > 0) {
-    for (const auto& tendon : scene->world->getTendons()) {
-      auto visual = viewer->getTendonVisual(tendon->getName());
-      if (tendon->getType() == Tendon::Type::Spatial && (!visual || visual->count() == 0)) throw std::runtime_error("missing automatic tendon visualization");
-      if (visual) segments += visual->count();
-    }
-    if (options.frames >= 0 && scene->kind == Kind::Coupling && segments < 2) throw std::runtime_error("coupling example must display both coupled cables");
-    if (!options.screenshot.empty()) capture(*viewer, options.screenshot);
-    if (gl::glGetError() != gl::GL_NO_ERROR) throw std::runtime_error("OpenGL error in tendon example");
-  }
-  std::cout << "frames=" << frames << " steps=" << steps << " visual_segments=" << segments << '\n';
   return 0;
 }
 }  // namespace

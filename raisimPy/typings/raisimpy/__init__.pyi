@@ -1875,6 +1875,8 @@ class ObjectType(enum.IntEnum):
 
     UNRECOGNIZED = 12
 
+    VOXELMAP = 13
+
 class MeshCollisionMode(enum.IntEnum):
     ORIGINAL_MESH = 0
 
@@ -1914,6 +1916,40 @@ class Object:
             name (str): object's name.
         """
 
+    @overload
+    def setSegmentationLabel(self, label: int) -> None:
+        """
+        Set the semantic label segmentation cameras report for this object (0, the default, is unlabeled).
+
+        Args:
+            label (int): non-negative label.
+        """
+
+    @overload
+    def setSegmentationLabel(self, label: int) -> None:
+        """
+        Set the semantic label segmentation cameras report for this object (0 means unlabeled).
+
+        Args:
+            label (int): non-negative label, e.g. from World.addSegmentationClass().
+        """
+
+    @overload
+    def getSegmentationLabel(self) -> int:
+        """
+        Returns:
+            int: the label set with setSegmentationLabel().
+        """
+
+    @overload
+    def getSegmentationLabel(self) -> int:
+        """
+        Get the semantic label set by setSegmentationLabel().
+
+        Returns:
+            int: the label (0 if none).
+        """
+
     def setIndexInWorld(self, index: int) -> None:
         """
         Set the object index in the world.
@@ -1928,22 +1964,6 @@ class Object:
 
         Returns:
             int: object index in the world.
-        """
-
-    def setSegmentationLabel(self, label: int) -> None:
-        """
-        Set the semantic label segmentation cameras report for this object (0 means unlabeled).
-
-        Args:
-            label (int): non-negative label, e.g. from World.addSegmentationClass().
-        """
-
-    def getSegmentationLabel(self) -> int:
-        """
-        Get the semantic label set by setSegmentationLabel().
-
-        Returns:
-            int: the label (0 if none).
         """
 
     def getId(self) -> int: ...
@@ -3621,6 +3641,42 @@ class ArticulatedSystem(Object):
             int: body index.
         """
 
+    @overload
+    def setBodySegmentationLabel(self, body_idx: int, label: int) -> None:
+        """
+        Give one body its own segmentation label; it takes precedence over the object label.
+
+        Args:
+            body_idx (int): body index.
+            label (int): non-negative label.
+        """
+
+    @overload
+    def setBodySegmentationLabel(self, body_name: str, label: int) -> None: ...
+
+    @overload
+    def setBodySegmentationLabel(self, bodyIdx: int, label: int) -> None: ...
+
+    @overload
+    def setBodySegmentationLabel(self, body: str, label: int) -> None: ...
+
+    @overload
+    def getBodySegmentationLabel(self, body_idx: int) -> int:
+        """
+        Returns:
+            int: the label of the body, its own or the object label.
+        """
+
+    @overload
+    def getBodySegmentationLabel(self, bodyIdx: int) -> int: ...
+
+    @overload
+    def clearBodySegmentationLabels(self) -> None:
+        """Remove the body labels; every body takes the object label again."""
+
+    @overload
+    def clearBodySegmentationLabels(self) -> None: ...
+
     def getDOF(self) -> int:
         """
         Return the number of degrees of freedom.
@@ -4109,8 +4165,6 @@ class ArticulatedSystem(Object):
     def getMappingFromBodyIndexToGeneralizedCoordinateIndex(self) -> list[int]: ...
 
     def getMappingFromBodyIndexToGeneralizedVelocityIndex(self) -> list[int]: ...
-    def getLoopJointNames(self) -> list[str]:
-        """Names of the joints added by World.joinObjects() that close a kinematic loop."""
 
     def getJoint(self, name: str) -> JointRef: ...
 
@@ -4150,7 +4204,6 @@ class ArticulatedSystem(Object):
     def getMinvJT(self) -> list: ...
 
     def getj_MinvJT_T1D(self) -> list: ...
-
 
     def getVisObPose(self, idx: int) -> tuple: ...
 
@@ -4217,15 +4270,50 @@ class ArticulatedSystem(Object):
             orientation (np.array[float[3]], np.array[float[4]], np.array[float[3,3]]): orientation offset.
         """
 
-    @overload
-    def setBodySegmentationLabel(self, bodyIdx: int, label: int) -> None: ...
+    def setThrusters(self, thrusters: Sequence[ThrusterDefinition]) -> None: ...
+
+    def getThrusters(self) -> list[ThrusterDefinition]: ...
+
+    def getThrusterIndex(self, name: str) -> int: ...
 
     @overload
-    def setBodySegmentationLabel(self, body: str, label: int) -> None: ...
+    def setThrust(self, index: int, thrust: float) -> None: ...
 
-    def getBodySegmentationLabel(self, bodyIdx: int) -> int: ...
+    @overload
+    def setThrust(self, name: str, thrust: float) -> None: ...
 
-    def clearBodySegmentationLabels(self) -> None: ...
+    def setThrusts(self, thrusts: Annotated[NDArray[numpy.float64], dict(shape=(None,), order='C')]) -> None: ...
+
+    def getThrust(self, index: int) -> float: ...
+
+    def getThrusts(self) -> list[float]: ...
+
+    def getThrusterPose(self, index: int) -> tuple:
+        """(position, axis) of the thruster in the world frame"""
+
+    def setGrippers(self, grippers: Sequence[GripperDefinition]) -> None: ...
+
+    def getGrippers(self) -> list[GripperDefinition]: ...
+
+    def getGripperIndex(self, name: str) -> int: ...
+
+    @overload
+    def setGripperActive(self, index: int, active: bool) -> None: ...
+
+    @overload
+    def setGripperActive(self, name: str, active: bool) -> None: ...
+
+    def isGripperActive(self, index: int) -> bool: ...
+
+    def getGripperState(self, index: int) -> GripperState: ...
+
+    def getGripperPose(self, index: int) -> tuple:
+        """(position, axis) of the pad in the world frame"""
+
+    def getLoopJointNames(self) -> list[str]:
+        """
+        Names of the joints added by World.joinObjects() that close a kinematic loop.
+        """
 
     class IKOptions:
         def __init__(self) -> None: ...
@@ -4421,46 +4509,259 @@ class ArticulatedSystem(Object):
 
     def getTrackSpeed(self, index: int) -> float: ...
 
-
-    def setThrusters(self, thrusters: Sequence[ThrusterDefinition]) -> None: ...
-
-    def getThrusters(self) -> list[ThrusterDefinition]: ...
-
-    def getThrusterIndex(self, name: str) -> int: ...
+class Joint:
+    """
+    A joint of an articulated system, used by World.joinObjects(). Its frame (position, orientation) is expressed in the parent body frame and its axis in the joint frame.
+    """
 
     @overload
-    def setThrust(self, index: int, thrust: float) -> None: ...
+    def __init__(self) -> None: ...
 
     @overload
-    def setThrust(self, name: str, thrust: float) -> None: ...
+    def __init__(self, type: JointType, name: str, position: Sequence[float] = [0.0, 0.0, 0.0], axis: Sequence[float] = [0.0, 0.0, 1.0], orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None) -> None: ...
 
-    def setThrusts(self, thrusts: Annotated[NDArray[numpy.float64], dict(shape=(None,), order='C')]) -> None: ...
+    @property
+    def type(self) -> JointType: ...
 
-    def getThrust(self, index: int) -> float: ...
+    @type.setter
+    def type(self, arg: JointType, /) -> None: ...
 
-    def getThrusts(self) -> list[float]: ...
+    @property
+    def name(self) -> str: ...
 
-    def getThrusterPose(self, index: int) -> tuple:
-        """(position, axis) of the thruster in the world frame"""
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
 
-    def setGrippers(self, grippers: Sequence[GripperDefinition]) -> None: ...
+    @property
+    def orientation(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
-    def getGrippers(self) -> list[GripperDefinition]: ...
+    @orientation.setter
+    def orientation(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
 
-    def getGripperIndex(self, name: str) -> int: ...
+    @property
+    def damping(self) -> float: ...
 
-    @overload
-    def setGripperActive(self, index: int, active: bool) -> None: ...
+    @damping.setter
+    def damping(self, arg: float, /) -> None: ...
 
-    @overload
-    def setGripperActive(self, name: str, active: bool) -> None: ...
+    @property
+    def friction(self) -> float: ...
 
-    def isGripperActive(self, index: int) -> bool: ...
+    @friction.setter
+    def friction(self, arg: float, /) -> None: ...
 
-    def getGripperState(self, index: int) -> GripperState: ...
+    @property
+    def stiffness(self) -> float: ...
 
-    def getGripperPose(self, index: int) -> tuple:
-        """(position, axis) of the pad in the world frame"""
+    @stiffness.setter
+    def stiffness(self, arg: float, /) -> None: ...
+
+    @property
+    def rotorInertia(self) -> float: ...
+
+    @rotorInertia.setter
+    def rotorInertia(self, arg: float, /) -> None: ...
+
+    @property
+    def effort(self) -> float: ...
+
+    @effort.setter
+    def effort(self, arg: float, /) -> None: ...
+
+    @property
+    def velocityLimit(self) -> float: ...
+
+    @velocityLimit.setter
+    def velocityLimit(self, arg: float, /) -> None: ...
+
+    @property
+    def jointRef(self) -> float: ...
+
+    @jointRef.setter
+    def jointRef(self, arg: float, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @axis.setter
+    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def limit(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @limit.setter
+    def limit(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def springMount(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @springMount.setter
+    def springMount(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class JoinOptions:
+    """Options of World.joinObjects()."""
+
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def childPrefix(self) -> str: ...
+
+    @childPrefix.setter
+    def childPrefix(self, arg: str, /) -> None: ...
+
+class ThrusterDefinition:
+    """
+    A thruster fixed to a link: every step it pushes the link with thrust * axis at its position and turns it with torqueCoefficient * thrust * axis. Position and axis are in the link frame.
+    """
+
+    def __init__(self) -> None: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def link(self) -> str: ...
+
+    @link.setter
+    def link(self, arg: str, /) -> None: ...
+
+    @property
+    def minThrust(self) -> float: ...
+
+    @minThrust.setter
+    def minThrust(self, arg: float, /) -> None: ...
+
+    @property
+    def maxThrust(self) -> float: ...
+
+    @maxThrust.setter
+    def maxThrust(self, arg: float, /) -> None: ...
+
+    @property
+    def torqueCoefficient(self) -> float: ...
+
+    @torqueCoefficient.setter
+    def torqueCoefficient(self, arg: float, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @axis.setter
+    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class GripperDefinition:
+    """
+    A suction cup or an electromagnet on a link. While active, it pulls the first surface within range in front of its pad (along axis) toward the pad. Position and axis are in the link frame.
+    """
+
+    def __init__(self) -> None: ...
+
+    class Type(enum.Enum):
+        SUCTION = 0
+
+        MAGNETIC = 1
+
+    @property
+    def name(self) -> str: ...
+
+    @name.setter
+    def name(self, arg: str, /) -> None: ...
+
+    @property
+    def link(self) -> str: ...
+
+    @link.setter
+    def link(self, arg: str, /) -> None: ...
+
+    @property
+    def type(self) -> GripperDefinition.Type: ...
+
+    @type.setter
+    def type(self, arg: GripperDefinition.Type, /) -> None: ...
+
+    @property
+    def maxForce(self) -> float: ...
+
+    @maxForce.setter
+    def maxForce(self, arg: float, /) -> None: ...
+
+    @property
+    def range(self) -> float: ...
+
+    @range.setter
+    def range(self, arg: float, /) -> None: ...
+
+    @property
+    def sealAngle(self) -> float: ...
+
+    @sealAngle.setter
+    def sealAngle(self, arg: float, /) -> None: ...
+
+    @property
+    def cupRadius(self) -> float: ...
+
+    @cupRadius.setter
+    def cupRadius(self, arg: float, /) -> None: ...
+
+    @property
+    def leakCoefficient(self) -> float: ...
+
+    @leakCoefficient.setter
+    def leakCoefficient(self, arg: float, /) -> None: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @position.setter
+    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    @property
+    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    @axis.setter
+    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+class GripperState:
+    """What a gripper did in the last step."""
+
+    @property
+    def engaged(self) -> bool: ...
+
+    @property
+    def object(self) -> Object: ...
+
+    @property
+    def localIdx(self) -> int: ...
+
+    @property
+    def force(self) -> float: ...
+
+    @property
+    def gap(self) -> float: ...
+
+    @property
+    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class IKOptions:
     def __init__(self) -> None: ...
@@ -4798,136 +5099,6 @@ class Track:
     @property
     def collisionBodies(self) -> list[int]: ...
 
-class ThrusterDefinition:
-    """
-    A thruster fixed to a link: every step it pushes the link with thrust * axis at its position and turns it with torqueCoefficient * thrust * axis. Position and axis are in the link frame.
-    """
-
-    def __init__(self) -> None: ...
-
-    @property
-    def name(self) -> str: ...
-
-    @name.setter
-    def name(self, arg: str, /) -> None: ...
-
-    @property
-    def link(self) -> str: ...
-
-    @link.setter
-    def link(self, arg: str, /) -> None: ...
-
-    @property
-    def minThrust(self) -> float: ...
-
-    @minThrust.setter
-    def minThrust(self, arg: float, /) -> None: ...
-
-    @property
-    def maxThrust(self) -> float: ...
-
-    @maxThrust.setter
-    def maxThrust(self, arg: float, /) -> None: ...
-
-    @property
-    def torqueCoefficient(self) -> float: ...
-
-    @torqueCoefficient.setter
-    def torqueCoefficient(self, arg: float, /) -> None: ...
-
-    @property
-    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
-
-    @position.setter
-    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
-
-    @property
-    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
-
-    @axis.setter
-    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
-
-class GripperDefinition:
-    """
-    A suction cup or an electromagnet on a link. While active, it pulls the first surface within range in front of its pad (along axis) toward the pad. Position and axis are in the link frame.
-    """
-
-    class Type(enum.Enum):
-        SUCTION = 0
-
-        MAGNETIC = 1
-
-    def __init__(self) -> None: ...
-
-    @property
-    def name(self) -> str: ...
-
-    @name.setter
-    def name(self, arg: str, /) -> None: ...
-
-    @property
-    def link(self) -> str: ...
-
-    @link.setter
-    def link(self, arg: str, /) -> None: ...
-
-    @property
-    def type(self) -> GripperDefinition.Type: ...
-
-    @type.setter
-    def type(self, arg: GripperDefinition.Type, /) -> None: ...
-
-    @property
-    def maxForce(self) -> float: ...
-
-    @maxForce.setter
-    def maxForce(self, arg: float, /) -> None: ...
-
-    @property
-    def range(self) -> float: ...
-
-    @range.setter
-    def range(self, arg: float, /) -> None: ...
-
-    @property
-    def sealAngle(self) -> float: ...
-
-    @sealAngle.setter
-    def sealAngle(self, arg: float, /) -> None: ...
-
-    @property
-    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
-
-    @position.setter
-    def position(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
-
-    @property
-    def axis(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
-
-    @axis.setter
-    def axis(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
-
-class GripperState:
-    """What a gripper did in the last step."""
-
-    @property
-    def engaged(self) -> bool: ...
-
-    @property
-    def object(self) -> Object: ...
-
-    @property
-    def localIdx(self) -> int: ...
-
-    @property
-    def force(self) -> float: ...
-
-    @property
-    def gap(self) -> float: ...
-
-    @property
-    def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
-
 class TerrainProperties:
     """Raisim terrain properties"""
 
@@ -5208,6 +5379,63 @@ class HeightMap(SingleBodyObject):
     def getColorMap(self) -> list[ColorRGB]: ...
 
     def getColor(self, x: float, y: float) -> ColorRGB: ...
+
+class VoxelMapResource:
+    """Immutable voxel occupancy that several voxel maps can share."""
+
+    @staticmethod
+    def fromKeys(voxel_size: float, min_key: Sequence[int], size: Sequence[int], keys: Annotated[NDArray, dict(order='C', device='cpu', writable=False)]) -> VoxelMapResource:
+        """Occupancy from an (n, 3) integer array of occupied voxel keys."""
+
+    @staticmethod
+    def fromOccupancy(voxel_size: float, min_key: Sequence[int], size: Sequence[int], occupancy: Annotated[NDArray, dict(order='C', device='cpu', writable=False)]) -> VoxelMapResource:
+        """
+        Occupancy from an array of shape (size_z, size_y, size_x); nonzero entries are occupied.
+        """
+
+class VoxelMap(SingleBodyObject):
+    """
+    A static, editable 3D occupancy map of cubic voxels. Voxel key (i, j, k) occupies the cube [i s, (i + 1) s) x [j s, (j + 1) s) x [k s, (k + 1) s) of the map frame.
+    """
+
+    def getVoxelSize(self) -> float: ...
+
+    def getMinKey(self) -> list[int]: ...
+
+    def getDomainSize(self) -> list[int]: ...
+
+    def getOccupiedCount(self) -> int: ...
+
+    def getRevision(self) -> int: ...
+
+    def isOccupied(self, x: int, y: int, z: int) -> bool: ...
+
+    def getKey(self, point_in_map_frame: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]) -> list[int]: ...
+
+    def getKeyAtWorldPosition(self, world_point: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]) -> list[int]: ...
+
+    def getVoxelCenter(self, key: Sequence[int]) -> Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]: ...
+
+    def setVoxel(self, x: int, y: int, z: int, occupied: bool) -> bool: ...
+
+    def setVoxels(self, keys: Annotated[NDArray, dict(order='C', device='cpu', writable=False)], occupied: bool) -> int:
+        """Set or clear the voxels of an (n, 3) integer key array."""
+
+    def fillBox(self, lo: Sequence[int], hi: Sequence[int], occupied: bool) -> int: ...
+
+    def fillSphere(self, center_in_map_frame: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], radius: float, occupied: bool) -> int: ...
+
+    def setOccupancy(self, occupancy: Annotated[NDArray, dict(order='C', device='cpu', writable=False)]) -> None:
+        """
+        Replace the occupancy with an array of shape (size_z, size_y, size_x); nonzero entries are occupied.
+        """
+
+    def clear(self) -> None: ...
+
+    def getOccupiedKeys(self) -> Annotated[NDArray[numpy.int32], dict(order='C')]:
+        """Keys of every occupied voxel as an (n, 3) int32 array."""
+
+    def makeResource(self) -> VoxelMapResource: ...
 
 class DeformableObject(Object):
     class SolverMode(enum.Enum):
@@ -5792,6 +6020,94 @@ class DeformableTerrain(HeightMap):
     def resetSoil(self) -> None: ...
 
     def pressure(self, sinkage: float, plasticSinkage: float, contactWidth: float) -> float: ...
+
+class RuntimeJoint:
+    class Type(enum.Enum):
+        Fixed = 0
+
+        Ball = 1
+
+        Hinge = 2
+
+        Slider = 3
+
+    class Attachment:
+        def __init__(self, object: Object | None = None, localIndex: int = 0, position: Sequence[float] = [0.0, 0.0, 0.0], orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None) -> None: ...
+
+        @property
+        def object(self) -> Object: ...
+
+        @object.setter
+        def object(self, object: Object | None) -> None: ...
+
+        @property
+        def localIndex(self) -> int: ...
+
+        @localIndex.setter
+        def localIndex(self, arg: int, /) -> None: ...
+
+        @property
+        def position(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+        @position.setter
+        def position(self, arg: Sequence[float], /) -> None: ...
+
+        @property
+        def orientation(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+        @orientation.setter
+        def orientation(self, arg: Annotated[NDArray[numpy.float64], dict(order='C')], /) -> None: ...
+
+    class Properties:
+        def __init__(self) -> None: ...
+
+        @property
+        def positionCorrection(self) -> float: ...
+
+        @positionCorrection.setter
+        def positionCorrection(self, arg: float, /) -> None: ...
+
+        @property
+        def breakForce(self) -> float: ...
+
+        @breakForce.setter
+        def breakForce(self, arg: float, /) -> None: ...
+
+        @property
+        def breakTorque(self) -> float: ...
+
+        @breakTorque.setter
+        def breakTorque(self, arg: float, /) -> None: ...
+
+        @property
+        def collideConnected(self) -> bool: ...
+
+        @collideConnected.setter
+        def collideConnected(self, arg: bool, /) -> None: ...
+
+    def getName(self) -> str: ...
+
+    def getType(self) -> RuntimeJoint.Type: ...
+
+    def getAttachmentA(self) -> RuntimeJoint.Attachment: ...
+
+    def getAttachmentB(self) -> RuntimeJoint.Attachment: ...
+
+    def getProperties(self) -> RuntimeJoint.Properties: ...
+
+    def setProperties(self, properties: RuntimeJoint.Properties) -> None: ...
+
+    def setEnabled(self, enabled: bool) -> None: ...
+
+    def isEnabled(self) -> bool: ...
+
+    def isBroken(self) -> bool: ...
+
+    def resetBreakage(self) -> None: ...
+
+    def getForce(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
+    def getTorque(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class Tendon:
     class Type(enum.Enum):
@@ -6790,110 +7106,73 @@ class RaisimServer:
 
     def addBarChart(self, title: str, names: Sequence[str]) -> BarChart: ...
 
-class RuntimeJoint:
-    class Type(enum.Enum):
-        Fixed = 0
-        Ball = 1
-        Hinge = 2
-        Slider = 3
-
-    class Attachment:
-        def __init__(self, object: Object | None = None, localIndex: int = 0,
-                     position: Sequence[float] = (0.0, 0.0, 0.0),
-                     orientation: NDArray[numpy.float64] | None = None) -> None: ...
-        object: Object | None
-        localIndex: int
-        position: NDArray[numpy.float64]
-        orientation: NDArray[numpy.float64]
-
-    class Properties:
-        def __init__(self) -> None: ...
-        positionCorrection: float
-        breakForce: float
-        breakTorque: float
-        collideConnected: bool
-
-    def getName(self) -> str: ...
-    def getType(self) -> RuntimeJoint.Type: ...
-    def getAttachmentA(self) -> RuntimeJoint.Attachment: ...
-    def getAttachmentB(self) -> RuntimeJoint.Attachment: ...
-    def getProperties(self) -> RuntimeJoint.Properties: ...
-    def setProperties(self, properties: RuntimeJoint.Properties) -> None: ...
-    def setEnabled(self, enabled: bool) -> None: ...
-    def isEnabled(self) -> bool: ...
-    def isBroken(self) -> bool: ...
-    def resetBreakage(self) -> None: ...
-    def getForce(self) -> NDArray[numpy.float64]: ...
-    def getTorque(self) -> NDArray[numpy.float64]: ...
-
-class Joint:
-    """A joint of an articulated system, used by World.joinObjects(). Its frame (position, orientation) is
-    expressed in the parent body frame and its axis in the joint frame."""
-
-    @overload
-    def __init__(self) -> None: ...
-    @overload
-    def __init__(self, type: JointType, name: str, position: Sequence[float] = (0.0, 0.0, 0.0),
-                 axis: Sequence[float] = (0.0, 0.0, 1.0), orientation: NDArray[numpy.float64] | None = None) -> None: ...
-    type: JointType
-    name: str
-    position: NDArray[numpy.float64]
-    axis: NDArray[numpy.float64]
-    orientation: NDArray[numpy.float64]
-    limit: NDArray[numpy.float64]
-    damping: float
-    friction: float
-    stiffness: float
-    springMount: NDArray[numpy.float64]
-    rotorInertia: float
-    effort: float
-    velocityLimit: float
-    jointRef: float
-
-class JoinOptions:
-    """Options of World.joinObjects()."""
-
-    def __init__(self) -> None: ...
-    name: str
-    childPrefix: str
-
-
 class CollisionQueryShape:
     @staticmethod
     def sphere(radius: float) -> CollisionQueryShape: ...
+
     @staticmethod
     def capsule(radius: float, halfAxisLength: float) -> CollisionQueryShape: ...
+
     @staticmethod
-    def box(halfExtents: NDArray[numpy.float64]) -> CollisionQueryShape: ...
+    def box(halfExtents: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')]) -> CollisionQueryShape: ...
+
     @staticmethod
     def cylinder(radius: float, halfHeight: float) -> CollisionQueryShape: ...
+
     @staticmethod
-    def convexHull(vertices: NDArray[numpy.float64]) -> CollisionQueryShape: ...
+    def convexHull(vertices: Annotated[NDArray[numpy.float64], dict(order='C')]) -> CollisionQueryShape: ...
 
 class CollisionQueryFilter:
     def __init__(self) -> None: ...
-    group: int
-    mask: int
-    ignoredObject: int | None
-    ignoredLocalBody: int | None
+
+    @property
+    def group(self) -> int: ...
+
+    @group.setter
+    def group(self, arg: int, /) -> None: ...
+
+    @property
+    def mask(self) -> int: ...
+
+    @mask.setter
+    def mask(self, arg: int, /) -> None: ...
+
+    @property
+    def ignoredObject(self) -> int | None: ...
+
+    @ignoredObject.setter
+    def ignoredObject(self, arg: int, /) -> None: ...
+
+    @property
+    def ignoredLocalBody(self) -> int | None: ...
+
+    @ignoredLocalBody.setter
+    def ignoredLocalBody(self, arg: int, /) -> None: ...
 
 class CollisionQueryHit:
     @property
     def objectId(self) -> int: ...
+
     @property
     def localBodyIndex(self) -> int: ...
+
     @property
     def colliderIndex(self) -> int: ...
+
     @property
     def triangleIndex(self) -> int | None: ...
+
     @property
     def distance(self) -> float: ...
+
     @property
-    def pointOnShape(self) -> NDArray[numpy.float64]: ...
+    def pointOnShape(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
     @property
-    def pointOnCollider(self) -> NDArray[numpy.float64]: ...
+    def pointOnCollider(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
     @property
-    def normal(self) -> NDArray[numpy.float64]: ...
+    def normal(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class CollisionQuerySweepHit(CollisionQueryHit):
     @property
@@ -6902,60 +7181,30 @@ class CollisionQuerySweepHit(CollisionQueryHit):
 class MeshClearanceHit:
     @property
     def objectId(self) -> int: ...
+
     @property
     def localBodyIndex(self) -> int: ...
+
     @property
     def colliderIndex(self) -> int: ...
+
     @property
     def triangleIndex(self) -> int: ...
+
     @property
     def clearance(self) -> float: ...
+
     @property
-    def axisPoint(self) -> NDArray[numpy.float64]: ...
+    def axisPoint(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
     @property
-    def shapePoint(self) -> NDArray[numpy.float64]: ...
+    def shapePoint(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
+
     @property
-    def meshPoint(self) -> NDArray[numpy.float64]: ...
-
-class ArticulatedSystemResource:
-    @staticmethod
-    def load(urdf_path: str, res_path: str = '', joint_order: Sequence[str] = (), options: ArticulatedSystemOption = ...) -> ArticulatedSystemResource: ...
-
-class HeightMapResource:
-    @staticmethod
-    def load(filename: str, x_center: float, y_center: float) -> HeightMapResource: ...
-
-    @staticmethod
-    def loadPng(filename: str, x_center: float, y_center: float, x_size: float, y_size: float, height_scale: float, height_offset: float) -> HeightMapResource: ...
-
-    @staticmethod
-    def fromSamples(x_samples: int, y_samples: int, x_size: float, y_size: float, x_center: float, y_center: float, heights: Sequence[float]) -> HeightMapResource: ...
-
-    @staticmethod
-    def generate(x_center: float, y_center: float, terrain_properties: TerrainProperties) -> HeightMapResource: ...
-
-class MeshResource:
-    @staticmethod
-    def load(file_name: str, scale: float = 1.0, collision_mode: MeshCollisionMode = MeshCollisionMode.CONVEXIFY) -> MeshResource: ...
+    def meshPoint(self) -> Annotated[NDArray[numpy.float64], dict(order='C')]: ...
 
 class World:
     """Raisim world."""
-
-    def joinObjects(self, parent: Object | None, parentBody: int, child: Object, childBody: int, joint: Joint,
-                    options: JoinOptions = ...) -> ArticulatedSystem:
-        """Connect two objects (parent None: the world) with a joint and replace them with one articulated
-        system. The parent and child handles become invalid."""
-    def detachJoint(self, system: ArticulatedSystem, jointName: str,
-                    detachedName: str = '') -> list[ArticulatedSystem]:
-        """Remove a joint from an articulated system and return the resulting systems; the input handle
-        becomes invalid."""
-
-    def addRuntimeJoint(self, name: str, type: RuntimeJoint.Type,
-                        a: RuntimeJoint.Attachment, b: RuntimeJoint.Attachment,
-                        properties: RuntimeJoint.Properties = ...) -> RuntimeJoint: ...
-    def getRuntimeJoint(self, name: str) -> RuntimeJoint | None: ...
-    def getRuntimeJoints(self) -> list[RuntimeJoint]: ...
-    def removeRuntimeJoint(self, joint: RuntimeJoint) -> None: ...
 
     @overload
     def __init__(self) -> None:
@@ -7105,9 +7354,6 @@ class World:
         """
 
     @overload
-    def addHeightMap(self, resource: HeightMapResource, material: str = 'default', collision_group: int = ..., collision_mask: int = ...) -> HeightMap: ...
-
-    @overload
     def addHeightMap(self, x_samples: int, y_samples: int, x_scale: float, y_scale: float, x_center: float, y_center: float, heights: Sequence[float], material: str = 'default', collision_group: int = 1, collision_mask: int = 18446744073709551615) -> HeightMap:
         """
         Add a heightmap into the world.
@@ -7184,7 +7430,7 @@ class World:
         """
 
     @overload
-    def addArticulatedSystem(self, resource: ArticulatedSystemResource, collision_group: int = 1, collision_mask: int = ...) -> ArticulatedSystem: ...
+    def addHeightMap(self, resource: HeightMapResource, material: str = 'default', collision_group: int = 9223372036854775808, collision_mask: int = 18446744073709551615) -> HeightMap: ...
 
     @overload
     def addArticulatedSystem(self, urdf_path: str, res_path: str = '', joint_order: Sequence[str] = [], collision_group: int = 1, collision_mask: int = 18446744073709551615, options: ArticulatedSystemOption = ...) -> ArticulatedSystem:
@@ -7202,6 +7448,9 @@ class World:
         	    Returns:
         	        ArticulatedSystem: the articulated system instance.
         """
+
+    @overload
+    def addArticulatedSystem(self, resource: ArticulatedSystemResource, collision_group: int = 1, collision_mask: int = 18446744073709551615) -> ArticulatedSystem: ...
 
     @overload
     def addArticulatedSystem(self, filePathOrURDFScript: str, modules: Sequence[str], resPath: str = '', jointOrder: Sequence[str] = [], collision_group: int = 1, collision_mask: int = 18446744073709551615, options: ArticulatedSystemOption = ...) -> ArticulatedSystem: ...
@@ -7223,12 +7472,6 @@ class World:
         """
 
     @overload
-    def addMesh(self, resource: MeshResource, mass: float, material: str = '', collision_group: int = 1, collision_mask: int = ...) -> Mesh: ...
-
-    @overload
-    def addMesh(self, resource: MeshResource, mass: float, inertia: Annotated[NDArray[numpy.float64], dict(order='C')], com: Annotated[NDArray[numpy.float64], dict(order='C')], material: str = '', collision_group: int = 1, collision_mask: int = ...) -> Mesh: ...
-
-    @overload
     def addMesh(self, file_name: str, mass: float, inertia: Annotated[NDArray[numpy.float64], dict(order='C')], com: Annotated[NDArray[numpy.float64], dict(order='C')], scale: float = 1.0, material: str = 'default', collision_group: int = 1, collision_mask: int = 18446744073709551615, collision_mode: MeshCollisionMode = MeshCollisionMode.CONVEXIFY) -> Mesh:
         """
         Add a mesh in the world.
@@ -7246,6 +7489,12 @@ class World:
         	    Returns:
         	        Mesh: the mesh instance.
         """
+
+    @overload
+    def addMesh(self, resource: MeshResource, mass: float, material: str = '', collision_group: int = 1, collision_mask: int = 18446744073709551615) -> Mesh: ...
+
+    @overload
+    def addMesh(self, resource: MeshResource, mass: float, inertia: Annotated[NDArray[numpy.float64], dict(order='C')], com: Annotated[NDArray[numpy.float64], dict(order='C')], material: str = '', collision_group: int = 1, collision_mask: int = 18446744073709551615) -> Mesh: ...
 
     def addSpatialTendon(self, name: str, path: Sequence[Tendon.PathElement], properties: Tendon.Properties = ...) -> Tendon: ...
 
@@ -7303,12 +7552,17 @@ class World:
         2. collision detection
         3. register contacts to each body
         4. calls `preContactSolverUpdate1()` of each object
+        Opens a split step. Object, tendon and wire creation/removal is blocked until
+        integrate2() completes it or discardPendingStep() cancels it.
         """
 
     def discardPendingStep(self) -> None:
-        """Cancel preparation without advancing time; clear contacts and allow scene edits.
-
-        Does nothing without a pending step. Does not undo integrate1() preparation side effects.
+        """
+        Cancel a prepared step without solving, integrating objects, or advancing world time.
+        Clears prepared contacts and constraints, invalidating references to them, and allows
+        scene edits again. Does nothing if no step is pending. Preparation already performed
+        by integrate1(), including waking bodies and advancing projectiles, is not rolled back.
+        Start the next step with integrate1() or integrate().
         """
 
     def integrate2(self) -> None:
@@ -7339,6 +7593,46 @@ class World:
             list[Object]: list of object instances.
         """
 
+    @overload
+    def addSegmentationClass(self, name: str) -> int:
+        """
+        Name a segmentation class, e.g. object.setSegmentationLabel(world.addSegmentationClass("box")).
+
+        Args:
+            name (str): class name.
+
+        Returns:
+            int: the label of the class (labels start at 1; 0 is unlabeled).
+        """
+
+    @overload
+    def addSegmentationClass(self, name: str) -> int: ...
+
+    @overload
+    def getSegmentationClassLabel(self, name: str) -> int: ...
+
+    @overload
+    def getSegmentationClassLabel(self, name: str) -> int: ...
+
+    @overload
+    def getSegmentationClassName(self, label: int) -> str: ...
+
+    @overload
+    def getSegmentationClassName(self, label: int) -> str: ...
+
+    @overload
+    def getSegmentationClassNames(self) -> list[str]:
+        """Class names indexed by label; unnamed labels hold empty strings."""
+
+    @overload
+    def getSegmentationClassNames(self) -> list[str]: ...
+
+    @overload
+    def setSegmentationClassName(self, label: int, name: str) -> None: ...
+
+    @overload
+    def setSegmentationClassName(self, label: int, name: str) -> None: ...
+
     def updateMaterialProp(self, prop: MaterialManager) -> None:
         """
         Update material property.
@@ -7348,13 +7642,6 @@ class World:
         """
 
     def getMaterialPairProperties(self, material1: str, material2: str) -> MaterialPairProperties: ...
-
-    def setMagneticMaterial(self, material: str, magnetic: bool = True) -> None:
-        """
-        Mark a collision material as magnetic or not; magnetic grippers pull only magnetic materials.
-        """
-
-    def isMagneticMaterial(self, material: str) -> bool: ...
 
     @overload
     def setMaterialPairProp(self, material1: str, material2: str, friction: float, restitution: float, threshold: float) -> None:
@@ -7515,17 +7802,27 @@ class World:
             BisectionContactSolver: contact solver.
         """
 
-    def queryProximity(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], maxDistance: float, orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQueryHit | None: ...
+    def queryProximity(self, shape: CollisionQueryShape, position: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], maxDistance: float, orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQueryHit | None:
+        """Return the nearest collider within maxDistance, or None."""
 
-    def queryOverlap(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> list[CollisionQueryHit]: ...
+    def queryOverlap(self, shape: CollisionQueryShape, position: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None, filter: CollisionQueryFilter = ...) -> list[CollisionQueryHit]:
+        """Return one hit per overlapping scene collider."""
 
-    def checkOverlap(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> bool: ...
+    def checkOverlap(self, shape: CollisionQueryShape, position: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None, filter: CollisionQueryFilter = ...) -> bool:
+        """Return whether any scene collider overlaps the posed shape."""
 
-    def sweepShape(self, shape: CollisionQueryShape, position: NDArray[numpy.float64], displacement: NDArray[numpy.float64], orientation: NDArray[numpy.float64] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQuerySweepHit | None: ...
+    def sweepShape(self, shape: CollisionQueryShape, position: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], displacement: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], orientation: Annotated[NDArray[numpy.float64], dict(shape=(3, 3), order='F')] | None = None, filter: CollisionQueryFilter = ...) -> CollisionQuerySweepHit | None:
+        """Return the first hit during a fixed-orientation translation, or None."""
 
-    def meshClearance(self, start: NDArray[numpy.float64], end: NDArray[numpy.float64], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> MeshClearanceHit | None: ...
+    def meshClearance(self, start: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], end: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> MeshClearanceHit | None:
+        """
+        Return the nearest rigid triangle-mesh surface hit or None. Equal endpoints query a sphere.
+        """
 
-    def isMeshWithinClearance(self, start: NDArray[numpy.float64], end: NDArray[numpy.float64], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> bool: ...
+    def isMeshWithinClearance(self, start: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], end: Annotated[NDArray[numpy.float64], dict(shape=(3), order='C')], radius: float, maxClearance: float, collisionMask: int = 18446744073709551615, ignoredObject: int | None = None) -> bool:
+        """
+        Test whether a rigid triangle-mesh surface is within the inclusive clearance threshold.
+        """
 
     def rayTest(self, start: Annotated[NDArray[numpy.float64], dict(shape=(3), writable=False)], direction: Annotated[NDArray[numpy.float64], dict(shape=(3), writable=False)], length: float, closestOnly: bool = True, objectId: int = 18446744073709551606, localId: int = 18446744073709551606, collisionMask: int = 18446744073709551615) -> RayCollisionList:
         """
@@ -7608,15 +7905,36 @@ class World:
 
     def updateSelfCollisionCache(self) -> None: ...
 
-    def addSegmentationClass(self, name: str) -> int: ...
+    def addRuntimeJoint(self, name: str, type: RuntimeJoint.Type, a: RuntimeJoint.Attachment, b: RuntimeJoint.Attachment, properties: RuntimeJoint.Properties = ...) -> RuntimeJoint: ...
 
-    def getSegmentationClassLabel(self, name: str) -> int: ...
+    def getRuntimeJoint(self, name: str) -> RuntimeJoint: ...
 
-    def getSegmentationClassName(self, label: int) -> str: ...
+    def getRuntimeJoints(self) -> list[RuntimeJoint]: ...
 
-    def getSegmentationClassNames(self) -> list[str]: ...
+    def removeRuntimeJoint(self, joint: RuntimeJoint) -> None: ...
 
-    def setSegmentationClassName(self, label: int, name: str) -> None: ...
+    def joinObjects(self, parent: Object | None, parentBody: int, child: Object, childBody: int, joint: Joint, options: JoinOptions = ...) -> ArticulatedSystem:
+        """
+        Connect two objects (parent None: the world) with a joint and replace them with one articulated system. The parent and child handles become invalid.
+        """
+
+    def detachJoint(self, system: ArticulatedSystem, jointName: str, detachedName: str = '') -> list[ArticulatedSystem]:
+        """
+        Remove a joint from an articulated system and return the resulting systems; the input handle becomes invalid.
+        """
+
+    def setMagneticMaterial(self, material: str, magnetic: bool = True) -> None:
+        """
+        Mark a collision material as magnetic or not; magnetic grippers pull only magnetic materials.
+        """
+
+    def isMagneticMaterial(self, material: str) -> bool: ...
+
+    @overload
+    def addVoxelMap(self, voxel_size: float, min_key: Sequence[int], size: Sequence[int], material: str = 'default', collision_group: int = 9223372036854775808, collision_mask: int = 18446744073709551615) -> VoxelMap: ...
+
+    @overload
+    def addVoxelMap(self, resource: VoxelMapResource, material: str = 'default', collision_group: int = 9223372036854775808, collision_mask: int = 18446744073709551615) -> VoxelMap: ...
 
     class Checkpoint:
         def __init__(self) -> None: ...
@@ -7802,6 +8120,27 @@ class World:
     def addGranularBox(self, options: GranularSystem.BoxOptions, material: GranularSystem.Material = ...) -> GranularSystem: ...
 
     def addDeformableTerrain(self, xSamples: int, ySamples: int, xSize: float, ySize: float, centerX: float, centerY: float, heights: Sequence[float], soil: DeformableTerrain.Material = ..., material: str = 'default', collision_group: int = 9223372036854775808, collision_mask: int = 18446744073709551615) -> DeformableTerrain: ...
+
+class ArticulatedSystemResource:
+    @staticmethod
+    def load(urdf_path: str, res_path: str = '', joint_order: Sequence[str] = [], options: ArticulatedSystemOption = ...) -> ArticulatedSystemResource: ...
+
+class HeightMapResource:
+    @staticmethod
+    def load(filename: str, x_center: float, y_center: float) -> HeightMapResource: ...
+
+    @staticmethod
+    def loadPng(filename: str, x_center: float, y_center: float, x_size: float, y_size: float, height_scale: float, height_offset: float) -> HeightMapResource: ...
+
+    @staticmethod
+    def fromSamples(x_samples: int, y_samples: int, x_size: float, y_size: float, x_center: float, y_center: float, heights: Sequence[float]) -> HeightMapResource: ...
+
+    @staticmethod
+    def generate(x_center: float, y_center: float, terrain_properties: TerrainProperties) -> HeightMapResource: ...
+
+class MeshResource:
+    @staticmethod
+    def load(file_name: str, scale: float = 1.0, collision_mode: MeshCollisionMode = MeshCollisionMode.CONVEXIFY) -> MeshResource: ...
 
 class BroadphaseType(enum.Enum):
     Sap3Axis = 1

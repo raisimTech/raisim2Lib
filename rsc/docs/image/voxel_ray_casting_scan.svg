@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="578" viewBox="0 0 960 578" role="img" aria-labelledby="title desc">
+  <title id="title">One 65,536-ray lidar scan</title>
+  <desc id="desc">Horizontal bars, one panel per scene, of the milliseconds a 65,536-ray scan takes with RaiSim on one CPU core and with rayrai on the GPU. The GPU bars are 27 to 34 times shorter.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="578" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">One 65,536-ray lidar scan</text>
+  <text x="32.0" y="76.0" class="subtitle">Milliseconds, lower is better · GPU wall clock, including the readback · median of five runs</text>
+  <text x="32.0" y="126.0" class="panel">Terrain · 0.10 m voxels</text>
+  <line x1="262.0" y1="136" x2="262.0" y2="212" class="grid"/>
+  <line x1="386.5" y1="136" x2="386.5" y2="212" class="grid"/>
+  <line x1="511.0" y1="136" x2="511.0" y2="212" class="grid"/>
+  <line x1="635.5" y1="136" x2="635.5" y2="212" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="212" class="grid"/>
+  <line x1="262" y1="136" x2="262" y2="212" class="axis"/>
+  <text x="250.0" y="164.0" text-anchor="end" class="label">RaiSim, one CPU core</text>
+  <path d="M262.0 147.0H604.0A4.0 4.0 0 0 1 608.0 151.0V165.0A4.0 4.0 0 0 1 604.0 169.0H262.0Z" class="raisim"><title>RaiSim on one CPU core, terrain: 13.9 ms</title></path>
+  <text x="616.0" y="164.0" class="value">13.9 ms</text>
+  <text x="250.0" y="200.0" text-anchor="end" class="label">rayrai, GPU</text>
+  <path d="M262.0 183.0H268.9A4.0 4.0 0 0 1 272.9 187.0V201.0A4.0 4.0 0 0 1 268.9 205.0H262.0Z" class="rayrai"><title>rayrai on the GPU, terrain: 0.44 ms wall clock</title></path>
+  <text x="280.9" y="200.0" class="value">0.44 ms<tspan class="note" font-weight="400">  32× faster</tspan></text>
+  <text x="32.0" y="252.0" class="panel">Indoor · 0.05 m voxels</text>
+  <line x1="262.0" y1="262" x2="262.0" y2="338" class="grid"/>
+  <line x1="386.5" y1="262" x2="386.5" y2="338" class="grid"/>
+  <line x1="511.0" y1="262" x2="511.0" y2="338" class="grid"/>
+  <line x1="635.5" y1="262" x2="635.5" y2="338" class="grid"/>
+  <line x1="760.0" y1="262" x2="760.0" y2="338" class="grid"/>
+  <line x1="262" y1="262" x2="262" y2="338" class="axis"/>
+  <text x="250.0" y="290.0" text-anchor="end" class="label">RaiSim, one CPU core</text>
+  <path d="M262.0 273.0H538.5A4.0 4.0 0 0 1 542.5 277.0V291.0A4.0 4.0 0 0 1 538.5 295.0H262.0Z" class="raisim"><title>RaiSim on one CPU core, indoor: 11.3 ms</title></path>
+  <text x="550.5" y="290.0" class="value">11.3 ms</text>
+  <text x="250.0" y="326.0" text-anchor="end" class="label">rayrai, GPU</text>
+  <path d="M262.0 309.0H268.2A4.0 4.0 0 0 1 272.2 313.0V327.0A4.0 4.0 0 0 1 268.2 331.0H262.0Z" class="rayrai"><title>rayrai on the GPU, indoor: 0.41 ms wall clock</title></path>
+  <text x="280.2" y="326.0" class="value">0.41 ms<tspan class="note" font-weight="400">  27× faster</tspan></text>
+  <text x="32.0" y="378.0" class="panel">Forest · 0.10 m voxels</text>
+  <line x1="262.0" y1="388" x2="262.0" y2="464" class="grid"/>
+  <line x1="386.5" y1="388" x2="386.5" y2="464" class="grid"/>
+  <line x1="511.0" y1="388" x2="511.0" y2="464" class="grid"/>
+  <line x1="635.5" y1="388" x2="635.5" y2="464" class="grid"/>
+  <line x1="760.0" y1="388" x2="760.0" y2="464" class="grid"/>
+  <line x1="262" y1="388" x2="262" y2="464" class="axis"/>
+  <text x="250.0" y="416.0" text-anchor="end" class="label">RaiSim, one CPU core</text>
+  <path d="M262.0 399.0H748.7A4.0 4.0 0 0 1 752.7 403.0V417.0A4.0 4.0 0 0 1 748.7 421.0H262.0Z" class="raisim"><title>RaiSim on one CPU core, forest: 19.7 ms</title></path>
+  <text x="760.7" y="416.0" class="value">19.7 ms</text>
+  <text x="250.0" y="452.0" text-anchor="end" class="label">rayrai, GPU</text>
+  <path d="M262.0 435.0H272.2A4.0 4.0 0 0 1 276.2 439.0V453.0A4.0 4.0 0 0 1 272.2 457.0H262.0Z" class="rayrai"><title>rayrai on the GPU, forest: 0.57 ms wall clock</title></path>
+  <text x="284.2" y="452.0" class="value">0.57 ms<tspan class="note" font-weight="400">  34× faster</tspan></text>
+  <text x="262.0" y="488.0" text-anchor="middle" class="tick">0</text>
+  <text x="386.5" y="488.0" text-anchor="middle" class="tick">5</text>
+  <text x="511.0" y="488.0" text-anchor="middle" class="tick">10</text>
+  <text x="635.5" y="488.0" text-anchor="middle" class="tick">15</text>
+  <text x="760.0" y="488.0" text-anchor="middle" class="tick">20</text>
+  <text x="511.0" y="518.0" text-anchor="middle" class="note">Milliseconds per scan</text>
+  <text x="32.0" y="562.0" class="note">RaiSim&#x27;s time is its nanoseconds per lidar ray times 65,536.</text>
+</svg>

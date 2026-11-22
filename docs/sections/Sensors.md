@@ -1327,7 +1327,11 @@ loses the individual link mass distribution. Such edits are rejected during
 measurement. Likewise, a direct body-level force or constraint on that partially
 selected merged body has no original-link identity and is rejected. Apply those
 loads to a distinct moving body below the sensor. External contact loads retain
-their original collision-link identity and are supported across fixed cuts.
+their original collision-link identity and are supported across fixed cuts, and so
+do thruster and gripper loads, which keep the link of their device (and, for a
+gripper's pull on another robot, the link of the collider it holds). A gripper pull
+on a collider whose link is unknown, on a body that such a sensor splits, is
+rejected with `std::logic_error` before any load is applied or time advances.
 
 Run `testWrenchSensors` for analytical-load, contact, sampling, XML and replay
 tests. `wrench_sensor_benchmark --steps 100000 --pads 1 --grid 8` measures complete

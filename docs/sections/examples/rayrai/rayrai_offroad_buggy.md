@@ -32,7 +32,6 @@ The same buggy URDF is shown here in the deformable terrain example.
 ```bash
 ./build-examples/examples/rayrai_offroad_buggy
 ./build-examples/examples/rayrai_offroad_buggy --validate
-./build-examples/examples/rayrai_offroad_buggy --screenshot buggy.png --hud
 ```
 
 CMake target: `rayrai_offroad_buggy` (C++20). Source:
@@ -56,11 +55,11 @@ executables.
 | H, P | Hide the help, pause |
 | Mouse | Drag to orbit, wheel to zoom |
 
-Options: `--screenshot PNG` drives a lap with an autopilot in a hidden window
-and saves a frame (`--frames N` picks it, default 600; `--camera 0..3` the
-camera; `--hud` includes the panels; `--view X Y Z YAW PITCH` fixes the
-camera). `--grass DENSITY` scales the 170 000 grass tufts. `--validate` runs
-the physics checks without a window.
+Options: `--grass DENSITY` scales the 170 000 grass tufts. `--validate` runs
+the physics checks without a window. To save the view and exit, set
+`RAYRAI_EXAMPLE_CAPTURE=buggy.png`; `RAYRAI_EXAMPLE_CAPTURE_WINDOW=1` includes
+the panels, and `RAYRAI_EXAMPLE_CAPTURE_START=N` waits N frames after the
+track has loaded (see `rayrai/example_common.hpp`).
 
 Physics runs at 1 kHz; a step of the car with the terrain, the 2 000 static
 colliders of the trees, stones and venue and the 145 loose props takes about

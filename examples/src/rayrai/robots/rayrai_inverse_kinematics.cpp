@@ -12,16 +12,10 @@
 //   Right-drag                  turn the target (while orientation is followed)
 //   Left-drag elsewhere, wheel  orbit and zoom the camera
 //   G / R                       close or open the gripper / reset the scene
-//
-// --tour moves the target along a scripted path and --frames=N exits after N
-// frames; they exist for the documentation's clip and the tests.
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstdlib>
-#include <iostream>
 #include <memory>
-#include <string>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -64,6 +58,20 @@ Ray pointerRay(const raisin::Camera& camera, const Pointer& pointer) {
   const glm::vec3 nearPoint = glm::unProject(glm::vec3(pixel, 0.f), view, projection, viewport);
   const glm::vec3 farPoint = glm::unProject(glm::vec3(pixel, 1.f), view, projection, viewport);
   return {toEigen(nearPoint), toEigen(farPoint - nearPoint).normalized()};
+}
+
+/// Aims the camera at the target's home, from the side of the bench where the
+/// arm's base shows. The camera orbits that point.
+void aimCamera(raisin::Camera& camera, const Eigen::Vector3d& home) {
+  camera.target = glm::vec3(home.x(), home.y(), home.z());
+  camera.position = camera.target + glm::vec3(0.5f, -1.35f, 0.8f);
+  const glm::vec3 direction = glm::normalize(camera.target - camera.position);
+  camera.yaw = glm::degrees(std::atan2(direction.y, direction.x));
+  camera.pitch = glm::degrees(std::asin(direction.z));
+  camera.zoom = 40.f;
+  camera.setCameraFixedTarget(true);
+  camera.setCameraFixedDistance(true);
+  camera.update(false);
 }
 
 /// Moves and turns the scene's target with the mouse.
@@ -167,126 +175,100 @@ void drawPanel(Scene& scene, bool& tour, double& tourTime, int& method, bool& re
   ImGui::End();
 }
 
-}  // namespace
+// The bench in the viewer with its target handle, panel and tour. frame() draws one frame and advances
+// the arm by dt seconds of wall-clock time.
+struct Demo {
+  Demo(Scene& scene, raisin::RayraiWindow& viewer) : scene(scene), viewer(viewer) {
+    viewer.setRenderQualitySettings(raisin::RayraiWindow::defaultRenderQualitySettings(raisin::RayraiWindow::RenderQualityPreset::Balanced));
+    raisim_examples::setRayraiBackgroundColorRgb255(viewer, {30, 34, 42, 255});
+    raisim_examples::addRayraiBasicSceneLights(viewer);
+    aimCamera(viewer.getCamera(), scene.target_position());
+    handle = viewer.addVisualSphere("ik_target", kHandleRadius, 1.f, 0.45f, 0.05f, 1.f);
+    axes = viewer.addCoordinateFrame("ik_target_axes");
+    axes->frameSize = 0.1;
+    axes->poses.resize(1);
+  }
 
-int main(int argc, char* argv[]) {
-  bool tour = false;
-  int frames = -1;
-  for (int i = 1; i < argc; ++i) {
-    const std::string arg(argv[i]);
-    if (arg == "--tour") {
-      tour = true;
-    } else if (arg.rfind("--frames=", 0) == 0 && std::atoi(arg.c_str() + 9) > 0) {
-      frames = std::atoi(arg.c_str() + 9);
-    } else {
-      std::cerr << "usage: " << argv[0] << " [--tour] [--frames=N]\n";
-      return 2;
+  void frame(ExampleApp& app, double dt) {
+    app.beginFrame();
+    bool reset = false;
+    if (!ImGui::GetIO().WantTextInput) {
+      if (ImGui::IsKeyPressed(ImGuiKey_G, false)) scene.SetGripperClosed(!scene.gripper_closed());
+      reset = ImGui::IsKeyPressed(ImGuiKey_R, false);
+    }
+
+    // The mouse moves the target before the arm reaches for it.
+    const Pointer pointer = app.beginViewport();
+    const bool cameraUsesPointer = control.update(pointer, viewer.getCamera(), scene);
+    if (control.touched()) tour = false;
+
+    accumulator += std::min(0.05, dt);
+    const int steps = int(accumulator / raisim_examples::arm_ik::kTimeStep);
+    accumulator -= steps * raisim_examples::arm_ik::kTimeStep;
+    if (tour) {
+      tourTime += steps * raisim_examples::arm_ik::kTimeStep;
+      Eigen::Vector3d position;
+      Eigen::Matrix3d orientation;
+      scene.TourPose(tourTime, position, orientation);
+      scene.SetTarget(position, orientation);
+    }
+    scene.SolveIk();
+    for (int i = 0; i < steps; ++i) scene.Step();
+
+    viewer.applyPhysicsSnapshot(snapshotCapture.capture(scene.world()));
+    const Eigen::Vector3d& target = scene.target_position();
+    handle->setPosition(target.x(), target.y(), target.z());
+    const glm::vec3 color = scene.ik_result().success ? glm::vec3(1.f, 0.45f, 0.05f) : glm::vec3(0.95f, 0.1f, 0.1f);
+    handle->setColor(glm::vec4(control.hot() ? glm::mix(color, glm::vec3(1.f), 0.45f) : color, 1.f));
+    axes->enable(scene.track_orientation());
+    axes->poses[0].position = glm::vec3(target.x(), target.y(), target.z());
+    axes->poses[0].quaternion = toGlm(scene.target_orientation());
+    // Clicks would make the camera follow the clicked body; this demo orbits the bench.
+    app.endViewport(viewer, pointer, cameraUsesPointer, false);
+
+    drawPanel(scene, tour, tourTime, method, reset);
+    app.endFrame();
+    if (reset) {
+      scene.Reset();
+      tour = false;
+      accumulator = 0.;
     }
   }
+
+  Scene& scene;
+  raisin::RayraiWindow& viewer;
+  raisin::PhysicsSnapshotCapture snapshotCapture;
+  std::shared_ptr<raisin::Visuals> handle;
+  std::shared_ptr<raisin::CoordinateFrame> axes;
+  TargetControl control;
+  bool tour = false;
+  double tourTime = 0., accumulator = 0.;
+  int method = 0;
+};
+
+}  // namespace
+
+int main(int, char* argv[]) {
   raisim::World::setActivationKey(exampleRscPath(argv[0], "activation.raisim"));
   Scene scene(exampleRscPath(argv[0], "robotiq_2f85/kinova_robotiq.urdf"));
 
   ExampleApp app;
-  if (!app.init("RaiSim inverse kinematics", 1280, 720)) return 77;
+  if (!app.init("RaiSim inverse kinematics", 1280, 720)) return 1;
   // Keep ImGui scratch files out of the working directory.
   ImGui::GetIO().IniFilename = nullptr;
-  int status = 0;
   {
     // The renderer owns an empty world; physics reaches it only through copied snapshots.
-    raisin::PhysicsSnapshotCapture snapshotCapture;
     raisin::RayraiWindow viewer(std::make_shared<raisim::World>(), 1280, 720);
-    viewer.setRenderQualitySettings(raisin::RayraiWindow::defaultRenderQualitySettings(raisin::RayraiWindow::RenderQualityPreset::Balanced));
-    raisim_examples::setRayraiBackgroundColorRgb255(viewer, {30, 34, 42, 255});
-    raisim_examples::addRayraiBasicSceneLights(viewer);
-    // The camera orbits the target's home, from the side of the bench where
-    // the arm's base shows.
-    auto& camera = viewer.getCamera();
-    const Eigen::Vector3d& home = scene.target_position();
-    camera.target = glm::vec3(home.x(), home.y(), home.z());
-    camera.position = camera.target + glm::vec3(0.5f, -1.35f, 0.8f);
-    const glm::vec3 direction = glm::normalize(camera.target - camera.position);
-    camera.yaw = glm::degrees(std::atan2(direction.y, direction.x));
-    camera.pitch = glm::degrees(std::asin(direction.z));
-    camera.zoom = 40.f;
-    camera.setCameraFixedTarget(true);
-    camera.setCameraFixedDistance(true);
-    camera.update(false);
-
-    auto handle = viewer.addVisualSphere("ik_target", kHandleRadius, 1.f, 0.45f, 0.05f, 1.f);
-    auto axes = viewer.addCoordinateFrame("ik_target_axes");
-    axes->frameSize = 0.1;
-    axes->poses.resize(1);
-
-    TargetControl control;
-    double tourTime = 0., accumulator = 0.;
-    int method = 0, frame = 0;
+    Demo demo(scene, viewer);
     auto previous = std::chrono::steady_clock::now();
-    while (!app.quit && (frames < 0 || frame < frames)) {
+    while (!app.quit) {
       app.processEvents();
       if (app.quit) break;
-      app.beginFrame();
-      bool reset = false;
-      if (!ImGui::GetIO().WantTextInput) {
-        if (ImGui::IsKeyPressed(ImGuiKey_G, false)) scene.SetGripperClosed(!scene.gripper_closed());
-        reset = ImGui::IsKeyPressed(ImGuiKey_R, false);
-      }
-
-      // The mouse moves the target before the arm reaches for it.
-      const Pointer pointer = app.beginViewport();
-      const bool cameraUsesPointer = control.update(pointer, viewer.getCamera(), scene);
-      if (control.touched()) tour = false;
-
       const auto now = std::chrono::steady_clock::now();
-      accumulator += frames >= 0 ? 1. / 60. : std::min(0.05, std::chrono::duration<double>(now - previous).count());
+      demo.frame(app, std::chrono::duration<double>(now - previous).count());
       previous = now;
-      const int steps = int(accumulator / raisim_examples::arm_ik::kTimeStep);
-      accumulator -= steps * raisim_examples::arm_ik::kTimeStep;
-      if (tour) {
-        tourTime += steps * raisim_examples::arm_ik::kTimeStep;
-        Eigen::Vector3d position;
-        Eigen::Matrix3d orientation;
-        scene.TourPose(tourTime, position, orientation);
-        scene.SetTarget(position, orientation);
-      }
-      scene.SolveIk();
-      for (int i = 0; i < steps; ++i) scene.Step();
-
-      viewer.applyPhysicsSnapshot(snapshotCapture.capture(scene.world()));
-      const Eigen::Vector3d& target = scene.target_position();
-      handle->setPosition(target.x(), target.y(), target.z());
-      const glm::vec3 color = scene.ik_result().success ? glm::vec3(1.f, 0.45f, 0.05f) : glm::vec3(0.95f, 0.1f, 0.1f);
-      handle->setColor(glm::vec4(control.hot() ? glm::mix(color, glm::vec3(1.f), 0.45f) : color, 1.f));
-      axes->enable(scene.track_orientation());
-      axes->poses[0].position = glm::vec3(target.x(), target.y(), target.z());
-      axes->poses[0].quaternion = toGlm(scene.target_orientation());
-      // Clicks would make the camera follow the clicked body; this demo orbits the bench.
-      app.endViewport(viewer, pointer, cameraUsesPointer, false);
-
-      drawPanel(scene, tour, tourTime, method, reset);
-      app.endFrame();
-      if (reset) {
-        scene.Reset();
-        tour = false;
-        accumulator = 0.;
-      }
-      ++frame;
-    }
-    if (frames >= 0) {
-      Eigen::Vector3d hand;
-      Eigen::Matrix3d orientation;
-      scene.GraspPose(hand, orientation);
-      const Eigen::Vector3d& target = scene.target_position();
-      const Eigen::Quaterniond turn(scene.target_orientation());
-      std::cout << "frames=" << frame << " ik_converged=" << scene.ik_result().success << " gripper_to_target_mm=" << 1e3 * (hand - target).norm() << "\ntarget=" << target.x()
-                << ',' << target.y() << ',' << target.z() << " target_quaternion=" << turn.w() << ',' << turn.x() << ',' << turn.y() << ',' << turn.z()
-                << "\ncamera=" << camera.position.x << ',' << camera.position.y << ',' << camera.position.z << " camera_yaw=" << camera.yaw
-                << " camera_pitch=" << camera.pitch << '\n';
-      if (gl::glGetError() != gl::GL_NO_ERROR) {
-        std::cerr << "OpenGL error in the inverse kinematics example\n";
-        status = 1;
-      }
     }
   }
   app.shutdown();
-  return status;
+  return 0;
 }

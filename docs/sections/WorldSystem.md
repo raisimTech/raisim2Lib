@@ -275,8 +275,18 @@ rollback debugging. `captureSingleBodySnapshot(obj, snapshotOut)` fills a
 velocity, material, and collision group/mask). `restoreSingleBodySnapshot`
 reapplies it later, either by pointer to the same object or by stable
 `ObjectId`; pass `restoreCollisionProperties=false` to skip material and
-collision filter restoration. The snapshot is plain data and cheap to copy and
-reuse. `cloneSingleBodyObject(source, name)` produces a new single-body
+collision filter restoration. For a compound, capture saves the material and
+filter of every child in order. The scalar fields report the first child's
+properties. Changing a scalar applies that property to every child on restore
+and preserves the other saved properties. In C++, use `setMaterial`,
+`setCollisionGroup`, or `setCollisionMask` to apply a value equal to the first
+child's saved value to every child. Restoring collision properties requires
+the same child count. The snapshot can be copied and reused.
+
+When upgrading from the scalar-only snapshot layout, use matching RaiSim
+headers and libraries and rebuild native clients and the raisimPy extension.
+
+`cloneSingleBodyObject(source, name)` produces a new single-body
 object with the same primitive shape, mass, pose, velocity, body type,
 material, collision filter, and appearance. It supports spheres, boxes,
 cylinders, and capsules and returns `nullptr` for other types.
@@ -308,6 +318,10 @@ materials, objects with their current state, and tendons (see
 [World Configuration File](./WorldConfigurationFile.md)). Unnamed objects receive generated names. An
 articulated system that was not loaded from a file is written as a URDF file
 (`model_<index>.urdf`) in `dir`, next to the XML file.
+
+If the world contains a [voxel map](./VoxelMap.md), calling `World::exportToXml()`
+throws `std::runtime_error` before writing any files. The server skips a viewer's
+save request for such a world, logs a warning and keeps the viewer connected.
 
 ## Stepping and time
 
@@ -391,7 +405,7 @@ The current `contact::ContactSettings` defaults are:
 | `sweptCcdMinSpeed` | `0.0` |
 | `sweptCcdSpeculativeMargin` | `1e-4` |
 | `broadphase.type` | `Sap3Axis` |
-| `broadphase.mbpUseWorldBounds` | `false` (the grid covers the padded bounds of all bodies) |
+| `broadphase.mbpUseWorldBounds` | `false` (the grid covers the padded bounds of the colliding bodies other than planes) |
 | `broadphase.mbpWorldMin` / `mbpWorldMax` | `{-100, -100, -100}` / `{100, 100, 100}`; used only when `mbpUseWorldBounds` is `true` |
 | `broadphase.mbpCellSize` | `{1, 1, 1}` |
 | `broadphase.mbpPadding` | `0.5` |
@@ -406,7 +420,9 @@ is not finite (or a negative padding), and, with `mbpUseWorldBounds`, world
 bounds that are not finite or whose min is above max. A cell size that is not
 positive is chosen from the span of the grid. The grid has at most 2^24 cells
 (the default 128 per axis makes 2^21): a finer one gets larger cells, shared
-alike by the axes that span more than one.
+alike by the axes that span more than one. A body that covers more than
+`mbpMaxCellsPerObject` cells is paired with every other body, so choose
+`mbpCellSize` close to the size of a typical body.
 
 Example broadphase configuration (MultiBoxPrune):
 

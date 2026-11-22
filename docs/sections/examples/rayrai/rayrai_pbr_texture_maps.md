@@ -32,11 +32,14 @@ Run the build-tree executable:
 On Windows, run `rayrai_pbr_texture_maps.exe` instead.
 This example renders in process with rayrai and does not need `rayrai_tcp_viewer`.
 
-Pass `--screenshot PATH` to render with a hidden window, wait until every
-asset has loaded, save the final image as a PNG, and exit:
+To save the window as a PNG once every asset has loaded, and exit, use the
+capture that the rayrai examples share (see `rayrai/example_common.hpp`). The
+window capture includes the HDR background that this example draws over its
+viewer image:
 
 ```bash
-./build-examples/examples/rayrai_pbr_texture_maps --screenshot /tmp/pbr_texture_maps.png
+RAYRAI_EXAMPLE_CAPTURE=/tmp/pbr_texture_maps.png RAYRAI_EXAMPLE_CAPTURE_WINDOW=1 \
+  ./build-examples/examples/rayrai_pbr_texture_maps
 ```
 
 ## Details

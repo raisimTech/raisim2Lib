@@ -18,9 +18,9 @@ python3 examples/tools/convert_blue_wall_to_rscene.py \
   /path/to/blue_wall.glb rsc/rayrai/blue_wall
 ```
 
-Build the `rayrai_blue_wall_scene` target, then run it with no arguments to
-explore the room. The initial camera matches `09_blue_wall_scene.png` from the
-RayRai feature showcase. `--screenshot output.png` saves that view;
-`--benchmark-frames N` measures N rendered frames; `--verify-camera` checks
-the expected wall, painting, and dresser colors in the rendered view.
-`--compare-reference path.png` checks rendered color against a reference image.
+Build the `rayrai_blue_wall_scene` target, then run it to explore the room.
+The initial camera matches `09_blue_wall_scene.png` from the RayRai feature
+showcase. Setting `RAYRAI_EXAMPLE_CAPTURE=output.png` saves that view and exits.
+`blue_wall_glb_reference.png` is the original GLB rendered from the same
+camera; the Raisim test `rayrai_blue_wall_camera` compares the example's view
+with it and checks the wall, painting, and dresser colors.

@@ -5,12 +5,10 @@
 // predefined joint poses. Finger-pad contacts grasp a cube on the blue marker,
 // carry it to the green marker, and release it. The world resets and repeats.
 
-#include <chrono>
 #include <csignal>
 #include <cstddef>
 #include <exception>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -25,8 +23,6 @@ volatile std::sig_atomic_t stop_requested = 0;
 void RequestStop(int) { stop_requested = 1; }
 
 struct Options {
-  bool headless = false;
-  bool benchmark = false;
   bool help = false;
   std::size_t cycles = 0;
   int port = 8080;
@@ -50,11 +46,6 @@ Options ParseOptions(int argc, char** argv) {
     const std::string arg(argv[i]);
     if (arg == "--help" || arg == "-h") {
       options.help = true;
-    } else if (arg == "--headless") {
-      options.headless = true;
-    } else if (arg == "--benchmark") {
-      options.benchmark = true;
-      options.headless = true;
     } else if (arg == "--cycles" || arg == "--port" || arg == "--activation-key") {
       if (++i == argc) {
         throw std::invalid_argument("Missing value for " + arg);
@@ -69,9 +60,6 @@ Options ParseOptions(int argc, char** argv) {
     } else {
       throw std::invalid_argument("Unknown option: " + arg);
     }
-  }
-  if (options.headless && options.cycles == 0) {
-    options.cycles = options.benchmark ? 10 : 3;
   }
   return options;
 }
@@ -89,12 +77,8 @@ int main(int argc, char** argv) {
     const auto options = ParseOptions(argc, argv);
     if (options.help) {
       std::cout << "Kinova/Robotiq repeating PD pick-and-place\n"
-                   "  --headless          Check three cycles without a "
-                   "renderer or server\n"
-                   "  --benchmark         Time ten unpaced cycles on one "
-                   "physics thread\n"
-                   "  --cycles N          Stop after N cycles (viewer mode "
-                   "repeats by default)\n"
+                   "  --cycles N          Stop after N cycles (repeats by "
+                   "default)\n"
                    "  --port N            RaisimServer port (default 8080)\n"
                    "  --activation-key P  Optional license path\n";
       return 0;
@@ -106,52 +90,30 @@ int main(int argc, char** argv) {
     raisim_examples::robotiq::Scene scene(exampleRscPath(argv[0], "robotiq_2f85/kinova_robotiq.urdf"));
     std::signal(SIGINT, RequestStop);
     std::signal(SIGTERM, RequestStop);
-    std::unique_ptr<raisim::RaisimServer> server;
-    if (!options.headless) {
-      server = std::make_unique<raisim::RaisimServer>(&scene.world());
-      server->launchServer(options.port);
-      server->setCameraPositionAndLookAt({1.25, -1.5, 1.15}, {0.23, 0.0, 0.42});
-      raisim_examples::warnIfNoClientConnected(*server);
-    }
+    raisim::RaisimServer server(&scene.world());
+    server.launchServer(options.port);
+    server.setCameraPositionAndLookAt({1.25, -1.5, 1.15}, {0.23, 0.0, 0.42});
+    raisim_examples::warnIfNoClientConnected(server);
 
-    std::size_t steps = 0;
     std::size_t reported_cycles = 0;
     std::size_t previous_phase = raisim_examples::robotiq::kPhases.size();
     bool success = true;
-    const auto begin = std::chrono::steady_clock::now();
     while (!stop_requested && (options.cycles == 0 || scene.completed_cycles() < options.cycles)) {
-      if (server) {
-        RS_TIMED_LOOP(static_cast<int>(raisim_examples::robotiq::kTimeStep * 1e6))
-        server->integrateWorldThreadSafe([&scene] { scene.Update(); });
-        if (scene.phase_index() != previous_phase) {
-          previous_phase = scene.phase_index();
-          std::cout << raisim_examples::robotiq::kPhases[previous_phase].name << '\n';
-        }
-      } else {
-        scene.Step();
+      RS_TIMED_LOOP(static_cast<int>(raisim_examples::robotiq::kTimeStep * 1e6))
+      server.integrateWorldThreadSafe([&scene] { scene.Update(); });
+      if (scene.phase_index() != previous_phase) {
+        previous_phase = scene.phase_index();
+        std::cout << raisim_examples::robotiq::kPhases[previous_phase].name << '\n';
       }
-      ++steps;
       if (scene.completed_cycles() != reported_cycles) {
         reported_cycles = scene.completed_cycles();
         success &= scene.last_result().IsSuccessful() && scene.last_result().max_mimic_error < 1e-7;
-        if (!options.benchmark) {
-          PrintResult(reported_cycles, scene.last_result());
-        }
+        PrintResult(reported_cycles, scene.last_result());
       }
     }
-    const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
-    if (server) {
-      server->killServer();
-    }
+    server.killServer();
     if (stop_requested) {
       return 130;
-    }
-    if (options.headless) {
-      if (options.benchmark) {
-        PrintResult(scene.completed_cycles(), scene.last_result());
-      }
-      std::cout << "cycles=" << scene.completed_cycles() << " steps=" << steps << " physics_threads=1 elapsed_s=" << seconds << " us_per_step=" << 1e6 * seconds / static_cast<double>(steps)
-                << " real_time_factor=" << static_cast<double>(steps) * raisim_examples::robotiq::kTimeStep / seconds << '\n';
     }
     return success ? 0 : 1;
   } catch (const std::exception& error) {

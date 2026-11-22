@@ -1,71 +1,76 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="990" viewBox="0 0 960 990" role="img" aria-labelledby="title desc">
-  <title id="title">MuJoCo time / RaiSim time</title>
-  <desc id="desc">Vertical bars for 10 valid comparisons, using unrounded medians of three single-threaded runs. Values above one mean RaiSim is faster. The vertical ratio axis is logarithmic.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="578" viewBox="0 0 960 578" role="img" aria-labelledby="title desc">
+  <title id="title">RaiSim speedup over MuJoCo</title>
+  <desc id="desc">Horizontal bars for 10 valid comparisons, using unrounded medians of three single-threaded runs: MuJoCo&#x27;s time divided by RaiSim&#x27;s. Values above one mean RaiSim is faster. The axis is logarithmic.</desc>
   <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
     .title { font-size: 30px; font-weight: 700; }
-    .subtitle { font-size: 18px; fill: #596674; }
-    .label { font-size: 16px; font-weight: 600; }
-    .value { font-size: 22px; font-weight: 700; }
-    .tick { font-size: 16px; fill: #596674; }
-    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
     .grid { stroke: #e1e4e5; stroke-width: 1; }
-    .ratio { fill: #2f6fb7; }</style>
-  <rect width="960" height="990" fill="#fff"/>
-  <text x="96" y="46" class="title">MuJoCo time / RaiSim time</text>
-  <text x="96" y="80" class="subtitle">Median of three runs · AMD Ryzen 9 3950X · higher ratios mean RaiSim is faster</text>
-  <line x1="96" y1="710.0" x2="936" y2="710.0" class="grid"/>
-  <text x="80" y="716.0" text-anchor="end" class="tick">1×</text>
-  <line x1="96" y1="638.8" x2="936" y2="638.8" class="grid"/>
-  <text x="80" y="644.8" text-anchor="end" class="tick">2×</text>
-  <line x1="96" y1="567.5" x2="936" y2="567.5" class="grid"/>
-  <text x="80" y="573.5" text-anchor="end" class="tick">4×</text>
-  <line x1="96" y1="496.2" x2="936" y2="496.2" class="grid"/>
-  <text x="80" y="502.2" text-anchor="end" class="tick">8×</text>
-  <line x1="96" y1="425.0" x2="936" y2="425.0" class="grid"/>
-  <text x="80" y="431.0" text-anchor="end" class="tick">16×</text>
-  <line x1="96" y1="353.8" x2="936" y2="353.8" class="grid"/>
-  <text x="80" y="359.8" text-anchor="end" class="tick">32×</text>
-  <line x1="96" y1="282.5" x2="936" y2="282.5" class="grid"/>
-  <text x="80" y="288.5" text-anchor="end" class="tick">64×</text>
-  <line x1="96" y1="211.2" x2="936" y2="211.2" class="grid"/>
-  <text x="80" y="217.2" text-anchor="end" class="tick">128×</text>
-  <line x1="96" y1="140.0" x2="936" y2="140.0" class="grid"/>
-  <text x="80" y="146.0" text-anchor="end" class="tick">256×</text>
-  <line x1="96" y1="140" x2="96" y2="710" class="axis"/>
-  <line x1="96" y1="710" x2="936" y2="710" class="axis"/>
-  <line x1="96" y1="710.0" x2="936" y2="710.0" stroke="#596674" stroke-width="1.5" stroke-dasharray="6 4"/>
-  <text x="25" y="425" transform="rotate(-90 25 425)" text-anchor="middle" class="subtitle">Time ratio (logarithmic scale)</text>
-  <rect x="114.5" y="573.3" width="47.0" height="136.7" rx="4" class="ratio"/>
-  <text x="138.0" y="559.3" text-anchor="middle" class="value">3.78×</text>
-  <text x="138.0" y="740" transform="rotate(-45 138.0 740)" text-anchor="end" class="label">Chain, 10 links</text>
-  <rect x="198.5" y="510.6" width="47.0" height="199.4" rx="4" class="ratio"/>
-  <text x="222.0" y="496.6" text-anchor="middle" class="value">6.96×</text>
-  <text x="222.0" y="740" transform="rotate(-45 222.0 740)" text-anchor="end" class="label">Chain, 20 links</text>
-  <rect x="282.5" y="613.3" width="47.0" height="96.7" rx="4" class="ratio"/>
-  <text x="306.0" y="599.3" text-anchor="middle" class="value">2.56×</text>
-  <text x="306.0" y="740" transform="rotate(-45 306.0 740)" text-anchor="end" class="label">ANYmal standing</text>
-  <rect x="366.5" y="611.6" width="47.0" height="98.4" rx="4" class="ratio"/>
-  <text x="390.0" y="597.6" text-anchor="middle" class="value">2.61×</text>
-  <text x="390.0" y="740" transform="rotate(-45 390.0 740)" text-anchor="end" class="label">ANYmal falling</text>
-  <rect x="450.5" y="548.6" width="47.0" height="161.4" rx="4" class="ratio"/>
-  <text x="474.0" y="534.6" text-anchor="middle" class="value">4.81×</text>
-  <text x="474.0" y="740" transform="rotate(-45 474.0 740)" text-anchor="end" class="label">ANYmal on heightmap</text>
-  <rect x="534.5" y="621.8" width="47.0" height="88.2" rx="4" class="ratio"/>
-  <text x="558.0" y="607.8" text-anchor="middle" class="value">2.36×</text>
-  <text x="558.0" y="740" transform="rotate(-45 558.0 740)" text-anchor="end" class="label">Primitive speed</text>
-  <rect x="618.5" y="606.3" width="47.0" height="103.7" rx="4" class="ratio"/>
-  <text x="642.0" y="592.3" text-anchor="middle" class="value">2.74×</text>
-  <text x="642.0" y="740" transform="rotate(-45 642.0 740)" text-anchor="end" class="label">Strandbeest</text>
-  <rect x="702.5" y="376.2" width="47.0" height="333.8" rx="4" class="ratio"/>
-  <text x="726.0" y="362.2" text-anchor="middle" class="value">25.71×</text>
-  <text x="726.0" y="740" transform="rotate(-45 726.0 740)" text-anchor="end" class="label">Heightmap LiDAR</text>
-  <rect x="786.5" y="196.9" width="47.0" height="513.1" rx="4" class="ratio"/>
-  <text x="810.0" y="182.9" text-anchor="middle" class="value">147.16×</text>
-  <text x="810.0" y="740" transform="rotate(-45 810.0 740)" text-anchor="end" class="label">Primitive ray scaling</text>
-  <rect x="870.5" y="455.3" width="47.0" height="254.7" rx="4" class="ratio"/>
-  <text x="894.0" y="441.3" text-anchor="middle" class="value">11.92×</text>
-  <text x="894.0" y="740" transform="rotate(-45 894.0 740)" text-anchor="end" class="label">Deformable cloth</text>
-  <text x="516" y="880" text-anchor="middle" class="subtitle">Workload</text>
-  <text x="516" y="938" text-anchor="middle" class="tick">Based on unrounded median wall-clock durations, including scene construction.</text>
-  <text x="516" y="966" text-anchor="middle" class="tick">1× = equal runtime</text>
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="578" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">RaiSim speedup over MuJoCo</text>
+  <text x="32.0" y="76.0" class="subtitle">MuJoCo time ÷ RaiSim time, higher is better · median of three runs · AMD Ryzen 9 3950X</text>
+  <line x1="272.0" y1="100" x2="272.0" y2="464" class="grid"/>
+  <line x1="333.0" y1="100" x2="333.0" y2="464" class="grid"/>
+  <line x1="394.0" y1="100" x2="394.0" y2="464" class="grid"/>
+  <line x1="455.0" y1="100" x2="455.0" y2="464" class="grid"/>
+  <line x1="516.0" y1="100" x2="516.0" y2="464" class="grid"/>
+  <line x1="577.0" y1="100" x2="577.0" y2="464" class="grid"/>
+  <line x1="638.0" y1="100" x2="638.0" y2="464" class="grid"/>
+  <line x1="699.0" y1="100" x2="699.0" y2="464" class="grid"/>
+  <line x1="760.0" y1="100" x2="760.0" y2="464" class="grid"/>
+  <line x1="272.0" y1="100" x2="272.0" y2="464" class="reference"/>
+  <line x1="272" y1="100" x2="272" y2="464" class="axis"/>
+  <text x="260.0" y="128.0" text-anchor="end" class="label">Chain, 10 links</text>
+  <path d="M272.0 111.0H385.0A4.0 4.0 0 0 1 389.0 115.0V129.0A4.0 4.0 0 0 1 385.0 133.0H272.0Z" class="raisim"><title>Chain, 10 links: MuJoCo takes 3.78 times as long</title></path>
+  <text x="397.0" y="128.0" class="value">3.78×</text>
+  <text x="260.0" y="164.0" text-anchor="end" class="label">Chain, 20 links</text>
+  <path d="M272.0 147.0H438.7A4.0 4.0 0 0 1 442.7 151.0V165.0A4.0 4.0 0 0 1 438.7 169.0H272.0Z" class="raisim"><title>Chain, 20 links: MuJoCo takes 6.96 times as long</title></path>
+  <text x="450.7" y="164.0" class="value">6.96×</text>
+  <text x="260.0" y="200.0" text-anchor="end" class="label">ANYmal standing</text>
+  <path d="M272.0 183.0H350.8A4.0 4.0 0 0 1 354.8 187.0V201.0A4.0 4.0 0 0 1 350.8 205.0H272.0Z" class="raisim"><title>ANYmal standing: MuJoCo takes 2.56 times as long</title></path>
+  <text x="362.8" y="200.0" class="value">2.56×</text>
+  <text x="260.0" y="236.0" text-anchor="end" class="label">ANYmal falling</text>
+  <path d="M272.0 219.0H352.3A4.0 4.0 0 0 1 356.3 223.0V237.0A4.0 4.0 0 0 1 352.3 241.0H272.0Z" class="raisim"><title>ANYmal falling: MuJoCo takes 2.61 times as long</title></path>
+  <text x="364.3" y="236.0" class="value">2.61×</text>
+  <text x="260.0" y="272.0" text-anchor="end" class="label">ANYmal on heightmap</text>
+  <path d="M272.0 255.0H406.2A4.0 4.0 0 0 1 410.2 259.0V273.0A4.0 4.0 0 0 1 406.2 277.0H272.0Z" class="raisim"><title>ANYmal on heightmap: MuJoCo takes 4.81 times as long</title></path>
+  <text x="418.2" y="272.0" class="value">4.81×</text>
+  <text x="260.0" y="308.0" text-anchor="end" class="label">Primitive speed</text>
+  <path d="M272.0 291.0H343.5A4.0 4.0 0 0 1 347.5 295.0V309.0A4.0 4.0 0 0 1 343.5 313.0H272.0Z" class="raisim"><title>Primitive speed: MuJoCo takes 2.36 times as long</title></path>
+  <text x="355.5" y="308.0" class="value">2.36×</text>
+  <text x="260.0" y="344.0" text-anchor="end" class="label">Strandbeest</text>
+  <path d="M272.0 327.0H356.8A4.0 4.0 0 0 1 360.8 331.0V345.0A4.0 4.0 0 0 1 356.8 349.0H272.0Z" class="raisim"><title>Strandbeest: MuJoCo takes 2.74 times as long</title></path>
+  <text x="368.8" y="344.0" class="value">2.74×</text>
+  <text x="260.0" y="380.0" text-anchor="end" class="label">Heightmap LiDAR</text>
+  <path d="M272.0 363.0H553.8A4.0 4.0 0 0 1 557.8 367.0V381.0A4.0 4.0 0 0 1 553.8 385.0H272.0Z" class="raisim"><title>Heightmap LiDAR: MuJoCo takes 25.71 times as long</title></path>
+  <text x="565.8" y="380.0" class="value">25.71×</text>
+  <text x="260.0" y="416.0" text-anchor="end" class="label">Primitive ray scaling</text>
+  <path d="M272.0 399.0H707.3A4.0 4.0 0 0 1 711.3 403.0V417.0A4.0 4.0 0 0 1 707.3 421.0H272.0Z" class="raisim"><title>Primitive ray scaling: MuJoCo takes 147.16 times as long</title></path>
+  <text x="719.3" y="416.0" class="value">147.16×</text>
+  <text x="260.0" y="452.0" text-anchor="end" class="label">Deformable cloth</text>
+  <path d="M272.0 435.0H486.1A4.0 4.0 0 0 1 490.1 439.0V453.0A4.0 4.0 0 0 1 486.1 457.0H272.0Z" class="raisim"><title>Deformable cloth: MuJoCo takes 11.92 times as long</title></path>
+  <text x="498.1" y="452.0" class="value">11.92×</text>
+  <text x="272.0" y="488.0" text-anchor="middle" class="tick">1×</text>
+  <text x="333.0" y="488.0" text-anchor="middle" class="tick">2×</text>
+  <text x="394.0" y="488.0" text-anchor="middle" class="tick">4×</text>
+  <text x="455.0" y="488.0" text-anchor="middle" class="tick">8×</text>
+  <text x="516.0" y="488.0" text-anchor="middle" class="tick">16×</text>
+  <text x="577.0" y="488.0" text-anchor="middle" class="tick">32×</text>
+  <text x="638.0" y="488.0" text-anchor="middle" class="tick">64×</text>
+  <text x="699.0" y="488.0" text-anchor="middle" class="tick">128×</text>
+  <text x="760.0" y="488.0" text-anchor="middle" class="tick">256×</text>
+  <text x="516.0" y="518.0" text-anchor="middle" class="note">Speedup (logarithmic)</text>
+  <text x="32.0" y="562.0" class="note">Wall-clock durations include scene construction; 1× is equal runtime.</text>
 </svg>

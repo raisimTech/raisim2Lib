@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="830" viewBox="0 0 960 830" role="img" aria-labelledby="title desc">
+  <title id="title">Tetrahedral meshing of CAD parts</title>
+  <desc id="desc">Horizontal bars, one panel per part and element size, of the seconds RaiSim&#x27;s constrained Delaunay mesher and fTetWild take to mesh it. The axis is logarithmic.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="830" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Tetrahedral meshing of CAD parts</text>
+  <text x="32.0" y="76.0" class="subtitle">Seconds, lower is better · median of three runs · Intel Core Ultra 7 265K, one core</text>
+  <text x="32.0" y="126.0" class="panel">Two-part assembly, 20 mm edges</text>
+  <line x1="232.0" y1="136" x2="232.0" y2="212" class="grid"/>
+  <line x1="408.0" y1="136" x2="408.0" y2="212" class="grid"/>
+  <line x1="584.0" y1="136" x2="584.0" y2="212" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="212" class="grid"/>
+  <line x1="232" y1="136" x2="232" y2="212" class="axis"/>
+  <text x="220.0" y="164.0" text-anchor="end" class="label">RaiSim Delaunay</text>
+  <path d="M232.0 147.0H284.7A4.0 4.0 0 0 1 288.7 151.0V165.0A4.0 4.0 0 0 1 284.7 169.0H232.0Z" class="raisim"><title>RaiSim Delaunay: 0.021 s</title></path>
+  <text x="296.7" y="164.0" class="value">0.021 s<tspan class="note" font-weight="400">  15× faster</tspan></text>
+  <text x="220.0" y="200.0" text-anchor="end" class="label">fTetWild</text>
+  <path d="M232.0 183.0H492.4A4.0 4.0 0 0 1 496.4 187.0V201.0A4.0 4.0 0 0 1 492.4 205.0H232.0Z" class="other"><title>fTetWild: 0.318 s</title></path>
+  <text x="504.4" y="200.0" class="value">0.318 s</text>
+  <text x="32.0" y="252.0" class="panel">Two-part assembly, 10 mm edges</text>
+  <line x1="232.0" y1="262" x2="232.0" y2="338" class="grid"/>
+  <line x1="408.0" y1="262" x2="408.0" y2="338" class="grid"/>
+  <line x1="584.0" y1="262" x2="584.0" y2="338" class="grid"/>
+  <line x1="760.0" y1="262" x2="760.0" y2="338" class="grid"/>
+  <line x1="232" y1="262" x2="232" y2="338" class="axis"/>
+  <text x="220.0" y="290.0" text-anchor="end" class="label">RaiSim Delaunay</text>
+  <path d="M232.0 273.0H291.7A4.0 4.0 0 0 1 295.7 277.0V291.0A4.0 4.0 0 0 1 291.7 295.0H232.0Z" class="raisim"><title>RaiSim Delaunay: 0.023 s</title></path>
+  <text x="303.7" y="290.0" class="value">0.023 s<tspan class="note" font-weight="400">  9.0× faster</tspan></text>
+  <text x="220.0" y="326.0" text-anchor="end" class="label">fTetWild</text>
+  <path d="M232.0 309.0H460.0A4.0 4.0 0 0 1 464.0 313.0V327.0A4.0 4.0 0 0 1 460.0 331.0H232.0Z" class="other"><title>fTetWild: 0.208 s</title></path>
+  <text x="472.0" y="326.0" class="value">0.208 s</text>
+  <text x="32.0" y="378.0" class="panel">Two-part assembly, 5 mm edges</text>
+  <line x1="232.0" y1="388" x2="232.0" y2="464" class="grid"/>
+  <line x1="408.0" y1="388" x2="408.0" y2="464" class="grid"/>
+  <line x1="584.0" y1="388" x2="584.0" y2="464" class="grid"/>
+  <line x1="760.0" y1="388" x2="760.0" y2="464" class="grid"/>
+  <line x1="232" y1="388" x2="232" y2="464" class="axis"/>
+  <text x="220.0" y="416.0" text-anchor="end" class="label">RaiSim Delaunay</text>
+  <path d="M232.0 399.0H358.3A4.0 4.0 0 0 1 362.3 403.0V417.0A4.0 4.0 0 0 1 358.3 421.0H232.0Z" class="raisim"><title>RaiSim Delaunay: 0.055 s</title></path>
+  <text x="370.3" y="416.0" class="value">0.055 s<tspan class="note" font-weight="400">  10× faster</tspan></text>
+  <text x="220.0" y="452.0" text-anchor="end" class="label">fTetWild</text>
+  <path d="M232.0 435.0H535.4A4.0 4.0 0 0 1 539.4 439.0V453.0A4.0 4.0 0 0 1 535.4 457.0H232.0Z" class="other"><title>fTetWild: 0.558 s</title></path>
+  <text x="547.4" y="452.0" class="value">0.558 s</text>
+  <text x="32.0" y="504.0" class="panel">Hollow cylinder, 15 mm edges</text>
+  <line x1="232.0" y1="514" x2="232.0" y2="590" class="grid"/>
+  <line x1="408.0" y1="514" x2="408.0" y2="590" class="grid"/>
+  <line x1="584.0" y1="514" x2="584.0" y2="590" class="grid"/>
+  <line x1="760.0" y1="514" x2="760.0" y2="590" class="grid"/>
+  <line x1="232" y1="514" x2="232" y2="590" class="axis"/>
+  <text x="220.0" y="542.0" text-anchor="end" class="label">RaiSim Delaunay</text>
+  <path d="M232.0 525.0H441.3A4.0 4.0 0 0 1 445.3 529.0V543.0A4.0 4.0 0 0 1 441.3 547.0H232.0Z" class="raisim"><title>RaiSim Delaunay: 0.163 s</title></path>
+  <text x="453.3" y="542.0" class="value">0.163 s<tspan class="note" font-weight="400">  29× faster</tspan></text>
+  <text x="220.0" y="578.0" text-anchor="end" class="label">fTetWild</text>
+  <path d="M232.0 561.0H697.5A4.0 4.0 0 0 1 701.5 565.0V579.0A4.0 4.0 0 0 1 697.5 583.0H232.0Z" class="other"><title>fTetWild: 4.654 s</title></path>
+  <text x="709.5" y="578.0" class="value">4.654 s</text>
+  <text x="32.0" y="630.0" class="panel">Sphere, 15 mm edges</text>
+  <line x1="232.0" y1="640" x2="232.0" y2="716" class="grid"/>
+  <line x1="408.0" y1="640" x2="408.0" y2="716" class="grid"/>
+  <line x1="584.0" y1="640" x2="584.0" y2="716" class="grid"/>
+  <line x1="760.0" y1="640" x2="760.0" y2="716" class="grid"/>
+  <line x1="232" y1="640" x2="232" y2="716" class="axis"/>
+  <text x="220.0" y="668.0" text-anchor="end" class="label">RaiSim Delaunay</text>
+  <path d="M232.0 651.0H409.2A4.0 4.0 0 0 1 413.2 655.0V669.0A4.0 4.0 0 0 1 409.2 673.0H232.0Z" class="raisim"><title>RaiSim Delaunay: 0.107 s</title></path>
+  <text x="421.2" y="668.0" class="value">0.107 s<tspan class="note" font-weight="400">  40× faster</tspan></text>
+  <text x="220.0" y="704.0" text-anchor="end" class="label">fTetWild</text>
+  <path d="M232.0 687.0H690.6A4.0 4.0 0 0 1 694.6 691.0V705.0A4.0 4.0 0 0 1 690.6 709.0H232.0Z" class="other"><title>fTetWild: 4.25 s</title></path>
+  <text x="702.6" y="704.0" class="value">4.25 s</text>
+  <text x="232.0" y="740.0" text-anchor="middle" class="tick">0.01</text>
+  <text x="408.0" y="740.0" text-anchor="middle" class="tick">0.1</text>
+  <text x="584.0" y="740.0" text-anchor="middle" class="tick">1</text>
+  <text x="760.0" y="740.0" text-anchor="middle" class="tick">10</text>
+  <text x="496.0" y="770.0" text-anchor="middle" class="note">Seconds (logarithmic)</text>
+  <text x="32.0" y="814.0" class="note">Times include helper startup, CAD translation, meshing and output.</text>
+</svg>

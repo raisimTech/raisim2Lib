@@ -14,6 +14,7 @@
 #include <system_error>
 
 #include "raisim/object/ArticulatedSystem/JointAndBodies.hpp"
+#include "TcpViewerPathText.hpp"
 
 namespace raisin::tcp_viewer
 {
@@ -172,7 +173,6 @@ float channelValue(const SignalChannelDesc& channel, const SignalSampleInputs& i
     return static_cast<float>(std::sqrt(squared));
   }
 
-  // joint.<name>.q / joint.<name>.qd
   if (info == nullptr || !info->valid || channel.key.rfind("joint.", 0) != 0) {
     return 0.0f;
   }
@@ -314,13 +314,13 @@ bool writeSignalCsv(
   if (!path.parent_path().empty()) {
     std::filesystem::create_directories(path.parent_path(), ec);
     if (ec) {
-      status = "signal export failed: cannot create " + path.parent_path().string();
+      status = "signal export failed: cannot create " + utf8PathText(path.parent_path());
       return false;
     }
   }
   std::ofstream file(path);
   if (!file) {
-    status = "signal export failed: cannot open " + path.string();
+    status = "signal export failed: cannot open " + utf8PathText(path);
     return false;
   }
 
@@ -343,10 +343,10 @@ bool writeSignalCsv(
     file << '\n';
   }
   if (!file) {
-    status = "signal export failed: write error on " + path.string();
+    status = "signal export failed: write error on " + utf8PathText(path);
     return false;
   }
-  status = "exported " + std::to_string(times.size()) + " sample(s) to " + path.string();
+  status = "exported " + std::to_string(times.size()) + " sample(s) to " + utf8PathText(path);
   return true;
 }
 

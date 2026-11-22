@@ -72,7 +72,7 @@ Earlier versions of this example coupled only joint-coordinate tendons and
 therefore had no cable lines. Rebuild `tendon_coupling` and `rayrai_tendons`, then
 restart the program to load the revised scene.
 
-## Export, tests, and timing
+## Export, captures, and tests
 
 Export an initial scene as native XML, then open it with the existing XML loader
 or drop it onto the TCP viewer. XML preserves tendon configuration and the
@@ -82,23 +82,19 @@ sidecar files beside the XML. The XML uses absolute URDF paths; update those
 references if relocating the exported scene.
 
 ```sh
-./tendon_pulleys --headless --steps 0 --export /tmp/tendon-pulleys.xml
-./rayrai_tendons --headless --steps 0 --export /tmp/all-tendons.xml
+./tendon_pulleys --export /tmp/tendon-pulleys.xml
+./rayrai_tendons --export /tmp/all-tendons.xml
 ```
 
-Headless runs create no graphics context or server, use one physics thread,
-and have no real-time pacing. They check finite state, length and coupling
-errors, and meaningful motion for runs of at least 1,000 steps. Timing includes
-control updates and these diagnostics.
+Both commands export the initial scene, then run the example as usual. Save the
+view of `rayrai_tendons` with the capture that the rayrai examples share:
 
 ```sh
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  ./tendon_pulleys --benchmark --steps 20000
-./rayrai_tendons --headless --scene all --steps 6000
-./rayrai_tendons --hidden --frames 90 --screenshot /tmp/tendons.png
+RAYRAI_EXAMPLE_CAPTURE=/tmp/tendons.png RAYRAI_EXAMPLE_CAPTURE_START=90 ./rayrai_tendons
 ```
 
-Enable `RAISIM_TENDON_EXAMPLE_TESTS=ON` in the adjacent Raisim root build to register the headless,
+Enable `RAISIM_TENDON_EXAMPLE_TESTS=ON` in the adjacent Raisim root build to register the
+6,000-step scene checks (finite state, length and coupling errors, meaningful motion),
 CLI/export, XML trajectory round-trip, coupled spatial-route/force checks,
 and local/TCP Rayrai checks. Optionally set
 `RAISIM_EXAMPLE_ACTIVATION_KEY=/path/to/activation.raisim` for the test commands.

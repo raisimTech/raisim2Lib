@@ -13,18 +13,16 @@
 // (offroad_buggy_venue.hpp).
 //
 // --validate runs the physics checks of offroad_buggy_validation.hpp without a
-// window; --screenshot PNG renders a frame of a short scripted drive.
+// window.
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <glbinding/gl/gl.h>
 #include "example_resources.hpp"
 #include "offroad_buggy_scene.hpp"
 #include "offroad_buggy_validation.hpp"
@@ -33,7 +31,6 @@
 #include "offroad_buggy_venue.hpp"
 #include "rayrai/Visuals.hpp"
 #include "rayrai/example_common.hpp"
-#include "rayrai_example_utils.hpp"
 #include "rayrai_loading_progress.hpp"
 
 namespace {
@@ -79,30 +76,6 @@ const char* cameraModeName(CameraMode m) {
       return "free orbit";
   }
   return "";
-}
-
-struct Options {
-  std::filesystem::path screenshot;
-  std::vector<float> view;  // fixed camera for captures: x y z yaw pitch
-  int captureFrames = 600;
-  int cameraMode = 0;
-  bool hud = false;
-  bool validate = false;
-  double grassDensity = 1.0;
-};
-
-/// The whole window with its overlays, read from the back buffer before it is swapped.
-bool saveWindowScreenshot(SDL_Window* window, const std::filesystem::path& path) {
-  int width = 0, height = 0;
-  SDL_GL_GetDrawableSize(window, &width, &height);
-  const size_t stride = size_t(width) * 4;
-  std::vector<unsigned char> rgba(stride * height), flipped(stride * height);
-  gl::glBindFramebuffer(gl::GL_READ_FRAMEBUFFER, 0);
-  gl::glReadBuffer(gl::GL_BACK);
-  gl::glPixelStorei(gl::GL_PACK_ALIGNMENT, 1);
-  gl::glReadPixels(0, 0, width, height, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, rgba.data());
-  for (int y = 0; y < height; ++y) std::memcpy(&flipped[y * stride], &rgba[(height - 1 - y) * stride], stride);
-  return stbi_write_png(path.string().c_str(), width, height, 4, flipped.data(), int(stride)) != 0;
 }
 
 /// Direction of the sun in the sky HDR (rsc/city/sky), from the sun towards the scene, in rayrai's
@@ -557,7 +530,7 @@ void drawHud(const offroad::Buggy& buggy, const offroad::TerrainInfo& info, cons
   ImGui::PopStyleVar();
 }
 
-int runViewer(const Options& options, char* argv0) {
+int runViewer(double grassDensity, char* argv0) {
   const std::filesystem::path root = exampleRscPath(argv0, "offroad_buggy");
   const std::filesystem::path rsc = root.parent_path();
   const auto info = offroad::readTerrainInfo(root / "terrain" / "terrain.txt");
@@ -570,7 +543,7 @@ int runViewer(const Options& options, char* argv0) {
   auto* terrain = offroad::addTerrain(*world, info, heights);
   offroad::PlacementGrid occupied(4.0);
   auto venue = offroad::buildVenue(*world, *terrain, info, rsc, occupied);
-  const auto scenery = offroad::placeScenery(*world, *terrain, info, surface, rsc, options.grassDensity, occupied);
+  const auto scenery = offroad::placeScenery(*world, *terrain, info, surface, rsc, grassDensity, occupied);
   offroad::Buggy buggy(*world, (root / "buggy.urdf").string());
   const offroad::TrackLocator track(info);
   auto ground = [&](double x, double y) { return terrain->getHeight(x, y); };
@@ -580,11 +553,8 @@ int runViewer(const Options& options, char* argv0) {
             << " marker posts (dynamic), " << venue.pitBoxes << " pit boxes; " << scenery.colliders + venue.colliders << " static colliders\n";
 
   ExampleApp app;
-  const bool capture = !options.screenshot.empty();
-  if (!app.init("RaiSim off-road buggy", 1600, 900, !capture)) return 1;
-  if (capture) SDL_GL_SetSwapInterval(0);
+  if (!app.init("RaiSim off-road buggy", 1600, 900)) return 1;
   ImGui::GetIO().IniFilename = nullptr;
-  int status = 0;
   {
     Viewer viewer(world, 1600, 900);
     viewer.setAsyncMeshLoadingEnabled(true);
@@ -615,22 +585,19 @@ int runViewer(const Options& options, char* argv0) {
     RayraiLoadingProgress loading("Loading the race track");
     loading.update(viewer.pendingAsyncMeshLoadCount());
     KeyboardDriver keyboard;
-    offroad::Autopilot pilot(info, track);
-    CameraMode cameraMode = CameraMode(std::clamp(options.cameraMode, 0, 3)), lastCameraMode = CameraMode::Chase;
+    CameraMode cameraMode = CameraMode::Chase, lastCameraMode = CameraMode::Chase;
     std::array<float, 4> distances;
     for (int m = 0; m < 4; ++m) distances[m] = kCameraViews[m].distance;
     bool paused = false, showHelp = true;
     double lastHeading = info.start.z(), stepMicros = 0, realTimeFactor = 0;
     glm::vec3 smoothTarget = camera.target;
-    int captureFrames = 0;
-    auto captureStart = std::chrono::steady_clock::now();
     auto last = std::chrono::steady_clock::now();
     offroad::DriverInput input;
     while (!app.quit) {
       app.processEvents();
       if (app.quit) break;
       const auto now = std::chrono::steady_clock::now();
-      const double frameTime = capture ? 1.0 / 60 : std::min(std::chrono::duration<double>(now - last).count(), 1.0 / 20);
+      const double frameTime = std::min(std::chrono::duration<double>(now - last).count(), 1.0 / 20);
       last = now;
       if (!ImGui::GetIO().WantTextInput) {
         if (ImGui::IsKeyPressed(ImGuiKey_C, false)) cameraMode = CameraMode((int(cameraMode) + 1) % 4);
@@ -648,7 +615,7 @@ int runViewer(const Options& options, char* argv0) {
       }
       const bool ready = !loading.visible();
       if (ready && !paused) {
-        input = capture ? pilot.update(buggy) : keyboard.update(frameTime, buggy.telemetry().speed);
+        input = keyboard.update(frameTime, buggy.telemetry().speed);
         const int steps = std::clamp(int(std::round(frameTime / kTimeStep)), 1, 50);
         const auto start = std::chrono::steady_clock::now();
         for (int i = 0; i < steps; ++i) {
@@ -712,67 +679,34 @@ int runViewer(const Options& options, char* argv0) {
       app.beginFrame();
       app.renderViewer(viewer);
       loading.update(viewer.pendingAsyncMeshLoadCount());
-      if (!capture || options.hud) drawHud(buggy, info, input, cameraMode, stepMicros, realTimeFactor, showHelp);
-      if (!capture) loading.draw();
-      const bool last = capture && ready && captureFrames + 1 == options.captureFrames;
-      if (last && options.hud) {
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        status = saveWindowScreenshot(app.window, options.screenshot) ? 0 : 1;
-        SDL_GL_SwapWindow(app.window);
-        break;
-      }
+      drawHud(buggy, info, input, cameraMode, stepMicros, realTimeFactor, showHelp);
+      loading.draw();
       app.endFrame();
-      if (!options.view.empty()) {
-        camera.setCameraFixedTarget(false);
-        camera.setCameraFixedDistance(false);
-        camera.position = {options.view[0], options.view[1], options.view[2]};
-        camera.yaw = options.view[3];
-        camera.pitch = options.view[4];
-      }
-      if (capture && ready && captureFrames == 0) captureStart = std::chrono::steady_clock::now();
-      if (capture && ready && captureFrames == options.captureFrames / 2) {
-        const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - captureStart).count();
-        std::cout << "frame time " << ms / std::max(1, captureFrames) << " ms (physics included)\n";
-      }
-      if (capture && ready && ++captureFrames == options.captureFrames) {
-        status = raisim_examples::saveCameraPng(viewer.getCamera(), options.screenshot) ? 0 : 1;
-        break;
-      }
     }
   }  // Release graphics resources before closing the OpenGL context.
   app.shutdown();
-  return status;
+  return 0;
 }
 
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  Options options;
+  bool validate = false;
+  double grassDensity = 1.0;
   for (int i = 1; i < argc; ++i) {
     const std::string option = argv[i];
-    if (option == "--screenshot" && i + 1 < argc)
-      options.screenshot = argv[++i];
-    else if (option == "--validate")
-      options.validate = true;
+    if (option == "--validate")
+      validate = true;
     else if (option == "--grass" && i + 1 < argc)
-      options.grassDensity = std::stod(argv[++i]);
-    else if (option == "--frames" && i + 1 < argc)
-      options.captureFrames = std::stoi(argv[++i]);
-    else if (option == "--camera" && i + 1 < argc)
-      options.cameraMode = std::stoi(argv[++i]);
-    else if (option == "--hud")
-      options.hud = true;
-    else if (option == "--view" && i + 5 < argc)
-      for (int k = 0; k < 5; ++k) options.view.push_back(std::stof(argv[++i]));
+      grassDensity = std::stod(argv[++i]);
     else {
-      std::cerr << "Usage: rayrai_offroad_buggy [--screenshot PNG] [--validate] [--grass DENSITY]\n";
+      std::cerr << "Usage: rayrai_offroad_buggy [--validate] [--grass DENSITY]\n";
       return 2;
     }
   }
   try {
-    if (options.validate) return offroad::validate(exampleRscPath(argv[0], "offroad_buggy"));
-    return runViewer(options, argv[0]);
+    if (validate) return offroad::validate(exampleRscPath(argv[0], "offroad_buggy"));
+    return runViewer(grassDensity, argv[0]);
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';
     return 1;

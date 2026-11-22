@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import raisimpy as r
@@ -23,10 +24,11 @@ MODEL = """<robot name="carriage_robot">
 </robot>"""
 
 
-def run_demo(activation_key, steps=1000):
+def run_demo(activation_key=None, steps=1000):
     if steps < 1:
         raise ValueError("steps must be positive")
-    r.World.setActivationKey(str(activation_key))
+    if activation_key is not None:
+        r.World.setActivationKey(str(activation_key))
     world = r.World()
     world.setTimeStep(0.001)
     world.setGravity(np.zeros(3))
@@ -56,17 +58,18 @@ def run_demo(activation_key, steps=1000):
         "detached_velocity_difference": float(first.getGeneralizedVelocity()[0] -
                                               second.getGeneralizedVelocity()[0]),
         "remaining_joints": len(world.getRuntimeJoints()),
+        "simulated_seconds": world.getWorldTime(),
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--activation-key", type=Path,
-                        default=Path(__file__).resolve().parents[2] / "rsc/activation.raisim")
-    parser.add_argument("--steps", type=int, default=1000,
-                        help="Number of steps before and after releasing the dock.")
-    args = parser.parse_args()
-    print(json.dumps(run_demo(args.activation_key, args.steps), indent=2))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from _example_utils import setup
+    args = setup(r, argparse.ArgumentParser(
+        description=__doc__ + " --steps sets the steps before the release and again after it (1000 by default)."))
+    result = run_demo(steps=1000 if args.steps is None else args.steps)
+    print(json.dumps(result, indent=2))
+    print(f"Simulated {result['simulated_seconds']:.6f} seconds")
 
 
 if __name__ == "__main__":

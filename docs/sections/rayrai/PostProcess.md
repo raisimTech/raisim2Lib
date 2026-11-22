@@ -180,8 +180,13 @@ systems without this backend.
 Set `ssrGlossyRayQueries=true` with `ssrTemporalStabilization=true` to
 scatter the fallback ray direction according to receiver roughness. Rayrai
 filters the resulting radiance at half resolution and validates history using
-receiver depth, world-space normals, roughness, and hit distance. The pass
-fills the low-confidence part of SSR and fades out by roughness 0.64.
+receiver depth, world-space normals, roughness, and hit distance. History is
+dropped when the rays stop hitting where several hits were expected, or start
+hitting where history saw nothing, and is clamped to the current samples, so a
+reflected object that leaves or darkens fades within a frame or two. With one ray
+per pixel, a sparsely sampled reflection (a small object far in a rough lobe)
+cannot be told from an unlucky frame, so it keeps history and fades over a few
+frames. The pass fills the low-confidence part of SSR and fades out by roughness 0.64.
 
 ![Glossy offscreen light on a worn concrete floor](../../../rsc/docs/image/rayrai/showcase/glossy-reflections.webp)
 
@@ -620,8 +625,10 @@ the algorithm:
   resolve does not compensate for it, so a non-zero jitter (the struct default
   is 1) shifts static images every frame.
 - `TemporalAaMethod::Reprojected` accumulates jittered scene-linear colour
-  and reprojects it with the camera motion and foliage wind, with depth
-  rejection and variance clipping. `temporalAaCurrentWeight` (0.02–1, default
+  and reprojects it with the camera motion, world-body motion vectors and
+  foliage wind, with depth rejection and variance clipping. Plain visuals
+  (for example the TCP viewer's remote bodies) that were added or moved since
+  the previous frame reject their history where they are drawn. `temporalAaCurrentWeight` (0.02–1, default
   0.1) is the weight of the new frame, and `temporalAaSharpness` (0–1, default
   0.3) sharpens the output only. `setRenderQualitySettings` throws
   `std::invalid_argument` for values outside these ranges, and forces

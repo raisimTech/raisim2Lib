@@ -97,15 +97,16 @@ example:
 ```
 
 On Windows, run `build-examples\bin\magnetic_wall_climbing.exe`. The viewer
-follows the robot. The scene and the controller are in
+looks at the face of the wall the robot climbs, the one the viewer's default
+sun lights. The scene and the controller are in
 `examples/include/magnetic_wall_climber.hpp`; the example adds the seams of
 the wall's plates and the magnet discs as visual objects.
 
 ## Details
 
 - The wall is a static 0.3 m × 3 m × 4 m box of the magnetic material `steel`.
-  The robot climbs its base from 0.75 m to 3.1 m above the ground and rests
-  1.5 s at each end.
+  The robot climbs its face toward −x, moving its base from 0.75 m to 3.1 m
+  above the ground, and rests 1.5 s at each end.
 - The magnet's pull falls off as $F_\mathrm{max}(1 - d/r)^2$ with the gap $d$
   and the range $r = 1$ cm.
 - The joints are PD-controlled with gains of 120 N m/rad and 3 N m s/rad, and

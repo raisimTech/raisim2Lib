@@ -18,12 +18,18 @@ up. The raw clip is then trimmed, cropped to 16:10 and encoded as a small
   seconds      raw clip length; load is the extra time allowed for loading
   every_frame  keep every frame instead of sampling wall-clock time (for an
                example that advances its simulation by a fixed step per frame)
+  keys         keys held down while it runs, as [name, from, to] with SDL key names and
+               seconds after the first frame, to drive an interactive example
   crop         trim, dur (seconds) and zoom, cx, cy (crop centre, 0..1) of the tile
 
 Requires Linux, a C compiler, ffmpeg/ffprobe, and the examples built from
 raisim2Lib/examples against the RaiSim and rayrai packages.
 
-usage: record_example_clips.py --build <examples build dir> [--out DIR] [--work DIR] [name ...]
+usage: record_example_clips.py --build <examples build dir> [--out DIR] [--work DIR]
+                               [--library-dirs DIRS] [--max-seconds S] [name ...]
+
+--max-seconds records every clip within S seconds of its first frame, for quick previews: it waits
+less for loading, keeps only the part of the raw clip the tile uses, and moves the held keys with it.
 """
 
 import argparse
@@ -39,6 +45,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 CLIPS = json.loads((HERE / "clips.json").read_text(encoding="utf-8"))
 SERVER_ENDPOINT = "127.0.0.1:8080"
+LIBRARY_DIRS = [REPO / "rayrai/lib", REPO / "raisim/lib", REPO / "raisim/lib/openusd/lib"]
 
 
 def build_hook(work):
@@ -49,10 +56,10 @@ def build_hook(work):
 
 
 def environment(extra):
-    env = {k: v for k, v in os.environ.items() if k not in ("DISPLAY", "WAYLAND_DISPLAY")}
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("DISPLAY", "WAYLAND_DISPLAY") and not k.startswith("RAYRAI_EXAMPLE_CAPTURE")}
     env["SDL_VIDEODRIVER"] = "offscreen"
-    library_dirs = [REPO / "rayrai/lib", REPO / "raisim/lib", REPO / "raisim/lib/openusd/lib"]
-    env["LD_LIBRARY_PATH"] = ":".join([*map(str, library_dirs), env.get("LD_LIBRARY_PATH", "")])
+    env["LD_LIBRARY_PATH"] = ":".join([*map(str, LIBRARY_DIRS), env.get("LD_LIBRARY_PATH", "")])
     env.update(extra)
     return env
 
@@ -72,15 +79,36 @@ def stop(process):
             process.wait()
 
 
-def record_window(name, spec, build, raw, hook, work):
+def key_script(keys):
+    """FRAMECAP_KEYS for the keys a clip holds down: NAME@FROM-TO, comma separated."""
+    return ",".join(f"{key}@{start}-{end}" for key, start, end in keys)
+
+
+def timing(spec, max_seconds=None):
+    """Seconds before recording, raw clip length and held keys of a clip. max_seconds caps the time
+    from the first frame to the end of the clip: the raw clip keeps only what the tile uses, the
+    recording starts earlier, and the keys move with it."""
+    start, seconds, keys = spec.get("start", 4), spec.get("seconds", 8), spec.get("keys", [])
+    if max_seconds:
+        crop = {"trim": 1.0, "dur": 5.0, **spec.get("crop", {})}
+        seconds = min(seconds, crop["trim"] + crop["dur"])
+        shift = start - min(start, max(0, max_seconds - seconds))
+        start -= shift
+        keys = [[key, max(0, begin - shift), end - shift] for key, begin, end in keys if end > shift]
+    return start, seconds, keys
+
+
+def record_window(name, spec, build, raw, hook, work, max_seconds=None):
     """Runs the example (and the viewer for a server example) and records a raw clip."""
+    delay, seconds, keys = timing(spec, max_seconds)
     capture = {"LD_PRELOAD": str(hook), "FRAMECAP_OUT": str(raw), "FRAMECAP_EXIT": "1",
-               "FRAMECAP_START": str(spec.get("start", 4)), "FRAMECAP_SECONDS": str(spec.get("seconds", 8)),
+               "FRAMECAP_START": str(delay), "FRAMECAP_SECONDS": str(seconds),
                "FRAMECAP_WIDTH": "0", "FRAMECAP_CRF": "16", "FRAMECAP_FPS": str(spec.get("fps", 30)),
-               "FRAMECAP_EVERY_FRAME": "1" if spec.get("every_frame") else "0"}
+               "FRAMECAP_EVERY_FRAME": "1" if spec.get("every_frame") else "0",
+               "FRAMECAP_KEYS": key_script(keys)}
     program = [str(build / spec.get("binary", name)),
                *(arg.replace("{work}", str(work)) for arg in spec.get("args", []))]
-    budget = spec.get("start", 4) + spec.get("seconds", 8) + spec.get("load", 40)
+    budget = delay + seconds + spec.get("load", 40)
     with open(work / f"{name}.log", "w") as log:
         server = None
         try:
@@ -145,8 +173,14 @@ def main():
     parser.add_argument("--build", type=Path, required=True, help="build directory of raisim2Lib/examples")
     parser.add_argument("--out", type=Path, default=REPO / "rsc/docs/video/examples")
     parser.add_argument("--work", type=Path, help="keeps raw clips and logs (default: a temporary directory)")
+    parser.add_argument("--library-dirs", help="colon-separated library directories to run the examples with, "
+                        "instead of this repository's raisim and rayrai packages")
+    parser.add_argument("--max-seconds", type=float, help="record each clip within this many seconds of its first "
+                        "frame (shorter waits for loading and only the part the tile keeps)")
     parser.add_argument("names", nargs="*", help="examples to record (default: all in clips.json)")
     args = parser.parse_args()
+    if args.library_dirs:
+        LIBRARY_DIRS[:] = [Path(path) for path in args.library_dirs.split(":") if path]
     unknown = sorted(set(args.names) - set(CLIPS))
     if unknown:
         parser.error(f"not in clips.json: {', '.join(unknown)}")
@@ -161,7 +195,7 @@ def main():
             if spec["kind"] == "comparison":
                 record_comparison(name, spec, args.build.resolve(), raw, work)
             else:
-                record_window(name, spec, args.build.resolve(), raw, hook, work)
+                record_window(name, spec, args.build.resolve(), raw, hook, work, args.max_seconds)
             if not raw.is_file() or raw.stat().st_size < 10_000:
                 failed.append(name)
                 print(f"{name}: no clip (see {work / (name + '.log')})", flush=True)

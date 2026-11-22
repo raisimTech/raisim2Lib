@@ -217,5 +217,4 @@ contact-solver specialization. Removing the last tendon releases that optional
 storage. Enabled tendons add work for geometry, participating body dynamics,
 constraint rows, and solver iterations. Spatial armature also evaluates a
 curvature bias. Visual tessellation is requested by rendering/streaming, rather
-than generated during ordinary physics integration. Measure representative
-scenes with the serial headless commands in [Tendon examples and Rayrai](./tendons/Examples.md).
+than generated during ordinary physics integration.

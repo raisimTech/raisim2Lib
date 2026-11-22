@@ -109,8 +109,9 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   then reset and repeat.
 - `tendon_elastic`, `tendon_pulleys`, and `tendon_coupling`: procedural tendon
   simulations streamed to the TCP viewer.
-- `thrusters_and_grippers`: a quadrotor flown with four URDF thrusters, and a
-  suction lifter and a magnet lifter that pick up and drop boxes.
+- `drone_flight`: a quadrotor drone flown by four URDF thrusters takes off from
+  its pad, flies figure eights around two posts facing the way it flies, and
+  lands again.
 - `rayrai_tendons`: the same tendon scenes with automatic local drawing and
   interactive controls. See the [tendon examples guide](../TENDONS.md).
 - `deformable_objects`: cloth, mesh deformables, filled particles, struts,
@@ -160,8 +161,7 @@ from `rsc/docs/image/logo.png`, with deep-purple text on a white band.
   ANYmal C standing in an aisle.
 - `rayrai_deformable_terrain`: drive the full off-road buggy with
   double-wishbone suspension over a deformable mesh soil bed, leaving permanent
-  wheel tracks. Supports `--headless`,
-  `--steps=N`, and `--export=DIR`.
+  wheel tracks.
 - `rayrai_offroad_buggy`: an off-road buggy with double-wishbone suspension,
   coilovers and rack-and-pinion steering, all in one URDF closed by pin,
   equality and mimic constraints, driven with the arrow keys on a dirt race
@@ -242,13 +242,12 @@ them against the updated rayrai package containing `rayrai/PhysicsSnapshot.hpp`.
 `worlds/articulated_join.cpp` builds as `articulated_join`. One repeating scene
 joins a static beam and four boxes into a swinging chain, lets a gantry join a
 tool to its hook, carry it and release it with `World::detachJoint()`, and docks
-two fixed-base carriages through a loop joint before undocking them. The
-default is a server demo; connect `rayrai_tcp_viewer` to the printed port. Use
-`--headless` for the physics checks:
+two fixed-base carriages through a loop joint before undocking them. It is a
+server demo; connect `rayrai_tcp_viewer` to the printed port:
 
 ```bash
 cmake --build build-examples --target articulated_join --parallel 12
-./build-examples/examples/articulated_join --headless
+./build-examples/examples/articulated_join
 ```
 
 The [example page](../../docs/sections/examples/worlds/articulated_join.md)
@@ -258,18 +257,16 @@ version of the gantry and docking stations.
 ## Runtime joint examples
 
 `worlds/runtime_joints.cpp` builds as `runtime_joints`. Its tool scene moves a
-kinematic wrist with a fixed tool attachment, verifies its pose and support
-force, and releases the tool onto the ground. Its docking scene connects two
-independent articulated robots, checks the transferred force, and releases
-them to move independently. The default is a repeating server demo; connect
-`rayrai_tcp_viewer` to the printed port. Use `--headless` for the physics checks:
+kinematic wrist with a fixed tool attachment, prints its support force, and
+releases the tool onto the ground. Its docking scene connects two independent
+articulated robots, prints the transferred force, and releases them to move
+independently. It is a repeating server demo; connect `rayrai_tcp_viewer` to
+the printed port:
 
 ```bash
 cmake --build build-examples --target runtime_joints --parallel 12
-./build-examples/examples/runtime_joints --headless
-./build-examples/examples/runtime_joints --headless --scene docking
-./build-examples/examples/runtime_joints --visualize
-./build-examples/examples/runtime_joints --visualize --scene docking
+./build-examples/examples/runtime_joints
+./build-examples/examples/runtime_joints --scene docking
 ```
 
 The [dedicated example page](../../docs/sections/examples/worlds/runtime_joints.md)
@@ -306,9 +303,8 @@ cmake --build build-examples --target rayrai_blue_wall_scene -j12
 ./build-examples/examples/rayrai_blue_wall_scene
 ```
 
-Use `--screenshot output.png` to save this view. The adjacent Raisim test build
+Set `RAYRAI_EXAMPLE_CAPTURE=output.png` to save this view. The adjacent Raisim test build
 registers the asset check; `RAISIM_EXAMPLE_GPU_TESTS=ON` there also registers
-camera and image-quality checks against the original GLB render;
-`--benchmark-frames N` measures N rendered frames.
+camera and image-quality checks against the original GLB render.
 
 `rayrai/sensors/rayrai_sensor_noise.cpp` saves clean/noisy RGB and depth comparisons offscreen with seeded read, shot, row and depth noise, quantization, and dropout. Run `rayrai_sensor_noise` without arguments in the desired output directory, using a current SDK exposing the sensor-noise API.

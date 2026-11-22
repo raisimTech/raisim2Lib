@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="686" viewBox="0 0 960 686" role="img" aria-labelledby="title desc">
+  <title id="title">Cold linear elastic solve</title>
+  <desc id="desc">Horizontal bars, one panel per mesh, of the milliseconds RaiSim, MFEM and scikit-fem take to assemble and solve a box in tension from scratch. The axis is logarithmic.</desc>
+  <style>text { font-family: Arial, Helvetica, sans-serif; fill: #24313d; }
+    .title { font-size: 30px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #596674; }
+    .panel { font-size: 21px; font-weight: 700; }
+    .label { font-size: 19px; }
+    .value { font-size: 19px; font-weight: 700; }
+    .note { font-size: 18px; fill: #596674; }
+    .tick { font-size: 18px; fill: #596674; }
+    .grid { stroke: #e1e4e5; stroke-width: 1; }
+    .axis { stroke: #a8b4bf; stroke-width: 1; }
+    .reference { stroke: #596674; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .raisim { fill: #2a78d6; }
+    .rayrai { fill: #eb6834; }
+    .other { fill: #a9a8a0; }
+    .other-dark { fill: #6f6d66; }
+    .failed { fill: url(#failed); }</style>
+  <defs><pattern id="failed" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#e4e3de"/><rect width="3" height="8" fill="#6f6d66"/></pattern></defs>
+  <rect width="960" height="686" fill="#fff"/>
+  <text x="32.0" y="44.0" class="title">Cold linear elastic solve</text>
+  <text x="32.0" y="76.0" class="subtitle">Milliseconds, lower is better · box in tension, Poisson ratio 0.3 · AMD Ryzen 9 3950X, one thread</text>
+  <text x="32.0" y="126.0" class="panel">1,536 tetrahedra</text>
+  <line x1="182.0" y1="136" x2="182.0" y2="248" class="grid"/>
+  <line x1="326.5" y1="136" x2="326.5" y2="248" class="grid"/>
+  <line x1="471.0" y1="136" x2="471.0" y2="248" class="grid"/>
+  <line x1="615.5" y1="136" x2="615.5" y2="248" class="grid"/>
+  <line x1="760.0" y1="136" x2="760.0" y2="248" class="grid"/>
+  <line x1="182" y1="136" x2="182" y2="248" class="axis"/>
+  <text x="170.0" y="164.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 147.0H306.1A4.0 4.0 0 0 1 310.1 151.0V165.0A4.0 4.0 0 0 1 306.1 169.0H182.0Z" class="raisim"><title>RaiSim: 7.7 ms</title></path>
+  <text x="318.1" y="164.0" class="value">7.7 ms</text>
+  <text x="170.0" y="200.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 183.0H306.9A4.0 4.0 0 0 1 310.9 187.0V201.0A4.0 4.0 0 0 1 306.9 205.0H182.0Z" class="other"><title>MFEM: 7.8 ms</title></path>
+  <text x="318.9" y="200.0" class="value">7.8 ms</text>
+  <text x="170.0" y="236.0" text-anchor="end" class="label">scikit-fem</text>
+  <path d="M182.0 219.0H433.9A4.0 4.0 0 0 1 437.9 223.0V237.0A4.0 4.0 0 0 1 433.9 241.0H182.0Z" class="other-dark"><title>scikit-fem: 59.0 ms</title></path>
+  <text x="445.9" y="236.0" class="value">59.0 ms</text>
+  <text x="32.0" y="288.0" class="panel">12,288 tetrahedra</text>
+  <line x1="182.0" y1="298" x2="182.0" y2="410" class="grid"/>
+  <line x1="326.5" y1="298" x2="326.5" y2="410" class="grid"/>
+  <line x1="471.0" y1="298" x2="471.0" y2="410" class="grid"/>
+  <line x1="615.5" y1="298" x2="615.5" y2="410" class="grid"/>
+  <line x1="760.0" y1="298" x2="760.0" y2="410" class="grid"/>
+  <line x1="182" y1="298" x2="182" y2="410" class="axis"/>
+  <text x="170.0" y="326.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 309.0H460.1A4.0 4.0 0 0 1 464.1 313.0V327.0A4.0 4.0 0 0 1 460.1 331.0H182.0Z" class="raisim"><title>RaiSim: 89.6 ms</title></path>
+  <text x="472.1" y="326.0" class="value">89.6 ms</text>
+  <text x="170.0" y="362.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 345.0H455.9A4.0 4.0 0 0 1 459.9 349.0V363.0A4.0 4.0 0 0 1 455.9 367.0H182.0Z" class="other"><title>MFEM: 83.8 ms</title></path>
+  <text x="467.9" y="362.0" class="value">83.8 ms</text>
+  <text x="170.0" y="398.0" text-anchor="end" class="label">scikit-fem</text>
+  <path d="M182.0 381.0H614.6A4.0 4.0 0 0 1 618.6 385.0V399.0A4.0 4.0 0 0 1 614.6 403.0H182.0Z" class="other-dark"><title>scikit-fem: 1,050.1 ms</title></path>
+  <text x="626.6" y="398.0" class="value">1,050.1 ms</text>
+  <text x="32.0" y="450.0" class="panel">41,472 tetrahedra</text>
+  <line x1="182.0" y1="460" x2="182.0" y2="572" class="grid"/>
+  <line x1="326.5" y1="460" x2="326.5" y2="572" class="grid"/>
+  <line x1="471.0" y1="460" x2="471.0" y2="572" class="grid"/>
+  <line x1="615.5" y1="460" x2="615.5" y2="572" class="grid"/>
+  <line x1="760.0" y1="460" x2="760.0" y2="572" class="grid"/>
+  <line x1="182" y1="460" x2="182" y2="572" class="axis"/>
+  <text x="170.0" y="488.0" text-anchor="end" class="label">RaiSim</text>
+  <path d="M182.0 471.0H543.2A4.0 4.0 0 0 1 547.2 475.0V489.0A4.0 4.0 0 0 1 543.2 493.0H182.0Z" class="raisim"><title>RaiSim: 336.7 ms</title></path>
+  <text x="555.2" y="488.0" class="value">336.7 ms</text>
+  <text x="170.0" y="524.0" text-anchor="end" class="label">MFEM</text>
+  <path d="M182.0 507.0H562.2A4.0 4.0 0 0 1 566.2 511.0V525.0A4.0 4.0 0 0 1 562.2 529.0H182.0Z" class="other"><title>MFEM: 455.6 ms</title></path>
+  <text x="574.2" y="524.0" class="value">455.6 ms</text>
+  <text x="170.0" y="560.0" text-anchor="end" class="label">scikit-fem</text>
+  <path d="M182.0 543.0H721.1A4.0 4.0 0 0 1 725.1 547.0V561.0A4.0 4.0 0 0 1 721.1 565.0H182.0Z" class="other-dark"><title>scikit-fem: 5,738.8 ms</title></path>
+  <text x="733.1" y="560.0" class="value">5,738.8 ms</text>
+  <text x="182.0" y="596.0" text-anchor="middle" class="tick">1</text>
+  <text x="326.5" y="596.0" text-anchor="middle" class="tick">10</text>
+  <text x="471.0" y="596.0" text-anchor="middle" class="tick">100</text>
+  <text x="615.5" y="596.0" text-anchor="middle" class="tick">1,000</text>
+  <text x="760.0" y="596.0" text-anchor="middle" class="tick">10,000</text>
+  <text x="471.0" y="626.0" text-anchor="middle" class="note">Milliseconds (logarithmic)</text>
+  <text x="32.0" y="670.0" class="note">RaiSim&#x27;s time includes stress and strain recovery; MFEM&#x27;s does not. scikit-fem uses SuperLU.</text>
+</svg>

@@ -900,7 +900,7 @@ std::string compactPathDisplay(const std::string& value, size_t maxChars) {
  *
  * @return True when the buffer was edited this frame.
  */
-bool drawCompactPathInput(const char* id, char* buf, size_t bufSize, float maxWidth,
+bool drawCompactPathInput(const char* id, std::string& buf, float maxWidth,
                           ImGuiID& editingField, const char* hint = nullptr) {
   const ImGuiID fieldId = ImGui::GetID(id);
   const float framePadding = ImGui::GetStyle().FramePadding.x * 2.0f;
@@ -910,8 +910,8 @@ bool drawCompactPathInput(const char* id, char* buf, size_t bufSize, float maxWi
   if (editingField == fieldId) {
     ImGui::SetNextItemWidth(maxWidth);
     const bool changed = hint != nullptr
-      ? ImGui::InputTextWithHint(id, hint, buf, bufSize)
-      : ImGui::InputText(id, buf, bufSize);
+      ? ImGui::InputTextWithHint(id, hint, &buf)
+      : ImGui::InputText(id, &buf);
     if (ImGui::IsItemDeactivated()) {
       editingField = 0;
     }
@@ -936,7 +936,7 @@ bool drawCompactPathInput(const char* id, char* buf, size_t bufSize, float maxWi
     editingField = fieldId;
   }
   if (ImGui::IsItemHovered() && display != buf) {
-    ImGui::SetTooltip("%s", buf);
+    ImGui::SetTooltip("%s", buf.c_str());
   }
   return false;
 }
@@ -1193,7 +1193,7 @@ bool allComponentsFinite(const float* values, size_t count) {
 
 bool spawnExtensionAccepted(const SpawnShapeInfo& shape, const std::string& path) {
   const std::string accepted(shape.fileExtensions ? shape.fileExtensions : "");
-  const std::string extension = lowerCaseFileExtension(path);
+  const std::string extension = raisim::getFileExtension(path);
   if (accepted.empty()) {
     // RaisimServer only requires that a mesh path have *some* extension.
     return !extension.empty();
@@ -1257,7 +1257,7 @@ std::string buildSpawnRequest(
     if (!spawnExtensionAccepted(shape, request.file)) {
       const std::string accepted(shape.fileExtensions ? shape.fileExtensions : "");
       return accepted.empty() ? "mesh path needs a file extension"
-                              : "file extension must be one of: " + accepted;
+                              : "file extension must be one of (lower case): " + accepted;
     }
   }
 
@@ -2074,6 +2074,16 @@ bool applyAutomaticRenderQualityIfUnset(ViewerSettings& settings, int recommende
   return true;
 }
 
+ViewerSettings resetRenderingSettings(const ViewerSettings& current, int recommendedQuality) {
+  ViewerSettings defaults;
+  applyAutomaticRenderQualityIfUnset(defaults, recommendedQuality);
+  defaults.uiScale = current.uiScale;
+  defaults.uiScaleUserSet = current.uiScaleUserSet;
+  defaults.showCollapsedLogo = current.showCollapsedLogo;
+  defaults.tcpUpdateRateHz = current.tcpUpdateRateHz;
+  return defaults;
+}
+
 void applyWeatherLightStrength(raisin::Light& light,
   const raisin::RenderQualitySettings& weatherLighting, float strength) {
   // Weather may leave the previous light unchanged between updates. Always
@@ -2228,6 +2238,81 @@ bool supportsTcpViewerPoseControl(const VisualEntry* entry) {
     return false;
   }
   return isTcpViewerSingleBodyControlType(entry->objectTypeRaw);
+}
+
+bool poseGrabberHoldsEntry(const PoseGrabberGesture& grabber, const VisualEntry* entry) {
+  return grabber.enabled && supportsTcpViewerPoseControl(entry);
+}
+
+void updatePoseGrabberHold(PoseGrabberGesture& grabber, uint32_t tag, const VisualEntry* entry, bool canSend,
+                           const RemoteScene& scene,
+                           std::vector<raisin::tcp_viewer::ClientRequest>& pending) {
+  const auto release = [&]() {
+    if (grabber.heldDirty && canSend && grabber.heldTag != 0 &&
+        supportsTcpViewerPoseControl(scene.findVisualEntry(grabber.heldTag, 0))) {
+      raisin::tcp_viewer::ClientRequest r;
+      r.type = raisin::tcp_viewer::ClientRequestType::CR_SET_POSE;
+      r.visTag = grabber.heldTag;
+      r.vec3a = grabber.heldPos;
+      r.quat = grabber.heldQuat;
+      bool replaced = false;
+      for (auto& queued : pending) {
+        if (queued.type == raisin::tcp_viewer::ClientRequestType::CR_SET_POSE && queued.visTag == r.visTag) {
+          queued = r;
+          replaced = true;
+          break;
+        }
+      }
+      if (!replaced) pending.push_back(r);
+    }
+    grabber.heldActive = false;
+    grabber.heldDirty = false;
+    grabber.heldTag = 0;
+    grabber.dragging = false;
+    grabber.axis = -1;
+  };
+  if (canSend && poseGrabberHoldsEntry(grabber, entry)) {
+    if (grabber.heldActive && grabber.heldTag != tag) release();
+    if (!grabber.heldActive) {
+      grabber.heldActive = true;
+      grabber.heldDirty = false;
+      grabber.heldTag = tag;
+      grabber.heldPos = entry->lastPos;
+      grabber.heldQuat = entry->lastQuat;
+    }
+    if (entry->visual) {
+      entry->visual->setPosition(grabber.heldPos);
+      entry->visual->setOrientation(grabber.heldQuat);
+    }
+  } else if (grabber.heldActive) {
+    release();
+  }
+}
+
+std::vector<raisin::tcp_viewer::ClientRequest> updateFrameRequests(
+    const RemoteScene& scene,
+    const std::vector<raisin::tcp_viewer::ClientRequest>& pending) {
+  using raisin::tcp_viewer::ClientRequestType;
+  auto requests = pending;
+  std::erase_if(requests, [&](const auto& request) {
+    return request.type == ClientRequestType::CR_SET_POSE &&
+           !supportsTcpViewerPoseControl(scene.findVisualEntry(request.visTag, 0));
+  });
+  return requests;
+}
+
+bool queueSelectedRemoval(PoseGrabberGesture& grabber, uint32_t tag,
+                          std::vector<raisin::tcp_viewer::ClientRequest>& pending) {
+  using raisin::tcp_viewer::ClientRequestType;
+  if (grabber.heldTag == tag) grabber.heldDirty = false;
+  const auto erased = std::erase_if(pending, [tag](const auto& request) {
+    return request.type == ClientRequestType::CR_SET_POSE && request.visTag == tag;
+  });
+  raisin::tcp_viewer::ClientRequest remove;
+  remove.type = ClientRequestType::CR_REMOVE_OBJECT;
+  remove.visTag = tag;
+  pending.push_back(remove);
+  return erased != 0;
 }
 
 const char* tcpViewerJointTypeLabel(int32_t rawType) {
@@ -2697,6 +2782,19 @@ std::filesystem::path timestampedDataPath(const std::filesystem::path& dir, cons
   return raisin::tcp_viewer::nextAvailableOutputPath(dir / name.str());
 }
 
+std::filesystem::path defaultSceneExportPath(const std::string& outputFolder) {
+  return timestampedDataPath(raisim::pathFromUtf8(outputFolder), "rayrai_tcp_viewer_scene", ".json");
+}
+
+std::filesystem::path defaultSignalExportPath(const std::string& outputFolder,
+                                              const std::string& objectName, std::time_t now) {
+  return raisin::tcp_viewer::timestampedSignalCsvPath(raisim::pathFromUtf8(outputFolder), objectName, now);
+}
+
+std::string localWorldLabel(const std::filesystem::path& path) {
+  return shortenPathLabel(raisin::tcp_viewer::utf8PathText(path.filename()), 32);
+}
+
 std::vector<AssetDiagnostic> collectAssetDiagnostics(const RemoteScene& scene) {
   std::vector<AssetDiagnostic> assets;
   std::unordered_set<uint64_t> seen;
@@ -2798,6 +2896,21 @@ bool refreshDiagnosticsPresentation(DiagnosticsPresentationState& presentation,
   return true;
 }
 
+// The entry of a selectable object: through its visual, or by tag and index for an object drawn
+// without one (a voxel map's instanced cubes).
+bool selectableEntry(const RemoteScene& scene, const std::vector<raisin::tcp_viewer::VisualEntrySnapshot>& snapshots,
+                     const ObjectListItem& item, uint32_t& tag, int& index, const VisualEntry*& entry) {
+  if (item.visual) return scene.getVisualInfo(item.visual.get(), tag, index, entry) && entry;
+  for (const auto& snapshot : snapshots) {
+    if (snapshot.tag != item.tag || snapshot.index != item.index) continue;
+    tag = snapshot.tag;
+    index = snapshot.index;
+    entry = &snapshot.entry;
+    return true;
+  }
+  return false;
+}
+
 bool exportSceneJson(const std::filesystem::path& path, const RemoteScene& scene,
                      const std::vector<AssetDiagnostic>& assets, std::string& status) {
   std::error_code ec;
@@ -2824,13 +2937,14 @@ bool exportSceneJson(const std::filesystem::path& path, const RemoteScene& scene
   output << "    \"point_clouds\": " << scene.pointCloudCount() << "\n  },\n";
   output << "  \"objects\": [\n";
   const auto items = scene.getSelectableObjects();
+  const auto snapshots = scene.getVisualEntries();
   bool first = true;
   for (const auto& item : items) {
-    if (!item.visual || isContactItem(item)) continue;
+    if (isContactItem(item)) continue;
     uint32_t tag = 0;
     int index = 0;
     const VisualEntry* entry = nullptr;
-    if (!scene.getVisualInfo(item.visual.get(), tag, index, entry) || !entry) continue;
+    if (!selectableEntry(scene, snapshots, item, tag, index, entry)) continue;
     if (!first) output << ",\n";
     first = false;
     output << "    {\"tag\": " << tag << ", \"index\": " << index
@@ -2865,12 +2979,13 @@ void writeTrajectoryRows(std::ofstream& output, const RemoteScene& scene, double
     return;
   }
   output << std::setprecision(9);
+  const auto snapshots = scene.getVisualEntries();
   for (const auto& item : scene.getSelectableObjects()) {
-    if (!item.visual || isContactItem(item)) continue;
+    if (isContactItem(item)) continue;
     uint32_t tag = 0;
     int index = 0;
     const VisualEntry* entry = nullptr;
-    if (!scene.getVisualInfo(item.visual.get(), tag, index, entry) || !entry) continue;
+    if (!selectableEntry(scene, snapshots, item, tag, index, entry)) continue;
     const std::string name = item.name.empty() ? entry->objectName : item.name;
     output << timeSeconds << ',' << tag << ',' << index << ',' << csvEscape(name) << ','
            << csvEscape(objectTypeLabel(entry->objectTypeRaw)) << ','

@@ -30,7 +30,9 @@ void init_force_devices(py::module_& m, py::class_<ArticulatedSystem, Object>& s
         .def_rw("type", &GripperDefinition::type)
         .def_rw("maxForce", &GripperDefinition::maxForce)
         .def_rw("range", &GripperDefinition::range)
-        .def_rw("sealAngle", &GripperDefinition::sealAngle);
+        .def_rw("sealAngle", &GripperDefinition::sealAngle)
+        .def_rw("cupRadius", &GripperDefinition::cupRadius)
+        .def_rw("leakCoefficient", &GripperDefinition::leakCoefficient);
     bind_vector_property(gripper, "position", &GripperDefinition::position);
     bind_vector_property(gripper, "axis", &GripperDefinition::axis);
 

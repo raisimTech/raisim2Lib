@@ -14,6 +14,7 @@
 #include <glbinding/glbinding.h>
 #include <glbinding/gl/gl.h>
 #include <imgui/imgui.h>
+#include <imgui/cpp/imgui_stdlib.h>
 
 #include "imgui/backend/imgui_impl_opengl3.h"
 #include "imgui/backend/imgui_impl_sdl2.h"
@@ -41,6 +42,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -124,7 +126,6 @@ constexpr auto kLoopbackAutoConnectInterval = std::chrono::milliseconds(250);
 constexpr auto kServerResponseTimeout = std::chrono::milliseconds(5000);
 constexpr float kMinReplaySpeed = 0.05f;
 constexpr float kMaxReplaySpeed = 8.0f;
-// Server discovery re-lists itself on this interval, so there is no rescan button.
 constexpr auto kDiscoveryRefreshInterval = std::chrono::seconds(2);
 constexpr auto kOverlayAutoCollapseDelay = std::chrono::milliseconds(3500);
 constexpr auto kSettingsSaveDebounce = std::chrono::milliseconds(750);
@@ -145,10 +146,6 @@ constexpr const char* kRobotoFontRelativePath = "rsc/fonts/roboto/Roboto-Medium.
 constexpr float kDefaultMouseForceAccelPerPixel = 0.10f;
 constexpr float kMinMouseForceAccelPerPixel = 0.01f;
 constexpr float kMaxMouseForceAccelPerPixel = 5.0f;
-// Interaction-wire spring constant, in newtons per metre per kilogram of the
-// grabbed body: RaisimServer multiplies it by the body mass, so the resulting
-// acceleration is mass-independent and the same value works for a marble and a
-// quadruped. 60 pulls firmly without fighting the contact solver.
 constexpr float kDefaultWireDragStiffness = 60.0f;
 constexpr float kMinWireDragStiffness = 1.0f;
 constexpr float kMaxWireDragStiffness = 600.0f;
@@ -158,7 +155,6 @@ constexpr const char* kWireDragGestureLabel = "Cmd-drag wire";
 constexpr const char* kWireDragGestureLabel = "Ctrl-drag wire";
 #endif
 
-// Sentinel for "no queued request" in the gestures' pendingRequestIndex.
 constexpr size_t kNoPendingRequest = std::numeric_limits<size_t>::max();
 
 float resolveUiScaleForDisplay(float configuredScale, float automaticScale,
@@ -251,27 +247,18 @@ struct MouseForceGesture {
   size_t pendingRequestIndex = kNoPendingRequest;
 };
 
-// Interaction wire (CR_ATTACH_WIRE + CR_DRAG_OBJECT). Unlike the pose grabber,
-// which teleports a body with CR_SET_POSE, this pulls it with a mass-scaled
-// spring, so constraints and contacts stay satisfied while it moves. The server
-// clears `wireStiffness_` on any request frame that omits CR_DRAG_OBJECT, so a
-// live drag has to resend the target every update; releasing simply stops
-// sending and the wire goes slack on the next frame.
 struct WireDragGesture {
   bool active = false;
   bool attachQueued = false;
   uint32_t tag = 0;
   int index = 0;
   int localBodyIdx = 0;
-  glm::vec3 localAttachPoint{0.0f};  // grab point in the body frame
-  glm::vec3 attachPoint{0.0f};       // grab point in world coordinates, this frame
-  glm::vec3 target{0.0f};            // where the wire pulls, in world coordinates
+  glm::vec3 localAttachPoint{0.0f};
+  glm::vec3 attachPoint{0.0f};
+  glm::vec3 target{0.0f};
   size_t pendingRequestIndex = kNoPendingRequest;
 };
 
-// One recorded object in the signal workbench. The weak visual pointer is how a
-// pinned object is re-found each frame without rescanning the scene, and it goes
-// empty by itself when the object is removed server-side.
 struct SignalObjectRecord {
   uint32_t tag = 0;
   int index = 0;
@@ -302,23 +289,16 @@ struct PoseGrabberGesture {
   bool enabled = false;
   bool dragging = false;
   Mode mode = Mode::Translate;
-  int axis = -1;                 // 0=X, 1=Y, 2=Z while dragging
+  int axis = -1;
   uint32_t tag = 0;
   int index = 0;
-  glm::vec3 anchorWorld{0.0f};   // body origin captured on drag start
-  // Quaternion vec4s here are wxyz (x holds w), like VisualEntry::lastQuat,
-  // ClientRequest::quat and Visuals::setOrientation.
+  glm::vec3 anchorWorld{0.0f};
   glm::vec4 anchorQuat{1.0f, 0.0f, 0.0f, 0.0f};
   ImVec2 anchorMouse{0.0f, 0.0f};
-  float anchorScreenAngle = 0.0f;                  // mouse angle around body center at start
-  glm::vec3 currentTarget{0.0f};                   // proposed position during drag
-  glm::vec4 currentQuat{1.0f, 0.0f, 0.0f, 0.0f};   // proposed orientation during drag
+  float anchorScreenAngle = 0.0f;
+  glm::vec3 currentTarget{0.0f};
+  glm::vec4 currentQuat{1.0f, 0.0f, 0.0f, 0.0f};
 
-  // Held pose: while `heldActive` is true the body identified by `heldTag` has
-  // its visual pose forced to (heldPos, heldQuat) each frame. Survives across
-  // frames so the body stays put between drags. `heldDirty` flags whether the
-  // user has actually changed the pose during this hold; we only emit a single
-  // CR_SET_POSE to the server on deactivation when this flag is set.
   bool heldActive = false;
   bool heldDirty = false;
   uint32_t heldTag = 0;
@@ -326,14 +306,12 @@ struct PoseGrabberGesture {
   glm::vec4 heldQuat{1.0f, 0.0f, 0.0f, 0.0f};
 };
 
-// 3-point angle measurement. Picks three points; the angle is measured at the
-// middle (B) between rays BA and BC. UI parallel to RulerToolState.
 struct AngleToolState {
   bool enabled = false;
-  int picked = 0;            // 0, 1, 2, or 3 (= complete)
-  glm::vec3 a{0.0f};         // first arm endpoint
-  glm::vec3 b{0.0f};         // vertex
-  glm::vec3 c{0.0f};         // second arm endpoint
+  int picked = 0;
+  glm::vec3 a{0.0f};
+  glm::vec3 b{0.0f};
+  glm::vec3 c{0.0f};
   std::string aLabel;
   std::string bLabel;
   std::string cLabel;
@@ -347,8 +325,6 @@ struct ProgramOptions {
   bool noSaveSettings = false;
   std::string host = "127.0.0.1";
   int port = kDefaultPort;
-  // Whether --host / --port / --connect named an endpoint. A saved pane
-  // placement is only overridden when the command line actually asked for one.
   bool endpointSet = false;
   bool autoConnect = true;
   bool autoConnectSet = false;
@@ -374,23 +350,11 @@ struct ProgramOptions {
   std::filesystem::path exportScenePath;
   std::filesystem::path trajectoryCsvPath;
   std::filesystem::path endpointListPath;
-  std::filesystem::path inspectorPath; // --inspect FILE: load URDF/MJCF as if drag-dropped
-  // --inspect-after-frames N: defer the --inspect load until the main loop has
-  // ticked N frames. Lets the headless harness measure drag-drop latency after
-  // the background shader warmup has had time to run.
+  std::filesystem::path inspectorPath;
   int inspectAfterFrames = -1;
-  bool preWarmShaders = true;          // --no-pre-warm to skip the targeted shader pre-compile
-  // --warm-at-startup: drive one content render at startup with a transient AS to
-  // warm the renderer's non-shader lazy init (IBL convolution / FBOs / texture pools).
-  // Costs ~13 s at startup; makes every drag-drop after that ~30 ms. Default off so
-  // empty-viewer launches stay fast.
+  bool preWarmShaders = true;
   bool warmAtStartup = false;
-  // --inspect-close-after-frames N: drive load → render N frames → close → render N → exit.
-  // Headless reproducer for "close inspector segfaults" bug reports.
   int inspectCloseAfterFrames = -1;
-  // --inspect-reload PATH: after the close phase, also reload this second path so we
-  // can measure first-frame shader-compile cost across the two loads (proves that the
-  // World/Renderer + compiled shaders are reused between drops).
   std::filesystem::path inspectReloadPath;
   bool exitAfterScreenshot = false;
   bool replayLoop = false;
@@ -408,9 +372,6 @@ struct CameraBookmark {
   glm::vec3 target{0.0f};
 };
 
-// Local "AS inspector" mode: activated when the user drags a URDF/MJCF onto the viewer
-// while there is no TCP connection. The robot is loaded into the viewer's own
-// raisim::World and posed with the joint sliders — no physics, no server, just kinematics.
 using raisin::tcp_viewer::InspectorJoint;
 
 struct InspectorState {
@@ -418,12 +379,9 @@ struct InspectorState {
   std::string sourceFile;
   std::string lastError;
   raisim::ArticulatedSystem* as = nullptr;   // owned by the local raisim::World
-  // Other raisim objects added by an MJCF load (ground plane, extra bodies, etc.) that
-  // need to be removed when we close the inspector. Does not include `as`.
   std::vector<raisim::Object*> sideObjects;
-  std::vector<double> gc;                    // mirror of the current generalized coordinates
+  std::vector<double> gc;
   std::vector<InspectorJoint> joints;
-  // True while the user is actively dragging a slider; suppresses auto-connect attempts.
   bool dragging = false;
 };
 
@@ -506,7 +464,6 @@ NetworkTimingSummary summarizePacketTimings(const std::deque<PacketSample>& samp
   return result;
 }
 
-/** Stand-in channel list for an object with no recorded history yet. */
 const std::vector<raisin::tcp_viewer::SignalChannelDesc> kEmptySignalChannels;
 
 struct AssetDiagnostic {
@@ -526,10 +483,12 @@ std::string shortenPlainLabel(const std::string& value, size_t maxLen) {
   if (value.size() <= maxLen) {
     return value;
   }
-  if (maxLen <= 3) {
-    return value.substr(0, maxLen);
+  const bool addEllipsis = maxLen > 3;
+  size_t end = addEllipsis ? maxLen - 3 : maxLen;
+  while (end > 0 && (static_cast<unsigned char>(value[end]) & 0xC0) == 0x80) {
+    --end;
   }
-  return value.substr(0, maxLen - 3) + "...";
+  return value.substr(0, end) + (addEllipsis ? "..." : "");
 }
 
 bool isPathSeparator(char c) {
@@ -614,9 +573,6 @@ std::string shortenPathLabel(const std::string& value, size_t maxLen) {
   return shortenPlainLabel(value, maxLen);
 }
 
-// Shared body of the strict number parsers: reject null/blank input, a partial
-// parse, ERANGE, non-finite floating-point results and trailing garbage.
-// `parse` wraps a single strto* call.
 template <typename T, typename Parse>
 bool parseNumberStrict(const char* value, T& out, Parse parse) {
   if (!value) {
@@ -802,7 +758,6 @@ bool parseProgramOptions(int argc, char** argv, ProgramOptions& options) {
       }
       return argv[++i];
     };
-    // Options whose value is stored verbatim as a path.
     const std::pair<const char*, std::filesystem::path*> pathOptions[] = {
       {"--screenshot-dir", &options.screenshotDir},
       {"--record-session", &options.recordSessionPath},
@@ -1052,7 +1007,6 @@ std::filesystem::path findRaisimLogoPath(const std::filesystem::path& binaryDir)
     candidates.push_back(sourceDir / "../../../logo.png");
     candidates.push_back(sourceDir / "../../../../logo.png");
     candidates.push_back(sourceDir / "../../../../docs/logo.png");
-    // raisim2Lib examples: synced next to the viewer icons.
     candidates.push_back(sourceDir / "../assets/logo.png");
   }
   if (!binaryDir.empty()) {
@@ -1094,9 +1048,6 @@ unsigned char* loadRgba8Pixels(const std::filesystem::path& path, int& width, in
   return pixels;
 }
 
-// Uploads RGBA8 pixels as a linear-filtered, edge-clamped 2D texture. Returns 0
-// when no texture name could be allocated. Leaves GL_TEXTURE_2D unbound and the
-// unpack alignment as it found it.
 unsigned int uploadRgba8Texture(const unsigned char* pixels, int width, int height) {
   unsigned int texture = 0;
   gl::glGenTextures(1, &texture);
@@ -1192,8 +1143,6 @@ bool loadTcpViewerIconTexture(const std::filesystem::path& path, TcpViewerIcon& 
     if (pixel[3] == 0) {
       continue;
     }
-    // Treat icon artwork as an alpha mask so button colors stay consistent
-    // across Flaticon styles and remain legible on dark TCP viewer panels.
     pixel[0] = 255;
     pixel[1] = 255;
     pixel[2] = 255;
@@ -1261,8 +1210,6 @@ ImVec4 tcpViewerIconTint(TcpViewerIconKind kind, bool hovered, bool active) {
     case TcpViewerIconKind::Exit: color = ImVec4(1.00f, 0.55f, 0.42f, 1.0f); break;
     case TcpViewerIconKind::Pause: color = ImVec4(1.00f, 0.78f, 0.36f, 1.0f); break;
     case TcpViewerIconKind::Play: color = ImVec4(0.30f, 0.95f, 0.58f, 1.0f); break;
-    // Recording controls read as a warm "armed" pair, distinct from the green
-    // sim-playback icons they used to borrow.
     case TcpViewerIconKind::Stop: color = ImVec4(1.00f, 0.52f, 0.44f, 1.0f); break;
     case TcpViewerIconKind::Force: color = ImVec4(1.00f, 0.84f, 0.36f, 1.0f); break;
     case TcpViewerIconKind::Torque: color = ImVec4(0.72f, 0.86f, 1.00f, 1.0f); break;
@@ -1272,11 +1219,7 @@ ImVec4 tcpViewerIconTint(TcpViewerIconKind kind, bool hovered, bool active) {
     case TcpViewerIconKind::Render: color = ImVec4(0.98f, 0.76f, 0.44f, 1.0f); break;
     case TcpViewerIconKind::Diagnostics: color = ImVec4(0.52f, 0.90f, 0.86f, 1.0f); break;
     case TcpViewerIconKind::Objects: color = ImVec4(0.62f, 0.78f, 1.00f, 1.0f); break;
-    // File-navigator rows: folders warm, file kinds cool, so a listing scans as
-    // "containers vs contents" before the glyph is even read.
     case TcpViewerIconKind::Help: color = ImVec4(0.86f, 0.88f, 0.94f, 1.0f); break;
-    // Axis-aligned camera views share one cool tint so they read as a set,
-    // with the perspective toggle warmer to set it apart from the six ortho faces.
     case TcpViewerIconKind::ViewTop:
     case TcpViewerIconKind::ViewBottom:
     case TcpViewerIconKind::ViewLeft:
@@ -1308,7 +1251,6 @@ ImVec4 tcpViewerIconTint(TcpViewerIconKind kind, bool hovered, bool active) {
     case TcpViewerIconKind::ObjectCompound: color = ImVec4(0.48f, 0.82f, 0.96f, 1.0f); break;
     case TcpViewerIconKind::ObjectDeformable: color = ImVec4(0.96f, 0.58f, 0.78f, 1.0f); break;
     case TcpViewerIconKind::ObjectGranular: color = ImVec4(0.94f, 0.68f, 0.40f, 1.0f); break;
-    // Panel chrome, not an action on the scene: the same neutral as the Help tab.
     case TcpViewerIconKind::Collapse: color = ImVec4(0.86f, 0.88f, 0.94f, 1.0f); break;
     case TcpViewerIconKind::Count: color = ImVec4(0.92f, 0.94f, 0.98f, 1.0f); break;
   }
@@ -1374,15 +1316,9 @@ TcpViewerIconKind objectTypeIconKind(int objectTypeRaw) {
   }
 }
 
-// Tab glyphs are drawn at this multiple of the font size. The tab bar is the
-// panel's primary navigation, so its icons are deliberately larger than the
-// inline button icons (which sit at ~0.95 of the font size).
 constexpr float kTabIconGlyphScale = 1.55f;
-// Fraction of the tab's short side the glyph fills, leaving a little breathing
-// room inside the tab's highlight.
 constexpr float kTabIconFillFactor = 0.86f;
 
-/** Tab side length needed to draw a glyph at kTabIconGlyphScale. */
 float iconTabExtent(float fontSize) {
   if (!std::isfinite(fontSize) || fontSize <= 0.0f) {
     return 0.0f;
@@ -1405,14 +1341,6 @@ float iconTabFramePaddingY(float fontSize, float stylePaddingY) {
   return std::max(stylePaddingY, (extent - fontSize) * 0.5f);
 }
 
-/**
- * @brief Spaces needed to reserve an icon tab wide enough for its glyph.
- *
- * ImGui derives a tab's width from its label, and the label here is whitespace,
- * so this is what keeps icon tabs from collapsing as the UI scale changes.
- * Clamped to a sane range so a degenerate font metric cannot produce a tab that
- * is invisible or absurdly wide.
- */
 int iconTabLabelSpaceCount(float fontSize, float spaceWidth) {
   if (!std::isfinite(fontSize) || !std::isfinite(spaceWidth) || spaceWidth <= 0.0f ||
       fontSize <= 0.0f) {
@@ -1424,17 +1352,11 @@ int iconTabLabelSpaceCount(float fontSize, float spaceWidth) {
   return static_cast<int>(std::ceil(needed));
 }
 
-/// A panel row that a button at its right end shares (drawIconOnlyButtonAtRowEnd()).
 struct PanelRow {
-  /// Top-left corner of the row.
   ImVec2 min{0.0f, 0.0f};
   float height = 0.0f;
-  /// Right edge of the row's last item.
   float itemsRight = 0.0f;
-  /// Size of the row's tabs, which a button at its end matches; zero for a row of frame-height controls.
   ImVec2 tabSize{0.0f, 0.0f};
-  /// Right edge of everything the panel drew this frame. Last frame's window edge would hold an
-  /// auto-resizing panel at its widest: the button would keep it that wide.
   float contentRight = 0.0f;
 };
 
@@ -1477,7 +1399,6 @@ void endIconTabBar(PanelRow* row = nullptr) {
   ImGui::PopStyleVar();
 }
 
-// An icon over a soft drop shadow, the shared look of every icon glyph.
 void drawIconGlyph(ImDrawList* drawList, ImTextureID textureId, const ImVec2& iconMin,
                    const ImVec2& iconMax, const ImVec4& iconTint) {
   drawList->AddImage(textureId, ImVec2(iconMin.x + 1.0f, iconMin.y + 1.0f),
@@ -1520,17 +1441,12 @@ bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const
                       const char* id, PanelRow* row = nullptr, ImGuiTabItemFlags flags = 0) {
   const TcpViewerIcon* icon = icons.get(kind);
   if (!icon) {
-    // No texture: fall back to the text label rather than an unclickable blank.
     const bool selected = ImGui::BeginTabItem(tooltip ? tooltip : id, nullptr, flags);
     if (row) row->itemsRight = std::max(row->itemsRight, ImGui::GetItemRectMax().x);
     return selected;
   }
 
   const int spaceCount = iconTabLabelSpaceCount(ImGui::GetFontSize(), ImGui::CalcTextSize(" ").x);
-  // "###" (not "##") so ImHashStr reseeds and the id alone determines the tab's
-  // ImGui ID. With "##" the leading spaces are hashed in too, and since their
-  // count tracks the font size, dragging the UI Scale slider silently renamed
-  // every tab -- the bar then lost its selection and fell back to the first one.
   const std::string label = std::string(static_cast<size_t>(spaceCount), ' ') + "###" + id;
 
   const bool selected = ImGui::BeginTabItem(label.c_str(), nullptr, flags);
@@ -1545,17 +1461,12 @@ bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const
     ImGui::SetTooltip("%s", tooltip);
   }
 
-  // ImGui registers a zero-size item for a tab on the frame it first appears,
-  // and for one scrolled fully out of the bar. There is no rect to draw into
-  // yet, and forcing a minimum size would paint the glyph at the window origin.
   const float rectWidth = itemMax.x - itemMin.x;
   const float rectHeight = itemMax.y - itemMin.y;
   if (rectWidth < 2.0f || rectHeight < 2.0f) {
     return selected;
   }
 
-  // Fit the glyph inside whatever rect the tab bar handed us so a compressed
-  // tab clips nothing.
   const float iconSize =
     std::max(1.0f, std::min(rectWidth, rectHeight) * kTabIconFillFactor);
   const ImVec2 centre((itemMin.x + itemMax.x) * 0.5f, (itemMin.y + itemMax.y) * 0.5f);
@@ -1565,7 +1476,6 @@ bool beginIconTabItem(const TcpViewerIcons& icons, TcpViewerIconKind kind, const
 
   ImDrawList* drawList = ImGui::GetWindowDrawList();
   const ImTextureID textureId = (ImTextureID)(intptr_t)icon->texture;
-  // Selected tabs read as "active" so the tint matches the button palette.
   const ImVec4 iconTint = tcpViewerIconTint(kind, hovered, selected);
   drawList->PushClipRect(itemMin, itemMax, true);
   drawIconGlyph(drawList, textureId, iconMin, iconMax, iconTint);
@@ -1678,9 +1588,6 @@ bool drawIconTextButton(const TcpViewerIcons& icons, TcpViewerIconKind kind, con
   return pressed;
 }
 
-// Icon-only variant of drawIconTextButton. The button is a square (button height) with the
-// same coloured chip + icon draw as the text variant, no label. Pass a tooltip so users
-// can still discover the action on hover.
 bool drawIconOnlyButton(const TcpViewerIcons& icons, TcpViewerIconKind kind,
                         const char* tooltip, const char* id) {
   const ImGuiStyle& style = ImGui::GetStyle();
@@ -1745,7 +1652,6 @@ bool drawIconTabLikeButton(const TcpViewerIcons& icons, TcpViewerIconKind kind, 
   const ImGuiCol background = active ? ImGuiCol_TabActive : (hovered ? ImGuiCol_TabHovered : ImGuiCol_Tab);
   drawList->AddRectFilled(itemMin, itemMax, ImGui::GetColorU32(background), ImGui::GetStyle().TabRounding,
                           ImDrawFlags_RoundCornersTop);
-  // the glyph as beginIconTabItem() sizes it
   const float iconSize = std::max(1.0f, std::min(size.x, size.y) * kTabIconFillFactor);
   const ImVec2 centre((itemMin.x + itemMax.x) * 0.5f, (itemMin.y + itemMax.y) * 0.5f);
   const ImVec2 iconMin(std::round(centre.x - iconSize * 0.5f), std::round(centre.y - iconSize * 0.5f));
@@ -1755,21 +1661,10 @@ bool drawIconTabLikeButton(const TcpViewerIcons& icons, TcpViewerIconKind kind, 
   return pressed;
 }
 
-/**
- * @brief An icon-only button at the right end of a panel row.
- *
- * Call after the panel's content, as the window's last item: at the right edge of
- * that content, or just past the row's items when the content is narrower than
- * them and the button. On a tab row it is the size and shape of the tabs
- * (drawIconTabLikeButton()); on a row of controls, drawIconOnlyButton(). A tab
- * bar takes its whole row, and a trailing tab button would follow the last tab
- * rather than the edge, so the button is placed over the row.
- */
 bool drawIconOnlyButtonAtRowEnd(const TcpViewerIcons& icons, TcpViewerIconKind kind, const char* tooltip,
                                 const char* id, const PanelRow& row) {
   const bool tabRow = row.tabSize.x > 0.0f;
   const ImVec2 size = tabRow ? row.tabSize : ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
-  // whole pixels, so the glyph is not resampled at a fractional UI scale
   const float left =
       std::round(std::max(row.contentRight - size.x, row.itemsRight + ImGui::GetStyle().ItemSpacing.x));
   ImGui::SetCursorScreenPos(ImVec2(left, row.min.y + std::round((row.height - size.y) * 0.5f)));
@@ -1777,17 +1672,6 @@ bool drawIconOnlyButtonAtRowEnd(const TcpViewerIcons& icons, TcpViewerIconKind k
                 : drawIconOnlyButton(icons, kind, tooltip, id);
 }
 
-/**
- * @brief Draw the spawn palette.
- *
- * @param canSpawn Whether a spawn request could be delivered right now.
- * @param dropPoint World point used when "place at camera target" is enabled.
- * @param serverIsLocal True when the server shares this filesystem, which lets
- *   us check a geometry path before a bad one costs the connection.
- * @param request Receives the built request when this returns true.
- * @param status Receives a human-readable validation or progress message.
- * @return True when the user asked to spawn and the form validated.
- */
 bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSpawn,
                    const glm::vec3& dropPoint, bool serverIsLocal,
                    raisin::tcp_viewer::ClientRequest& request, std::string& status,
@@ -1795,7 +1679,6 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   using raisin::tcp_viewer::ClientRequestType;
   const float vecWidth = std::round(ImGui::GetFontSize() * 12.5f);
   const float textWidth = fontScaledTextControlWidth(26.0f);
-  // Every field is labelled after the control, in the disabled colour.
   const auto trailingLabel = [](const char* label) {
     ImGui::SameLine();
     ImGui::TextDisabled("%s", label);
@@ -1830,8 +1713,6 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   if (shape.needsFile) {
     ImGui::SetNextItemWidth(textWidth);
     ImGui::InputText("##spawn_file", form.file, sizeof(form.file));
-    // Only offer the picker when the server shares this filesystem; browsing
-    // locally for a remote server's path would just produce a wrong path.
     if (browser != nullptr && serverIsLocal) {
       ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
       if (drawIconOnlyButton(icons, TcpViewerIconKind::Folder, "Browse...", "browse_spawn_file")) {
@@ -1842,7 +1723,6 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
           extensions.push_back(extension);
         }
         if (extensions.empty()) {
-          // Mesh spawns accept any format Assimp can read; list the common ones.
           extensions = {"obj", "stl", "dae", "ply", "gltf", "glb", "fbx"};
         }
         openFileBrowser(*browser, FileBrowserMode::OpenFile, std::string("Select ") + shape.label,
@@ -1947,7 +1827,6 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
     }
   }
 
-  // Preflight the request so the reason is visible before the button is pressed.
   raisin::tcp_viewer::ClientRequest candidate;
   const std::string validationError = buildSpawnRequest(form, candidate);
   std::string localFileError;
@@ -1981,15 +1860,6 @@ bool drawSpawnForm(const TcpViewerIcons& icons, SpawnFormState& form, bool canSp
   return true;
 }
 
-/**
- * @brief Opens a collapsed left panel the pointer has just arrived over.
- *
- * Call right after the panel's window begins. The pointer has to arrive: one that
- * was already over the panel when it collapsed has to leave and come back.
- *
- * @param hoveredWhileMinimized What finishLeftPanelFrame() returned last frame.
- * @return True when the panel opened.
- */
 bool openLeftPanelOnHover(bool& minimized, bool hovered, bool hoveredWhileMinimized) {
   if (!minimized || !hovered || hoveredWhileMinimized) {
     return false;
@@ -2010,8 +1880,6 @@ bool openLeftPanelOnHover(bool& minimized, bool hovered, bool hoveredWhileMinimi
  * @return Whether the pointer counts as over the collapsed panel, for the next
  *         frame's openLeftPanelOnHover().
  */
-// The collapsed logo chip is a window of its own: an auto-resizing window keeps last frame's
-// size, so one shared window would draw the light chip at the open panel's size for a frame.
 std::string leftPanelWindowName(bool minimized, const std::string& paneSuffix) {
   return (minimized ? "Raisim TCP##CollapsedOverlay" : "Raisim TCP##Overlay") + paneSuffix;
 }
@@ -2073,36 +1941,16 @@ void drawCollapsedLeftPanelLogo(const TcpViewerImageTexture& logo) {
   const ImVec2 imageMin(center.x - imageW * 0.5f, center.y - imageH * 0.5f);
   const ImVec2 imageMax(center.x + imageW * 0.5f, center.y + imageH * 0.5f);
   const ImTextureID textureId = (ImTextureID)(intptr_t)logo.texture;
-  // Untinted: ImGui multiplies this colour into the texture, so anything below
-  // opaque white washes the logo out against its backing.
   drawList->AddImage(textureId, imageMin, imageMax, logo.uvMin, logo.uvMax,
     ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
 }
 
-// Flags shared by the floating panels (left overlay, object inspector, AS
-// inspector). NoDecoration minus NoScrollbar: a panel's height cap can make it
-// shorter than its content in a small pane, and a scrollbar is the only way to
-// reach the rest of it.
 constexpr ImGuiWindowFlags kOverlayPanelWindowFlags =
   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
   ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize |
   ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
   ImGuiWindowFlags_NoNavFocus;
 
-/**
- * @brief Draw one pane's rendered texture and feed that pane's viewer its input.
- * @param viewer Renderer owning the offscreen texture for this pane.
- * @param window Host SDL window, used for the logical-to-physical pixel scale.
- * @param rect Pane rectangle in ImGui logical points.
- * @param paneId Pane id, which makes the backing ImGui window name unique.
- * @param allowViewportInput Whether camera drags reach the renderer this frame.
- * @param allowClickSelection Whether a click may change the picked object.
- * @param viewportState Receives the pane's screen rect and cursor, for overlays.
- *
- * Each pane renders into its own texture at its own resolution, so the image is
- * blitted 1:1 rather than stretched: a 4-way split renders four quarter-sized
- * frames instead of four full-resolution ones.
- */
 constexpr ImGuiWindowFlags kPaneViewportWindowFlags =
   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
@@ -2181,8 +2029,6 @@ std::string lowerCaseText(std::string text) {
   return text;
 }
 
-// The Output tab: the launched example's name and state, the button that stops it (or clears it
-// once it has ended), and its output below, following the end while scrolled to the bottom.
 template <typename Stop, typename Clear>
 void drawExampleOutputTab(const TcpViewerIcons& icons, const raisin::tcp_viewer::ServerExample& example,
                           raisin::tcp_viewer::ExampleLauncher::State state, int exitCode,
@@ -2236,8 +2082,6 @@ void drawExampleOutputTab(const TcpViewerIcons& icons, const raisin::tcp_viewer:
   ImGui::EndChild();
 }
 
-// The server examples next to the viewer, grouped by category; a click starts one, and the one
-// started last is highlighted.
 template <typename Start>
 void drawExampleLauncher(const raisin::tcp_viewer::ExampleLauncher& launcher, char* filter, size_t filterSize,
                          float width, Start&& start) {
@@ -2294,40 +2138,28 @@ struct ViewerPane {
   ViewerPane& operator=(const ViewerPane&) = delete;
 
   uint32_t id = 0;
-  /** Deferred one-shot startup work (initial connect, --inspect, replay). */
   bool startupPending = true;
-  /** Serial of the shared settings this pane's renderer was last configured with. */
   uint64_t appliedSettingsSerial = 0;
-  /** Serial of the shared resource-directory list already given to this scene. */
   uint64_t appliedResourceDirSerial = 0;
 
-  // ----- renderer and connection -----
   std::shared_ptr<raisim::World> world;
   std::shared_ptr<raisin::RayraiWindow> viewer;
   std::unique_ptr<RemoteScene> scene;
-  /** The server's RaiSim Engine scene: its files, the download prompt and its visuals. */
   std::unique_ptr<raisin::tcp_viewer::ViewerSceneFiles> sceneFiles;
   TcpClient client;
   SensorRenderer sensorRenderer;
   raisin::tcp_viewer::ActuatorTraces actuatorTraces;
   raisin::tcp_viewer::LocalSimulation localSimulation;
   bool connectingLocalSimulation = false;
-  /** The server example this pane launched from the viewer's directory, if any. */
   std::unique_ptr<raisin::tcp_viewer::ExampleLauncher> exampleLauncher;
   bool connectingExample = false;
-  /** Brings the Output tab to the front the next time the left panel draws its tabs. */
   bool selectOutputTab = false;
   char exampleFilter[64] = "";
   bool autoConnect = false;
   bool everConnected = false;
-  // True once a scene payload has actually arrived on the current connection. A
-  // socket that connected but has said nothing is not a session: RaisimServer
-  // serves one client, so a second viewer's TCP connect is accepted by the
-  // kernel backlog and then ignored, which would otherwise look live for ever.
   bool sceneReceived = false;
   bool awaitingResponse = false;
   bool awaitingSensorAck = false;
-  /** Rotation state of this pane's sensor-update batches (see sendSensorUpdate()). */
   size_t nextSensorUpdateIndex = 0;
   std::chrono::steady_clock::time_point updateRequestSentAt = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point nextAutoConnectAttempt = std::chrono::steady_clock::now();
@@ -2340,7 +2172,6 @@ struct ViewerPane {
   bool verboseParsing = false;
   ViewerStats stats;
 
-  // ----- camera -----
   glm::vec3 defaultCameraPos{0.0f};
   glm::vec3 defaultCameraTarget{0.0f};
   bool requestFrameScene = false;
@@ -2350,7 +2181,6 @@ struct ViewerPane {
   std::array<CameraBookmark, 4> cameraBookmarks;
   CameraFrustumUiStates cameraFrustums;
 
-  // ----- scene display toggles -----
   bool showCollisionBodies = false;
   bool showWorldFrame = false;
   bool showContactPoints = false;
@@ -2367,13 +2197,11 @@ struct ViewerPane {
   std::shared_ptr<raisin::CoordinateFrame> bodyFramesNode;
   std::vector<std::shared_ptr<raisin::Visuals>> comMarkers;
 
-  // ----- selection -----
   uint32_t requestedTag = 0;
   int requestedIndex = 0;
   const VisualEntry* requestedEntry = nullptr;
   std::unordered_map<uint64_t, MotionEstimate> motionEstimates;
 
-  // ----- sim control -----
   std::vector<raisin::tcp_viewer::ClientRequest> pendingControlRequests;
   bool simPaused = false;
   glm::vec3 controlForce{0.0f, 0.0f, 20.0f};
@@ -2390,11 +2218,9 @@ struct ViewerPane {
   std::vector<float> controlGc;
   uint32_t controlGcTag = 0;
   bool controlGcDirty = false;
-  // the server's sliders (RaisimServer::addSlider()) and the one being dragged
   std::vector<raisin::tcp_viewer::ServerControlView> serverControls;
   int draggedServerControl = -1;
 
-  // ----- viewport gestures and tools -----
   ViewerViewportState viewportState;
   bool mouseForceEnabled = true;
   float mouseForceScale = kDefaultMouseForceAccelPerPixel;
@@ -2409,10 +2235,8 @@ struct ViewerPane {
   std::string spawnStatus;
   char worldExportPathBuf[512] = "";
 
-  // ----- inspector -----
   InspectorState inspector;
 
-  // ----- panels -----
   FileBrowserState fileBrowser;
   ImGuiID pathFieldEditing = 0;
   ImVec2 overlayOffset{0.0f, 0.0f};
@@ -2425,10 +2249,12 @@ struct ViewerPane {
   bool groupObjectsByType = false;
   bool hideCollisionObjects = false;
   int objectSortMode = kDefaultObjectSortMode;
+  // Tag of an object selected in the Objects tab that has no render visual to target (a voxel map).
+  std::optional<uint32_t> selectedTagWithoutVisual;
+  uint64_t viewportPicksSeen = 0;
   char objectFilterBuf[160] = "";
 
-  // ----- capture -----
-  char screenshotDirBuf[512] = "";
+  std::string screenshotDirBuf;
   std::filesystem::path pendingScreenshotPath;
   bool screenshotAfterFirstScene = false;
   bool screenshotRequested = false;
@@ -2437,7 +2263,6 @@ struct ViewerPane {
   int recordFrameIndex = 0;
   std::string recordFramePrefix = "rayrai_tcp_viewer_frame";
   std::filesystem::path serverRecordFrameDirectory;
-  /** Where the PNG sequence frames went; Encode To Video reads them from here. */
   std::filesystem::path recordFrameDirectory;
   bool serverRequestedRecording = false;
   std::string captureStatus;
@@ -2446,11 +2271,10 @@ struct ViewerPane {
   raisin::tcp_viewer::PngSequenceEncodeJob pngEncodeJob;
   double videoFramesPerSecond = 30.0;
   int videoQuality = 20;
-  char videoPathBuf[512] = "";
+  std::string videoPathBuf;
   std::string videoStatus;
 
-  // ----- session record / replay -----
-  char sessionPathBuf[512] = "";
+  std::string sessionPathBuf;
   std::string sessionStatus;
   SessionRecorder sessionRecorder;
   std::vector<RecordedFrame> replayFrames;
@@ -2464,7 +2288,6 @@ struct ViewerPane {
   uint64_t replayBaseMicros = 0;
   std::ofstream trajectoryCsv;
 
-  // ----- diagnostics and signals -----
   std::deque<PacketSample> packetSamples;
   DiagnosticsPresentationState diagnosticsPresentation;
   std::vector<AssetDiagnostic> assetDiagnostics;
@@ -2511,14 +2334,12 @@ static void reportClosedServerConnection(ViewerPane& pane) {
   }
 }
 
-// Point the pane's host/port fields (and the port text box) at an endpoint.
 static void setPaneEndpoint(ViewerPane& pane, const std::string& host, int port) {
   std::snprintf(pane.host, sizeof(pane.host), "%s", host.c_str());
   pane.port = port;
   std::snprintf(pane.portBuf, sizeof(pane.portBuf), "%d", port);
 }
 
-// Restored panes resume their own endpoint through the normal retry loop.
 static void restorePaneConnection(ViewerPane& pane, const ConnectionEntry& endpoint,
                                   bool autoConnect) {
   setPaneEndpoint(pane, endpoint.host, endpoint.port);
@@ -2662,13 +2483,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "WARN: Raisim logo was not found; using collapsed-panel fallback handle\n";
   }
 
-  // ----- shared, pane-independent state ----------------------------------
-  // A split gives you another connection, not another set of render settings:
-  // quality, lighting, UI scale, the recent-connection list and the resource
-  // search paths are shared by every pane and edited from whichever pane's
-  // panel has focus. `settingsSerial` / `resourceDirSerial` let a pane notice
-  // that the shared state changed — including a pane created long after the
-  // last edit — and re-apply it to its own renderer and scene.
   ViewerSettings settings;
   uint64_t settingsSerial = 1;
   uint64_t resourceDirSerial = 1;
@@ -2696,14 +2510,10 @@ int main(int argc, char* argv[]) {
 #endif
         /*shaderBinaryCacheDirectory=*/std::string{},
         /*logShaderBinaryCache=*/true);
-    // TCP scene updates need mesh assets available on the first render/export pass.
     pane->viewer->setAsyncMeshLoadingEnabled(false);
     return pane;
   };
 
-  // The stored camera speed and field of view default to the renderer's own, so
-  // the first renderer has to exist before the settings file is merged over them.
-  // Its pane id is assigned afterwards, because the saved layout decides it.
   auto firstPane = createPaneRenderer(1);
   copyRenderDefaultsToSettings(settings, settings.renderQuality);
   settings.cameraSpeed = firstPane->viewer->getCamera().movementSpeed;
@@ -2774,9 +2584,6 @@ int main(int argc, char* argv[]) {
                                  std::getenv("RAYRAI_TCP_VIEWER_MINIMIZE_PANELS") != nullptr;
   const bool envAutoFrame = options.autoFrameSet ? options.autoFrame :
                             std::getenv("RAYRAI_TCP_VIEWER_AUTO_FRAME") != nullptr;
-  // ffmpeg is resolved once at startup: a GUI process's PATH does not change
-  // while it runs, and probing the filesystem every frame to decide whether a
-  // button is greyed out would be wasteful.
   const bool ffmpegAvailable = raisin::tcp_viewer::videoEncodingAvailable();
 
   // Bring a freshly created pane up to the shared configuration. `primary` marks
@@ -2822,20 +2629,16 @@ int main(int argc, char* argv[]) {
     pane.appliedResourceDirSerial = resourceDirSerial;
 
     setPaneEndpoint(pane, options.host, options.port);
-    std::snprintf(pane.screenshotDirBuf, sizeof(pane.screenshotDirBuf), "%s",
-                  raisin::tcp_viewer::utf8PathText(options.screenshotDir).c_str());
+    pane.screenshotDirBuf = raisin::tcp_viewer::utf8PathText(options.screenshotDir);
     const std::filesystem::path defaultSessionPath =
       options.recordSessionPath.empty()
         ? timestampedDataPath(options.screenshotDir,
             ("rayrai_tcp_viewer_session_pane" + std::to_string(pane.id)).c_str(),
             ".rrtcs")
         : options.recordSessionPath;
-    std::snprintf(pane.sessionPathBuf, sizeof(pane.sessionPathBuf), "%s",
-                  raisin::tcp_viewer::utf8PathText(defaultSessionPath).c_str());
-    std::snprintf(pane.videoPathBuf, sizeof(pane.videoPathBuf), "%s",
-                  raisin::tcp_viewer::utf8PathText(timestampedDataPath(options.screenshotDir,
-                    ("rayrai_tcp_viewer_video_pane" + std::to_string(pane.id)).c_str(),
-                    ".mp4")).c_str());
+    pane.sessionPathBuf = raisin::tcp_viewer::utf8PathText(defaultSessionPath);
+    pane.videoPathBuf = raisin::tcp_viewer::utf8PathText(timestampedDataPath(options.screenshotDir,
+      ("rayrai_tcp_viewer_video_pane" + std::to_string(pane.id)).c_str(), ".mp4"));
     pane.videoStatus = ffmpegAvailable
       ? std::string()
       : std::string("video recording needs ffmpeg on PATH (or $RAYRAI_FFMPEG)");
@@ -2855,9 +2658,6 @@ int main(int argc, char* argv[]) {
     return pane;
   };
 
-  // Snapshot the split arrangement into the settings about to be written. Called
-  // from every save path rather than only when the tree changes, so re-pointing a
-  // pane at another server is persisted too.
   auto capturePaneSettings = [&]() {
     settings.paneLayout = paneLayout.serialize();
     settings.panePlacements.clear();
@@ -2874,8 +2674,6 @@ int main(int argc, char* argv[]) {
 
   configurePane(primaryPane, true);
 
-  // Restore the other panes of a saved layout, then point each pane at the
-  // endpoint it was last on. The primary pane keeps whatever --connect asked for.
   for (uint32_t paneId : paneLayout.panes()) {
     if (paneId == primaryPaneId) continue;
     panes.emplace(paneId, createPane(paneId));
@@ -2883,8 +2681,6 @@ int main(int argc, char* argv[]) {
   for (const auto& placement : settings.panePlacements) {
     const auto restored = panes.find(placement.pane);
     if (restored == panes.end()) continue;
-    // The command line wins over a saved placement, but only when it named an
-    // endpoint; otherwise the first pane comes back where it was left too.
     if (placement.pane == primaryPaneId && options.endpointSet) continue;
     restorePaneConnection(*restored->second, placement.endpoint, defaultAutoConnect);
   }
@@ -2943,7 +2739,6 @@ int main(int argc, char* argv[]) {
   int frameSerial = 0;
   bool quit = false;
   int viewerExitCode = 0;
-  // Path of a file dropped on the window, handed to the focused pane below.
   std::string pendingDropPath;
   float uiScale = settings.uiScale;
   float defaultUiScale = 1.0f;
@@ -2954,10 +2749,9 @@ int main(int argc, char* argv[]) {
   ImGuiStyle baseStyle;
   ImVec2 lastDisplaySize(0.0f, 0.0f);
   bool settingsDirty = !options.resourceDirs.empty() || options.updateRateHz > 0.0f;
+  bool renderSettingsDirty = false;
   bool settingsSavePending = false;
   auto lastSettingsDirtyTime = std::chrono::steady_clock::now();
-  // One discovery listener serves every pane: the beacons describe the network,
-  // not the pane, and a second socket on the same port would just fight for them.
   DiscoveryBeaconReceiver beaconReceiver;
   std::string discoveryStatus;
   beaconReceiver.start(discoveryStatus);
@@ -2965,8 +2759,6 @@ int main(int argc, char* argv[]) {
     serverEntriesFromDiscovered(beaconReceiver.servers());
   auto nextDiscoveryRefresh = std::chrono::steady_clock::now() + kDiscoveryRefreshInterval;
   const auto steadyStart = std::chrono::steady_clock::now();
-  // Set when the split tree changes, so the arrangement is written back to the
-  // settings file along with each pane's endpoint.
   bool paneLayoutDirty = false;
   // Work that is per-process rather than per-pane (frame counter, discovery poll,
   // background shader warmup) runs on the first pane in layout order. It is not
@@ -2982,8 +2774,6 @@ int main(int argc, char* argv[]) {
   const auto fpsMeasureStart = std::chrono::steady_clock::now();
   uint64_t fpsMeasureFrames = 0;
 
-  // Run one pane for one frame: connection upkeep, scene mirroring, rendering
-  // into the pane rectangle, and that pane's own copy of the overlay panels.
   auto paneFrame = [&](ViewerPane& pane, const raisin::tcp_viewer::PaneRect& paneRect,
                        bool focused) {
     // The pane's own state, bound to the names the frame body has always used.
@@ -3088,6 +2878,7 @@ int main(int argc, char* argv[]) {
     auto& groupObjectsByType = pane.groupObjectsByType;
     auto& hideCollisionObjects = pane.hideCollisionObjects;
     auto& objectSortMode = pane.objectSortMode;
+    auto& selectedTagWithoutVisual = pane.selectedTagWithoutVisual;
     auto& objectFilterBuf = pane.objectFilterBuf;
     auto& screenshotDirBuf = pane.screenshotDirBuf;
     auto& pendingScreenshotPath = pane.pendingScreenshotPath;
@@ -3137,8 +2928,6 @@ int main(int argc, char* argv[]) {
     ImGuiIO& io = ImGui::GetIO();
     const ImVec2 paneOrigin(paneRect.x, paneRect.y);
     const ImVec2 uiSize(paneRect.width, paneRect.height);
-    // ImGui keys window state by name, so every pane needs its own names or all
-    // panes would share one collapsed/scrolled/positioned panel.
     const std::string paneWindowSuffix = "##pane" + std::to_string(pane.id);
     const std::string detailWindowName = "Selected Object##Overlay" + paneWindowSuffix;
     const std::string inspectorWindowName = "Raisim Inspector##Overlay" + paneWindowSuffix;
@@ -3148,15 +2937,13 @@ int main(int argc, char* argv[]) {
     // Drop any selection that points at our AS first, so the renderer doesn't keep
     // a dangling pointer when it next iterates targetVisual_ against the world list.
     viewer->setTargetVisual(nullptr);
-    // Remove the AS first so any contact/constraint references on side objects clear.
     if (inspector.as) {
       world->removeObject(inspector.as);
     }
-    // MJCF can also add ground planes, lights, mocap bodies, etc. Tear them down too.
     for (raisim::Object* ob : inspector.sideObjects) {
       if (ob) world->removeObject(ob);
     }
-    // Critical: tell the renderer its objectList_ cache is now stale. updateWeather()
+    // Critical: tell the renderer its world drawable cache is now stale. updateWeather()
     // and other per-frame helpers walk that cache directly and would dereference the
     // freed raisim::Object pointers we just deleted. Without this, the next frame
     // segfaults inside RaisimObject::configureGroundMaterial (or any other place that
@@ -3165,14 +2952,10 @@ int main(int argc, char* argv[]) {
     inspector = InspectorState{};
     lastStatus = "disconnected";
   };
-  // A pane runs one session: starting another one ends the example the pane launched, so that
-  // the example's exit cannot disconnect the session that replaced it.
   auto stopExample = [&] {
     exampleLauncher.stop();
     connectingExample = false;
   };
-  // Ending a session ends the example it was attached to, which stays in the Output tab with
-  // its output until it is cleared or another session starts.
   auto terminateExample = [&] {
     exampleLauncher.terminate();
     connectingExample = false;
@@ -3187,7 +2970,6 @@ int main(int argc, char* argv[]) {
       return false;
     }
 
-    // Close any previously-loaded inspector model before replacing it.
     closeInspector();
     stopExample();
 
@@ -3233,9 +3015,6 @@ int main(int argc, char* argv[]) {
     lastStatus = "inspector: " +
                  raisin::tcp_viewer::utf8PathText(raisim::pathFromUtf8(path).filename()) +
                  " (" + std::to_string(loadMs) + " ms)";
-    // Frame the camera on the loaded AS directly. We can't rely on requestFrameScene
-    // here because that path goes through RemoteScene::computeSceneBounds, which is
-    // empty in inspector mode (the AS lives in the local raisim::World, not RemoteScene).
     {
       raisim::Vec<3> centerVec;
       try {
@@ -3261,6 +3040,7 @@ int main(int argc, char* argv[]) {
       sessionRecorder.recordReset(std::chrono::steady_clock::now(), sessionStatus);
     }
     viewer->setTargetVisual(nullptr);
+    selectedTagWithoutVisual.reset();
     requestedTag = 0;
     requestedIndex = 0;
     requestedEntry = nullptr;
@@ -3375,8 +3155,6 @@ int main(int argc, char* argv[]) {
     return loaded;
   };
 
-  // Launches a server example from the viewer's directory and connects once its beacon
-  // tells the port.
   auto startExample = [&](const raisin::tcp_viewer::ServerExample& example) {
     if (inspector.active) closeInspector();
     client.disconnect();
@@ -3422,8 +3200,6 @@ int main(int argc, char* argv[]) {
               : raisin::tcp_viewer::utf8PathText(requested.stem());
             recordFrameIndex = 0;
             serverRequestedRecording = true;
-            // startRecordingVideo() names a video file, so honour that when an
-            // encoder is available and fall back to the PNG sequence otherwise.
             raisin::tcp_viewer::VideoEncoderSettings encoderSettings;
             encoderSettings.width = viewer->getCamera().rtWidth();
             encoderSettings.height = viewer->getCamera().rtHeight();
@@ -3481,7 +3257,6 @@ int main(int argc, char* argv[]) {
     if (!fromReplay) {
       sceneFiles.receive(scene.takeSceneFileBlock(), client);
     }
-    // the water moves with the server's world, as its waves do in the physics
     if (scene.hasServerWorldTime()) viewer->setWaterTimeSeconds(scene.getServerWorldTime());
     const bool disconnectRequested = scene.consumeDisconnectRequested();
     bool ok = parsedOk && !disconnectRequested;
@@ -3492,7 +3267,6 @@ int main(int argc, char* argv[]) {
       stats.parseErrors++;
     } else {
       lastStatus = fromReplay ? "replay" : "connected";
-      // A scene the server shares is shown first.
       if (screenshotAfterFirstScene && sceneFiles.settled(*viewer)) {
         screenshotRequested = true;
         screenshotAfterFirstScene = false;
@@ -3505,12 +3279,12 @@ int main(int argc, char* argv[]) {
     if (ok) {
       sceneReceived = true;
       if (hasForcedTargetOffset && viewer->getTargetVisual()) {
-        const glm::vec3 target = viewer->getTargetVisual()->getPosition();
+        const glm::vec3 target = viewer->getTargetVisual()->getCameraTargetPosition();
         applyCameraLookAt(viewer->getCamera(), target + forcedTargetOffset, target);
       } else if (hasForcedTargetOffset) {
         if (raisin::Visuals* followTarget = chooseDefaultFollowTarget(scene)) {
           viewer->setTargetVisual(followTarget);
-          const glm::vec3 target = followTarget->getPosition();
+          const glm::vec3 target = followTarget->getCameraTargetPosition();
           applyCameraLookAt(viewer->getCamera(), target + forcedTargetOffset, target);
         }
       } else if (forceCameraEnv && hasForcedCamera) {
@@ -3615,10 +3389,6 @@ int main(int argc, char* argv[]) {
         }
       }
 
-      // --inspect FILE was passed on the CLI: load the model as if drag-dropped. When
-      // --inspect-after-frames N is also set, defer the load until the main loop has
-      // ticked N frames (lets the headless harness measure drag-drop latency after
-      // the background shader warmup has run).
       if (!options.inspectorPath.empty() && options.inspectAfterFrames < 0) {
         if (!loadAsInspector(raisin::tcp_viewer::utf8PathText(options.inspectorPath))) {
           std::cerr << "ERROR: --inspect failed: " << inspector.lastError << "\n";
@@ -3637,15 +3407,11 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // Viewport shortcuts belong to the pane the pointer last selected; without
-    // the focus test every pane would reset its camera on one press of R.
     if (focused && !io.WantTextInput) {
       if (ImGui::IsKeyPressed(ImGuiKey_F, false)) requestFrameScene = true;
       if (ImGui::IsKeyPressed(ImGuiKey_C, false)) requestFrameSelected = true;
       if (ImGui::IsKeyPressed(ImGuiKey_R, false)) requestResetCamera = true;
       if (ImGui::IsKeyPressed(ImGuiKey_M, false)) {
-        // Cycle: off -> ruler -> angle -> off. 'A' would collide with the
-        // camera's WASD strafe, so the angle tool reuses M's second press.
         if (!ruler.enabled && !angle.enabled) {
           ruler.enabled = true;
           lastStatus = "ruler enabled (M again for angle)";
@@ -3761,9 +3527,6 @@ int main(int argc, char* argv[]) {
       viewerExitCode = 1;
     }
     if (pane.id == leadPaneId) {
-      // poll() drains newly arrived beacons and drops ones that stopped
-      // announcing; the timer re-lists on a fixed beat so the panel keeps up
-      // without anyone asking it to.
       const bool beaconsChanged = beaconReceiver.poll();
       if (beaconsChanged || now >= nextDiscoveryRefresh) {
         discoveredServers = serverEntriesFromDiscovered(beaconReceiver.servers());
@@ -3881,11 +3644,6 @@ int main(int argc, char* argv[]) {
     }
     scene.setSelectionTag(hasForcedTargetOffset ? 0 : requestedTag);
 
-    // ----- Signal workbench sampling -----
-    // Record the current selection plus every pinned object, so pinned plots do
-    // not freeze the moment the user clicks something else. Histories for
-    // objects that are neither selected nor pinned are dropped, which keeps
-    // memory bounded no matter how much of the scene has been clicked through.
     selectedSignalKey = requestedEntry ? visualMotionKey(requestedTag, requestedIndex) : 0;
     if (scene.hasServerWorldTime()) {
       const double signalTime = scene.getServerWorldTime();
@@ -3903,9 +3661,6 @@ int main(int argc, char* argv[]) {
           (isSelection && sampledSelectedInfo.valid && sampledSelectedInfo.tag == tag)
             ? &sampledSelectedInfo
             : nullptr;
-        // Only rebuild the channel set for the selection: doing it for a pinned
-        // object with no selected-object payload would drop its joint columns
-        // (and therefore its recorded history) as soon as focus moved away.
         if ((isSelection && (!entry.isArticulated || info)) || record.history.channels().empty()) {
           record.history.setChannels(
             raisin::tcp_viewer::buildSignalChannels(entry.isArticulated, hasContactTags, info));
@@ -3947,7 +3702,7 @@ int main(int argc, char* argv[]) {
         }
         const std::shared_ptr<raisin::Visuals> pinnedVisual = recordIt->second.visual.lock();
         if (!pinnedVisual) {
-          continue;  // The object was removed; keep the frozen history until unpinned.
+          continue;
         }
         uint32_t pinnedTag = 0;
         int pinnedIndex = 0;
@@ -4019,8 +3774,6 @@ int main(int argc, char* argv[]) {
       lastStatus = endpoint == 0 ? "ruler point A set" : "ruler point B set";
       return true;
     };
-    // Does the most recent beacon from this endpoint say its single client seat
-    // is taken? Used to explain silence after connecting.
     const auto endpointReportedBusy = [&](const char* endpointHost, int endpointPort) {
       for (const auto& server : discoveredServers) {
         if (server.endpoint.port != endpointPort || server.endpoint.host != endpointHost) {
@@ -4068,19 +3821,17 @@ int main(int argc, char* argv[]) {
           }
           const std::vector<raisin::tcp_viewer::ClientRequest>& frameRequests =
             exportOnlyFrame ? exportFrame : pendingControlRequests;
-          // Scene-file requests ride along, except with a world export, which goes alone.
           std::vector<raisin::tcp_viewer::ClientRequest> withSceneFiles;
           if (!exportOnlyFrame) {
-            withSceneFiles = frameRequests;
+            withSceneFiles = updateFrameRequests(scene, frameRequests);
             sceneFiles.appendRequests(withSceneFiles);
           }
           if (!sendUpdateRequest(client, updateRequestTag,
-                                 withSceneFiles.empty() ? frameRequests : withSceneFiles)) {
+                                 exportOnlyFrame ? frameRequests : withSceneFiles)) {
             if (!client.lastIoWouldBlock()) {
               reportClosedServerConnection(pane);
               networkFailed = true;
             } else if (exportOnlyFrame) {
-              // Nothing went out; keep the export queued for the next slot.
               pendingControlRequests.push_back(exportFrame.front());
             }
           } else {
@@ -4091,8 +3842,6 @@ int main(int argc, char* argv[]) {
               if (mouseForce.active) {
                 mouseForce.pendingRequestIndex = kNoPendingRequest;
               }
-              // The wire attachment stays live on the server, but the queued drag
-              // request is gone, so the next frame has to push a fresh one.
               if (wireDrag.active) {
                 wireDrag.pendingRequestIndex = kNoPendingRequest;
               }
@@ -4111,12 +3860,6 @@ int main(int argc, char* argv[]) {
               reportClosedServerConnection(pane);
               networkFailed = true;
             } else if (now - updateRequestSentAt > kServerResponseTimeout) {
-              // Silence is its own failure mode. RaisimServer serves one client
-              // and only calls accept() while it has none, so a connect to a
-              // server that is already taken completes in the kernel backlog and
-              // is then ignored — indistinguishable, at the socket, from a
-              // server that is merely slow. The beacon is what tells them apart:
-              // it reports the seat as taken by the *other* client.
               lastStatus = sceneReceived ? "no reply from server"
                          : endpointReportedBusy(host, port) ? "server already occupied"
                                                             : "no reply from server";
@@ -4202,7 +3945,6 @@ int main(int argc, char* argv[]) {
       exportScenePending = false;
     }
 
-    // Creates, refreshes or removes the world axes to match showWorldFrame.
     const auto syncWorldFrame = [&]() {
       if (showWorldFrame) {
         if (!worldFrame) {
@@ -4220,7 +3962,6 @@ int main(int argc, char* argv[]) {
     };
     syncWorldFrame();
 
-    // A scene the server shares brings its own camera, lights and render settings.
     if (sceneFiles.update(*viewer, scene) && !sceneFiles.sync().scene()->cameras.empty())
       autoFrameApplied = true;
     if (sceneFiles.takeViewerSettingsReset()) pane.appliedSettingsSerial = 0;
@@ -4234,18 +3975,14 @@ int main(int argc, char* argv[]) {
       cam.zoom = settings.cameraFovDeg;
     }
     cam.movementSpeed = cameraSpeed;
-    // Render settings are shared: whichever pane's panel edited them raised
-    // settingsDirty, and the serial bump makes every other pane — including one
-    // created later — re-apply them to its own renderer exactly once.
-    if (settingsDirty) {
-      ++settingsSerial;
+    if (settingsDirty || renderSettingsDirty) {
+      if (renderSettingsDirty) ++settingsSerial;
+      settingsDirty = false;
+      renderSettingsDirty = false;
       settingsSavePending = true;
       lastSettingsDirtyTime = now;
-      settingsDirty = false;
     }
     if (pane.appliedSettingsSerial != settingsSerial) {
-      settings.recentConnections = recentConnections;
-      settings.resourceDirs = resourceDirs;
       applyViewerSettings(*viewer, settings);
       pane.appliedSettingsSerial = settingsSerial;
     }
@@ -4255,6 +3992,8 @@ int main(int argc, char* argv[]) {
       pane.appliedResourceDirSerial = resourceDirSerial;
     }
     if (settingsSavePending && now - lastSettingsDirtyTime >= kSettingsSaveDebounce) {
+      settings.recentConnections = recentConnections;
+      settings.resourceDirs = resourceDirs;
       capturePaneSettings();
       if (!options.noSaveSettings) saveViewerSettings(settings);
       settingsSavePending = false;
@@ -4262,7 +4001,6 @@ int main(int argc, char* argv[]) {
     const bool weatherControlsLight = settings.skyEnabled && settings.skyWeatherEnabled &&
       weatherDefaultEnabledForQuality(settings.renderQuality);
     if (sceneFiles.applied()) {
-      // The scene's lights and weather stay as its application set them.
     } else if (weatherControlsLight) {
       viewer->updateWeather(static_cast<double>(std::max(0.0f, io.DeltaTime)));
       applyWeatherLightStrength(viewer->getLight(), viewer->getRenderQualitySettings(), lightStrength);
@@ -4282,7 +4020,6 @@ int main(int argc, char* argv[]) {
       showContactPoints, contactPointSize, showContactForces, contactForceSize,
       contactForceAbsolute);
 
-    // Recover body poses from the visual-to-body offsets, once for both overlays.
     const auto bodyFramePoses = (showBodyFrames || showComMarkers)
       ? scene.getBodyFrames() : std::vector<raisin::tcp_viewer::BodyFramePose>{};
     {
@@ -4342,66 +4079,9 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // Pose grabber: shadow the server's stream while the gizmo is enabled. The
-    // applyScenePayload calls above just updated visual->setPosition/Orientation
-    // from the server's view of the world; here we force the held body back to
-    // the user-controlled pose BEFORE renderViewer reads the visual state.
-    // - Seed the hold on first enable (or when selection changes) from the
-    //   body's current server pose so there's no jump.
-    // - The drag handler (later in the frame) updates heldPos/heldQuat as the
-    //   user drags; nothing is sent to the server during the drag.
-    // - On deactivation (gizmo turned off, Esc, or selection change), if the
-    //   user actually moved the body, emit one CR_SET_POSE with the final
-    //   pose so the server commits to it.
-    auto releasePoseHold = [&]() {
-      if (!poseGrabber.heldActive) return;
-      const bool canSend = client.isConnected() && scene.serverSupportsSimControl();
-      if (poseGrabber.heldDirty && canSend && poseGrabber.heldTag != 0) {
-        raisin::tcp_viewer::ClientRequest r;
-        r.type = raisin::tcp_viewer::ClientRequestType::CR_SET_POSE;
-        r.visTag = poseGrabber.heldTag;
-        r.vec3a = poseGrabber.heldPos;
-        r.quat = poseGrabber.heldQuat;
-        // Coalesce with any in-flight pose request for the same tag.
-        bool replaced = false;
-        for (auto& pending : pendingControlRequests) {
-          if (pending.type == raisin::tcp_viewer::ClientRequestType::CR_SET_POSE &&
-              pending.visTag == r.visTag) {
-            pending = r;
-            replaced = true;
-            break;
-          }
-        }
-        if (!replaced) pendingControlRequests.push_back(r);
-      }
-      poseGrabber.heldActive = false;
-      poseGrabber.heldDirty = false;
-      poseGrabber.heldTag = 0;
-      poseGrabber.dragging = false;
-      poseGrabber.axis = -1;
-    };
-    if (poseGrabber.enabled && requestedEntry) {
-      // Selection changed mid-hold: commit the previous body's pose, then
-      // seed a fresh hold on the new body.
-      if (poseGrabber.heldActive && poseGrabber.heldTag != requestedTag) {
-        releasePoseHold();
-      }
-      if (!poseGrabber.heldActive) {
-        poseGrabber.heldActive = true;
-        poseGrabber.heldDirty = false;
-        poseGrabber.heldTag = requestedTag;
-        poseGrabber.heldPos = requestedEntry->lastPos;
-        poseGrabber.heldQuat = requestedEntry->lastQuat;
-      }
-      if (requestedEntry->visual) {
-        requestedEntry->visual->setPosition(poseGrabber.heldPos);
-        requestedEntry->visual->setOrientation(poseGrabber.heldQuat);
-      }
-    } else if (poseGrabber.heldActive) {
-      releasePoseHold();
-    }
-
     const bool canQueueSimControl = client.isConnected() && scene.serverSupportsSimControl();
+    updatePoseGrabberHold(poseGrabber, requestedTag, requestedEntry, canQueueSimControl,
+                          scene, pendingControlRequests);
     const bool shiftForceModifierHeld = isShiftModifierHeld(io);
     const bool shiftForceCaptureRequested =
       shouldRequestMouseForceCapture(
@@ -4413,12 +4093,10 @@ int main(int argc, char* argv[]) {
       wireDragEnabled, wireDragModifierHeld, shiftForceModifierHeld, ruler.enabled, angle.enabled);
     const bool wireDragSuppressViewportInput = shouldSuppressViewportForWireDrag(
       wireDrag.active, wireDragCaptureRequested, io.MouseDown[ImGuiMouseButton_Left]);
-    // While the gizmo is being dragged, or while the user is left-pressing with
-    // a selected body and the gizmo enabled, swallow viewport input so the
-    // camera doesn't orbit/pan during gizmo manipulation.
     const bool poseGrabberSuppressViewportInput =
       poseGrabber.dragging ||
-      (poseGrabber.enabled && requestedEntry && io.MouseDown[ImGuiMouseButton_Left]);
+      (canQueueSimControl && poseGrabberHoldsEntry(poseGrabber, requestedEntry) &&
+       io.MouseDown[ImGuiMouseButton_Left]);
     viewportState = ViewerViewportState{};
 
     const auto tFrameStart = std::chrono::steady_clock::now();
@@ -4432,12 +4110,13 @@ int main(int argc, char* argv[]) {
                                      !wireDrag.active && !wireDragCaptureRequested &&
                                      !rulerCapturesViewportInput && !poseGrabber.dragging;
     updateCameraFrustums(*viewer, scene, cameraFrustums);
-    // WASD/Space reach the camera through the process-wide SDL keyboard state,
-    // so only the focused pane may act on them; otherwise one key press walks
-    // every pane's camera at once. Mouse input stays scoped by hover.
     viewer->setKeyboardInputEnabled(focused);
     renderViewer(*viewer, window, paneRect, pane.id, allowViewportInput, allowClickSelection,
                  &viewportState);
+    if (viewer->viewportPickCount() != pane.viewportPicksSeen) {
+      pane.viewportPicksSeen = viewer->viewportPickCount();
+      selectedTagWithoutVisual.reset();
+    }
 
     if (ruler.enabled && !mouseForce.active && viewportState.hovered &&
         ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -4468,27 +4147,19 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    // Pose grabber gizmo: translate handles (3 colored arrows) plus rotate
-    // handles (3 colored rings). Drag a handle to set position or orientation
-    // via CR_SET_POSE. While dragging, the body's visual pose is overridden so
-    // the incoming server stream doesn't snap the body back under the cursor.
     GizmoScreenLayout gizmoLayout;
     PoseGrabberHit gizmoHover;
-    const bool poseGrabberPickable = poseGrabber.enabled && requestedEntry && !mouseForce.active &&
+    const bool poseGrabberPickable = poseGrabberHoldsEntry(poseGrabber, requestedEntry) &&
+                                     !mouseForce.active &&
                                      !shiftForceCaptureRequested && !wireDrag.active &&
                                      !wireDragCaptureRequested && !ruler.enabled &&
                                      !angle.enabled && canQueueSimControl;
-    // The gizmo lives at the user-controlled (held) pose, not the server's
-    // pose. This keeps the handles attached to what the user actually sees.
     const glm::vec3 gizmoOriginWorld = (poseGrabber.heldActive && requestedEntry)
         ? poseGrabber.heldPos
         : (requestedEntry ? requestedEntry->lastPos : glm::vec3(0.0f));
     const glm::vec4 gizmoOriginQuat = (poseGrabber.heldActive && requestedEntry)
         ? poseGrabber.heldQuat
         : (requestedEntry ? requestedEntry->lastQuat : glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
-    // Gizmo handles are world-axis-aligned. Translate/rotate produce deltas
-    // expressed in the world frame; those deltas are composed with the body's
-    // current held pose by the drag handler below.
     if (poseGrabberPickable) {
       gizmoLayout = computeGizmoLayout(viewer->getCamera(), viewportState, gizmoOriginWorld);
       if (!poseGrabber.dragging && viewportState.hovered) {
@@ -4507,8 +4178,6 @@ int main(int argc, char* argv[]) {
       poseGrabber.anchorMouse = io.MousePos;
       poseGrabber.currentTarget = poseGrabber.anchorWorld;
       poseGrabber.currentQuat = poseGrabber.anchorQuat;
-      // For rotation, capture mouse angle around the body's screen center so
-      // angular deltas are relative to that starting position.
       ImVec2 bodyScreen;
       if (projectWorldToViewport(viewer->getCamera(), viewportState,
                                  poseGrabber.anchorWorld, bodyScreen)) {
@@ -4517,13 +4186,8 @@ int main(int argc, char* argv[]) {
       }
     }
     if (poseGrabber.dragging) {
-      // The picked axis is a WORLD axis (gizmo handles are world-aligned).
-      // Translate moves along that world axis; rotate applies a world-frame
-      // rotation around it as a pre-multiplication onto the anchor pose
-      // (which is the held pose captured at drag start).
       glm::vec3 worldAxis(0.0f);
       worldAxis[poseGrabber.axis] = 1.0f;
-      // anchorQuat is wxyz: x holds w.
       const glm::quat aq = glm::quat::wxyz(poseGrabber.anchorQuat.x, poseGrabber.anchorQuat.y,
                                            poseGrabber.anchorQuat.z, poseGrabber.anchorQuat.w);
 
@@ -4540,8 +4204,6 @@ int main(int argc, char* argv[]) {
           if (axLen2 > 1e-3f) {
             const float mDx = io.MousePos.x - poseGrabber.anchorMouse.x;
             const float mDy = io.MousePos.y - poseGrabber.anchorMouse.y;
-            // Scalar projection of mouse drag onto the screen-axis direction;
-            // pixel distance / pixels-per-metre = world distance along worldAxis.
             const float worldDelta = (mDx * axDx + mDy * axDy) / axLen2;
             poseGrabber.currentTarget = poseGrabber.anchorWorld + worldAxis * worldDelta;
           }
@@ -4559,26 +4221,17 @@ int main(int argc, char* argv[]) {
           float delta = curAngle - poseGrabber.anchorScreenAngle;
           while (delta > 3.14159265f) delta -= 6.2831853f;
           while (delta < -3.14159265f) delta += 6.2831853f;
-          // Screen +Y points down → "visually CCW" mouse motion is math CW.
           const float screenSpaceDelta = -delta;
-          // If the picked world axis points toward the camera, screen-CCW =
-          // positive right-hand-rule rotation. Otherwise flip the sign.
           const float axisDotView = glm::dot(worldAxis, viewer->getCamera().front);
           const float sign = (axisDotView < 0.0f) ? +1.0f : -1.0f;
           const float rotAngle = sign * screenSpaceDelta;
           const glm::quat dq = glm::angleAxis(rotAngle, worldAxis);
-          // Pre-multiply: world-frame rotation applied to the held pose.
           const glm::quat nq = glm::normalize(dq * aq);
-          // Pack glm::quat back into wxyz vec4 storage.
           poseGrabber.currentQuat = glm::vec4(nq.w, nq.x, nq.y, nq.z);
           poseGrabber.currentTarget = poseGrabber.anchorWorld;
         }
       }
 
-      // Update the held pose so next frame's pre-render override paints the
-      // body at the dragged target. No CR_SET_POSE is queued during the drag —
-      // the server only sees the final pose when the gizmo is deactivated
-      // (handled in releasePoseHold above).
       poseGrabber.heldPos = poseGrabber.currentTarget;
       poseGrabber.heldQuat = poseGrabber.currentQuat;
       poseGrabber.heldDirty = true;
@@ -4758,8 +4411,6 @@ int main(int argc, char* argv[]) {
     };
     const auto queueOrUpdateWireDrag = [&]() {
       using raisin::tcp_viewer::ClientRequestType;
-      // The attach only has to be sent once; the server keeps the grabbed body
-      // and local attachment point until the wire goes slack.
       if (!wireDrag.attachQueued) {
         raisin::tcp_viewer::ClientRequest attach;
         attach.type = ClientRequestType::CR_ATTACH_WIRE;
@@ -4768,7 +4419,6 @@ int main(int argc, char* argv[]) {
         attach.point = glm::dvec3(wireDrag.attachPoint);
         pendingControlRequests.push_back(attach);
         wireDrag.attachQueued = true;
-        // The drag that follows lands after the attach, so its index shifts.
         wireDrag.pendingRequestIndex = kNoPendingRequest;
       }
       raisin::tcp_viewer::ClientRequest drag;
@@ -4801,8 +4451,6 @@ int main(int argc, char* argv[]) {
           requestedIndex = wireTarget.index;
           requestedEntry = wireTarget.entry;
         }
-        // Grab where the user actually clicked when the depth read succeeded;
-        // otherwise fall back to the body origin.
         const glm::vec3 grabPoint = wireTarget.hasClickedWorldPoint
           ? wireTarget.clickedWorldPoint
           : wireTarget.entry->lastPos;
@@ -4825,8 +4473,6 @@ int main(int argc, char* argv[]) {
         wireEntry = requestedEntry;
       }
       if (!io.MouseDown[ImGuiMouseButton_Left]) {
-        // Dropping the button simply stops resending CR_DRAG_OBJECT; the server
-        // zeroes the wire stiffness on the next request frame.
         releaseWireDrag();
         lastStatus = "wire released";
       } else if (!wireEntry) {
@@ -4857,8 +4503,6 @@ int main(int argc, char* argv[]) {
       drawAngleCursorIcon(angle, viewportState);
     }
     if (poseGrabberPickable || poseGrabber.dragging) {
-      // Gizmo display stays world-axis-aligned and follows the held position
-      // (or the in-progress drag target).
       const glm::vec3 drawOriginWorld =
         poseGrabber.dragging ? poseGrabber.currentTarget : gizmoOriginWorld;
       GizmoScreenLayout draw =
@@ -4869,13 +4513,9 @@ int main(int argc, char* argv[]) {
                              gizmoHover.mode, gizmoHover.axis);
     }
 
-    // Headless test harness uses --inspect-close-after-frames; surface per-frame
-    // render times so close/reload regressions are easy to spot in CI output.
     if (options.inspectCloseAfterFrames >= 0) {
       const auto frameMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                               std::chrono::steady_clock::now() - tFrameStart).count();
-      // Filter out the chatter: only log fast warmup-period frames if they're slow.
-      // The post-load frames are always logged so close/reload regressions show up.
       const bool inspectorFocus = inspector.active ||
                                   frameSerial < 5 ||
                                   frameSerial == options.inspectAfterFrames ||
@@ -4886,9 +4526,6 @@ int main(int argc, char* argv[]) {
                   << frameMs << "ms\n";
       }
     }
-    // Diagnostic: at frame 0 (empty viewer) and frame just before the inspect load,
-    // print how many shaders the renderer has actually compiled so we can tell what
-    // the lazy path needs vs what background warmup adds.
     if (options.inspectCloseAfterFrames >= 0 &&
         (frameSerial == 1 ||
          frameSerial == options.inspectAfterFrames + 1)) {
@@ -4903,8 +4540,6 @@ int main(int argc, char* argv[]) {
       }
       std::cerr << "}\n";
     }
-    // Background shader warmup: compile one targeted shader per frame so the viewer
-    // stays interactive while heavy programs (pbrMeshHigh, etc.) build up.
     if (shaderWarmupActive && pane.id == leadPaneId) {
       if (shaderWarmupIdx >= kViewerWarmupShaders.size()) {
         shaderWarmupActive = false;
@@ -4922,7 +4557,6 @@ int main(int argc, char* argv[]) {
       fpsMeasureFrames++;
     }
     stats.frames++;
-    // Headless deferred --inspect: load only after warmup has had time to tick.
     if (options.inspectAfterFrames >= 0 && !options.inspectorPath.empty() &&
         !inspector.active && frameSerial == options.inspectAfterFrames) {
       std::cerr << "[inspect-after-frames] triggering inspect load at frame "
@@ -4936,22 +4570,18 @@ int main(int argc, char* argv[]) {
         std::cerr << "[inspect-after-frames] load returned in " << loadMs << " ms\n";
       }
     }
-    // Headless close-inspector reproducer. After the chosen number of frames, click
-    // the close path; after another batch, quit. Lets CI catch close-inspector segfaults.
     if (options.inspectCloseAfterFrames >= 0 && inspector.active &&
         frameSerial == options.inspectCloseAfterFrames) {
       std::cerr << "[inspect-close-test] closing inspector at frame " << frameSerial << "\n";
       closeInspector();
     }
-    // After close, if --inspect-reload was passed, trigger a second load so we can
-    // observe the post-close first-frame cost (should be ~zero because shaders cached).
     if (options.inspectCloseAfterFrames >= 0 && !inspector.active &&
         !options.inspectReloadPath.empty() &&
         frameSerial == options.inspectCloseAfterFrames + 2) {
       std::cerr << "[inspect-close-test] reloading "
                 << options.inspectReloadPath.string() << "\n";
       loadAsInspector(raisin::tcp_viewer::utf8PathText(options.inspectReloadPath));
-      options.inspectReloadPath.clear();  // one-shot
+      options.inspectReloadPath.clear();
     }
     if (options.inspectCloseAfterFrames >= 0 && !inspector.active &&
         options.inspectReloadPath.empty() &&
@@ -4964,15 +4594,17 @@ int main(int argc, char* argv[]) {
       const std::filesystem::path path = pendingScreenshotPath.empty()
         ? timestampedCapturePath(captureDir, "rayrai_tcp_viewer")
         : pendingScreenshotPath;
-      saveViewerTexturePng(*viewer, path, captureStatus);
+      const bool saved = saveViewerTexturePng(*viewer, path, captureStatus);
       pendingScreenshotPath.clear();
       screenshotRequested = false;
       if (options.exitAfterScreenshot) {
+        if (!saved) {
+          std::cerr << "rayrai_tcp_viewer: --screenshot " << captureStatus << '\n';
+          viewerExitCode = 1;
+        }
         quit = true;
       }
     }
-    // One readback feeds both recorders, so enabling the PNG sequence and the
-    // video encoder together costs a single glGetTexImage per frame.
     const bool captureThisFrame = frameSerial % std::max(1, recordEveryNFrames) == 0;
     const bool wantPngFrame = recordPngSequence && captureThisFrame;
     const bool wantVideoFrame = videoEncoder.framesDue() != 0;
@@ -4991,8 +4623,6 @@ int main(int argc, char* argv[]) {
         }
         if (wantVideoFrame &&
             !videoEncoder.writeTimedFrameRgba(captureRgba.data(), captureRgba.size(), videoStatus)) {
-          // writeFrameRgba() already closed the encoder (resized window, or
-          // ffmpeg died); surface why so the recording does not fail silently.
           captureStatus = videoStatus;
           serverRequestedRecording = false;
         }
@@ -5017,8 +4647,6 @@ int main(int argc, char* argv[]) {
       }
 
       ImGui::SeparatorText("Camera");
-      // Scene/selection framing is keyboard-only (F and C, listed in the H
-      // shortcuts overlay); it does not need panel space in two places.
       if (drawIconTextButton(uiIcons, TcpViewerIconKind::Refresh, "Reset Camera", "view_reset_camera")) {
         requestResetCamera = true;
       }
@@ -5035,9 +4663,6 @@ int main(int argc, char* argv[]) {
         const bool isOrtho =
           cam.getProjectionMode() == raisin::Camera::ProjectionMode::ORTHOGRAPHIC;
         ImGui::TextDisabled("Orthographic views (%s)", isOrtho ? "ortho active" : "perspective");
-        // Icon plus label: the six faces read as a set, and the border glyph
-        // marks which face of the box you end up looking at.
-        // Three faces per row.
         struct OrthoButton {
           TcpViewerIconKind icon;
           const char* label;
@@ -5067,11 +4692,6 @@ int main(int argc, char* argv[]) {
       }
 
       ImGui::SeparatorText("Bookmarks");
-      // Two bookmarks per row: each is a Set/Restore pair, and stacking four
-      // pairs vertically cost four lines for what fits in two.
-      // The theme's CellPadding.x is 1px, which left the two columns almost
-      // touching. Padding applies to both sides of a cell, so this is half the
-      // gap that ends up between them.
       ImVec2 bookmarkCellPadding = compactControlCellPadding(ImGui::GetStyle().CellPadding);
       bookmarkCellPadding.x = std::round(ImGui::GetFontSize() * 0.5f);
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, bookmarkCellPadding);
@@ -5105,15 +4725,6 @@ int main(int argc, char* argv[]) {
       }
     };
 
-    // Everything that writes pixels to disk lives in one section, sharing one
-    // output directory: a still, an encoded movie, and a raw frame sequence are
-    // three answers to the same question, so splitting them across the panel
-    // (and duplicating the still capture in the Connection tab) only made the
-    // user hunt. The protocol log is deliberately a separate section below,
-    // because it is not pixels.
-
-    // One browse affordance for every path field, so they all open the same
-    // picker and behave identically.
     const auto drawBrowseButton = [&](const char* id, FileBrowserMode mode, const char* title,
                                       const std::filesystem::path& startPath,
                                       std::vector<std::string> extensions,
@@ -5131,18 +4742,15 @@ int main(int argc, char* argv[]) {
       const float controlWidth = fontScaledTextControlWidth(28.0f);
 
       ImGui::SeparatorText("Screenshot");
-      // Shared by the still capture and the PNG frame sequence below.
       ImGui::TextDisabled("Output folder");
-      drawCompactPathInput("##ScreenshotDirectory", screenshotDirBuf, sizeof(screenshotDirBuf),
+      drawCompactPathInput("##ScreenshotDirectory", screenshotDirBuf,
         controlWidth, pathFieldEditing, "path/to/output/folder");
       drawBrowseButton("browse_screenshot_dir", FileBrowserMode::Folder, "Select output folder",
         raisim::pathFromUtf8(screenshotDirBuf), {},
         [&](const std::filesystem::path& chosen) {
-          std::snprintf(screenshotDirBuf, sizeof(screenshotDirBuf), "%s",
-                        raisin::tcp_viewer::utf8PathText(chosen).c_str());
+          screenshotDirBuf = raisin::tcp_viewer::utf8PathText(chosen);
         });
 
-      // --- Still image ---
       if (drawIconTextButton(uiIcons, TcpViewerIconKind::Camera, "Screenshot",
                              "capture_screenshot")) {
         screenshotRequested = true;
@@ -5159,13 +4767,12 @@ int main(int argc, char* argv[]) {
         }
         ImGui::BeginDisabled(!ffmpegAvailable);
         ImGui::BeginDisabled(videoEncoder.isOpen());
-        drawCompactPathInput("##VideoFile", videoPathBuf, sizeof(videoPathBuf), controlWidth,
+        drawCompactPathInput("##VideoFile", videoPathBuf, controlWidth,
           pathFieldEditing, "path/to/clip.mp4");
         drawBrowseButton("browse_video_path", FileBrowserMode::SaveFile, "Select video file",
           raisim::pathFromUtf8(videoPathBuf), {"mp4", "mov", "mkv"},
           [&](const std::filesystem::path& chosen) {
-            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
-                          raisin::tcp_viewer::utf8PathText(chosen).c_str());
+            videoPathBuf = raisin::tcp_viewer::utf8PathText(chosen);
           });
         float videoFpsUi = static_cast<float>(videoFramesPerSecond);
         if (drawStepperFloat("video_fps", "Frame rate (fps)", &videoFpsUi, 1.0f,
@@ -5173,7 +4780,6 @@ int main(int argc, char* argv[]) {
               static_cast<float>(raisin::tcp_viewer::kMaxVideoFramesPerSecond), "%.0f")) {
           videoFramesPerSecond = static_cast<double>(videoFpsUi);
         }
-        // libx264 CRF, so a lower number means a bigger, better-looking file.
         drawStepperInt("video_quality", "CRF (lower = better)", &videoQuality, 1,
           raisin::tcp_viewer::kMinVideoQuality, raisin::tcp_viewer::kMaxVideoQuality);
         ImGui::EndDisabled();
@@ -5187,8 +4793,7 @@ int main(int argc, char* argv[]) {
             encoderSettings.quality = videoQuality;
             const auto output = raisin::tcp_viewer::nextAvailableOutputPath(
                 raisim::pathFromUtf8(videoPathBuf));
-            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
-                          raisin::tcp_viewer::utf8PathText(output).c_str());
+            videoPathBuf = raisin::tcp_viewer::utf8PathText(output);
             videoEncoder.open(output, encoderSettings, videoStatus);
             captureStatus = videoStatus;
           }
@@ -5212,8 +4817,6 @@ int main(int argc, char* argv[]) {
         drawInlineLabelSliderInt("png_sequence_every_n_frames", "Every N frames",
           &recordEveryNFrames, 1, 120);
         ImGui::EndDisabled();
-        // Rescues a sequence recorded before ffmpeg was available, or one whose
-        // recording was interrupted.
         ImGui::BeginDisabled(!ffmpegAvailable || videoEncoder.isOpen() || recordPngSequence ||
                              recordFrameIndex <= 0 || recordFrameDirectory.empty() ||
                              pngEncodeJob.running());
@@ -5224,25 +4827,19 @@ int main(int argc, char* argv[]) {
           encoderSettings.quality = videoQuality;
           if (pngEncodeJob.start(recordFrameDirectory, recordFramePrefix,
                 raisim::pathFromUtf8(videoPathBuf), encoderSettings, videoStatus)) {
-            std::snprintf(videoPathBuf, sizeof(videoPathBuf), "%s",
-                          raisin::tcp_viewer::utf8PathText(pngEncodeJob.output()).c_str());
+            videoPathBuf = raisin::tcp_viewer::utf8PathText(pngEncodeJob.output());
           }
           captureStatus = videoStatus;
         }
         ImGui::EndDisabled();
       }
 
-      // One status line for all three sections, so a screenshot, a recording,
-      // and a sequence encode all report in the same place.
       if (!captureStatus.empty()) {
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + controlWidth);
         ImGui::TextDisabled("%s", shortenPathLabel(captureStatus, 90).c_str());
         ImGui::PopTextWrapPos();
       }
 
-      // Not pixels: this records the protocol stream. The old "Start TCP
-      // Recording" label sat next to the video controls and read as if it
-      // produced a video file.
       ImGui::SeparatorText("Session Replay Log");
       ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + controlWidth);
       ImGui::TextDisabled(
@@ -5250,21 +4847,19 @@ int main(int argc, char* argv[]) {
         "with --replay-session to scrub the timeline and re-render from any camera. For a playable "
         "movie, use Video above.");
       ImGui::PopTextWrapPos();
-      drawCompactPathInput("##SessionFile", sessionPathBuf, sizeof(sessionPathBuf),
+      drawCompactPathInput("##SessionFile", sessionPathBuf,
         controlWidth, pathFieldEditing, "path/to/session.rrtcs");
       drawBrowseButton("browse_session_path", FileBrowserMode::SaveFile, "Select session log",
         raisim::pathFromUtf8(sessionPathBuf), {"rrtcs"},
         [&](const std::filesystem::path& chosen) {
-          std::snprintf(sessionPathBuf, sizeof(sessionPathBuf), "%s",
-                        raisin::tcp_viewer::utf8PathText(chosen).c_str());
+          sessionPathBuf = raisin::tcp_viewer::utf8PathText(chosen);
         });
       if (!sessionRecorder.active()) {
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::Save, "Start Session Log",
                                "start_session_log")) {
           const auto output = raisin::tcp_viewer::nextAvailableOutputPath(
               raisim::pathFromUtf8(sessionPathBuf));
-          std::snprintf(sessionPathBuf, sizeof(sessionPathBuf), "%s",
-                        raisin::tcp_viewer::utf8PathText(output).c_str());
+          sessionPathBuf = raisin::tcp_viewer::utf8PathText(output);
           sessionRecorder.open(output, sessionStatus);
         }
       } else {
@@ -5373,9 +4968,6 @@ int main(int argc, char* argv[]) {
         }
         return colorChanged;
       };
-      // Swatch first, then its label, so all three light colours share one row.
-      // The chip is square -- a wide bar read as a slider track, and squaring it
-      // is also what makes three of them fit on a single line.
       const auto drawLightColorPicker = [&](const char* label, const char* id, glm::vec3& color) {
         bool colorChanged = false;
         ImGui::PushID(id);
@@ -5403,10 +4995,6 @@ int main(int argc, char* argv[]) {
       ImGui::SeparatorText("Quality");
       int quality = std::clamp(settings.renderQuality, 0, 4);
       constexpr const char* qualityItems[] = {"Fast", "Balanced", "High", "Ultra", "Custom"};
-      // A discrete slider rather than a dropdown: the presets are ordered from
-      // cheapest to most expensive, so the position itself carries meaning and
-      // stepping between neighbours takes one drag instead of two clicks. The
-      // format string is the preset name, so the slider shows "High", not "2".
       ImGui::SetNextItemWidth(fontScaledTextControlWidth(16.0f));
       if (compactSliderInt("##RenderQuality", &quality, 0,
             IM_ARRAYSIZE(qualityItems) - 1, qualityItems[quality])) {
@@ -5491,9 +5079,6 @@ int main(int argc, char* argv[]) {
           ImGui::TreePop();
         }
         if (ImGui::TreeNodeEx("Clouds", ImGuiTreeNodeFlags_DefaultOpen)) {
-          // Cloud quality: "Auto" picks per render preset (Fast/Balanced → Texture,
-          // High/Ultra → Volumetric) and follows the active weather preset; Off
-          // disables clouds entirely; Texture/Volumetric force a specific path.
           constexpr const char* cloudQualityItems[] = {"Auto", "Off", "Texture", "Volumetric"};
           int cloudQ = std::clamp(settings.skyCloudQuality, 0, 3);
           ImGui::TextUnformatted("Quality");
@@ -5579,7 +5164,11 @@ int main(int argc, char* argv[]) {
       ImGui::EndDisabled();
 
       ImGui::SeparatorText("Camera");
-      detailChanged |= drawInlineLabelSliderFloat("render_move_speed", "Move speed", &settings.cameraSpeed, 0.1f, 30.0f, "%.1f");
+      if (drawInlineLabelSliderFloat("render_move_speed", "Move speed", &settings.cameraSpeed,
+            0.1f, 30.0f, "%.1f")) {
+        cameraSpeed = settings.cameraSpeed;
+        settingsDirty = true;
+      }
       detailChanged |= drawInlineLabelSliderFloat("render_fov_deg", "FOV (deg)", &settings.cameraFovDeg, 20.0f, 100.0f, "%.1f");
       detailChanged |= drawInlineLabelSliderFloat("render_near_clip", "Near clip", &settings.cameraNear, 0.001f, 1.0f, "%.3f");
       detailChanged |= drawInlineLabelSliderFloat("render_far_clip", "Far clip", &settings.cameraFar, 10.0f, 5000.0f, "%.0f");
@@ -5590,8 +5179,6 @@ int main(int argc, char* argv[]) {
       detailChanged |= drawInlineLabelSliderFloat("render_light_yaw", "Yaw (deg)", &settings.lightYawDeg, -180.0f, 180.0f, "%.1f");
       detailChanged |= drawInlineLabelSliderFloat("render_light_pitch", "Pitch (deg)", &settings.lightPitchDeg, -89.0f, 89.0f, "%.1f");
       detailChanged |= drawInlineLabelSliderFloat("render_ambient", "Ambient", &settings.ambientStrength, 0.0f, 2.0f, "%.2f");
-      // One property of one light, so all three share a row. Square chips make
-      // that fit without shrinking anything.
       detailChanged |= drawLightColorPicker("Ambient", "LightAmbientColor",
         settings.mainLightAmbient);
       ImGui::SameLine();
@@ -5698,12 +5285,7 @@ int main(int argc, char* argv[]) {
         "Min influence", &settings.minAdditionalLightInfluence, 0.0f, 1.0f, "%.3f");
 
       if (drawIconTextButton(uiIcons, TcpViewerIconKind::Refresh, "Reset Rendering Settings", "reset_rendering_settings")) {
-        ViewerSettings defaults;
-        applyAutomaticRenderQualityIfUnset(defaults, gpuQuality.quality);
-        defaults.uiScale = settings.uiScale;
-        defaults.uiScaleUserSet = settings.uiScaleUserSet;
-        defaults.showCollapsedLogo = settings.showCollapsedLogo;
-        settings = defaults;
+        settings = resetRenderingSettings(settings, gpuQuality.quality);
         changed = true;
       }
 
@@ -5718,27 +5300,19 @@ int main(int argc, char* argv[]) {
         lightPitchDeg = settings.lightPitchDeg;
         lightStrength = settings.lightStrength;
         ambientStrength = settings.ambientStrength;
-        settingsDirty = true;
+        renderSettingsDirty = true;
       }
     };
 
     const ImVec2 overlayBase(paneOrigin.x + 12.0f, paneOrigin.y + 12.0f + menuBarHeight);
-    // Right edge the left overlay actually occupied this frame, so the object
-    // inspector can avoid it. Starts at the pane's left edge: with no overlay
-    // drawn the inspector may use the whole pane.
     float overlayRightEdge = paneOrigin.x;
     const ImVec2 overlayPos(overlayBase.x + overlayOffset.x, overlayBase.y + overlayOffset.y);
     const float collapsedPanelPadding = std::max(2.0f, std::round(ImGui::GetFontSize() * 0.18f));
     const bool collapsedLogoVisible = overlayMinimized && settings.showCollapsedLogo && raisimLogo.valid();
-    // Inspector mode is a modal alternative to the TCP client UI — hide the entire
-    // left overlay (connection / render / objects / diagnostics tabs) while it's
-    // active so the user isn't tempted to interact with mutually-exclusive state.
     const bool overlayVisible = !inspector.active;
     bool overlayHovered = false;
     bool overlayCollapseClicked = false;
     if (overlayVisible) {
-    // The collapsed logo sits on a light chip because the wordmark is dark ink;
-    // that chip is fully opaque so no scene colour bleeds through the logo.
     ImGui::SetNextWindowBgAlpha(collapsedLogoVisible ? kCollapsedLogoBackdropAlpha : 0.5f);
     ImGui::SetNextWindowPos(overlayPos, ImGuiCond_Always);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
@@ -5749,8 +5323,6 @@ int main(int argc, char* argv[]) {
       ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.97f, 0.99f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.86f, 0.88f, 0.92f, 0.95f));
     }
-    // Auto-resize alone would let a tall panel run past the bottom of a small
-    // pane and over its neighbour, so cap it at the pane the panel belongs to.
     const float overlayMaxHeight =
       std::max(ImGui::GetFontSize() * 6.0f, uiSize.y - (overlayPos.y - paneOrigin.y) - 12.0f);
     ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(FLT_MAX, overlayMaxHeight));
@@ -5766,14 +5338,9 @@ int main(int argc, char* argv[]) {
         overlayLastInteractionTime = now;
       }
 
-      // With no session, this pane is a connect prompt: every other tab, and
-      // most of the Connection tab, describes a scene that is not there yet.
       const bool sessionActive =
         (client.isConnected() && sceneReceived) || replayMode || localSimulation.active();
 
-      // The Connection tab's contents, which are also drawn on their own when
-      // there is no session and the tab bar would hold a single tab.
-      // The connect prompt's first row, which ends with the collapse button when there is no session.
       PanelRow connectRow;
       const auto drawConnectionTab = [&]() {
         connectRow.min = ImGui::GetCursorScreenPos();
@@ -5842,9 +5409,6 @@ int main(int argc, char* argv[]) {
               lastStatus = "invalid endpoint";
             }
           }
-          // While disconnected the beacons are already listed below, so showing
-          // them here too would just be a second copy of the same list. Saved
-          // endpoints are not in that list and stay here either way.
           if (sessionActive) {
             ImGui::SeparatorText("Detected RaisimServer beacons");
             if (!discoveryStatus.empty()) {
@@ -5909,8 +5473,6 @@ int main(int argc, char* argv[]) {
           }
         }
 
-        // Auto-connect belongs with the button it modifies, so it shares that
-        // row instead of costing the panel another line.
         ImGui::SameLine();
         if (drawCompactCheckbox("Auto-connect", &autoConnect)) {
           if (autoConnect) {
@@ -5923,21 +5485,10 @@ int main(int argc, char* argv[]) {
         }
         connectRow.itemsRight = ImGui::GetItemRectMax().x;
 
-        // Disconnected: the endpoint row above, then the live server list. It is
-        // a child rather than a combo so the servers are on screen without a
-        // click to expand, and a click on a row connects straight away.
-        //
-        // Only beacons go in here. A saved endpoint is just an address someone
-        // typed once — nothing says anything is listening on it now — so those
-        // stay in the endpoint editor above rather than masquerading as
-        // discovered servers.
         if (!sessionActive) {
           const ImGuiStyle& promptStyle = ImGui::GetStyle();
           ImGui::SeparatorText("RaiSim servers on this network");
 
-          // One row per server, one column per fact the beacon carries: what is
-          // running, where to reach it, which machine it is on, and whether its
-          // single client seat is taken. Nothing is behind a hover.
           struct ServerRow {
             std::string name;
             std::string address;
@@ -5966,8 +5517,6 @@ int main(int argc, char* argv[]) {
             serverRows.push_back(std::move(serverRow));
           }
 
-          // Fixed-fit columns need an explicit outer width, because the panel
-          // auto-resizes and a fill width would chase its own content.
           constexpr int kServerColumns = 5;
           const char* const columnTitles[kServerColumns] = {
             "Name", "Address", "Port", "Computer", "Availability"};
@@ -5986,16 +5535,12 @@ int main(int argc, char* argv[]) {
             widen(3, serverRow.computer);
             widen(4, serverRow.availability);
           }
-          // 10 px of breathing room on each side of every cell, so the columns
-          // do not run into each other or into the borders.
           constexpr float kServerCellPaddingX = 10.0f;
           float listWidth = promptStyle.ScrollbarSize + 2.0f;
           for (int column = 0; column < kServerColumns; ++column) {
             listWidth += columnWidths[column] + kServerCellPaddingX * 2.0f;
           }
 
-          // Five servers fit without scrolling; a longer list grows a little
-          // further before it starts to scroll. The header takes one more row.
           const float rowHeight = ImGui::GetTextLineHeightWithSpacing();
           const size_t visibleRows = std::clamp<size_t>(serverRows.size(), 5, 10);
           const float listHeight =
@@ -6021,15 +5566,10 @@ int main(int argc, char* argv[]) {
               const ServerRow& serverRow = serverRows[row];
               ImGui::TableNextRow();
               ImGui::PushID(static_cast<int>(row));
-              // Amber marks a server whose client seat is taken. The row stays
-              // clickable: the beacon is a second or two old, so the seat may
-              // have been given up since it was sent.
               if (serverRow.busy) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.78f, 0.25f, 1.0f));
               }
               ImGui::TableSetColumnIndex(0);
-              // The name cell carries the click target for the whole row, so
-              // there is no dead space between the columns.
               if (ImGui::Selectable(serverRow.name.c_str(), false,
                                     ImGuiSelectableFlags_SpanAllColumns)) {
                 setPaneEndpoint(pane, server.endpoint.host, server.endpoint.port);
@@ -6067,7 +5607,7 @@ int main(int argc, char* argv[]) {
                              "Status: %s", lastStatus.c_str());
         } else {
           if (localSimulation.active()) {
-            ImGui::Text("Local world: %s", shortenPathLabel(localSimulation.worldPath().filename().string(), 32).c_str());
+            ImGui::Text("Local world: %s", localWorldLabel(localSimulation.worldPath()).c_str());
             ImGui::SameLine();
             if (ImGui::Button("Stop simulation")) {
               client.disconnect(); localSimulation.stop(); clearSceneState();
@@ -6194,28 +5734,28 @@ int main(int argc, char* argv[]) {
             if (drawOverlaySlider("##light_yaw", "Light Yaw (deg)", &lightYawDeg, -180.0f, 180.0f,
                   "%.1f", rightValueWidth, rightItemWidth, false)) {
               settings.lightYawDeg = lightYawDeg;
-              settingsDirty = true;
+              renderSettingsDirty = true;
             }
 
             ImGui::TableNextColumn();
             if (drawOverlaySlider("##light_pitch", "Light Pitch (deg)", &lightPitchDeg, -89.0f, 89.0f,
                   "%.1f", leftValueWidth, leftItemWidth, false)) {
               settings.lightPitchDeg = lightPitchDeg;
-              settingsDirty = true;
+              renderSettingsDirty = true;
             }
 
             ImGui::TableNextColumn();
             if (drawOverlaySlider("##light_strength", "Light Strength", &lightStrength, 0.0f, 2.0f,
                   "%.2f", rightValueWidth, rightItemWidth, false)) {
               settings.lightStrength = lightStrength;
-              settingsDirty = true;
+              renderSettingsDirty = true;
             }
 
             ImGui::TableNextColumn();
             if (drawOverlaySlider("##ambient_strength", "Ambient Strength", &ambientStrength, 0.0f,
                   2.0f, "%.2f", leftValueWidth, leftItemWidth, false)) {
               settings.ambientStrength = ambientStrength;
-              settingsDirty = true;
+              renderSettingsDirty = true;
             }
 
             ImGui::TableNextColumn();
@@ -6224,9 +5764,6 @@ int main(int argc, char* argv[]) {
           }
           ImGui::PopStyleVar();
 
-          // The directory list is collapsed into a dropdown: it is usually
-          // empty or one entry, and when it is not, a stack of paths was eating
-          // the panel. Each expanded row carries its own remove button.
           ImGui::SeparatorText("Resource directories");
           {
             const float removeSize = ImGui::GetFrameHeight();
@@ -6249,7 +5786,6 @@ int main(int argc, char* argv[]) {
               if (resourceDirs.empty()) {
                 ImGui::TextDisabled("No resource directories");
               }
-              // Removal is deferred so the vector is not mutated mid-iteration.
               size_t removeIndex = resourceDirs.size();
               for (size_t i = 0; i < resourceDirs.size(); ++i) {
                 ImGui::PushID(static_cast<int>(i));
@@ -6277,7 +5813,6 @@ int main(int argc, char* argv[]) {
             ImGui::SameLine(0.0f, innerSpacing);
             if (drawIconTextButton(uiIcons, TcpViewerIconKind::Folder, "Add", "resource_add",
                                    ImVec2(addWidth, 0.0f))) {
-              // Start from the last directory added, so adding siblings is quick.
               openFileBrowser(fileBrowser, FileBrowserMode::Folder, "Select resource folder",
                 resourceDirs.empty() ? std::filesystem::path()
                                      : raisim::pathFromUtf8(resourceDirs.back()),
@@ -6292,7 +5827,6 @@ int main(int argc, char* argv[]) {
             }
           }
         }
-        // Balances the TextDisabled push at the top of this tab.
         ImGui::PopStyleColor();
       };
 
@@ -6301,8 +5835,6 @@ int main(int argc, char* argv[]) {
       if (drawsChip) {
         drawCollapsedLeftPanelLogo(collapsedLogoVisible ? raisimLogo : TcpViewerImageTexture{});
       } else if (!sessionActive && !showOutputTab) {
-        // A tab bar holding a single tab is just a title with extra steps, so the
-        // connect prompt is drawn on its own, and the collapse button ends its first row.
         ImGui::BeginGroup();
         drawConnectionTab();
         ImGui::EndGroup();
@@ -6319,8 +5851,6 @@ int main(int argc, char* argv[]) {
           ImGui::EndTabItem();
         }
 
-        // The launched example's own tab, there from its start until it is cleared, so that the
-        // output of an example that ended stays readable after its session is gone.
         if (showOutputTab) {
           const ImGuiTabItemFlags outputTabFlags = selectOutputTab ? ImGuiTabItemFlags_SetSelected : 0;
           selectOutputTab = false;
@@ -6353,9 +5883,6 @@ int main(int argc, char* argv[]) {
           ImGui::EndTabItem();
         }
 
-        // Everything that writes a file lives here rather than sharing the
-        // Options tab: screenshots, video, the PNG frame sequence, the session
-        // replay log, and the replay transport.
         if (sessionActive &&
             beginIconTabItem(uiIcons, TcpViewerIconKind::Video, "Record", "tab_record", &leftTabRow)) {
           ImGui::PushStyleColor(ImGuiCol_TextDisabled,
@@ -6384,6 +5911,7 @@ int main(int argc, char* argv[]) {
             viewer->setTargetVisual(nullptr);
           }
           const bool hasSelected = hasSelectedRaw && !selectedIsContact;
+          if (hasSelected) selectedTagWithoutVisual.reset();
           auto items = scene.getSelectableObjects();
           const std::string filterLower = toLowerAscii(trimAscii(objectFilterBuf));
           items.erase(std::remove_if(items.begin(), items.end(), [&](const ObjectListItem& item) {
@@ -6446,11 +5974,14 @@ int main(int argc, char* argv[]) {
             const float listHeight = ImGui::GetFontSize() * 14.0f;
             const auto drawObjectRow = [&](const ObjectListItem& item) {
               const char* typeName = objectTypeLabel(item.objectTypeRaw);
-              const bool selected = hasSelected && item.tag == selectedTag && item.index == selectedIndex;
+              const bool selected = hasSelected ? item.tag == selectedTag && item.index == selectedIndex
+                                                : !item.visual && selectedTagWithoutVisual == item.tag;
               const std::string id =
                 "##obj_" + std::to_string(item.tag) + "_" + std::to_string(item.index);
               if (ImGui::Selectable(id.c_str(), selected, ImGuiSelectableFlags_SpanAllColumns)) {
-                if (viewer) {
+                if (!item.visual) {
+                  if (scene.focusOnObject(item.tag)) selectedTagWithoutVisual = item.tag;
+                } else if (viewer) {
                   viewer->setTargetVisual(item.visual.get());
                 }
               }
@@ -6503,8 +6034,8 @@ int main(int argc, char* argv[]) {
                   drawObjectRow(item);
                 }
               }
-              ImGui::EndChild();
             }
+            ImGui::EndChild();
           }
 
           ImGui::SeparatorText("Ruler");
@@ -6544,13 +6075,11 @@ int main(int argc, char* argv[]) {
             ImGui::Text("Distance %s", distanceText.c_str());
           }
 
-          // ----- Simulation control (requires server SIM_CONTROL feature + CAP_SIM_CONTROL) -----
           ImGui::SeparatorText("Simulation");
           const bool serverSimControl = scene.serverSupportsSimControl();
           const bool canControlSim = client.isConnected() && serverSimControl;
           ImGui::BeginDisabled(!canControlSim);
           using raisin::tcp_viewer::ClientRequestType;
-          // Pause / Resume toggle — icon-only with hover tooltip.
           if (drawIconOnlyButton(uiIcons,
                 simPaused ? TcpViewerIconKind::Play : TcpViewerIconKind::Pause,
                 simPaused ? "Resume simulation" : "Pause simulation",
@@ -6560,7 +6089,6 @@ int main(int argc, char* argv[]) {
             pendingControlRequests.push_back(r);
             simPaused = !simPaused;
           }
-          // Step buttons — auto-pause first if running, then queue the step(s).
           auto queueStep = [&](int n) {
             raisin::tcp_viewer::ClientRequest r;
             r.type = ClientRequestType::CR_STEP_N;
@@ -6590,9 +6118,6 @@ int main(int argc, char* argv[]) {
             ImGui::TextDisabled("Sim control: server does not advertise SIM_CONTROL");
           }
 
-          // ----- Scene editing (CR_SPAWN_* / CR_REMOVE_OBJECT / CR_SAVE_THE_WORLD) -----
-          // These predate the SIM_CONTROL feature bit and are not gated by it, so
-          // they work against any protocol-matched server.
           ImGui::SeparatorText("Scene editing");
           const bool canEditScene = client.isConnected();
           const bool serverIsLocal = localSimulation.active() || isLoopbackHostName(host);
@@ -6616,12 +6141,10 @@ int main(int argc, char* argv[]) {
           ImGui::BeginDisabled(!canRemoveSelection);
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Delete, "Delete Selected",
                                  "remove_selected_object")) {
-            raisin::tcp_viewer::ClientRequest remove;
-            remove.type = raisin::tcp_viewer::ClientRequestType::CR_REMOVE_OBJECT;
-            remove.visTag = requestedTag;
-            pendingControlRequests.push_back(remove);
-            // The visual disappears with the next scene update; drop the
-            // selection now so the panels do not point at a dead tag.
+            if (queueSelectedRemoval(poseGrabber, requestedTag, pendingControlRequests)) {
+              mouseForce.pendingRequestIndex = kNoPendingRequest;
+              wireDrag.pendingRequestIndex = kNoPendingRequest;
+            }
             viewer->setTargetVisual(nullptr);
             lastStatus = "remove queued for tag " + std::to_string(requestedTag);
           }
@@ -6654,7 +6177,6 @@ int main(int argc, char* argv[]) {
               raisin::tcp_viewer::ClientRequest save;
               save.type = raisin::tcp_viewer::ClientRequestType::CR_SAVE_THE_WORLD;
               save.file = exportPath;
-              // Flushed on its own frame; see the send path above.
               pendingControlRequests.push_back(std::move(save));
               lastStatus = "world export requested; a server that did not call "
                            "setViewerWorldExport(true) ignores it";
@@ -6957,8 +6479,8 @@ int main(int argc, char* argv[]) {
               }
               ImGui::EndTable();
             }
-            ImGui::EndChild();
           }
+          ImGui::EndChild();
 
           ImGui::SeparatorText("Assets");
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Refresh, "Refresh Assets", "refresh_assets")) {
@@ -6970,7 +6492,7 @@ int main(int argc, char* argv[]) {
           ImGui::SameLine();
           if (drawIconTextButton(uiIcons, TcpViewerIconKind::Export, "Export Scene JSON", "export_scene_json")) {
             const std::filesystem::path path = options.exportScenePath.empty()
-              ? timestampedDataPath(std::filesystem::path(screenshotDirBuf), "rayrai_tcp_viewer_scene", ".json")
+              ? defaultSceneExportPath(screenshotDirBuf)
               : options.exportScenePath;
             if (assetDiagnosticsDirty || assetDiagnostics.empty()) {
               assetDiagnostics = collectAssetDiagnostics(scene);
@@ -7007,8 +6529,8 @@ int main(int argc, char* argv[]) {
               }
               ImGui::EndTable();
             }
-            ImGui::EndChild();
           }
+          ImGui::EndChild();
 
           ImGui::SeparatorText("Server Metadata");
           bool shownMetadata = false;
@@ -7037,8 +6559,6 @@ int main(int argc, char* argv[]) {
           ImGui::EndTabItem();
         }
         endIconTabBar(&leftTabRow);
-        // Collapses the panel now rather than after kOverlayAutoCollapseDelay
-        // without the pointer.
         if (drawIconOnlyButtonAtRowEnd(uiIcons, TcpViewerIconKind::Collapse, "Collapse panel",
                                        "collapse_left_panel", leftTabRow)) {
           overlayMinimized = true;
@@ -7055,8 +6575,7 @@ int main(int argc, char* argv[]) {
                                           ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup);
     overlayCollapsedHoveredLastFrame = finishLeftPanelFrame(overlayMinimized, overlayLastInteractionTime, now,
       overlayHovered, overlayInteractionActive, options.keepOverlayOpen, overlayCollapseClicked);
-    } // end if (overlayVisible)
-    // Scene-file prompt, download and mesh progress, below the menu bar, clear of the overlay.
+    }
     sceneFiles.drawOverlay(ImVec2(paneOrigin.x, paneOrigin.y + menuBarHeight),
       ImVec2(uiSize.x, uiSize.y - menuBarHeight), int(pane.id), overlayRightEdge);
 
@@ -7070,21 +6589,14 @@ int main(int argc, char* argv[]) {
       selectedEntry = nullptr;
     }
 
-    // A split pane can be too narrow for both panels. The object inspector is
-    // right-anchored, so in a narrow pane it used to land on top of the left
-    // overlay and both became unreadable; give the overlay the room it took and
-    // let the inspector shrink into what is left, down to its minimised width.
     const float detailGap = 12.0f;
     const float detailRoom =
       paneOrigin.x + uiSize.x - detailGap - std::max(paneOrigin.x, overlayRightEdge + detailGap);
     const float detailMinimisedWidth = std::round(ImGui::GetFontSize() * 9.5f);
     if (selectedEntry && !detailMinimized && detailRoom < detailMinimisedWidth) {
-      // Not even the minimised inspector fits beside the overlay: collapsing the
-      // overlay is the only way to see the selection in a pane this narrow.
       selectedEntry = nullptr;
     }
 
-    // the server's sliders, at the pane's lower right corner, while it streams
     if (!serverControls.empty() && client.isConnected()) {
       ImGui::SetNextWindowBgAlpha(0.5f);
       ImGui::SetNextWindowPos(ImVec2(paneOrigin.x + uiSize.x - 12.0f, paneOrigin.y + uiSize.y - 12.0f),
@@ -7187,13 +6699,11 @@ int main(int argc, char* argv[]) {
           }
 
           const auto selectedSensors = scene.getSensorsForTag(selectedTag);
-          // Record operating points every update, so the plots have a trail when opened.
           if (selectedInfo.isArticulated && !selectedInfo.actuators.empty()) {
             actuatorTraces.update(selectedInfo, scene.getServerWorldTime());
           }
           if (ImGui::BeginTabBar("##selected_object_tabs")) {
             if (ImGui::BeginTabItem("Object")) {
-          // Opens a label/value row and leaves the cursor in the value cell.
           const auto beginPropRow = [](const char* label) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
@@ -7273,7 +6783,6 @@ int main(int argc, char* argv[]) {
             ImGui::EndTable();
           }
 
-          // ----- Live signal workbench -----
           {
             const uint64_t selectedKey = visualMotionKey(selectedTag, selectedIndex);
             const auto selectedRecordIt = signalRecords.find(selectedKey);
@@ -7331,8 +6840,6 @@ int main(int argc, char* argv[]) {
 
             const ImVec2 plotSize(std::max(240.0f, ImGui::GetContentRegionAvail().x),
                                   ImGui::GetFontSize() * 4.5f);
-            // Plot every recorded object so a pinned trace stays visible next to
-            // the current selection.
             std::vector<uint64_t> plottedKeys;
             plottedKeys.reserve(signalRecords.size());
             if (selectedHistory) {
@@ -7386,9 +6893,7 @@ int main(int argc, char* argv[]) {
             if (drawIconTextButton(uiIcons, TcpViewerIconKind::Export, "Export CSV",
                                    "export_signal_csv")) {
               const std::filesystem::path csvPath =
-                raisin::tcp_viewer::timestampedSignalCsvPath(
-                  std::filesystem::path(screenshotDirBuf), objectName,
-                  std::time(nullptr));
+                defaultSignalExportPath(screenshotDirBuf, objectName, std::time(nullptr));
               raisin::tcp_viewer::writeSignalCsv(csvPath, *selectedHistory, signalPlotChannels,
                 signalExportStatus);
               lastStatus = signalExportStatus;
@@ -7457,10 +6962,7 @@ int main(int argc, char* argv[]) {
       ImGui::PopStyleVar();
     }
 
-    // ----- Local AS inspector window — styled to match the left "Raisim TCP" panel -----
     if (inspector.active && inspector.as) {
-      // Mirror the left overlay's positioning/style so the inspector visually replaces it
-      // (the left overlay is hidden while inspector.active).
       const ImVec2 inspectorBase(paneOrigin.x + 12.0f, paneOrigin.y + 12.0f + menuBarHeight);
       // Both width and height auto-fit the joint list. Width is locked to whatever
       // the longest joint label needs plus the slider budget. Height grows with the
@@ -7470,13 +6972,12 @@ int main(int argc, char* argv[]) {
       const float namePixelBudget = [&]() {
         float w = ImGui::CalcTextSize("Articulated System Inspector").x;
         for (const auto& j : inspector.joints) {
-          // The label row prints "<name>  [type]"; account for the type tag width too.
           const std::string row = j.name + "  [floating]";
           w = std::max(w, ImGui::CalcTextSize(row.c_str()).x);
         }
         return w;
       }();
-      const float sliderBudget = 220.0f;   // room for the DragFloat/SliderFloat widgets
+      const float sliderBudget = 220.0f;
       const float wantedWidth = std::min(
           uiSize.x - (inspectorBase.x - paneOrigin.x) - 20.0f,
           namePixelBudget + sliderBudget + imStyle.WindowPadding.x * 2.0f + 24.0f);
@@ -7495,8 +6996,7 @@ int main(int argc, char* argv[]) {
       if (ImGui::Begin(inspectorWindowName.c_str(), nullptr, kOverlayPanelWindowFlags)) {
         ImGui::PushStyleColor(ImGuiCol_TextDisabled,
           raionrobotics_imgui_secondary_text_color());
-        // Title row — mirrors the "Status" line in the connection panel.
-        const std::filesystem::path src(inspector.sourceFile);
+        const std::filesystem::path src = raisim::pathFromUtf8(inspector.sourceFile);
         if (const TcpViewerIcon* robotIcon = uiIcons.get(TcpViewerIconKind::Robot)) {
           const float lineH = ImGui::GetFontSize() + 4.0f;
           ImGui::Image(reinterpret_cast<ImTextureID>(uint64_t(robotIcon->texture)),
@@ -7506,7 +7006,7 @@ int main(int argc, char* argv[]) {
           ImGui::SameLine();
         }
         ImGui::TextColored(ImVec4(0.55f, 0.85f, 1.0f, 1.0f), "Articulated System Inspector");
-        ImGui::TextUnformatted(src.filename().string().c_str());
+        ImGui::TextUnformatted(raisin::tcp_viewer::utf8PathText(src.filename()).c_str());
         ImGui::TextDisabled("%s", shortenPathLabel(inspector.sourceFile, 60).c_str());
         ImGui::TextDisabled("DoF %d  GC %zu  Joints %zu",
                             int(inspector.as->getDOF()),
@@ -7518,13 +7018,12 @@ int main(int argc, char* argv[]) {
         ImGui::Separator();
         if (drawIconTextButton(uiIcons, TcpViewerIconKind::Reset, "Reset pose", "reset_pose")) {
           std::fill(inspector.gc.begin(), inspector.gc.end(), 0.0);
-          // For multi-DoF joints with a quaternion component, set qw=1 (identity rotation).
           for (const auto& j : inspector.joints) {
             if (j.type == raisim::Joint::Type::FLOATING && j.gcOffset + 3 < int(inspector.gc.size())) {
-              inspector.gc[j.gcOffset + 3] = 1.0; // qw for floating: pos(3) + quat(wxyz)
+              inspector.gc[j.gcOffset + 3] = 1.0;
             } else if (j.type == raisim::Joint::Type::SPHERICAL &&
                        j.gcOffset < int(inspector.gc.size())) {
-              inspector.gc[j.gcOffset] = 1.0; // qw for spherical
+              inspector.gc[j.gcOffset] = 1.0;
             }
           }
           Eigen::VectorXd q = Eigen::Map<Eigen::VectorXd>(
@@ -7539,7 +7038,6 @@ int main(int argc, char* argv[]) {
           ImGui::Separator();
           bool gcChanged = false;
           inspector.dragging = false;
-          // Edits the wxyz quaternion stored at gc[offset..offset+3], renormalized.
           const auto dragNormalizedQuat = [&](const char* id, int offset) {
             float quat[4] = {float(inspector.gc[offset]),
                              float(inspector.gc[offset + 1]),
@@ -7628,26 +7126,18 @@ int main(int argc, char* argv[]) {
                browserViewport->WorkPos.y + browserViewport->WorkSize.y * 0.5f),
         ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
       ImGui::SetNextWindowSize(ImVec2(browserWidth, browserHeight), ImGuiCond_Appearing);
-      // Same palette and padding as the side panels: the browser is part of the
-      // same UI, and ImGui's stock window colours read as a different product.
       ImGui::SetNextWindowBgAlpha(0.5f);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f));
       bool browserOpen = true;
       const std::string browserTitle = fileBrowser.title + paneWindowSuffix + "##file_browser";
       const bool browserVisible =
         ImGui::Begin(browserTitle.c_str(), &browserOpen, ImGuiWindowFlags_NoSavedSettings);
-      // Pushed inside the window so the secondary text matches the panels' own.
       ImGui::PushStyleColor(ImGuiCol_TextDisabled, raionrobotics_imgui_secondary_text_color());
       if (browserVisible) {
         const bool savingFile = fileBrowser.mode == FileBrowserMode::SaveFile;
         const bool pickingFile = fileBrowser.mode != FileBrowserMode::Folder;
 
-        // Breadcrumb: one button per ancestor, so any level above the current
-        // folder is a single click rather than repeated presses of Up. The
-        // keyboard button swaps in the editable field, which is still the only
-        // way to paste a path.
         if (fileBrowser.editingPath) {
-          // Full width while editing: the whole path has to be visible to fix.
           ImGui::SetNextItemWidth(-FLT_MIN);
           if (ImGui::InputText("##file_browser_path", fileBrowser.pathBuf,
                 sizeof(fileBrowser.pathBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -7665,13 +7155,8 @@ int main(int argc, char* argv[]) {
           std::filesystem::path crumbTarget;
           const float slashWidth = ImGui::CalcTextSize("/").x;
           const float innerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
-          // Right edge available to the row, captured before anything is drawn.
-          // There is no horizontal scrollbar, so a path too long for one line has
-          // to wrap rather than run off the window.
           const float contentRight =
             ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
-          // Zero horizontal item spacing so the separators sit flush against the
-          // folder buttons and the row reads as one path.
           ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
             ImVec2(0.0f, ImGui::GetStyle().ItemSpacing.y));
           for (const auto& part : fileBrowser.current) {
@@ -7680,8 +7165,6 @@ int main(int argc, char* argv[]) {
             if (label.empty()) {
               continue;
             }
-            // The root component already carries its own separator, so it is
-            // drawn as the leading "/" and does not get one prefixed.
             const bool isRoot = firstCrumb && crumbPath == fileBrowser.current.root_path();
             const float slashSpan = needSlash ? slashWidth : 0.0f;
             const float buttonSpan =
@@ -7701,7 +7184,6 @@ int main(int argc, char* argv[]) {
               ImGui::TextUnformatted("/");
               ImGui::SameLine(0.0f, 0.0f);
             }
-            // Index-keyed so repeated folder names along one path stay distinct.
             ImGui::PushID(crumbIndex++);
             if (ImGui::Button(label.c_str())) {
               crumbTarget = crumbPath;
@@ -7750,7 +7232,6 @@ int main(int argc, char* argv[]) {
           ImGui::TextDisabled("%s", filterText.c_str());
         }
 
-        // Reserve the footer: the name field (file modes) plus the button row.
         const float footerRows = savingFile || pickingFile ? 2.0f : 1.0f;
         const float footerHeight =
           ImGui::GetFrameHeightWithSpacing() * footerRows + ImGui::GetStyle().ItemSpacing.y;
@@ -7772,8 +7253,6 @@ int main(int argc, char* argv[]) {
                 name.empty() ? raisin::tcp_viewer::utf8PathText(entry.path) : name;
               const TcpViewerIconKind kind = fileBrowserIconKind(entry.path, entry.isDirectory);
 
-              // Draw the row first, then paint its icon into the leading gap,
-              // so the whole row stays one clickable Selectable.
               const bool clicked = ImGui::Selectable(
                 (std::string("      ") + label).c_str(),
                 !entry.isDirectory && name == fileBrowser.nameBuf);
@@ -7860,10 +7339,6 @@ int main(int argc, char* argv[]) {
 
   };
 
-  // ----- split-pane chrome -------------------------------------------------
-  // Splitting or closing rewrites both the layout tree and the pane map that the
-  // per-frame loop walks, so the menu queues a request and the loop applies it
-  // once every pane has been drawn.
   struct PaneCommand {
     enum class Kind { Split, Close };
     Kind kind = Kind::Split;
@@ -7886,8 +7361,6 @@ int main(int argc, char* argv[]) {
         const uint32_t created = paneLayout.split(command.pane, command.orientation);
         if (created == 0) continue;
         panes.emplace(created, createPane(created));
-        // The new pane opens on the view it was split off, so the split reads as
-        // dividing what is on screen rather than jumping somewhere else.
         if (const auto sourceIt = panes.find(command.pane); sourceIt != panes.end()) {
           auto& sourceCamera = sourceIt->second->viewer->getCamera();
           auto& createdPane = *panes[created];
@@ -8001,16 +7474,15 @@ int main(int argc, char* argv[]) {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    // Panes closed last frame: their textures have been through the renderer by
-    // now, so the GL objects can go.
     for (auto& retired : retiredPanes) {
       retired->shutdown();
     }
     retiredPanes.clear();
+    for (auto& entry : panes) {
+      ViewerPane& pane = *entry.second;
+      if (pane.viewer && pane.viewer->getTargetVisual()) pane.selectedTagWithoutVisual.reset();
+    }
 
-    // ----- split-pane layout -----------------------------------------------
-    // A 2 px line. The grab band below is deliberately wider than the line, so a
-    // divider this thin is still easy to catch with the pointer.
     const float splitterThickness = 2.0f;
     paneLayout.layout(0.0f, 0.0f, uiSize.x, uiSize.y, splitterThickness, paneRects, paneSplitters);
     leadPaneId = paneRects.empty() ? 0 : paneRects.front().pane;
@@ -8070,10 +7542,6 @@ int main(int argc, char* argv[]) {
       paneFrame(*paneIt->second, rect, rect.pane == paneLayout.focused());
     }
 
-    // ----- dividers ---------------------------------------------------------
-    // Drawn in a regular window layer below popups, and grabbed
-    // over a slightly wider band than the drawn line so a thin divider is still
-    // easy to hit.
     ImDrawList* chromeDrawList = raisin::tcp_viewer::paneChromeDrawList(uiSize);
     const bool popupOpen = ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup);
     if (!paneSplitters.empty()) {
@@ -8110,8 +7578,6 @@ int main(int argc, char* argv[]) {
       if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) draggingSplitter = 0;
     }
 
-    // The focused pane gets a border so it is obvious which one the keyboard
-    // shortcuts and the panels' Connect buttons are about to act on.
     if (paneRects.size() > 1) {
       for (const auto& rect : paneRects) {
         if (rect.pane != paneLayout.focused()) continue;
@@ -8135,8 +7601,6 @@ int main(int argc, char* argv[]) {
       }
     }
     if (ImGui::BeginPopup("##pane_context_menu")) {
-      // Name the pane by what it is connected to, which is what tells two panes
-      // apart on screen; the pane id is an implementation detail.
       if (const auto menuPaneIt = panes.find(contextMenuPane); menuPaneIt != panes.end()) {
         const ViewerPane& menuPane = *menuPaneIt->second;
         ImGui::TextDisabled("%s:%d — %s", menuPane.host, menuPane.port,
@@ -8163,8 +7627,6 @@ int main(int argc, char* argv[]) {
 
     applyPaneCommands();
 
-    // A split, a close or a divider drag is a settings change like any other, so
-    // it rides the same debounce as the render settings.
     if (paneLayoutDirty) {
       paneLayoutDirty = false;
       settingsDirty = true;
@@ -8204,7 +7666,7 @@ int main(int argc, char* argv[]) {
               << " auto_connect=" << (summaryPane && summaryPane->autoConnect ? "yes" : "no") << "\n";
   }
 
-  if (settingsDirty || settingsSavePending) {
+  if (settingsDirty || renderSettingsDirty || settingsSavePending) {
     settings.recentConnections = recentConnections;
     settings.resourceDirs = resourceDirs;
     capturePaneSettings();
@@ -8241,4 +7703,4 @@ int main(int argc, char* argv[]) {
   SDL_Quit();
   return viewerExitCode;
 }
-#endif  // RAYRAI_TCP_VIEWER_NO_MAIN
+#endif

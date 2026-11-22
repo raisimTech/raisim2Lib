@@ -201,11 +201,13 @@ Draws can be thinned without changing the authored instances:
   when the camera changes their order). Both are off by default.
 
 With asynchronous mesh loading (the default, see [Capture, diagnostics, and headless rendering](./Capture.md)) and automatic
-mesh LOD enabled, a batch created while its mesh file is still importing builds
-its LOD chain on a worker thread and then uploads it: one submesh per
-`pollAsyncMeshLoads` call, and as many as fit in the loading time of each
-`update()` or external-camera render (see [Capture, diagnostics, and headless rendering](./Capture.md)). The batch is not
-drawn until that finishes. `hasPendingAsyncMeshPreparation()` reports this
+mesh LOD enabled, a batch created while its mesh file is still importing prepares
+its LOD chain on a worker thread. Batches using the same imported meshes and LOD
+policy in the same asset store can share that work and the uploaded chain.
+`pollAsyncMeshLoads` uploads at most one submesh per batch it polls, so a shared
+chain can advance more than once per call. Each `update()` or external-camera render
+uploads as many submeshes as fit in its loading time (see [Capture, diagnostics, and headless rendering](./Capture.md)).
+The batch starts drawing after its chain is ready. `hasPendingAsyncMeshPreparation()` reports this
 state, `RayraiWindow::pendingAsyncMeshLoadCount()` includes these jobs, and
 every `update()`, external-camera render, or `pollAsyncMeshLoads` call
 advances them. `InstancedVisuals::pollAsyncMeshPreparation(deadline)` uploads

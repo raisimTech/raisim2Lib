@@ -5,12 +5,9 @@
 #include "raisim/World.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace {
 constexpr int kCycle = 6000;
@@ -84,15 +81,6 @@ struct ChainStation {
     }
     chain = parent;
   }
-
-  void check(raisim::World& world) const {
-    if (!world.isObjectAlive(chain->getId())) throw std::runtime_error("the chain was removed");
-    auto* system = static_cast<raisim::ArticulatedSystem*>(chain);
-    const auto& gc = system->getGeneralizedCoordinate();
-    if (system->getDOF() != 4 || !gc.e().allFinite() || gc.e().cwiseAbs().maxCoeff() < 0.1)
-      throw std::runtime_error("the joined chain did not swing as a four-joint pendulum");
-    std::cout << "Chain joint angles: " << gc.e().transpose() << " rad" << std::endl;
-  }
 };
 
 /// Station B: a gantry lowers its hook onto a tool, joins it, carries it and releases it.
@@ -100,7 +88,6 @@ struct GantryStation {
   double x = 0.;
   raisim::Object* robot = nullptr;
   raisim::Object* tool = nullptr;
-  Eigen::Vector3d carriedTool = Eigen::Vector3d::Zero();
 
   void reset(raisim::World& world) {
     removeIfAlive(world, robot);
@@ -138,7 +125,7 @@ struct GantryStation {
     tool = addBox(world, "tool", {0.12, 0.12, 0.16}, 0.4, {x - 0.4, 0., 0.08}, "1.0, 0.45, 0.08, 1.0");
   }
 
-  void update(raisim::World& world, int step, bool checks) {
+  void update(raisim::World& world, int step) {
     auto* gantry = static_cast<raisim::ArticulatedSystem*>(robot);
     const double t = step * world.getTimeStep();
     const auto smooth = [](double s) { s = std::clamp(s, 0., 1.); return s * s * (3. - 2. * s); };
@@ -162,26 +149,11 @@ struct GantryStation {
                                 makeJoint(raisim::Joint::FIXED, "tool_mount", pointInBody(*gantry, hook, grip)));
       tool = nullptr;
     }
-    if (step == 3599) {
-      raisim::Vec<3> grip;
-      static_cast<raisim::ArticulatedSystem*>(robot)->getFramePosition("tool_mount", grip);
-      carriedTool = grip.e() - Eigen::Vector3d(0., 0., 0.08);
-    }
     if (step == 3600) {
       auto parts = world.detachJoint(static_cast<raisim::ArticulatedSystem*>(robot), "tool_mount");
       robot = parts[0];
       tool = parts[1];
     }
-  }
-
-  void check(raisim::World& world) const {
-    auto* released = static_cast<raisim::ArticulatedSystem*>(tool);
-    const raisim::Vec<3> position = released->getBodyCOM_W()[0];
-    std::cout << "Tool carried to " << carriedTool.transpose() << " and released; it rests at "
-              << position.e().transpose() << std::endl;
-    if (std::abs(carriedTool.x() - (x + 0.4)) > 0.02 || carriedTool.z() < 0.6 || std::abs(position[0] - (x + 0.4)) > 0.05 ||
-        std::abs(position[2] - 0.08) > 0.01)
-      throw std::runtime_error("the gantry did not carry and release the tool");
   }
 };
 
@@ -189,8 +161,6 @@ struct GantryStation {
 struct DockingStation {
   double x = 1.5;
   raisim::Object* pair = nullptr;
-  double dockedError = 0.;
-  std::vector<std::string> loopJoints;
 
   raisim::ArticulatedSystem* carriage(raisim::World& world, const std::string& name, double y,
                                       const raisim::Vec<4>& color) {
@@ -220,90 +190,61 @@ struct DockingStation {
     raisim::JoinOptions options;
     options.childPrefix = "passive/";
     options.name = "docked_pair";
-    auto* docked = world.joinObjects(driven, driven->getBodyIdx("cart"), passive, passive->getBodyIdx("cart"),
-                                     makeJoint(raisim::Joint::FIXED, "dock", {0., 0.2, 0.06}), options);
-    loopJoints = docked->getLoopJointNames();
-    pair = docked;
+    pair = world.joinObjects(driven, driven->getBodyIdx("cart"), passive, passive->getBodyIdx("cart"),
+                             makeJoint(raisim::Joint::FIXED, "dock", {0., 0.2, 0.06}), options);
   }
 
-  void update(raisim::World& world, int step, bool checks) {
+  void update(raisim::World& world, int step) {
     auto* system = static_cast<raisim::ArticulatedSystem*>(pair);
     Eigen::VectorXd force = Eigen::VectorXd::Zero(system->getDOF());
     force[system->getMappingFromBodyIndexToGeneralizedVelocityIndex()[system->getBodyIdx("cart")]] =
         step < 3000 ? 0.3 : -0.3;
     system->setGeneralizedForce(force);
-    const auto& velocity = system->getGeneralizedVelocity();
-    if (checks && step > 0 && step < 3000)
-      dockedError = std::max(dockedError, std::abs(velocity[0] - velocity[1]));
     if (step == 3000) pair = world.detachJoint(system, "dock").front();
   }
-
-  void check(raisim::World&) const {
-    auto* system = static_cast<raisim::ArticulatedSystem*>(pair);
-    const auto& velocity = system->getGeneralizedVelocity();
-    std::cout << "Docked velocity mismatch: " << dockedError << " m/s; undocked velocities: "
-              << velocity.e().transpose() << " m/s" << std::endl;
-    if (loopJoints != std::vector<std::string>{"dock"} || dockedError > 1e-8 ||
-        !system->getLoopJointNames().empty() || velocity[0] > 0. || velocity[1] < 0.)
-      throw std::runtime_error("the carriages did not move together while docked and separately afterwards");
-  }
 };
-}  // namespace
 
-int main(int argc, char** argv) {
-  bool visualize = true;
-  for (int i = 1; i < argc; ++i) {
-    const std::string argument = argv[i];
-    if (argument == "--headless") visualize = false;
-    else if (argument == "--activation-key" && i + 1 < argc) raisim::World::setActivationKey(argv[++i]);
-    else throw std::invalid_argument("usage: articulated_join [--headless] [--activation-key FILE]");
-  }
-  raisim::World world;
-  world.setTimeStep(0.001);
-  world.setSleepingEnabled(false);
-  world.addGround();
+/// The three stations side by side, restarted every six simulated seconds.
+struct Stations {
   ChainStation chain;
   GantryStation gantry;
   DockingStation docking;
 
-  std::unique_ptr<raisim::RaisimServer> server;
-  if (visualize) {
-    server = std::make_unique<raisim::RaisimServer>(&world);
-    server->launchServer();
-    std::cout << "Connect rayrai_tcp_viewer to port " << server->getPort() << ". The six-second scene repeats.\n";
-  }
-  int step = 0;
-  const auto beforeStep = [&] {
+  void update(raisim::World& world, int step) {
     const int phase = step % kCycle;
     if (phase == 0) {
       chain.reset(world);
       gantry.reset(world);
       docking.reset(world);
     }
-    gantry.update(world, phase, !visualize);
-    docking.update(world, phase, !visualize);
-    ++step;
-  };
+    gantry.update(world, phase);
+    docking.update(world, phase);
+  }
+};
+}  // namespace
+
+int main(int argc, char** argv) {
+  if (argc == 3 && std::string(argv[1]) == "--activation-key") raisim::World::setActivationKey(argv[2]);
+  else if (argc != 1) throw std::invalid_argument("usage: articulated_join [--activation-key FILE]");
+  raisim::World world;
+  world.setTimeStep(0.001);
+  world.setSleepingEnabled(false);
+  world.addGround();
+  Stations stations;
+
+  raisim::RaisimServer server(&world);
+  server.launchServer();
+  std::cout << "Connect rayrai_tcp_viewer to port " << server.getPort() << ". The six-second scene repeats.\n";
+  int step = 0;
   try {
-    while (server ? !server->isTerminateRequested() : step < kCycle) {
-      if (server) {
-        RS_TIMED_LOOP(1000)
-        server->integrateWorldThreadSafe(beforeStep);
-      } else {
-        beforeStep();
-        world.integrate();
-      }
+    while (!server.isTerminateRequested()) {
+      RS_TIMED_LOOP(1000)
+      server.integrateWorldThreadSafe([&] { stations.update(world, step++); });
     }
   } catch (...) {
-    if (server) server->killServer();
+    server.killServer();
     throw;
   }
-  if (server) {
-    server->killServer();
-    return 0;
-  }
-  chain.check(world);
-  gantry.check(world);
-  docking.check(world);
+  server.killServer();
   return 0;
 }

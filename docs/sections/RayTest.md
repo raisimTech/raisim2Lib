@@ -215,12 +215,15 @@ motion, filters, and scan shape.
 ## Convex collision queries
 
 The following `World` queries use the current scene without advancing physics.
-Call between complete integration steps.
+Call between complete integration steps. They, like `rayTest()` between steps, see
+every rigid body where it is now: where the last step left it or where a setter such
+as `setGeneralizedCoordinate()` or `setPosition()` put it. Querying does not change
+what the next step collides with.
 
 | Method | Result |
 | --- | --- |
 | `queryProximity` | Closest collider within the inclusive maximum distance |
-| `queryOverlap` | One hit per overlapping collider, ordered by object ID and collider index |
+| `queryOverlap` | One hit per overlapping collider, ordered by object ID, local body index and collider index |
 | `checkOverlap` | Boolean result with early exit |
 | `sweepShape` | Earliest hit along a translation at fixed orientation |
 
@@ -257,7 +260,9 @@ A sweep fraction of zero indicates contact at the starting pose.
 
 Primitive and convex colliders represent solids, and ground planes represent
 half-spaces. Original triangle meshes and heightmaps represent two-sided
-surfaces. An overlap has zero distance. Distances within the numerical contact
+surfaces. Voxel maps represent the solid union of their occupied voxels: a
+probe anywhere inside it overlaps the map with distance and sweep fraction
+zero, and each voxel map reports at most one hit. An overlap has zero distance. Distances within the numerical contact
 tolerance of 1e-9 m are treated as contact. For meshes with many triangles use
 a finite proximity limit so distant nodes can be culled.
 
