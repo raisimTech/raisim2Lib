@@ -6,7 +6,6 @@
 #include <chrono>
 #include <cstring>
 #include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <system_error>
@@ -15,10 +14,7 @@
 
 #include <glbinding/gl/gl.h>
 
-#define STB_IMAGE_WRITE_STATIC
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
-
+#include "rayrai/PngWriter.hpp"
 #include "rayrai/RayraiWindow.hpp"
 
 namespace raisin::tcp_viewer
@@ -103,12 +99,7 @@ bool saveRgbaPng(const std::vector<unsigned char>& rgba, int width, int height,
     }
   }
 
-  std::ofstream file(path, std::ios::binary | std::ios::trunc);
-  const auto write = [](void* stream, void* data, int size) {
-    static_cast<std::ofstream*>(stream)->write(static_cast<const char*>(data), size);
-  };
-  if (!file || !stbi_write_png_to_func(write, &file, width, height, 4, rgba.data(), width * 4) ||
-      !file.flush()) {
+  if (!writeRgbaPng(path, width, height, rgba.data())) {
     status = "capture failed: PNG write failed";
     return false;
   }
