@@ -49,8 +49,8 @@ A step count denotes simulation steps unless the row says queries or sensor upda
 </tr>
 <tr>
 <td><code>chain20_speed</code></td>
-<td><p>100,000 steps</p><p>Δt = 1 ms</p></td>
-<td>The same spring chain with 20 spherical joints and <strong>60 DOF</strong>.</td>
+<td><p>100,000 steps</p><p>Δt = 0.5 ms</p></td>
+<td>The same spring chain with 20 spherical joints and <strong>60 DOF</strong>. Released 90° from every spring's rest rotation, it whips at hundreds of rad/s; at 1 ms the default integration gains energy until it diverges.</td>
 </tr>
 <tr>
 <td><code>anymal_standing</code></td>
