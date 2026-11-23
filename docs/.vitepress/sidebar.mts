@@ -178,6 +178,7 @@ export const docsSidebar: DefaultTheme.SidebarItem[] = [
         link: '/sections/Changelog.md',
         collapsed: true,
         items: [
+          { text: 'Changelog: v2.18', link: '/sections/changelog/v2.18.md' },
           { text: 'Changelog: v2.17', link: '/sections/changelog/v2.17.md' },
           { text: 'Changelog: v2.16', link: '/sections/changelog/v2.16.md' },
           { text: 'Changelog: v2.15', link: '/sections/changelog/v2.15.md' },

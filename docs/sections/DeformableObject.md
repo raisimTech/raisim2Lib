@@ -578,7 +578,7 @@ the cloth (1.7 times as fast with `setMonolithicDeformables(false)`):
 | 1 kg ball on a cloth on a 5 kg box: particles in the box | 2.9 mm, 0.88 ms/step | < 0.001 mm, 1.03 ms/step |
 | 5 kg box on two stacked cloths: upper cloth pressed into the lower one | 10.0 mm, 5.51 ms/step | 0.41 mm, 0.99 ms/step |
 | 1 kg box on a cloth on a slope of 0.45 (μ = 0.5): sliding speed | 213 mm/s, 0.77 ms/step | < 0.001 mm/s, 0.75 ms/step |
-| 1 kg box on a cloth sliding down a slope of 0.6 (μ = 0.5 above and below the cloth): error of the distance the box travels in a second | 17.7 %, 0.77 ms/step | 0.15 %, 1.70 ms/step |
+| 1 kg box on a cloth sliding down a slope of 0.6 (μ = 0.5 above and below the cloth): error of the distance the box travels in 0.3 s | 17.7 %, 0.77 ms/step | 0.15 %, 1.70 ms/step |
 | Cloth pulled out from under a 1 kg box with 20 N (μ = 0.5): error of the box's acceleration while the cloth slides under it | 2.2 %, 1.35 ms/step | < 0.01 %, 2.93 ms/step |
 | The same cloth: largest stretch of an edge beside the box | 3.9 %, 1.39 ms/step | 3.1 %, 3.13 ms/step |
 | 0.2 kg cloth on the ground pulled at one edge with 20 N: largest stretch of an edge | 0.009 %, 1.15 ms/step | 0.009 %, 1.26 ms/step |
@@ -588,7 +588,7 @@ the cloth (1.7 times as fast with `setMonolithicDeformables(false)`):
 | 5 kg box sliding at 1 m/s over a cloth that the ground holds (μ = 0.5 above the cloth, 0.8 below): error of the deceleration | 24.4 %, 1.90 ms/step | 0.001 %, 1.94 ms/step |
 | 5 kg box sliding at 1 m/s over a cloth on ground with μ = 0.3, carrying it: deceleration over μ g | 18.6 % off, 1.84 ms/step | 4.5 % more, 4.03 ms/step (the cloth outside the box drags; fully converged 3.5 % more) |
 
-(the `deformable_rigid_coupling` benchmark, single thread, Ryzen 9 3950X).
+(the `deformable_rigid_coupling_*` benchmarks, single thread, Ryzen 9 3950X).
 
 A heavy body resting on a flat sheet whose hinges are solved together (see
 [Bending](#bending)) presses particles that the sheet's bending stiffness holds,
@@ -600,8 +600,9 @@ while each elastic sweep passes the impulses on to the rest of the sheet. A box
 on a stiff plate resting on two rods used to ride the plate on a soft, slow
 spring (a swing of 16 mm with a period of about 2 s at 6 iterations, where the
 plate's own period is 0.26 s); it now settles within a few periods, and in the
-`deformable_stiff_sheet` benchmark the plate under a 0.5 kg box sags 2 % more
-than beam theory instead of 18 %. Up to 256 contact particles are coupled this
+`deformable_stiff_sheet` benchmark at full size (`-- --grid=33`) the plate
+under a 0.5 kg box sags 2 % more than beam theory instead of 18 %. Up to 256
+contact particles are coupled this
 way; a sheet lying on a support (more of them) is held by the support as
 described above.
 

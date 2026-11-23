@@ -127,9 +127,13 @@ Joint limits can be defined in a URDF file **per joint** as follows:
 The `lower` and `upper` are joint position limits and the `velocity` is the joint velocity limit.
 The joint limits are implemented as if there is a hard stop at the limits.
 This means that there is a hard collision (with a restitution coefficient of 0) when the joint hits a limit.
+A revolute or prismatic joint that something pushes past its limit (contacts, a hard landing) is moved back to it the way a contact separates penetrating bodies: at the error-reduction rate of `World::setERP()` times the violation, and no faster than the joint's velocity limit.
+The limit only pushes: it lets the joint go as soon as the joint moves away, and gives back within the step any impulse that other contacts and limits take over.
+Each limit starts from the impulse it held in the previous step, so a robot resting on its limits needs only a few solver iterations; `World::resetContactSolverWarmStart()` discards these impulses with the contact ones.
 A spherical joint has a single limit: `lower` is the largest total rotation angle $2\arccos|q_w|$ (twist included) away from the zero configuration, and `upper` is ignored.
 The joint stops at that angle like at any other hard stop; torque that pushes it outward is resisted, while motion along or back from the limit is free.
 Velocity limits do not apply to spherical joints.
+A velocity limit acts on a joint that would exceed it in the step before contacts and limits are solved; the impulses of contacts and other limits can still carry a joint that starts within its velocity limit past it.
 The `effort` is not a joint limit but the actuation limit of the joint: it bounds the feedforward generalized force plus the built-in PD torque (see [Dynamics and Control](./DynamicsAndControl.md)).
 It does not bound actuator torques, which are limited by the operating regions of their motors (see [Actuators](../Actuators.md)).
 

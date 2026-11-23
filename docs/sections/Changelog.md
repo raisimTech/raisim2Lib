@@ -6,6 +6,7 @@ can be one version ahead of `RAISIM_VERSION`.
 
 **Versions**
 
+- [Changelog: v2.18](./changelog/v2.18.md)
 - [Changelog: v2.17](./changelog/v2.17.md)
 - [Changelog: v2.16](./changelog/v2.16.md)
 - [Changelog: v2.15](./changelog/v2.15.md)

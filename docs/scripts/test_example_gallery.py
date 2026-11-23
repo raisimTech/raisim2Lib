@@ -130,6 +130,29 @@ class ExampleGalleryTest(unittest.TestCase):
             for held in spec.get("keys", []):
                 self.assertTrue(is_held_key(held), f"{name}: keys entries are [SDL key name, from, to] with 0 <= from < to: {held}")
 
+    def test_recorded_options_exist_in_the_examples(self):
+        """An option clips.json passes must still be in the example's source; a removed one makes the
+        example print its usage and exit, or run without what the clip shows."""
+        examples = DOCS.parent / "examples"
+        cmake = (examples / "CMakeLists.txt").read_text(encoding="utf-8")
+        sources = {name: Path(path.replace("${CMAKE_CURRENT_SOURCE_DIR}", str(examples)))
+                   for name, path in re.findall(r"create_(?:rayrai_)?executable\((\w+)\s+(\S+?)\)", cmake)}
+        recording = json.loads(RECORDING.read_text(encoding="utf-8"))
+        for name, spec in recording.items():
+            options = {arg.split("=", 1)[0] for arg in spec.get("args", []) if arg.startswith("--")}
+            if not options:
+                continue
+            binary = spec.get("binary", name)
+            self.assertIn(binary, sources, f"{name}: no executable {binary} in examples/CMakeLists.txt")
+            main = sources[binary] if sources[binary].is_absolute() else examples / sources[binary]
+            text = main.read_text(encoding="utf-8")
+            for header in re.findall(r'#include "([^"]+)"', text):
+                if (main.parent / header).is_file():
+                    text += (main.parent / header).read_text(encoding="utf-8")
+            for option in sorted(options):
+                self.assertTrue(f'"{option}"' in text or f'"{option}=' in text,
+                                f"{name}: clips.json passes {option}, which {main.name} no longer takes")
+
     def test_doc_images_never_inherit_the_shared_capture(self):
         documented = set(re.findall(r"RAYRAI_EXAMPLE_(CAPTURE\w*)", (DOCS / "sections/rayrai/Capture.md").read_text(encoding="utf-8")))
         runner = (DOCS / "image_generators/run_doc_image_generator.cmake").read_text(encoding="utf-8")
