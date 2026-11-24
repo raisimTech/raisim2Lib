@@ -278,7 +278,12 @@ The torque is the same for the three. `SEMI_IMPLICIT` moves the robot with the v
 solver leaves, so a foot that an impact stops stays at the surface. `TRAPEZOID` follows a body
 under a constant force exactly (a thrown ball), but under forces that change with the state (gravity on a joint, springs, the PD
 torque, the gyroscopic force) it gains energy: an undamped pendulum's swing grows by about 9% in 20 s
-at $\Delta t$ = 1 ms, where `SEMI_IMPLICIT` keeps it within 0.1%. On an impact, `TRAPEZOID` also
+at $\Delta t$ = 1 ms, where `SEMI_IMPLICIT` keeps it within 0.1%. A long chain released far from
+the rest poses of stiff joint springs is the exception: the 20-link chain of
+`chain/robot_springed_20.urdf`, released 90° from every spring's rest rotation, whips at hundreds
+of radians per second, and at $\Delta t$ = 1 ms `SEMI_IMPLICIT` gains energy (the forces and the
+velocity-dependent terms are taken at the start of the step) until the chain diverges, while
+`TRAPEZOID`, `RUNGE_KUTTA_4` or a 0.5 ms step let it settle. On an impact, `TRAPEZOID` also
 goes into the ground by up to half the step's travel. `RUNGE_KUTTA_4` applies the velocity change of the contact
 solver at the beginning of the step and then evaluates steps 1-4 without contacts at each of its
 four stages, at the state of the stage; the actuator bounds use the motor speeds of the stage, and

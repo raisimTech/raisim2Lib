@@ -292,8 +292,16 @@ endif()
 #######################
 ### src and linking ###
 #######################
-SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/envs)
 set(RAISIMGYM_ENV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/raisimGymTorch/env/envs)
+SUBDIRLIST(ENV_CANDIDATES ${RAISIMGYM_ENV_DIR})
+set(SUBDIRS "")
+foreach(candidate ${ENV_CANDIDATES})
+    if(EXISTS ${RAISIMGYM_ENV_DIR}/${candidate}/Environment.hpp)
+        list(APPEND SUBDIRS ${candidate})
+    else()
+        message(STATUS "[RAISIM_GYM] skipping envs/${candidate}: no Environment.hpp")
+    endif()
+endforeach()
 
 set(RAISIMGYM_TORCH_SOURCES)
 if(RAISIMGYM_TORCH_WITH_LIBTORCH)
