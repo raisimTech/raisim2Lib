@@ -70,19 +70,20 @@ Check these points:
   from another machine, call `server.setBindLoopbackOnly(false)` before
   `launchServer`. Any client that can reach the port can then control the
   simulation, so do this only on a trusted network.
-- Keep the viewer source in sync with the installed packages: build
+- Keep the viewer in sync with the installed packages: build
   `rayrai_tcp_viewer` from a `raisim2Lib` checkout whose pinned version
   (`RAISIM_VERSION` in the top-level `CMakeLists.txt`) matches the
   installed RaiSim and rayrai libraries. If you installed another version with
   `raisim_upgrade.sh` or `raisim_upgrade.ps1`, check out the matching
   `raisim2Lib` release, or configure again so that CMake restores the pinned
-  packages (see [Installation](./Installation.md)). A stale viewer source can connect but
-  disagree with the installed rayrai/RaiSim protocol implementation.
+  packages (see [Installation](./Installation.md)), and rebuild `rayrai_tcp_viewer`. A viewer
+  built against other packages can connect but disagree with the installed
+  rayrai/RaiSim protocol implementation.
 
 For manual RGB/depth cameras, keep the examples-built viewer connected. It
 renders requested frames and returns them to `RaisimServer`. If the viewer
 reports `Refusing RGB sensor update without a complete render`, update the
-viewer sources as described above and rebuild `rayrai_tcp_viewer` in
+viewer as described above and rebuild `rayrai_tcp_viewer` in
 `build-examples`; do not launch an older installed viewer binary.
 
 ## rayrai Window Or Offscreen Context Fails

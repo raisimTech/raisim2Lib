@@ -15,11 +15,11 @@ CMake target: `rayrai_tcp_viewer`.
 
 ## Source
 
-`examples/src/rayrai/tools/rayrai_tcp_viewer.cpp` is the viewer's main
-source file; the `TcpViewer*` files next to it hold the rest of the
-implementation. `examples/CMakeLists.txt` builds the target from these files.
-The platform install scripts refresh them to match the installed rayrai
-library.
+`examples/src/rayrai/tools/rayrai_tcp_viewer.cpp` runs the viewer in an SDL
+window. The viewer itself is part of the rayrai library
+(`raisin::tcp_viewer::ViewerApp`), so the program parses the command line,
+creates the window and its OpenGL and ImGui contexts, and calls the viewer
+once per frame; see [Embedding the viewer in your application](../../RayraiTcpViewer.md#embedding-the-viewer).
 
 ## Run
 

@@ -58,9 +58,10 @@ directly in its build directory:
 /tmp/raisim2lib-examples/primitive_grid
 ```
 
-The release package does not include a prebuilt viewer. The
-`rayrai_tcp_viewer` target is built from the viewer sources owned by this
-repository and links against the packaged RaiSim and rayrai libraries.
+The release package does not include a prebuilt viewer executable. The viewer
+is part of the packaged rayrai library, and the `rayrai_tcp_viewer` target
+builds the short program that runs it in a window
+(`examples/src/rayrai/tools/rayrai_tcp_viewer.cpp`).
 
 ## Debug and Release package variants
 

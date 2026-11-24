@@ -12,13 +12,14 @@ embed the renderer with `raisin::RayraiWindow` do not use this binary; see
 [rayrai Visualizer](./Rayrai.md) for that in-process path. For the server-side API the viewer
 talks to, see [Raisim Server](./RaisimServer.md).
 
-The binary packages ship the rayrai library but not the viewer executable. The
-viewer's sources live in this repository under `examples/src/rayrai/tools`,
-and the examples CMake project builds the `rayrai_tcp_viewer` target from
-them. Each checkout pins one RaiSim release, and its viewer sources match that
-release's rayrai library (see [Installation](./Installation.md)). After updating the
-checkout, configure it again, which downloads the pinned packages, and rebuild
-`rayrai_tcp_viewer`.
+The viewer is part of the rayrai library, which the binary packages ship; they
+do not ship an executable. `examples/src/rayrai/tools/rayrai_tcp_viewer.cpp`
+is a short program that runs the viewer in an SDL window, and the examples
+CMake project builds it as the `rayrai_tcp_viewer` target. After updating the
+checkout, configure it again, which downloads the pinned packages (see
+[Installation](./Installation.md)), and rebuild `rayrai_tcp_viewer`. Other
+programs can run the same viewer in their own window; see
+[Embedding the viewer in your application](#embedding-the-viewer).
 
 <figure>
 <img class="diagram" src="../../rsc/docs/image/rayrai/tcp_viewer/tcp_viewer_data_flow.svg" alt="TCP viewer connection, scene update, sensor, and control data flow">
@@ -185,8 +186,9 @@ servers bind the next free port.
 
 ## Local world simulation
 
-Drop a RaiSim world XML (root element `<raisim>`) onto a pane, or start the
-viewer with `--simulate world.xml`, and the viewer runs that world itself:
+Drop a RaiSim world XML (root element `<raisim>`) onto a pane, open it with
+**Open world / robot file** in the connect prompt, or start the viewer with
+`--simulate world.xml`, and the viewer runs that world itself:
 
 - **Child process.** The world is loaded and stepped in a child process (the
   viewer executable itself, started in an internal worker mode). A long model
@@ -559,7 +561,7 @@ same built-in file and folder browser on all platforms.
 
 <figure>
 <img src="../../rsc/docs/image/rayrai/tcp_viewer/tcp_viewer_connect_prompt.png" alt="the connect prompt listing one discovered RaiSim server" style="width: 80%">
-<figcaption>A pane with no session shows the endpoint row and the live server table, and nothing else. Clicking a row connects that pane to that server.</figcaption>
+<figcaption>A pane with no session shows the endpoint row, the live server table and the button that opens a world or robot file. Clicking a row connects that pane to that server.</figcaption>
 </figure>
 
 Until a pane has a scene, it shows no tab bar, only the connection controls:
@@ -572,6 +574,10 @@ Until a pane has a scene, it shows no tab bar, only the connection controls:
   anywhere on a row fills in the endpoint and connects.
 - **Status line**: amber while a connection attempt is in progress, red when
   idle or after a failure.
+- **Open world / robot file**: a file browser for a RaiSim world XML, which
+  the pane [simulates](#local-world-simulation), or a URDF / MJCF, which it
+  opens in the [inspector](#articulated-system-inspector-mode). It does what
+  dropping the file on the pane does, for hosts that do not forward file drops.
 
 Only servers that are sending beacons are listed. Saved endpoints stay in the
 endpoint dropdown, because nothing guarantees that a server still listens on
@@ -1099,8 +1105,8 @@ documenting the viewer UI itself. Keyboard shortcuts are listed in the
 ## Articulated-system inspector mode
 
 Drop a URDF (root element `<robot>`) or MJCF (`<mujoco>`) file onto a pane,
-or start the viewer with `--inspect FILE`, to inspect a model without a
-server. The model is loaded into a local world (MJCF through
+open it with **Open world / robot file** in the connect prompt, or start the
+viewer with `--inspect FILE`, to inspect a model without a server. The model is loaded into a local world (MJCF through
 `World::loadMjcfFile`, URDF through `World::addArticulatedSystem`), and the
 left overlay is replaced by the **Articulated System Inspector** panel. An MJCF
 file may also add objects declared in its `<worldbody>` (ground plane, lights,
@@ -1274,6 +1280,83 @@ If port 8080 is taken, `launchServer()` binds the next free port, up to 63
 ports higher, and logs a warning. `server.getPort()` returns the bound port as
 soon as `launchServer()` returns, and the discovery beacon advertises it, so
 the server still appears in the viewer's server list.
+
+## Embedding the viewer in your application {#embedding-the-viewer}
+
+The viewer, with its icons and font, is the class
+`raisin::tcp_viewer::ViewerApp` in `rayrai/TcpViewerApp.hpp`. A program that
+already has an OpenGL context and an ImGui context with the OpenGL3 renderer
+backend runs it with three calls per frame; `rayrai_tcp_viewer.cpp` is the
+complete SDL program:
+
+```cpp
+#include "rayrai/TcpViewerApp.hpp"
+
+raisin::tcp_viewer::ViewerAppConfig config;
+// The command line of rayrai_tcp_viewer, or set config.options directly.
+raisin::tcp_viewer::parseViewerOptions(argc, argv, config.options);
+config.window.resize = [&](int width, int height) { /* resize your window */ };
+
+raisin::tcp_viewer::ViewerApp viewer(config);
+if (!viewer.init()) return 1;           // GL and ImGui contexts current
+while (!viewer.quitRequested()) {
+  viewer.beginFrame(framebufferSize, windowSize);
+  // your backends' NewFrame(), then ImGui::NewFrame()
+  viewer.drawFrame();
+  // ImGui::Render() and the draw-data render, then swap
+}
+viewer.shutdown();
+```
+
+The viewer restyles and re-fonts its ImGui context and lays its panes out over
+the whole display, so it needs a context of its own. To show it inside a window
+of an ImGui application that has its own UI, use
+`raisin::tcp_viewer::ViewerWidget` (`rayrai/TcpViewerWidget.hpp`) instead. It
+creates that context, renders the viewer into a texture and draws it as an image
+in the current window, forwarding the window's mouse, keyboard and text input:
+
+```cpp
+#include "rayrai/TcpViewerWidget.hpp"
+
+raisin::tcp_viewer::ViewerWidget viewer(config);  // created once
+
+// every frame, inside your ImGui frame
+if (ImGui::Begin("Simulation")) {
+  viewer.draw(ImGui::GetContentRegionAvail());
+} else {
+  viewer.drawHidden();  // keeps connections, recordings and local simulations running
+}
+ImGui::End();
+
+// when the application exits: after its last frame was rendered, before its GL context goes
+viewer.shutdown();
+```
+
+The viewer renders with your OpenGL context. The widget keeps your framebuffers,
+viewport, clear color, pixel pack and unpack state, and the active texture
+unit's texture, program and vertex array; anything else your own rendering
+relies on (other texture units, buffer bindings, depth, blend), set again after
+drawing the widget, as ImGui's renderer backend does.
+
+What the host provides through `ViewerAppConfig`:
+
+| Field | Effect |
+|---|---|
+| `options` | The startup options of [Command-line options](#command-line-options); `options.screenshotDir` is the default directory of screenshots, videos and sessions. |
+| `window.resize` | Called with a server's window-size request (clamped to 160x120 to 8192x8192). Without it the request is ignored. |
+| `window.isFullscreen`, `window.setFullscreen` | Enable `F11`, `Esc` and the **Toggle Fullscreen** button. Without them those controls are hidden. |
+| `simulationWorker` | The executable that simulates a world XML opened in the viewer. `rayrai_tcp_viewer` names itself; another host builds a small program whose `main()` returns `runSimulationWorker(argc, argv)`. Without it, opening a world XML reports an error. |
+| `extraResourceDirs` | Searched for scene files and meshes after the user's resource directories, without being saved in the settings. |
+
+`ViewerApp::openFile()` opens a world XML or a URDF / MJCF as a dropped file
+does; the **Open world / robot file** button of the connect prompt does the
+same for hosts that do not forward file drops. Every host shares the settings
+file of the standalone viewer. A `ViewerApp` runs once: after `shutdown()`,
+create a new one to show the viewer again. The camera keys (`W`, `A`, `S`, `D`,
+`Space`) and the `B` shortcut read SDL's keyboard state, which the whole
+process shares, so a host that shows `ViewerApp` next to other UI calls
+`setKeyboardFocus(false)` while that UI has the keyboard; `ViewerWidget` does
+this for you.
 
 ## Writing a custom client
 
@@ -1466,4 +1549,7 @@ Scene-editing requests need no feature bit.
 
 ## API
 
+- [`raisin::tcp_viewer::ViewerApp`](/api/raisin/tcp_viewer/ViewerApp.md)
+- [`raisin::tcp_viewer::ViewerAppConfig`](/api/raisin/tcp_viewer/ViewerAppConfig.md)
+- [`raisin::tcp_viewer::ViewerWidget`](/api/raisin/tcp_viewer/ViewerWidget.md)
 - [`raisin::tcp_viewer::BufferReader`](/api/raisin/tcp_viewer/BufferReader.md)

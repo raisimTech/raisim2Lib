@@ -39,8 +39,9 @@ key once per process, when the first `raisim::World` is constructed, so call
 This page covers installed package paths, environment variables, build commands
 for examples and `raisimPy`, dependencies, and license activation for the
 binary RaiSim distribution. Get it from
-`https://github.com/raisimTech/raisim2Lib`: the repository provides example,
-wrapper, and rayrai viewer sources, resources, and documentation, and its
+`https://github.com/raisimTech/raisim2Lib`: the repository provides example
+and wrapper sources (the rayrai TCP viewer among the examples), resources, and
+documentation, and its
 release archives provide the prebuilt RaiSim and rayrai headers and libraries.
 
 ## Dependencies

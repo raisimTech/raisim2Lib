@@ -344,22 +344,6 @@ create_rayrai_executable(rayrai_swept_ccd src/rayrai/collision/rayrai_swept_ccd.
 
 # Tools.
 create_rayrai_executable(rayrai_tcp_viewer src/rayrai/tools/rayrai_tcp_viewer.cpp)
-target_sources(rayrai_tcp_viewer PRIVATE
-    src/rayrai/tools/TcpViewerProcess.cpp
-    src/rayrai/tools/TcpViewerExamples.cpp
-    src/rayrai/tools/TcpViewerInspectorLoad.cpp
-    src/rayrai/tools/TcpViewerSceneFiles.cpp
-    src/rayrai/tools/TcpViewerActuators.cpp
-    src/rayrai/tools/TcpViewerVideo.cpp
-    src/rayrai/tools/TcpViewerSignals.cpp
-    src/rayrai/tools/TcpViewerPaneLayout.cpp
-    src/rayrai/tools/TcpViewerSimulationWorker.cpp
-    src/rayrai/tools/TcpViewerSimulation.cpp
-    src/rayrai/tools/TcpViewerScreenshot.cpp
-    src/rayrai/tools/TcpViewerSession.cpp
-    src/rayrai/tools/TcpViewerDiscovery.cpp
-    src/rayrai/tools/TcpViewerSensors.cpp
-    src/rayrai/tools/TcpViewerSettings.cpp)
 
 # Optional desktop integration: install a launcher for the viewer into
 # ~/.local/share/applications and pin it to the GNOME / Ubuntu dock after each
@@ -387,10 +371,6 @@ if(RAISIM_EXAMPLE_DESKTOP_LAUNCHER AND UNIX AND NOT APPLE)
         message(WARNING
             "RAISIM_EXAMPLE_DESKTOP_LAUNCHER is ON but ${_viewer_launcher_script} is missing")
     endif()
-endif()
-
-if(WIN32)
-  target_link_libraries(rayrai_tcp_viewer PRIVATE shell32 ws2_32)
 endif()
 
 # Terrain-grounded mixed forest from rsc/forest; --assets overrides this path.

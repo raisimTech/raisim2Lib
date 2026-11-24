@@ -19,7 +19,7 @@
 
 For full documentation, see the [RaiSim documentation](https://raisim.com).
 
-RaiSim is a physics engine for robotics and artificial intelligence research. The public distribution is provided as binary packages with headers, libraries, examples, rayrai viewer sources, and documentation.
+RaiSim is a physics engine for robotics and artificial intelligence research. The public distribution is provided as binary packages with headers, libraries, examples (among them the rayrai TCP viewer), and documentation.
 
 Source assets live under [`rsc`](rsc), including example models, viewer icons, and documentation images in [`rsc/docs/image`](rsc/docs/image).
 
@@ -205,7 +205,7 @@ Use the source-built `rayrai_tcp_viewer` for applications that publish through `
 
 <img src="rsc/docs/image/rayrai/tcp_viewer/tcp_viewer_overview.png" alt="rayrai TCP viewer" width="100%">
 
-`rayrai_tcp_viewer` is the recommended visualizer for `RaisimServer` simulations. It is built from the viewer sources in this repository and connects to a running server over TCP. The viewer renders the world with the full rayrai PBR pipeline (procedural sky, IBL, directional shadows, reflective ground, weather, tone mapping). The overlay surfaces:
+`rayrai_tcp_viewer` is the recommended visualizer for `RaisimServer` simulations. The viewer is part of the rayrai library, the examples build the program that runs it in a window, and it connects to a running server over TCP. The viewer renders the world with the full rayrai PBR pipeline (procedural sky, IBL, directional shadows, reflective ground, weather, tone mapping). The overlay surfaces:
 
 * **Pause / Step / Step 10** — interactive simulation control over the wire (`PROTOCOL_FEATURE_SIM_CONTROL`); pause and step a remote server from the viewer without changing simulation code.
 * **Force / pose / generalized-coordinate authoring** — drag-poke objects, retarget single-body poses, or override an articulated system's joint angles directly from the inspector.
